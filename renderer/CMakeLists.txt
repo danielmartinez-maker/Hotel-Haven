@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.25)
 project(HotelHavenRenderer LANGUAGES CXX)
 
+if(NOT WIN32)
+    message(FATAL_ERROR "Hotel Haven renderer foundation C targets Windows 11 x64")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,6 +24,24 @@ target_include_directories(hh_renderer_core PUBLIC
 )
 hh_enable_strict_warnings(hh_renderer_core)
 
+add_library(hh_renderer_d3d11 STATIC
+    src/d3d11/D3D11Renderer.cpp
+)
+target_include_directories(hh_renderer_d3d11 PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_renderer_d3d11 PUBLIC
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+)
+target_link_libraries(hh_renderer_d3d11 PUBLIC
+    hh_renderer_core
+    d3d11
+    dxgi
+    d3dcompiler
+)
+hh_enable_strict_warnings(hh_renderer_d3d11)
+
 add_executable(hh_renderer_tests
     tests/TestMain.cpp
     tests/CameraTests.cpp
@@ -32,6 +54,7 @@ add_executable(hh_renderer_tests
 target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
+target_compile_definitions(hh_renderer_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core d3d11 d3dcompiler)
 hh_enable_strict_warnings(hh_renderer_tests)
 
