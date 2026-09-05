@@ -6,6 +6,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 enable_testing()
+include(cmake/CompilerWarnings.cmake)
+
+add_library(hh_renderer_core STATIC
+    src/Camera.cpp
+    src/FloorVisibility.cpp
+    src/Occlusion.cpp
+)
+
+target_include_directories(hh_renderer_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+hh_enable_strict_warnings(hh_renderer_core)
 
 add_executable(hh_renderer_tests
     tests/TestMain.cpp
@@ -16,12 +28,9 @@ add_executable(hh_renderer_tests
 )
 
 target_include_directories(hh_renderer_tests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
-
-if(MSVC)
-    target_compile_options(hh_renderer_tests PRIVATE /W4 /WX /permissive- /EHsc)
-endif()
+target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core)
+hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
