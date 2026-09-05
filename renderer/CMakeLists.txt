@@ -26,12 +26,13 @@ add_executable(hh_renderer_tests
     tests/FloorVisibilityTests.cpp
     tests/OcclusionTests.cpp
     tests/SceneComposerTests.cpp
+    tests/D3D11SmokeTests.cpp
 )
 
 target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
-target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core)
+target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core d3d11 d3dcompiler)
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
