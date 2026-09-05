@@ -1,0 +1,29 @@
+name: Renderer CI
+
+on:
+  push:
+    branches:
+      - feature/renderer-foundation-c
+    paths:
+      - 'renderer/**'
+      - '.github/workflows/renderer-ci.yml'
+  pull_request:
+    paths:
+      - 'renderer/**'
+      - '.github/workflows/renderer-ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S renderer -B renderer/build -A x64
+
+      - name: Build
+        run: cmake --build renderer/build --config Release
+
+      - name: Test
+        run: ctest --test-dir renderer/build -C Release --output-on-failure
