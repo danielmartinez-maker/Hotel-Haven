@@ -1,0 +1,34 @@
+name: Content Pipeline CI
+
+on:
+  push:
+    paths:
+      - 'Art/**'
+      - 'GameData/AssetDefinitions/**'
+      - 'Tools/ContentPipeline/**'
+      - '.github/workflows/content-pipeline-ci.yml'
+  pull_request:
+    paths:
+      - 'Art/**'
+      - 'GameData/AssetDefinitions/**'
+      - 'Tools/ContentPipeline/**'
+      - '.github/workflows/content-pipeline-ci.yml'
+
+jobs:
+  build-test-validate:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
+
+      - name: Build
+        run: cmake --build Tools/ContentPipeline/build --config Release
+
+      - name: Test
+        run: ctest --test-dir Tools/ContentPipeline/build -C Release --output-on-failure
+
+      - name: Validate repository assets
+        run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
