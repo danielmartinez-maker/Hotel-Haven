@@ -21,6 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate 500 asset library
+        run: python Tools/ContentPipeline/scripts/validate_asset_library.py
+
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
 
