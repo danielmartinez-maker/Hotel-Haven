@@ -40,8 +40,11 @@ jobs:
       - name: Generate full asset library
         run: python Tools/ArtGeneration/generate_all_assets.py .
 
-      - name: Validate generated geometry
+      - name: Validate generated geometry and palette
         run: python Tools/ArtGeneration/validate_generated_geometry.py .
+
+      - name: Render asset preview boards
+        run: python Tools/ArtGeneration/render_asset_previews.py .
 
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
@@ -64,6 +67,7 @@ jobs:
             Art/Exports/**
             Art/Validation/full_generation_summary.json
             Art/Validation/generated_geometry_qc.json
+            Art/Validation/Previews/**
           if-no-files-found: error
           compression-level: 6
           retention-days: 14
