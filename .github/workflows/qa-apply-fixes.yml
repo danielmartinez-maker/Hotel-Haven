@@ -1,0 +1,38 @@
+name: Apply Reproduced QA Fixes
+
+on:
+  push:
+    branches:
+      - 'qa/extensive-verification-2026-09-08'
+    paths:
+      - '.github/workflows/qa-apply-fixes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fixes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply fixes proven by red regression tests
+        run: python Tools/QA/apply_known_fixes.py
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git config user.name 'hotel-haven-qa-bot'
+          git config user.email 'hotel-haven-qa-bot@users.noreply.github.com'
+          git add Tools/ArtGeneration/batch01_generate.py \
+                  Tools/ArtGeneration/batch02_generate.py \
+                  Tools/ArtGeneration/tests/test_batch01_generator.py \
+                  Tools/ArtGeneration/tests/test_batch02_generator.py \
+                  Tools/QA/test_repository_integrity.py
+          git commit -m 'fix: reject unsafe asset IDs and preserve profile types'
+          git push origin HEAD:qa/extensive-verification-2026-09-08
