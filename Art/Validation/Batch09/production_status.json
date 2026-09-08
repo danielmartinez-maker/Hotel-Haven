@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "batch": 9,
+  "asset_count": 50,
+  "range": "HH_A401-HH_A450",
+  "generator": "Tools/ArtGeneration/batch09_generate.py",
+  "shared_factory": "Tools/ArtGeneration/amenity_decor_factory.py",
+  "local_validation": {"glb_generated":50,"sidecars_generated":50,"glb_reload_success":50,"unique_ids":50,"tests":"PASS"},
+  "status": "PRODUCTION_GENERATOR_VALIDATED"
+}
