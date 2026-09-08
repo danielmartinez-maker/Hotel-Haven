@@ -28,6 +28,23 @@ bool absolute_path_text(std::string_view value) {
     return std::filesystem::path(value).is_absolute() ||
            (value.size() >= 3 && ((value[0] >= 'A' && value[0] <= 'Z') || (value[0] >= 'a' && value[0] <= 'z')) && value[1] == ':' && (value[2] == '/' || value[2] == '\\'));
 }
+bool contains_parent_component(std::string_view value) {
+    std::size_t begin = 0;
+    for (std::size_t i = 0; i <= value.size(); ++i) {
+        if (i != value.size() && value[i] != '/' && value[i] != '\\') continue;
+        if (value.substr(begin, i - begin) == "..") return true;
+        begin = i + 1;
+    }
+    return false;
+}
+bool safe_repository_relative_path(std::string_view value) {
+    return !absolute_path_text(value) && !contains_parent_component(value);
+}
+void require_safe_provenance(std::string_view source_path, std::string_view sidecar_path) {
+    if (!safe_repository_relative_path(source_path) || !safe_repository_relative_path(sidecar_path)) {
+        throw std::runtime_error("hasset provenance paths must be repository-relative without parent traversal");
+    }
+}
 
 class Reader {
 public:
@@ -57,16 +74,17 @@ public:
         return out;
     }
     std::vector<std::byte> payload(std::uint64_t size) {
-        if (size > static_cast<std::uint64_t>(bytes_.size() - pos_)) throw std::runtime_error("truncated hasset payload");
+        if (size > static_cast<std::uint64_t>(remaining())) throw std::runtime_error("truncated hasset payload");
         const auto count = static_cast<std::size_t>(size);
         std::vector<std::byte> out(bytes_.begin() + static_cast<std::ptrdiff_t>(pos_), bytes_.begin() + static_cast<std::ptrdiff_t>(pos_ + count));
         pos_ += count;
         return out;
     }
+    std::size_t remaining() const noexcept { return bytes_.size() - pos_; }
     bool finished() const noexcept { return pos_ == bytes_.size(); }
 private:
     void require(std::size_t count) const {
-        if (count > bytes_.size() - pos_) throw std::runtime_error("truncated hasset");
+        if (count > remaining()) throw std::runtime_error("truncated hasset");
     }
     std::span<const std::byte> bytes_;
     std::size_t pos_{};
@@ -74,9 +92,7 @@ private:
 }
 
 std::vector<std::byte> serialize_hasset(const HassetDocument& document) {
-    if (absolute_path_text(document.source_path) || absolute_path_text(document.sidecar_path)) {
-        throw std::runtime_error("hasset provenance paths must be repository-relative");
-    }
+    require_safe_provenance(document.source_path, document.sidecar_path);
     std::vector<std::byte> out;
     out.insert(out.end(), kMagic.begin(), kMagic.end());
     append_u32(out, kVersion);
@@ -107,10 +123,17 @@ HassetDocument parse_hasset(std::span<const std::byte> bytes) {
     document.asset_id = reader.string();
     document.fingerprint = reader.string();
     const auto dependency_count = reader.u32();
+    constexpr std::size_t kMinimumBytesAfterDependencies = 4u + 4u + 8u;
+    if (reader.remaining() < kMinimumBytesAfterDependencies ||
+        static_cast<std::uint64_t>(dependency_count) >
+            static_cast<std::uint64_t>((reader.remaining() - kMinimumBytesAfterDependencies) / 4u)) {
+        throw std::runtime_error("invalid hasset dependency count");
+    }
     document.dependencies.reserve(dependency_count);
     for (std::uint32_t i = 0; i < dependency_count; ++i) document.dependencies.push_back(reader.string());
     document.source_path = reader.string();
     document.sidecar_path = reader.string();
+    require_safe_provenance(document.source_path, document.sidecar_path);
     document.payload = reader.payload(reader.u64());
     if (!reader.finished()) throw std::runtime_error("trailing bytes in hasset");
     return document;
