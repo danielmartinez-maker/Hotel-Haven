@@ -154,6 +154,22 @@ void validate_cooked_path(
     }
 }
 
+std::filesystem::path temporary_path_for(const std::filesystem::path& output) {
+    auto temp = output;
+    temp += ".tmp";
+    return temp;
+}
+
+void validate_atomic_cooked_write(
+    const std::filesystem::path& output,
+    const CookOptions& options,
+    std::string_view label) {
+    validate_cooked_path(output, options, label);
+    const auto temp = temporary_path_for(output);
+    const std::string temp_label = std::string(label) + " temporary file";
+    validate_cooked_path(temp, options, temp_label);
+}
+
 std::string repo_relative(const std::filesystem::path& path, const std::filesystem::path& root) {
     const auto absolute_path = std::filesystem::absolute(path).lexically_normal();
     const auto absolute_root = std::filesystem::absolute(root).lexically_normal();
@@ -232,7 +248,10 @@ CookResult cook_internal(
     validate_cookable(record);
     const auto fingerprint = compute_fingerprint(record, catalog, graph, options.fingerprint);
     const auto output = options.cooked_root / (record.metadata.asset_id + ".hasset");
-    validate_cooked_path(output, options, "cooked asset");
+    const auto state_path = options.cooked_root / ".cook-state.json";
+    validate_atomic_cooked_write(output, options, "cooked asset");
+    validate_atomic_cooked_write(state_path, options, "cook state");
+
     const auto existing = state.find(record.metadata.asset_id);
     if (!force && existing != state.end() && existing->second == fingerprint &&
         existing_output_matches(output, record, fingerprint, options)) {
@@ -250,8 +269,6 @@ CookResult cook_internal(
     const auto bytes = serialize_hasset(document);
     write_bytes_atomic(output, bytes);
     state[record.metadata.asset_id] = fingerprint;
-    const auto state_path = options.cooked_root / ".cook-state.json";
-    validate_cooked_path(state_path, options, "cook state");
     write_text_atomic(state_path, serialize_state(state));
     return {record.metadata.asset_id, true, output, fingerprint};
 }
