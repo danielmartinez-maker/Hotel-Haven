@@ -1,6 +1,7 @@
 #include "Test.h"
 #include "hh/assets/Json.h"
 #include <cstdint>
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
 
@@ -11,6 +12,15 @@ std::uint64_t next_random(std::uint64_t& state) noexcept {
     state ^= state >> 7u;
     state ^= state << 17u;
     return state;
+}
+
+std::string quoted_bytes(std::initializer_list<unsigned char> bytes) {
+    std::string text;
+    text.reserve(bytes.size() + 2u);
+    text.push_back('"');
+    for (const unsigned char byte : bytes) text.push_back(static_cast<char>(byte));
+    text.push_back('"');
+    return text;
 }
 }
 
@@ -46,6 +56,29 @@ HH_TEST("json parser rejects unpaired UTF-16 surrogates") {
         "\"\\uD800\\u0041\"",
     };
     for (const char* text : cases) {
+        bool threw = false;
+        try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
+HH_TEST("json parser accepts valid raw UTF-8") {
+    const auto text = quoted_bytes({0x63u, 0x61u, 0x66u, 0xC3u, 0xA9u, 0x20u, 0xF0u, 0x9Fu, 0x98u, 0x80u});
+    const auto value = parse_json(text);
+    HH_REQUIRE(value.as_string() == text.substr(1u, text.size() - 2u));
+}
+
+HH_TEST("json parser rejects malformed raw UTF-8") {
+    const std::string cases[] = {
+        quoted_bytes({0x80u}),                         // isolated continuation
+        quoted_bytes({0xC0u, 0xAFu}),                 // overlong two-byte encoding
+        quoted_bytes({0xC2u}),                        // truncated two-byte sequence
+        quoted_bytes({0xE2u, 0x28u, 0xA1u}),          // invalid continuation byte
+        quoted_bytes({0xEDu, 0xA0u, 0x80u}),          // UTF-8 encoded surrogate
+        quoted_bytes({0xF4u, 0x90u, 0x80u, 0x80u}),   // code point above U+10FFFF
+        quoted_bytes({0xF8u, 0x88u, 0x80u, 0x80u, 0x80u}), // obsolete five-byte form
+    };
+    for (const auto& text : cases) {
         bool threw = false;
         try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
         HH_REQUIRE(threw);
