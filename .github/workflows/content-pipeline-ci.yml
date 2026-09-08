@@ -55,9 +55,13 @@ jobs:
         run: python Tools/ArtGeneration/batch08_generate.py GameData/AssetDefinitions/Manifest/asset_batch_08.json Art/Exports/Batch08 --package
       - name: Generate Batch 09 exports
         run: python Tools/ArtGeneration/batch09_generate.py GameData/AssetDefinitions/Manifest/asset_batch_09.json Art/Exports/Batch09 --package
+      - name: Generate Batch 10 exports
+        run: python Tools/ArtGeneration/batch10_generate.py GameData/AssetDefinitions/Manifest/asset_batch_10.json Art/Exports/Batch10 --package
 
       - name: Generate shared mechanical animations
         run: python Tools/ArtGeneration/mechanical_animation_generate.py Art/Exports/Animations
+      - name: Generate shared humanoid animations
+        run: python Tools/ArtGeneration/humanoid_animation_generate.py GameData/AssetDefinitions/animation_sets_v1.json Art/Exports/AnimationsHumanoid
       - name: Link animation dependencies
         run: python Tools/ArtGeneration/link_animation_dependencies.py GameData/AssetDefinitions/Manifest Art/Exports
 
