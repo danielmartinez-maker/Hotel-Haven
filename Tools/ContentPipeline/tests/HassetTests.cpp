@@ -1,5 +1,6 @@
 #include "Test.h"
 #include "hh/assets/Hasset.h"
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <new>
