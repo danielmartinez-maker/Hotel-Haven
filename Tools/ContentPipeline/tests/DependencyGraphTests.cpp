@@ -85,6 +85,28 @@ HH_TEST("catalog infers repository root when scanning a nested export directory"
     HH_REQUIRE(catalog.by_id("asset.a").source_path == root / "Art/Source/a.blend");
 }
 
+#ifndef _WIN32
+HH_TEST("catalog rejects source symlinks resolving outside repository root") {
+    const auto root = make_repo();
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    write_bytes(outside / "secret.blend", "outside-secret");
+    fs::create_directory_symlink(outside, root / "Art/Source/link");
+    write_bytes(root / "Art/Exports/a.glb", "export-asset.a");
+    std::ofstream out(root / "Art/Exports/a.glb.asset.json", std::ios::binary);
+    out << "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        << "\"source\":\"Art/Source/link/secret.blend\",\"units\":\"meters\","
+        << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}";
+    out.close();
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
+    fs::remove_all(outside);
+    HH_REQUIRE(threw);
+}
+#endif
+
 HH_TEST("dependency graph returns deterministic transitive relationships") {
     const auto root = make_repo();
     add_asset(root, "asset.c", "c");
