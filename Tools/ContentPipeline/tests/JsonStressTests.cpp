@@ -24,6 +24,34 @@ HH_TEST("json parser rejects excessive nesting") {
     HH_REQUIRE(threw);
 }
 
+HH_TEST("json parser rejects numeric overflow instead of producing infinity") {
+    constexpr const char* cases[] = {"1e9999", "-1e9999"};
+    for (const char* text : cases) {
+        bool threw = false;
+        try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
+HH_TEST("json parser decodes UTF-16 surrogate pairs in unicode escapes") {
+    const auto value = parse_json("\"\\uD83D\\uDE00\"");
+    HH_REQUIRE(value.as_string() == std::string("\xF0\x9F\x98\x80", 4));
+}
+
+HH_TEST("json parser rejects unpaired UTF-16 surrogates") {
+    constexpr const char* cases[] = {
+        "\"\\uD800\"",
+        "\"\\uDC00\"",
+        "\"\\uD800x\"",
+        "\"\\uD800\\u0041\"",
+    };
+    for (const char* text : cases) {
+        bool threw = false;
+        try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
 HH_TEST("json parser survives five thousand deterministic hostile strings") {
     std::uint64_t state = 0x4a534f4e46555a5aull;
     constexpr char alphabet[] = "{}[],:\\\"0123456789truefalsenull abcdefABCDEF+-eE\\u\n\r\t";
