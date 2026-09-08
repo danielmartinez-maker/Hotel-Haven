@@ -56,6 +56,15 @@ HH_TEST("catalog rejects duplicate logical IDs") {
     HH_REQUIRE(threw);
 }
 
+HH_TEST("catalog rejects asset IDs that collide on case-insensitive filesystems") {
+    const auto root = make_repo();
+    add_asset(root, "asset.Room", "a");
+    add_asset(root, "asset.room", "b");
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+}
+
 HH_TEST("catalog rejects source paths escaping repository root") {
     const auto root = make_repo();
     write_bytes(root / "Art/Exports/a.glb", "export-asset.a");
@@ -97,6 +106,46 @@ HH_TEST("catalog rejects source symlinks resolving outside repository root") {
     std::ofstream out(root / "Art/Exports/a.glb.asset.json", std::ios::binary);
     out << "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
         << "\"source\":\"Art/Source/link/secret.blend\",\"units\":\"meters\","
+        << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}";
+    out.close();
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
+    fs::remove_all(outside);
+    HH_REQUIRE(threw);
+}
+
+HH_TEST("catalog rejects sidecar symlinks resolving outside repository root") {
+    const auto root = make_repo();
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_sidecar");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    write_bytes(root / "Art/Source/a.blend", "source-asset.a");
+    write_bytes(root / "Art/Exports/a.glb", "export-asset.a");
+    write_bytes(
+        outside / "a.glb.asset.json",
+        "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        "\"source\":\"Art/Source/a.blend\",\"units\":\"meters\","
+        "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}");
+    fs::create_symlink(outside / "a.glb.asset.json", root / "Art/Exports/a.glb.asset.json");
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
+    fs::remove_all(outside);
+    HH_REQUIRE(threw);
+}
+
+HH_TEST("catalog rejects export symlinks resolving outside repository root") {
+    const auto root = make_repo();
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_export");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    write_bytes(root / "Art/Source/a.blend", "source-asset.a");
+    write_bytes(outside / "secret.glb", "outside-export-secret");
+    fs::create_symlink(outside / "secret.glb", root / "Art/Exports/a.glb");
+    std::ofstream out(root / "Art/Exports/a.glb.asset.json", std::ios::binary);
+    out << "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        << "\"source\":\"Art/Source/a.blend\",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}";
     out.close();
