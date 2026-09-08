@@ -68,7 +68,9 @@ def add_lapels(scene,scale,color):
  add(scene,box((.07*scale,.018*scale,.29*scale),(-.075*scale,-.132*scale,1.25*scale),color,'lapel'),'Accessory_Lapel_L','Spine')
  add(scene,box((.07*scale,.018*scale,.29*scale),(.075*scale,-.132*scale,1.25*scale),color,'lapel'),'Accessory_Lapel_R','Spine')
 def add_buttons(scene,scale,color,count=3):
- for i in range(count):add(scene,sph(.015*scale,(0,-.145*scale,(1.30-i*.09)*scale),color,'button'),'Accessory_Button_'+str(i),'Spine')
+ # Buttons are gameplay-scale accents; tiny icospheres wasted ~320 faces each.
+ for i in range(count):
+  add(scene,box((.026*scale,.012*scale,.026*scale),(0,-.149*scale,(1.30-i*.09)*scale),color,'button'),f'Accessory_Button_{i}','Spine')
 
 def add_archetype_details(scene,name,index,scale,cloth,pants):
  if 'Backpacker' in name:
@@ -114,7 +116,7 @@ def add_staff_details(scene,name,scale):
   add_lapels(scene,scale,COLORS['gold']);add(scene,box((.055*scale,.018*scale,.32*scale),(0,-.145*scale,1.22*scale),COLORS['burgundy'],'tie'),'Accessory_ManagerTie','Spine')
 
 def build_character(name,index):
- child='Child' in name;woman=any(k in name for k in ('Woman','Girl')) or name.endswith('Partner B') or name.endswith('Parent B')
+ child='Child' in name
  height,width,depth=body_profile(name,index);scale=height/1.77;scene=trimesh.Scene();skin=COLORS[['skin1','skin2','skin3','skin4'][index%4]];cloth,pants=role_palette(name,index);hair=COLORS[['hair_dark','hair_brown','hair_blond','hair_grey'][index%4]]
  hip_w=.34*scale*width;torso_w=.42*scale*width;torso_d=.24*scale*depth;arm_x=.27*scale*width;leg_x=.10*scale*width
  add(scene,box((hip_w,.22*scale*depth,.20*scale),(0,0,.84*scale),pants,'pants'),'Hips')
