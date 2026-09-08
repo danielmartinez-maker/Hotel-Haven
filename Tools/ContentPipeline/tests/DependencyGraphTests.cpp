@@ -70,6 +70,21 @@ HH_TEST("catalog rejects source paths escaping repository root") {
     HH_REQUIRE(threw);
 }
 
+HH_TEST("catalog infers repository root when scanning a nested export directory") {
+    const auto root = make_repo();
+    write_bytes(root / "Art/Source/a.blend", "source-asset.a");
+    write_bytes(root / "Art/Exports/Batch01/a.glb", "export-asset.a");
+    std::ofstream out(root / "Art/Exports/Batch01/a.glb.asset.json", std::ios::binary);
+    out << "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        << "\"source\":\"Art/Source/a.blend\",\"units\":\"meters\","
+        << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}";
+    out.close();
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports/Batch01");
+    HH_REQUIRE(catalog.repository_root() == root);
+    HH_REQUIRE(catalog.by_id("asset.a").source_path == root / "Art/Source/a.blend");
+}
+
 HH_TEST("dependency graph returns deterministic transitive relationships") {
     const auto root = make_repo();
     add_asset(root, "asset.c", "c");
