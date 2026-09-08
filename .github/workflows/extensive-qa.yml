@@ -167,8 +167,8 @@ jobs:
         run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --target hotel_haven_renderer_demo
 
   windows-renderer-asan:
-    name: Windows D3D11 renderer ASan bounded soak
-    runs-on: windows-latest
+    name: Windows D3D11 renderer ASan (VS2022) bounded soak
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - name: Configure D3D11 renderer with MSVC AddressSanitizer
