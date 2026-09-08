@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace hh::assets;
@@ -22,12 +23,37 @@ fs::path make_repo() {
     return root;
 }
 void write_text(const fs::path& p, std::string_view s) { fs::create_directories(p.parent_path()); std::ofstream(p, std::ios::binary) << s; }
+std::string json_string(std::string_view value) {
+    std::string out{"\""};
+    for (const unsigned char c : value) {
+        switch (c) {
+        case '"': out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\b': out += "\\b"; break;
+        case '\f': out += "\\f"; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default:
+            if (c < 0x20u) {
+                constexpr char hex[] = "0123456789ABCDEF";
+                out += "\\u00";
+                out.push_back(hex[(c >> 4u) & 0x0Fu]);
+                out.push_back(hex[c & 0x0Fu]);
+            } else {
+                out.push_back(static_cast<char>(c));
+            }
+        }
+    }
+    out.push_back('"');
+    return out;
+}
 void add_asset(const fs::path& root, std::string id, std::string name, std::string deps = "[]") {
     write_text(root / ("Art/Source/" + name + ".blend"), "source-" + id);
     write_text(root / ("Art/Exports/" + name + ".glb"), "export-" + id);
     std::ofstream out(root / ("Art/Exports/" + name + ".glb.asset.json"), std::ios::binary);
-    out << "{\"schema\":1,\"asset_id\":\"" << id << "\",\"asset_type\":\"StaticMeshAsset\","
-        << "\"source\":\"Art/Source/" << name << ".blend\",\"units\":\"meters\","
+    out << "{\"schema\":1,\"asset_id\":" << json_string(id) << ",\"asset_type\":\"StaticMeshAsset\","
+        << "\"source\":" << json_string("Art/Source/" + name + ".blend") << ",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":" << deps << "}";
 }
