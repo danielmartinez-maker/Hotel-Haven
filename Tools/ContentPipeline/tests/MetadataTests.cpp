@@ -156,3 +156,16 @@ HH_TEST("canonical metadata output is stable and key ordered") {
     HH_REQUIRE(a.find("\"asset_id\"") < a.find("\"asset_type\""));
     HH_REQUIRE(a.find("\"schema\"") > a.find("\"material_slots\""));
 }
+HH_TEST("metadata rejects integer values outside int64 range") {
+    auto text = valid_sidecar();
+    const auto needle = std::string("\"source_revision\":7");
+    const auto pos = text.find(needle);
+    HH_REQUIRE(pos != std::string::npos);
+    text.replace(pos, needle.size(), "\"source_revision\":9223372036854775808");
+    const auto dir = temp_dir();
+    const auto path = dir / "huge.asset.json";
+    write_text(path, text);
+    bool threw = false;
+    try { static_cast<void>(load_metadata(path)); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+}
