@@ -7,6 +7,7 @@ on:
       - 'GameData/AssetDefinitions/**'
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
+      - 'Tools/QA/test_asset_library_validator.py'
       - '.github/workflows/content-pipeline-ci.yml'
   pull_request:
     paths:
@@ -14,6 +15,7 @@ on:
       - 'GameData/AssetDefinitions/**'
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
+      - 'Tools/QA/test_asset_library_validator.py'
       - '.github/workflows/content-pipeline-ci.yml'
 
 concurrency:
@@ -40,6 +42,9 @@ jobs:
 
       - name: Validate 500 asset library
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
+
+      - name: Test asset-library validator mutations
+        run: python -m pytest Tools/QA/test_asset_library_validator.py -q
 
       - name: Generate Batch 01 exports
         run: python Tools/ArtGeneration/batch01_generate.py GameData/AssetDefinitions/Manifest/asset_batch_01.json Art/Exports/Batch01 --package
