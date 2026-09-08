@@ -1,0 +1,209 @@
+name: Extensive QA
+
+on:
+  push:
+    branches:
+      - 'qa/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-contracts:
+    name: Python contracts (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: Tools/ArtGeneration/requirements.txt
+      - name: Install generator dependencies
+        run: python -m pip install -U pip && python -m pip install -r Tools/ArtGeneration/requirements.txt
+      - name: Byte-compile Python tools
+        run: python -m compileall -q Tools
+      - name: Run generator, adversarial and repository-integrity tests
+        run: python -m pytest Tools/ArtGeneration/tests Tools/QA/test_generator_contracts.py Tools/QA/test_repository_integrity.py -q
+
+  generator-soak:
+    name: Generator determinism and soak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: Tools/ArtGeneration/requirements.txt
+      - name: Install generator dependencies
+        run: python -m pip install -U pip && python -m pip install -r Tools/ArtGeneration/requirements.txt
+      - name: Repeat generator regression suite ten times
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 10); do
+            echo "Generator soak iteration ${i}/10"
+            python -m pytest Tools/ArtGeneration/tests Tools/QA/test_generator_contracts.py -q
+          done
+      - name: Generate both modeled batches twice and compare byte-for-byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          python Tools/ArtGeneration/batch01_generate.py GameData/AssetDefinitions/Manifest/asset_batch_01.json build/qa/gen_a --package >/dev/null
+          python Tools/ArtGeneration/batch02_generate.py GameData/AssetDefinitions/Manifest/asset_batch_02.json build/qa/gen_a --package >/dev/null
+          python Tools/ArtGeneration/batch01_generate.py GameData/AssetDefinitions/Manifest/asset_batch_01.json build/qa/gen_b --package >/dev/null
+          python Tools/ArtGeneration/batch02_generate.py GameData/AssetDefinitions/Manifest/asset_batch_02.json build/qa/gen_b --package >/dev/null
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import numpy as np
+          import trimesh
+
+          def digest(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          left = Path('build/qa/gen_a')
+          right = Path('build/qa/gen_b')
+          left_files = sorted(p.name for p in left.iterdir() if p.is_file())
+          right_files = sorted(p.name for p in right.iterdir() if p.is_file())
+          assert left_files == right_files
+          assert len([n for n in left_files if n.endswith('.glb')]) == 100
+          assert len([n for n in left_files if n.endswith('.asset.json')]) == 100
+          for name in left_files:
+              assert digest(left / name) == digest(right / name), f'nondeterministic output: {name}'
+          for name in (n for n in left_files if n.endswith('.glb')):
+              scene = trimesh.load(left / name, force='scene')
+              assert scene.geometry, name
+              assert scene.bounds is not None, name
+              assert np.isfinite(scene.bounds).all(), name
+              assert np.isfinite(scene.extents).all(), name
+              assert (scene.extents > 0.001).all(), name
+              assert (scene.extents < 50.0).all(), name
+              for geom in scene.geometry.values():
+                  assert np.isfinite(geom.vertices).all(), name
+                  assert len(geom.vertices) > 0, name
+          print('100 generated GLBs are deterministic, finite, non-empty, and bounded')
+          PY
+
+  content-sanitizers:
+    name: Content pipeline ASan/UBSan + fuzz + soak
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: abort_on_error=1:detect_leaks=1:strict_string_checks=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Configure sanitized content pipeline
+        run: >-
+          cmake -S Tools/ContentPipeline -B build/content-sanitize
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build sanitized content pipeline
+        run: cmake --build build/content-sanitize --parallel 2
+      - name: Repeat native tests 100 times
+        run: ctest --test-dir build/content-sanitize --output-on-failure --repeat until-fail:100
+      - name: Fuzz malformed metadata through sanitized CLI
+        run: python Tools/QA/fuzz_content_pipeline.py build/content-sanitize/asset --cases 300 --seed 1212233285
+
+  renderer-sanitizers:
+    name: Renderer ASan/UBSan + 200x test soak
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: abort_on_error=1:detect_leaks=1:strict_string_checks=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure sanitized renderer
+        run: >-
+          cmake -S renderer -B build/renderer-sanitize
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_TESTING=ON
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build sanitized renderer
+        run: cmake --build build/renderer-sanitize --parallel 2
+      - name: Repeat renderer tests 200 times
+        run: ctest --test-dir build/renderer-sanitize --output-on-failure --repeat until-fail:200
+
+  clang-release:
+    name: Clang release portability (${{ matrix.component }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [content, renderer]
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure content pipeline
+        if: matrix.component == 'content'
+        run: cmake -S Tools/ContentPipeline -B build/clang-content -DCMAKE_BUILD_TYPE=Release
+      - name: Build and test content pipeline
+        if: matrix.component == 'content'
+        run: cmake --build build/clang-content --parallel 2 && ctest --test-dir build/clang-content --output-on-failure --repeat until-fail:50
+      - name: Configure renderer
+        if: matrix.component == 'renderer'
+        run: cmake -S renderer -B build/clang-renderer -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Build and test renderer
+        if: matrix.component == 'renderer'
+        run: cmake --build build/clang-renderer --parallel 2 && ctest --test-dir build/clang-renderer --output-on-failure --repeat until-fail:50
+
+  windows-content:
+    name: Windows content (${{ matrix.config }}) 50x
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S Tools/ContentPipeline -B build/content-${{ matrix.config }} -A x64
+      - name: Build
+        run: cmake --build build/content-${{ matrix.config }} --config ${{ matrix.config }} --parallel
+      - name: Repeat native tests 50 times
+        run: ctest --test-dir build/content-${{ matrix.config }} -C ${{ matrix.config }} --output-on-failure --repeat until-fail:50
+
+  windows-renderer:
+    name: Windows D3D11 renderer (${{ matrix.config }}) 50x
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure D3D11 renderer
+        run: cmake -S renderer -B build/renderer-${{ matrix.config }} -DENABLE_D3D11=ON -DBUILD_TESTING=ON -A x64
+      - name: Build all renderer targets
+        run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --parallel
+      - name: Repeat renderer tests 50 times
+        run: ctest --test-dir build/renderer-${{ matrix.config }} -C ${{ matrix.config }} --output-on-failure --repeat until-fail:50
+      - name: Build demo smoke target
+        run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --target HotelHavenRendererDemo
+
+  cppcheck:
+    name: C++ static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+      - name: Analyze content pipeline and renderer
+        run: >-
+          cppcheck --std=c++20 --enable=warning,performance,portability
+          --error-exitcode=1 --inline-suppr --suppress=missingIncludeSystem
+          -ITools/ContentPipeline/include -Irenderer/include
+          Tools/ContentPipeline/src Tools/ContentPipeline/app renderer/src renderer/app
