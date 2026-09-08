@@ -169,3 +169,16 @@ HH_TEST("metadata rejects integer values outside int64 range") {
     try { static_cast<void>(load_metadata(path)); } catch (const std::exception&) { threw = true; }
     HH_REQUIRE(threw);
 }
+HH_TEST("metadata rejects schema outside int range") {
+    auto text = valid_sidecar();
+    const auto needle = std::string("\"schema\":1");
+    const auto pos = text.find(needle);
+    HH_REQUIRE(pos != std::string::npos);
+    text.replace(pos, needle.size(), "\"schema\":2147483648");
+    const auto dir = temp_dir();
+    const auto path = dir / "schema-range.asset.json";
+    write_text(path, text);
+    bool threw = false;
+    try { static_cast<void>(load_metadata(path)); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+}
