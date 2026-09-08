@@ -173,12 +173,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Configure D3D11 renderer with MSVC AddressSanitizer
         run: cmake -S renderer -B build/renderer-asan -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
-      - name: Build ASan renderer
+      - name: Build ASan renderer and startup probes
         run: cmake --build build/renderer-asan --config RelWithDebInfo --parallel
-      - name: Run verbose ASan diagnostic pass
-        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V --timeout 60
-      - name: Repeat ASan renderer tests ten times with per-test timeout
-        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo --output-on-failure --repeat until-fail:10 --timeout 60
+      - name: Probe bare MSVC ASan runtime startup
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V -R "^hh_asan_runtime_startup$" --timeout 20
+      - name: Probe renderer-core ASan startup
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V -R "^hh_asan_core_startup$" --timeout 20
+      - name: Probe D3D-linked ASan startup
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V -R "^hh_asan_d3d_startup$" --timeout 20
+      - name: Run verbose full ASan diagnostic pass
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V -R "^hh_renderer_tests$" --timeout 60
+      - name: Repeat full ASan renderer suite ten times
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo --output-on-failure -R "^hh_renderer_tests$" --repeat until-fail:10 --timeout 60
       - name: Build ASan demo smoke target
         run: cmake --build build/renderer-asan --config RelWithDebInfo --target hotel_haven_renderer_demo
 
