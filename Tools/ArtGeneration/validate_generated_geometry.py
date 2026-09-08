@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse,json,math
+import argparse,json
 from pathlib import Path
 import numpy as np
 import trimesh
@@ -20,10 +20,19 @@ def manifest_rows(manifest_dir:Path):
     out[row[0]]={'name':row[1],'profile':row[4],'animation_set':row[5]}
  return out
 
+def material_rgb(geom):
+ mat=getattr(getattr(geom,'visual',None),'material',None)
+ rgba=getattr(mat,'baseColorFactor',None)
+ if rgba is None:return None
+ arr=np.asarray(rgba).reshape(-1)
+ if arr.size<3:return None
+ if arr.dtype.kind=='f' and float(np.nanmax(arr))<=1.0:arr=arr*255.0
+ return tuple(int(x) for x in np.clip(np.rint(arr[:3]),0,255))
+
 def validate(repo_root:Path)->dict:
  manifests=manifest_rows(repo_root/'GameData/AssetDefinitions/Manifest')
  exports=repo_root/'Art/Exports'
- failures=[];stats=[]
+ failures=[];stats=[];material_samples=0;nonwhite_materials=0;unique_colors=set()
  paths=sorted(exports.glob('Batch*/*.glb'))
  if len(paths)!=500:failures.append(f'expected 500 GLBs, found {len(paths)}')
  for p in paths:
@@ -41,38 +50,46 @@ def validate(repo_root:Path)->dict:
    failures.append(f'{aid}: no vertices');continue
   v=np.vstack(verts)
   if not np.isfinite(v).all():failures.append(f'{aid}: non-finite vertices')
-  ext=v.max(axis=0)-v.min(axis=0);diag=float(np.linalg.norm(ext));faces=0;deg=0
+  ext=v.max(axis=0)-v.min(axis=0);diag=float(np.linalg.norm(ext));faces=0;deg=0;asset_colors=set()
   for g in geoms:
    if hasattr(g,'faces'):faces+=len(g.faces)
    if hasattr(g,'area_faces'):deg+=int(np.sum(np.asarray(g.area_faces)<1e-10))
+   rgb=material_rgb(g)
+   if rgb is not None:
+    material_samples+=1;asset_colors.add(rgb);unique_colors.add(rgb)
+    if rgb!=(255,255,255):nonwhite_materials+=1
   if faces<=0:failures.append(f'{aid}: no faces')
   if deg:failures.append(f'{aid}: {deg} degenerate faces')
   if diag<0.05:failures.append(f'{aid}: implausibly small diagonal {diag:.4f}m')
   if diag>8.0:failures.append(f'{aid}: implausibly large diagonal {diag:.3f}m')
   budget=2500 if meta['profile']=='P_CHARACTER' else 5000
   if faces>budget:failures.append(f'{aid}: face count {faces} exceeds budget {budget}')
-  nodes=set(s.graph.nodes_geometry)
-  aset=meta['animation_set']
+  nodes=set(s.graph.nodes_geometry);aset=meta['animation_set']
   if meta['profile']=='P_CHARACTER':
    missing=sorted(CHARACTER_NODES-nodes)
    if missing:failures.append(f'{aid}: missing character nodes {missing}')
   elif aset in EXPECTED_MOVING and not any(n.startswith(EXPECTED_MOVING[aset]) for n in nodes):
    failures.append(f'{aid}: {aset} missing {EXPECTED_MOVING[aset]}* node')
-  stats.append({'asset_id':aid,'faces':faces,'geometries':len(geoms),'diagonal_m':round(diag,5),'extents_m':[round(float(x),5) for x in ext]})
+  stats.append({'asset_id':aid,'faces':faces,'geometries':len(geoms),'diagonal_m':round(diag,5),'extents_m':[round(float(x),5) for x in ext],'material_colors':len(asset_colors)})
 
  if set(manifests)!=set(x['asset_id'] for x in stats):
   missing=sorted(set(manifests)-set(x['asset_id'] for x in stats))
   if missing:failures.append(f'missing generated assets: {missing[:20]}')
+ colored_ratio=(nonwhite_materials/material_samples) if material_samples else 0.0
+ if material_samples==0:failures.append('no PBR material samples found in generated GLBs')
+ if colored_ratio<0.60:failures.append(f'PBR palette collapsed toward white: nonwhite ratio={colored_ratio:.3f}')
+ if len(unique_colors)<12:failures.append(f'PBR palette has only {len(unique_colors)} unique RGB colors; expected at least 12')
  report={
   'schema':1,'status':'PASS' if not failures else 'FAIL','asset_count':len(stats),
   'failure_count':len(failures),'failures':failures,
   'max_faces':max((x['faces'] for x in stats),default=0),
   'max_diagonal_m':max((x['diagonal_m'] for x in stats),default=0),
+  'material_samples':material_samples,'nonwhite_material_ratio':round(colored_ratio,5),'unique_material_colors':len(unique_colors),
   'assets':stats,
  }
  out=repo_root/'Art/Validation/generated_geometry_qc.json';out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
  if failures:raise RuntimeError('\n'.join(failures))
- print(f"geometry QA PASSED: {len(stats)} assets; max_faces={report['max_faces']}; max_diagonal_m={report['max_diagonal_m']}")
+ print(f"geometry QA PASSED: {len(stats)} assets; max_faces={report['max_faces']}; colors={report['unique_material_colors']}; nonwhite={report['nonwhite_material_ratio']}")
  return report
 
 def main():
