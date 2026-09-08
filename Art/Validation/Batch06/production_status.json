@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "batch": 6,
+  "asset_count": 50,
+  "range": "HH_A251-HH_A300",
+  "generator": "Tools/ArtGeneration/batch06_generate.py",
+  "shared_factory": "Tools/ArtGeneration/service_asset_factory.py",
+  "local_validation": {
+    "glb_generated": 50,
+    "sidecars_generated": 50,
+    "glb_reload_success": 50,
+    "unique_ids": 50,
+    "tests": "PASS"
+  },
+  "animation_binding": "Housekeeping and linen carts expose MOV_Wheel_* nodes and bind ANSET_SERVICE_CART.",
+  "status": "PRODUCTION_GENERATOR_VALIDATED"
+}
