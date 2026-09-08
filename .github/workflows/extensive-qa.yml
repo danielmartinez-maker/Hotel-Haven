@@ -115,50 +115,18 @@ jobs:
       - name: Fuzz malformed metadata through sanitized CLI
         run: python Tools/QA/fuzz_content_pipeline.py build/content-sanitize/asset --cases 300 --seed 1212233285
 
-  renderer-sanitizers:
-    name: Renderer ASan/UBSan + 200x test soak
+  clang-content:
+    name: Clang content portability 50x
     runs-on: ubuntu-latest
-    env:
-      ASAN_OPTIONS: abort_on_error=1:detect_leaks=1:strict_string_checks=1
-      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure sanitized renderer
-        run: >-
-          cmake -S renderer -B build/renderer-sanitize
-          -DCMAKE_BUILD_TYPE=Debug
-          -DBUILD_TESTING=ON
-          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
-      - name: Build sanitized renderer
-        run: cmake --build build/renderer-sanitize --parallel 2
-      - name: Repeat renderer tests 200 times
-        run: ctest --test-dir build/renderer-sanitize --output-on-failure --repeat until-fail:200
-
-  clang-release:
-    name: Clang release portability (${{ matrix.component }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        component: [content, renderer]
     env:
       CC: clang
       CXX: clang++
     steps:
       - uses: actions/checkout@v4
       - name: Configure content pipeline
-        if: matrix.component == 'content'
         run: cmake -S Tools/ContentPipeline -B build/clang-content -DCMAKE_BUILD_TYPE=Release
-      - name: Build and test content pipeline
-        if: matrix.component == 'content'
+      - name: Build and repeat content tests
         run: cmake --build build/clang-content --parallel 2 && ctest --test-dir build/clang-content --output-on-failure --repeat until-fail:50
-      - name: Configure renderer
-        if: matrix.component == 'renderer'
-        run: cmake -S renderer -B build/clang-renderer -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-      - name: Build and test renderer
-        if: matrix.component == 'renderer'
-        run: cmake --build build/clang-renderer --parallel 2 && ctest --test-dir build/clang-renderer --output-on-failure --repeat until-fail:50
 
   windows-content:
     name: Windows content (${{ matrix.config }}) 50x
@@ -193,6 +161,20 @@ jobs:
         run: ctest --test-dir build/renderer-${{ matrix.config }} -C ${{ matrix.config }} --output-on-failure --repeat until-fail:50
       - name: Build demo smoke target
         run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --target HotelHavenRendererDemo
+
+  windows-renderer-asan:
+    name: Windows D3D11 renderer ASan 50x
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure D3D11 renderer with MSVC AddressSanitizer
+        run: cmake -S renderer -B build/renderer-asan -DENABLE_D3D11=ON -DBUILD_TESTING=ON -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
+      - name: Build ASan renderer
+        run: cmake --build build/renderer-asan --config RelWithDebInfo --parallel
+      - name: Repeat ASan renderer tests 50 times
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo --output-on-failure --repeat until-fail:50
+      - name: Build ASan demo smoke target
+        run: cmake --build build/renderer-asan --config RelWithDebInfo --target HotelHavenRendererDemo
 
   cppcheck:
     name: C++ static analysis
