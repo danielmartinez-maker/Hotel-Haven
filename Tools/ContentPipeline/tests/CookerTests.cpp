@@ -2,6 +2,7 @@
 #include "hh/assets/Catalog.h"
 #include "hh/assets/Cooker.h"
 #include "hh/assets/DependencyGraph.h"
+#include "hh/assets/Json.h"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -23,6 +24,10 @@ fs::path make_repo() {
     return root;
 }
 void write_text(const fs::path& p, std::string_view s) { fs::create_directories(p.parent_path()); std::ofstream(p, std::ios::binary) << s; }
+std::string read_text_file(const fs::path& p) {
+    std::ifstream in(p, std::ios::binary);
+    return std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+}
 std::string json_string(std::string_view value) {
     std::string out{"\""};
     for (const unsigned char c : value) {
@@ -115,6 +120,38 @@ HH_TEST("failed recook preserves previous valid output") {
     fs::remove(root / "Art/Exports/a.glb");
     bool threw = false; try { static_cast<void>(cook_one(catalog, graph, "asset.a", options(root))); } catch (const std::exception&) { threw = true; }
     HH_REQUIRE(threw); HH_REQUIRE(read_bytes(first.output) == before); HH_REQUIRE(!fs::exists(first.output.string() + ".tmp"));
+}
+HH_TEST("corrupted cooked output is recooked even when fingerprint state matches") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    const auto first = cook_one(catalog, graph, "asset.a", options(root));
+    HH_REQUIRE(first.cooked);
+    write_text(first.output, "corrupt-hasset");
+    const auto corrupted = read_bytes(first.output);
+    const auto second = cook_one(catalog, graph, "asset.a", options(root));
+    HH_REQUIRE(second.cooked);
+    HH_REQUIRE(read_bytes(second.output) != corrupted);
+}
+HH_TEST("cook state remains valid JSON when stale entries contain control characters") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto state = root / "Build/CookedAssets/.cook-state.json";
+    write_text(state, "{\"assets\":{\"stale\\u0001id\":\"deadbeef\"},\"schema\":1}");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    HH_REQUIRE(cook_one(catalog, graph, "asset.a", options(root)).cooked);
+    const auto parsed = parse_json(read_text_file(state));
+    HH_REQUIRE(parsed.is_object());
+}
+HH_TEST("malformed cook state fails closed without damaging previous cooked output") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    const auto first = cook_one(catalog, graph, "asset.a", options(root));
+    const auto before = read_bytes(first.output);
+    write_text(root / "Build/CookedAssets/.cook-state.json", "{\"schema\":1,\"assets\":{");
+    bool threw = false;
+    try { static_cast<void>(cook_one(catalog, graph, "asset.a", options(root))); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+    HH_REQUIRE(read_bytes(first.output) == before);
+    HH_REQUIRE(!fs::exists(root / "Build/CookedAssets/.cook-state.json.tmp"));
 }
 HH_TEST("asset IDs cannot become cooked filesystem paths") {
     const auto root = make_repo(); add_asset(root, "asset/bad", "bad");
