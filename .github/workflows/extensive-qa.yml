@@ -154,13 +154,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure D3D11 renderer
-        run: cmake -S renderer -B build/renderer-${{ matrix.config }} -DENABLE_D3D11=ON -DBUILD_TESTING=ON -A x64
+        run: cmake -S renderer -B build/renderer-${{ matrix.config }} -A x64
       - name: Build all renderer targets
         run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --parallel
       - name: Repeat renderer tests 50 times
         run: ctest --test-dir build/renderer-${{ matrix.config }} -C ${{ matrix.config }} --output-on-failure --repeat until-fail:50
       - name: Build demo smoke target
-        run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --target HotelHavenRendererDemo
+        run: cmake --build build/renderer-${{ matrix.config }} --config ${{ matrix.config }} --target hotel_haven_renderer_demo
 
   windows-renderer-asan:
     name: Windows D3D11 renderer ASan 50x
@@ -168,13 +168,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure D3D11 renderer with MSVC AddressSanitizer
-        run: cmake -S renderer -B build/renderer-asan -DENABLE_D3D11=ON -DBUILD_TESTING=ON -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
+        run: cmake -S renderer -B build/renderer-asan -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
       - name: Build ASan renderer
         run: cmake --build build/renderer-asan --config RelWithDebInfo --parallel
       - name: Repeat ASan renderer tests 50 times
         run: ctest --test-dir build/renderer-asan -C RelWithDebInfo --output-on-failure --repeat until-fail:50
       - name: Build ASan demo smoke target
-        run: cmake --build build/renderer-asan --config RelWithDebInfo --target HotelHavenRendererDemo
+        run: cmake --build build/renderer-asan --config RelWithDebInfo --target hotel_haven_renderer_demo
 
   cppcheck:
     name: C++ static analysis
