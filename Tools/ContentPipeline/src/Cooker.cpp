@@ -116,6 +116,27 @@ void write_text_atomic(const std::filesystem::path& output, std::string_view tex
     write_bytes_atomic(output, std::as_bytes(std::span(text.data(), text.size())));
 }
 
+bool path_within_root(
+    const std::filesystem::path& candidate,
+    const std::filesystem::path& root) {
+    const auto relative = candidate.lexically_relative(root);
+    return !relative.empty() && *relative.begin() != "..";
+}
+
+void validate_cook_options(const CookOptions& options) {
+    const auto repository_root = std::filesystem::absolute(options.repository_root).lexically_normal();
+    const auto cooked_root = std::filesystem::absolute(options.cooked_root).lexically_normal();
+    if (!path_within_root(cooked_root, repository_root)) {
+        throw std::runtime_error("cooked root escapes repository root: " + cooked_root.string());
+    }
+
+    const auto canonical_repository_root = std::filesystem::weakly_canonical(repository_root);
+    const auto canonical_cooked_root = std::filesystem::weakly_canonical(cooked_root);
+    if (!path_within_root(canonical_cooked_root, canonical_repository_root)) {
+        throw std::runtime_error("cooked root resolves outside repository root: " + cooked_root.string());
+    }
+}
+
 std::string repo_relative(const std::filesystem::path& path, const std::filesystem::path& root) {
     const auto absolute_path = std::filesystem::absolute(path).lexically_normal();
     const auto absolute_root = std::filesystem::absolute(root).lexically_normal();
@@ -217,11 +238,13 @@ CookResult cook_internal(
 }
 
 CookResult cook_one(const AssetCatalog& catalog, const DependencyGraph& graph, std::string_view asset_id, const CookOptions& options) {
+    validate_cook_options(options);
     auto state = load_state(options.cooked_root / ".cook-state.json");
     return cook_internal(catalog, graph, asset_id, options, state, false);
 }
 
 std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
+    validate_cook_options(options);
     auto state = load_state(options.cooked_root / ".cook-state.json");
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, true));
@@ -229,6 +252,7 @@ std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGr
 }
 
 std::vector<CookResult> cook_changed(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
+    validate_cook_options(options);
     auto state = load_state(options.cooked_root / ".cook-state.json");
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, false));
