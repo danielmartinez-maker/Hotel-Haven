@@ -7,7 +7,7 @@ import trimesh
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'Tools' / 'ArtGeneration'))
 
-from batch01_generate import generate_batch  # noqa: E402
+from batch01_generate import PROFILE_ASSET_TYPES, generate_batch  # noqa: E402
 
 
 def manifest_path():
@@ -55,6 +55,7 @@ def test_batch01_package_writes_hmg070_sidecars(tmp_path):
         manifest_path(), tmp_path, source_path='Tools/ArtGeneration/batch01_generate.py'
     )
     assert len(outputs) == 50
+    rows = {row[0]: row for row in load_entries()}
 
     for glb_path in outputs:
         sidecar = glb_path.with_suffix('.asset.json')
@@ -62,7 +63,7 @@ def test_batch01_package_writes_hmg070_sidecars(tmp_path):
         meta = json.loads(sidecar.read_text())
         assert meta['schema'] == 1
         assert meta['asset_id'] == glb_path.stem
-        assert meta['asset_type'] == 'StaticMeshAsset'
+        assert meta['asset_type'] == PROFILE_ASSET_TYPES[rows[glb_path.stem][4]]
         assert meta['source'] == 'Tools/ArtGeneration/batch01_generate.py'
         assert meta['units'] == 'meters'
         assert meta['lod_policy'] == 'lod_architecture'

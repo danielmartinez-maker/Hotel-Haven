@@ -3,9 +3,40 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 
 import numpy as np
 import trimesh
+
+ASSET_ID_RE = re.compile(r'^HH_A\d{3}$')
+PROFILE_ASSET_TYPES = {
+    'P_ARCH_STATIC': 'StaticMeshAsset',
+    'P_ARCH_ANIMATED': 'SkinnedMeshAsset',
+}
+
+
+def _validated_rows(data: dict) -> list[list]:
+    try:
+        rows = [row for group in data['groups'] for row in group['assets']]
+    except (KeyError, TypeError) as exc:
+        raise ValueError('manifest must contain groups with asset rows') from exc
+    if len(rows) != 50:
+        raise ValueError(f'Batch 02 must contain 50 assets; got {len(rows)}')
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, list) or len(row) != 7:
+            raise ValueError(f'invalid asset row: {row!r}')
+        asset_id = row[0]
+        if not isinstance(asset_id, str) or ASSET_ID_RE.fullmatch(asset_id) is None:
+            raise ValueError(f'invalid asset_id: {asset_id!r}')
+        if asset_id in seen:
+            raise ValueError(f'duplicate asset_id: {asset_id}')
+        seen.add(asset_id)
+        profile = row[4]
+        if profile not in PROFILE_ASSET_TYPES:
+            raise ValueError(f'unsupported profile for batch 02: {profile!r}')
+    return rows
+
 
 PALETTE = {
     'MAT_PLASTER_WARM': ((0.72, 0.66, 0.56, 1.0), 0.0, 0.80),
@@ -253,13 +284,13 @@ def build(name, mat):
     return make_finish(name, mat)
 
 
-def sidecar(asset_id, subcat, mat, animset):
+def sidecar(asset_id, subcat, mat, profile, animset):
     tags = ['hotel-haven', 'batch_02', subcat]
     if animset: tags.extend(['animated-binding', animset])
     return {
         'schema': 1,
         'asset_id': asset_id,
-        'asset_type': 'StaticMeshAsset',
+        'asset_type': PROFILE_ASSET_TYPES[profile],
         'source': 'Tools/ArtGeneration/batch02_generate.py',
         'units': 'meters',
         'lod_policy': 'lod_architecture',
@@ -277,9 +308,7 @@ def sidecar(asset_id, subcat, mat, animset):
 
 def generate(manifest_path: Path, output: Path, package: bool):
     data = json.loads(manifest_path.read_text())
-    rows = [a for g in data['groups'] for a in g['assets']]
-    if len(rows) != 50:
-        raise ValueError(f'Batch 02 must contain 50 assets; got {len(rows)}')
+    rows = _validated_rows(data)
     output.mkdir(parents=True, exist_ok=True)
     outputs = []
     for row in rows:
@@ -288,7 +317,7 @@ def generate(manifest_path: Path, output: Path, package: bool):
         path = output / f'{asset_id}.glb'
         if package:
             path.write_bytes(scene.export(file_type='glb'))
-            (output / f'{asset_id}.asset.json').write_text(json.dumps(sidecar(asset_id, subcat, mat, animset), indent=2) + '\n')
+            (output / f'{asset_id}.asset.json').write_text(json.dumps(sidecar(asset_id, subcat, mat, profile, animset), indent=2) + '\n')
         else:
             scene.export(path)
         outputs.append(path)

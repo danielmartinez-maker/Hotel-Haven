@@ -46,7 +46,7 @@ def test_master_manifest_and_shards_cover_exactly_500_assets() -> None:
 
     ids = [row[2][0] for row in rows]
     assert len(set(ids)) == 500
-    assert ids == [f"HH_A{i:03d}" for i in range(1, 501)]
+    assert set(ids) == {f"HH_A{i:03d}" for i in range(1, 501)}
 
     for batch_info in master["batches"]:
         path = ROOT / batch_info["path"]

@@ -2,9 +2,38 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 
 import numpy as np
 import trimesh
+
+ASSET_ID_RE = re.compile(r'^HH_A\d{3}$')
+PROFILE_ASSET_TYPES = {
+    'P_ARCH_STATIC': 'StaticMeshAsset',
+    'P_ARCH_ANIMATED': 'SkinnedMeshAsset',
+}
+
+
+def _validated_entries(data: dict) -> list[list]:
+    try:
+        entries = [row for group in data['groups'] for row in group['assets']]
+    except (KeyError, TypeError) as exc:
+        raise ValueError('manifest must contain groups with asset rows') from exc
+    seen: set[str] = set()
+    for row in entries:
+        if not isinstance(row, list) or len(row) != 7:
+            raise ValueError(f'invalid asset row: {row!r}')
+        asset_id = row[0]
+        if not isinstance(asset_id, str) or ASSET_ID_RE.fullmatch(asset_id) is None:
+            raise ValueError(f'invalid asset_id: {asset_id!r}')
+        if asset_id in seen:
+            raise ValueError(f'duplicate asset_id: {asset_id}')
+        seen.add(asset_id)
+        profile = row[4]
+        if profile not in PROFILE_ASSET_TYPES:
+            raise ValueError(f'unsupported profile for batch 01: {profile!r}')
+    return entries
+
 
 PALETTE = {
     'MAT_MARBLE_LIGHT': ((0.88, 0.84, 0.76, 1.0), 0.0, 0.38),
@@ -270,9 +299,9 @@ def build_asset(display_name: str, material: str) -> trimesh.Scene:
 def generate_batch(manifest_path: Path | str, output_dir: Path | str) -> list[Path]:
     manifest_path = Path(manifest_path)
     output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
     data = json.loads(manifest_path.read_text(encoding='utf-8'))
-    entries = [row for group in data['groups'] for row in group['assets']]
+    entries = _validated_entries(data)
+    output_dir.mkdir(parents=True, exist_ok=True)
     outputs = []
     for row in entries:
         asset_id, display_name, _subcategory, material_family, _profile, _animation_set, _anchors = row
@@ -289,16 +318,16 @@ def generate_package(manifest_path: Path | str, output_dir: Path | str, source_p
     output_dir = Path(output_dir)
     outputs = generate_batch(manifest_path, output_dir)
     data = json.loads(manifest_path.read_text(encoding='utf-8'))
-    rows = {row[0]: row for group in data['groups'] for row in group['assets']}
+    rows = {row[0]: row for row in _validated_entries(data)}
     for glb_path in outputs:
-        asset_id, _display_name, subcategory, material_family, _profile, animation_set, _anchors = rows[glb_path.stem]
+        asset_id, _display_name, subcategory, material_family, profile, animation_set, _anchors = rows[glb_path.stem]
         tags = ['batch_01', 'architectural_diorama_realism', subcategory]
         if animation_set:
             tags.append(f'animation_binding:{animation_set}')
         metadata = {
             'schema': 1,
             'asset_id': asset_id,
-            'asset_type': 'StaticMeshAsset',
+            'asset_type': PROFILE_ASSET_TYPES[profile],
             'source': source_path,
             'units': 'meters',
             'lod_policy': 'lod_architecture',

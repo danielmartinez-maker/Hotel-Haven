@@ -42,11 +42,13 @@ def test_sidecars_are_hmg070_schema_and_animated_nodes_exist(tmp_path):
     data = json.loads(MANIFEST.read_text())
     rows = [a for g in data['groups'] for a in g['assets']]
     animated = {row[0] for row in rows if row[5] is not None}
+    rows_by_id = {row[0]: row for row in rows}
+    expected_types = {'P_ARCH_STATIC': 'StaticMeshAsset', 'P_ARCH_ANIMATED': 'SkinnedMeshAsset'}
     for sidecar_path in sorted(tmp_path.glob('*.asset.json')):
         sidecar = json.loads(sidecar_path.read_text())
         assert sidecar['schema'] == 1
         assert sidecar['units'] == 'meters'
-        assert sidecar['asset_type'] == 'StaticMeshAsset'
+        assert sidecar['asset_type'] == expected_types[rows_by_id[sidecar['asset_id']][4]]
         assert sidecar['source'] == 'Tools/ArtGeneration/batch02_generate.py'
         assert sidecar['material_slots']
         if sidecar['asset_id'] in animated:
