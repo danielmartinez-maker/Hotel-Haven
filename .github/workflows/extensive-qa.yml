@@ -175,6 +175,35 @@ jobs:
         run: cmake -S renderer -B build/renderer-asan -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
       - name: Build ASan renderer and startup probes
         run: cmake --build build/renderer-asan --config RelWithDebInfo --parallel
+      - name: Stage MSVC AddressSanitizer runtime
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $vswhere)) {
+            throw "vswhere.exe not found at $vswhere"
+          }
+          $vsInstall = (& $vswhere -latest -products * -property installationPath | Select-Object -First 1)
+          if (-not $vsInstall) {
+            throw "Visual Studio installation path could not be resolved"
+          }
+          $toolsetsRoot = Join-Path $vsInstall "VC\Tools\MSVC"
+          $toolset = Get-ChildItem $toolsetsRoot -Directory |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+          if (-not $toolset) {
+            throw "MSVC toolset directory not found under $toolsetsRoot"
+          }
+          $runtimeDir = Join-Path $toolset.FullName "bin\Hostx64\x64"
+          $asanDlls = Get-ChildItem $runtimeDir -File -Filter "clang_rt.asan*.dll"
+          if (-not $asanDlls) {
+            throw "No MSVC AddressSanitizer runtime DLLs found in $runtimeDir"
+          }
+          $destination = Resolve-Path "build/renderer-asan/RelWithDebInfo"
+          foreach ($dll in $asanDlls) {
+            Copy-Item $dll.FullName $destination -Force
+            Write-Host "Staged $($dll.Name) from $runtimeDir"
+          }
+          $runtimeDir | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Probe bare MSVC ASan runtime startup
         run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V -R "^hh_asan_runtime_startup$" --timeout 20
       - name: Probe renderer-core ASan startup
