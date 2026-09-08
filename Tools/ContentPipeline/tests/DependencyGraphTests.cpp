@@ -3,7 +3,10 @@
 #include "hh/assets/DependencyGraph.h"
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
+#include <vector>
 
 using namespace hh::assets;
 namespace fs = std::filesystem;
@@ -25,6 +28,11 @@ void add_asset(const fs::path& root, std::string id, std::string name, std::stri
         << "\"source\":\"Art/Source/" << name << ".blend\",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":" << deps << "}";
+}
+std::string indexed_name(std::string_view prefix, int index) {
+    std::ostringstream out;
+    out << prefix << std::setfill('0') << std::setw(3) << index;
+    return out.str();
 }
 }
 
@@ -85,4 +93,24 @@ HH_TEST("equal-order graph nodes are lexically deterministic") {
     add_asset(root, "asset.a", "a");
     const auto graph = DependencyGraph::build(AssetCatalog::scan(root / "Art/Exports"));
     HH_REQUIRE(graph.topological_order() == std::vector<std::string>({"asset.a", "asset.z"}));
+}
+
+HH_TEST("dependency graph handles a full five hundred asset chain") {
+    const auto root = make_repo();
+    constexpr int count = 500;
+    std::vector<std::string> expected_order;
+    expected_order.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        const auto id = indexed_name("asset.", i);
+        const auto name = indexed_name("n", i);
+        expected_order.push_back(id);
+        const std::string deps = i == 0 ? "[]" : "[\"" + indexed_name("asset.", i - 1) + "\"]";
+        add_asset(root, id, name, deps);
+    }
+    const auto graph = DependencyGraph::build(AssetCatalog::scan(root / "Art/Exports"));
+    HH_REQUIRE(graph.topological_order() == expected_order);
+    const auto dependencies = graph.dependencies_of(expected_order.back(), true);
+    HH_REQUIRE(dependencies.size() == static_cast<std::size_t>(count - 1));
+    HH_REQUIRE(dependencies.front() == expected_order.front());
+    HH_REQUIRE(dependencies.back() == expected_order[count - 2]);
 }
