@@ -40,10 +40,10 @@ def build_sets():
         'ANSET_MECH_SLIDING_DOOR': {
             'skeleton_id': 'SK_MechanicalSimple',
             'clips': {
-                'AN_SLIDE_CLOSED': clip(0.0, False, channel('MOV_SlidingPanel*','translation_x_m',[(0,0.0)], index_sign='alternate')),
-                'AN_SLIDE_OPEN': clip(0.65, False, channel('MOV_SlidingPanel*','translation_x_m',[(0,0.0),(1,0.48)], index_sign='alternate'), events=[{'time':0.65,'name':'open_complete'}]),
-                'AN_SLIDE_OPEN_HOLD': clip(0.0, True, channel('MOV_SlidingPanel*','translation_x_m',[(0,0.48)], index_sign='alternate')),
-                'AN_SLIDE_CLOSE': clip(0.60, False, channel('MOV_SlidingPanel*','translation_x_m',[(0,0.48),(1,0.0)], index_sign='alternate'), events=[{'time':0.60,'name':'close_complete'}]),
+                'AN_SLIDE_CLOSED': clip(0.0, False, channel('MOV_*Panel*','translation_x_m',[(0,0.0)], index_sign='alternate')),
+                'AN_SLIDE_OPEN': clip(0.65, False, channel('MOV_*Panel*','translation_x_m',[(0,0.0),(1,0.48)], index_sign='alternate'), events=[{'time':0.65,'name':'open_complete'}]),
+                'AN_SLIDE_OPEN_HOLD': clip(0.0, True, channel('MOV_*Panel*','translation_x_m',[(0,0.48)], index_sign='alternate')),
+                'AN_SLIDE_CLOSE': clip(0.60, False, channel('MOV_*Panel*','translation_x_m',[(0,0.48),(1,0.0)], index_sign='alternate'), events=[{'time':0.60,'name':'close_complete'}]),
             },
         },
         'ANSET_MECH_REVOLVING_DOOR': {
@@ -60,6 +60,15 @@ def build_sets():
                 'AN_ELEVATOR_OPEN': clip(0.85, False, channel('MOV_ElevatorDoor*','translation_x_m',[(0,0.0),(1,0.38)], index_sign='alternate'), events=[{'time':0.85,'name':'open_complete'}]),
                 'AN_ELEVATOR_HOLD': clip(0.0, True, channel('MOV_ElevatorDoor*','translation_x_m',[(0,0.38)], index_sign='alternate')),
                 'AN_ELEVATOR_CLOSE': clip(0.80, False, channel('MOV_ElevatorDoor*','translation_x_m',[(0,0.38),(1,0.0)], index_sign='alternate'), events=[{'time':0.80,'name':'close_complete'}]),
+            },
+        },
+        'ANSET_MECH_OVERHEAD_DOOR': {
+            'skeleton_id': 'SK_MechanicalSimple',
+            'clips': {
+                'AN_OVERHEAD_CLOSED': clip(0.0, False, channel('MOV_DockPanel*','translation_z_m',[(0,0.0)])),
+                'AN_OVERHEAD_OPEN': clip(1.20, False, channel('MOV_DockPanel*','translation_z_m',[(0,0.0),(1,2.10)]), events=[{'time':1.20,'name':'open_complete'}]),
+                'AN_OVERHEAD_OPEN_HOLD': clip(0.0, True, channel('MOV_DockPanel*','translation_z_m',[(0,2.10)])),
+                'AN_OVERHEAD_CLOSE': clip(1.10, False, channel('MOV_DockPanel*','translation_z_m',[(0,2.10),(1,0.0)]), events=[{'time':1.10,'name':'close_complete'}]),
             },
         },
         'ANSET_MECH_CURTAIN': {
