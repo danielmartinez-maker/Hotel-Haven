@@ -39,39 +39,33 @@ jobs:
 
       - name: Generate Batch 01 exports
         run: python Tools/ArtGeneration/batch01_generate.py GameData/AssetDefinitions/Manifest/asset_batch_01.json Art/Exports/Batch01 --package
-
       - name: Generate Batch 02 exports
         run: python Tools/ArtGeneration/batch02_generate.py GameData/AssetDefinitions/Manifest/asset_batch_02.json Art/Exports/Batch02 --package
-
       - name: Generate Batch 03 exports
         run: python Tools/ArtGeneration/batch03_generate.py GameData/AssetDefinitions/Manifest/asset_batch_03.json Art/Exports/Batch03 --package
-
       - name: Generate Batch 04 exports
         run: python Tools/ArtGeneration/batch04_generate.py GameData/AssetDefinitions/Manifest/asset_batch_04.json Art/Exports/Batch04 --package
-
       - name: Generate Batch 05 exports
         run: python Tools/ArtGeneration/batch05_generate.py GameData/AssetDefinitions/Manifest/asset_batch_05.json Art/Exports/Batch05 --package
-
       - name: Generate Batch 06 exports
         run: python Tools/ArtGeneration/batch06_generate.py GameData/AssetDefinitions/Manifest/asset_batch_06.json Art/Exports/Batch06 --package
-
       - name: Generate Batch 07 exports
         run: python Tools/ArtGeneration/batch07_generate.py GameData/AssetDefinitions/Manifest/asset_batch_07.json Art/Exports/Batch07 --package
+      - name: Generate Batch 08 exports
+        run: python Tools/ArtGeneration/batch08_generate.py GameData/AssetDefinitions/Manifest/asset_batch_08.json Art/Exports/Batch08 --package
+      - name: Generate Batch 09 exports
+        run: python Tools/ArtGeneration/batch09_generate.py GameData/AssetDefinitions/Manifest/asset_batch_09.json Art/Exports/Batch09 --package
 
       - name: Generate shared mechanical animations
         run: python Tools/ArtGeneration/mechanical_animation_generate.py Art/Exports/Animations
-
       - name: Link animation dependencies
         run: python Tools/ArtGeneration/link_animation_dependencies.py GameData/AssetDefinitions/Manifest Art/Exports
 
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
-
       - name: Build
         run: cmake --build Tools/ContentPipeline/build --config Release
-
       - name: Test
         run: ctest --test-dir Tools/ContentPipeline/build -C Release --output-on-failure
-
       - name: Validate repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
