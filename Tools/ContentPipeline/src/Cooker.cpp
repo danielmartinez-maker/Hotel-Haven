@@ -20,9 +20,9 @@ using CookState = std::map<std::string, std::string, std::less<>>;
 
 std::vector<std::byte> read_binary(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
-    if (!input) throw std::runtime_error("cannot read export payload: " + path.string());
+    if (!input) throw std::runtime_error("cannot read binary file: " + path.string());
     std::vector<char> chars((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
-    if (!input.eof() && input.fail()) throw std::runtime_error("failed reading export payload: " + path.string());
+    if (!input.eof() && input.fail()) throw std::runtime_error("failed reading binary file: " + path.string());
     std::vector<std::byte> bytes;
     bytes.reserve(chars.size());
     for (const unsigned char c : chars) bytes.push_back(static_cast<std::byte>(c));
@@ -37,12 +37,25 @@ std::string read_text(const std::filesystem::path& path) {
 
 std::string escape_json(std::string_view value) {
     std::string out = "\"";
-    for (const char c : value) {
-        if (c == '\\' || c == '"') { out.push_back('\\'); out.push_back(c); }
-        else if (c == '\n') out += "\\n";
-        else if (c == '\r') out += "\\r";
-        else if (c == '\t') out += "\\t";
-        else out.push_back(c);
+    constexpr char hex[] = "0123456789abcdef";
+    for (const unsigned char c : value) {
+        switch (c) {
+        case '"': out += "\\\""; break;
+        case '\\': out += "\\\\"; break;
+        case '\b': out += "\\b"; break;
+        case '\f': out += "\\f"; break;
+        case '\n': out += "\\n"; break;
+        case '\r': out += "\\r"; break;
+        case '\t': out += "\\t"; break;
+        default:
+            if (c < 0x20u) {
+                out += "\\u00";
+                out.push_back(hex[(c >> 4u) & 0x0fu]);
+                out.push_back(hex[c & 0x0fu]);
+            } else {
+                out.push_back(static_cast<char>(c));
+            }
+        }
     }
     out.push_back('"');
     return out;
@@ -113,6 +126,26 @@ std::string repo_relative(const std::filesystem::path& path, const std::filesyst
     return relative.generic_string();
 }
 
+bool existing_output_matches(
+    const std::filesystem::path& output,
+    const AssetRecord& record,
+    std::string_view fingerprint,
+    const CookOptions& options) {
+    if (!std::filesystem::exists(output) || !std::filesystem::is_regular_file(output)) return false;
+    try {
+        const auto document = parse_hasset(read_binary(output));
+        return document.type == record.metadata.asset_type &&
+               document.asset_id == record.metadata.asset_id &&
+               document.fingerprint == fingerprint &&
+               document.dependencies == record.metadata.dependencies &&
+               document.source_path == repo_relative(record.source_path, options.repository_root) &&
+               document.sidecar_path == repo_relative(record.sidecar_path, options.repository_root) &&
+               document.payload == read_binary(record.export_path);
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
 bool is_windows_reserved_device_name(std::string_view asset_id) {
     const auto dot = asset_id.find('.');
     const auto base = asset_id.substr(0, dot);
@@ -162,7 +195,8 @@ CookResult cook_internal(
     const auto fingerprint = compute_fingerprint(record, catalog, graph, options.fingerprint);
     const auto output = options.cooked_root / (record.metadata.asset_id + ".hasset");
     const auto existing = state.find(record.metadata.asset_id);
-    if (!force && existing != state.end() && existing->second == fingerprint && std::filesystem::exists(output)) {
+    if (!force && existing != state.end() && existing->second == fingerprint &&
+        existing_output_matches(output, record, fingerprint, options)) {
         return {record.metadata.asset_id, false, output, fingerprint};
     }
 
