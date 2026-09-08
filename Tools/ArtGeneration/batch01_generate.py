@@ -19,6 +19,8 @@ def _validated_entries(data: dict) -> list[list]:
         entries = [row for group in data['groups'] for row in group['assets']]
     except (KeyError, TypeError) as exc:
         raise ValueError('manifest must contain groups with asset rows') from exc
+    if len(entries) != 50:
+        raise ValueError(f'Batch 01 must contain 50 assets; got {len(entries)}')
     seen: set[str] = set()
     for row in entries:
         if not isinstance(row, list) or len(row) != 7:
@@ -29,9 +31,18 @@ def _validated_entries(data: dict) -> list[list]:
         if asset_id in seen:
             raise ValueError(f'duplicate asset_id: {asset_id}')
         seen.add(asset_id)
+        material_family = row[3]
+        if material_family not in PALETTE:
+            raise ValueError(f'unknown material family: {material_family!r}')
         profile = row[4]
         if profile not in PROFILE_ASSET_TYPES:
             raise ValueError(f'unsupported profile for batch 01: {profile!r}')
+        animation_set = row[5]
+        if profile == 'P_ARCH_ANIMATED':
+            if not isinstance(animation_set, str) or not animation_set:
+                raise ValueError(f'animated profile requires animation_set: {asset_id}')
+        elif animation_set is not None:
+            raise ValueError(f'static profile must not define animation_set: {asset_id}')
     return entries
 
 
