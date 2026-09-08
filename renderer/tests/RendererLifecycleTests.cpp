@@ -3,6 +3,8 @@
 #include "d3d11/D3D11Renderer.h"
 #include "win32/Win32Window.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <string>
 
@@ -30,6 +32,22 @@ hh::renderer::ComposedScene makeScene() {
     wireframe.item.color = {0.9f, 0.9f, 0.2f, 0.8f};
     scene.wireframe.push_back(wireframe);
 
+    return scene;
+}
+
+hh::renderer::ComposedScene makeLargeOpaqueScene(std::size_t count) {
+    using namespace hh::renderer;
+    ComposedScene scene;
+    scene.opaque.reserve(count);
+    for (std::size_t index = 0; index < count; ++index) {
+        ComposedBox box;
+        const float x = static_cast<float>(index % 128u) * 0.25f;
+        const float z = static_cast<float>(index / 128u) * 0.25f;
+        box.item.center = {x, 0.125f, z};
+        box.item.size = {0.2f, 0.25f, 0.2f};
+        box.item.color = {0.55f, 0.65f, 0.75f, 1.0f};
+        scene.opaque.push_back(box);
+    }
     return scene;
 }
 
@@ -78,4 +96,58 @@ TEST_CASE("D3D11 renderer survives hidden-window initialize render resize shutdo
         EXPECT_FALSE(renderer.render(scene, camera).succeeded);
         EXPECT_FALSE(renderer.resize(width, height).succeeded);
     }
+}
+
+TEST_CASE("D3D11 renderer splits an instance batch larger than internal capacity") {
+    using namespace hh::renderer;
+    constexpr std::size_t kInstanceCount = 16'385;
+
+    HINSTANCE instance = GetModuleHandleW(nullptr);
+    EXPECT_TRUE(instance != nullptr);
+
+    std::string windowError;
+    Win32Window window;
+    EXPECT_TRUE(window.create(instance, SW_HIDE, 160, 120, windowError));
+
+    const ComposedScene scene = makeLargeOpaqueScene(kInstanceCount);
+    EXPECT_EQ(scene.opaque.size(), kInstanceCount);
+
+    OrthoCamera camera;
+    camera.setTarget({16.0f, 0.0f, 16.0f});
+    camera.setPitchDegrees(55.0f);
+    camera.setYawDegrees(45.0f);
+    camera.setOrthoHeight(48.0f);
+    camera.setAspectRatio(160.0f / 120.0f);
+
+    D3D11Renderer renderer;
+    EXPECT_TRUE(renderer.initialize(window.handle(), 160, 120, shaderPath()).succeeded);
+    EXPECT_TRUE(renderer.render(scene, camera).succeeded);
+    renderer.shutdown();
+}
+
+TEST_CASE("D3D11 renderer recovers after shader initialization failure") {
+    using namespace hh::renderer;
+
+    HINSTANCE instance = GetModuleHandleW(nullptr);
+    EXPECT_TRUE(instance != nullptr);
+
+    std::string windowError;
+    Win32Window window;
+    EXPECT_TRUE(window.create(instance, SW_HIDE, 160, 120, windowError));
+
+    OrthoCamera camera;
+    camera.setAspectRatio(160.0f / 120.0f);
+    const ComposedScene scene = makeScene();
+
+    D3D11Renderer renderer;
+    const auto missingShader = shaderPath().parent_path() / "definitely_missing_shader.hlsl";
+    const RendererResult failed = renderer.initialize(window.handle(), 160, 120, missingShader);
+    EXPECT_FALSE(failed.succeeded);
+    EXPECT_FALSE(renderer.render(scene, camera).succeeded);
+    EXPECT_FALSE(renderer.resize(160, 120).succeeded);
+
+    const RendererResult recovered = renderer.initialize(window.handle(), 160, 120, shaderPath());
+    EXPECT_TRUE(recovered.succeeded);
+    EXPECT_TRUE(renderer.render(scene, camera).succeeded);
+    renderer.shutdown();
 }
