@@ -153,6 +153,35 @@ HH_TEST("malformed cook state fails closed without damaging previous cooked outp
     HH_REQUIRE(read_bytes(first.output) == before);
     HH_REQUIRE(!fs::exists(root / "Build/CookedAssets/.cook-state.json.tmp"));
 }
+HH_TEST("cooker rejects cooked roots outside repository") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_cooked");
+    fs::remove_all(outside);
+    auto opts = options(root);
+    opts.cooked_root = outside;
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    bool threw = false;
+    try { static_cast<void>(cook_one(catalog, graph, "asset.a", opts)); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+    HH_REQUIRE(!fs::exists(outside / "asset.a.hasset"));
+    fs::remove_all(outside);
+}
+#ifndef _WIN32
+HH_TEST("cooker rejects cooked root symlinks resolving outside repository") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_cooked_link");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    fs::create_directories(root / "Build");
+    fs::create_directory_symlink(outside, root / "Build/CookedAssets");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    bool threw = false;
+    try { static_cast<void>(cook_one(catalog, graph, "asset.a", options(root))); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+    HH_REQUIRE(!fs::exists(outside / "asset.a.hasset"));
+    fs::remove_all(outside);
+}
+#endif
 HH_TEST("asset IDs cannot become cooked filesystem paths") {
     const auto root = make_repo(); add_asset(root, "asset/bad", "bad");
     const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
