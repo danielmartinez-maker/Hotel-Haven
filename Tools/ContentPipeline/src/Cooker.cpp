@@ -2,10 +2,12 @@
 #include "hh/assets/Hasset.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <map>
 #include <span>
 #include <stdexcept>
+#include <string>
 #ifdef _WIN32
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -111,13 +113,41 @@ std::string repo_relative(const std::filesystem::path& path, const std::filesyst
     return relative.generic_string();
 }
 
+bool is_windows_reserved_device_name(std::string_view asset_id) {
+    const auto dot = asset_id.find('.');
+    const auto base = asset_id.substr(0, dot);
+    std::string upper;
+    upper.reserve(base.size());
+    for (const unsigned char c : base) upper.push_back(static_cast<char>(std::toupper(c)));
+    if (upper == "CON" || upper == "PRN" || upper == "AUX" || upper == "NUL") return true;
+    if (upper.size() == 4 && (upper.starts_with("COM") || upper.starts_with("LPT")) &&
+        upper[3] >= '1' && upper[3] <= '9') {
+        return true;
+    }
+    return false;
+}
+
+void validate_portable_asset_filename(std::string_view asset_id) {
+    if (asset_id.empty()) throw std::runtime_error("asset_id cannot be empty");
+    constexpr std::string_view forbidden = "<>:\"/\\|?*";
+    for (const unsigned char c : asset_id) {
+        if (c < 0x20u || forbidden.find(static_cast<char>(c)) != std::string_view::npos) {
+            throw std::runtime_error("asset_id contains a character that is unsafe for cooked filenames");
+        }
+    }
+    if (asset_id.back() == '.' || asset_id.back() == ' ') {
+        throw std::runtime_error("asset_id cannot end with a dot or space");
+    }
+    if (is_windows_reserved_device_name(asset_id)) {
+        throw std::runtime_error("asset_id cannot use a Windows reserved device name");
+    }
+}
+
 void validate_cookable(const AssetRecord& record) {
     for (const auto& diagnostic : validate_metadata(record.metadata)) {
         if (is_release_blocking(diagnostic.severity)) throw std::runtime_error(diagnostic.code + ": " + diagnostic.message);
     }
-    if (record.metadata.asset_id.find('/') != std::string::npos || record.metadata.asset_id.find('\\') != std::string::npos) {
-        throw std::runtime_error("asset_id cannot contain path separators");
-    }
+    validate_portable_asset_filename(record.metadata.asset_id);
 }
 
 CookResult cook_internal(
