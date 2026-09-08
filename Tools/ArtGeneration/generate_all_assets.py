@@ -4,6 +4,9 @@ from pathlib import Path
 
 BATCHES=tuple(range(1,11))
 
+def generator_source(batch:int)->str:
+ return f'Tools/ArtGeneration/batch{batch:02d}_generate.py'
+
 def normalize_sidecars(exports_root:Path)->int:
  renamed=0
  for sidecar in sorted(exports_root.rglob('*.asset.json')):
@@ -21,7 +24,7 @@ def generate_all(repo_root:Path|str):
  from link_animation_dependencies import link
  root=Path(repo_root);manifest_dir=root/'GameData/AssetDefinitions/Manifest';exports=root/'Art/Exports';exports.mkdir(parents=True,exist_ok=True);batch_counts={}
  for batch in BATCHES:
-  module=importlib.import_module(f'batch{batch:02d}_generate');manifest=manifest_dir/f'asset_batch_{batch:02d}.json';out=exports/f'Batch{batch:02d}';paths=module.generate_package(manifest,out);batch_counts[f'{batch:02d}']=len(paths)
+  module=importlib.import_module(f'batch{batch:02d}_generate');manifest=manifest_dir/f'asset_batch_{batch:02d}.json';out=exports/f'Batch{batch:02d}';paths=module.generate_package(manifest,out,generator_source(batch));batch_counts[f'{batch:02d}']=len(paths)
  mech_clips,mech_sets=generate_mechanical(exports/'Animations');hum_skeletons,hum_clips,hum_sets=generate_humanoid(root/'GameData/AssetDefinitions/animation_sets_v1.json',exports/'AnimationsHumanoid');linked,deferred=link(manifest_dir,exports);normalized=normalize_sidecars(exports)
  summary={'schema':1,'batch_counts':batch_counts,'gameplay_asset_count':sum(batch_counts.values()),'mechanical_clips':mech_clips,'mechanical_sets':mech_sets,'humanoid_skeletons':hum_skeletons,'humanoid_clips':hum_clips,'humanoid_sets':hum_sets,'animation_links':linked,'animation_links_deferred':deferred,'normalized_sidecars':normalized}
  (root/'Art/Validation/full_generation_summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
