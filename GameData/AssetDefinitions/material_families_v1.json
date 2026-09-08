@@ -30,7 +30,10 @@
     {"material_family_id":"MAT_SIGNAGE","name":"Signage and Wayfinding","metallic":false,"roughness_range":[0.40,0.70],"palette_guidance":"charcoal/brass/cream","detail_guidance":"high legibility and low ornament"},
     {"material_family_id":"MAT_CONCRETE","name":"Concrete","metallic":false,"roughness_range":[0.62,0.84],"palette_guidance":"warm/cool grey","detail_guidance":"low-frequency mottling"},
     {"material_family_id":"MAT_BRICK","name":"Brick","metallic":false,"roughness_range":[0.66,0.86],"palette_guidance":"muted red/brown","detail_guidance":"clean mortar and moderate variation"},
-    {"material_family_id":"MAT_BLACKENED_STEEL","name":"Blackened Steel","metallic":true,"roughness_range":[0.38,0.60],"palette_guidance":"charcoal","detail_guidance":"restrained brushed finish"}
+    {"material_family_id":"MAT_BLACKENED_STEEL","name":"Blackened Steel","metallic":true,"roughness_range":[0.38,0.60],"palette_guidance":"charcoal","detail_guidance":"restrained brushed finish"},
+    {"material_family_id":"MAT_CHARACTER_COMPOSITE","name":"Character Composite","metallic":false,"roughness_range":[0.35,0.90],"palette_guidance":"skin, hair, restrained hospitality clothing and uniform colors","detail_guidance":"multi-slot character family; skin, hair, fabric, leather and small metal accents remain physically plausible and low-frequency"},
+    {"material_family_id":"MAT_CERAMIC_FIXTURE","name":"Glazed Ceramic Fixture","metallic":false,"roughness_range":[0.18,0.38],"palette_guidance":"white/cream/soft grey","detail_guidance":"clean glazed porcelain or sanitary ceramic with minimal surface noise"},
+    {"material_family_id":"MAT_ELECTRONICS","name":"Hotel Electronics Composite","metallic":false,"roughness_range":[0.22,0.58],"palette_guidance":"charcoal/black/neutral metal","detail_guidance":"clean glass, molded plastic and restrained metal components; no consumer-tech neon accents"}
   ],
   "global_rules": {"normal_intensity":"subtle","variant_policy":"Hue/value variants must remain inside family palette guidance and roughness range."}
 }
