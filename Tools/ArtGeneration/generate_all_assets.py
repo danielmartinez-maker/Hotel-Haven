@@ -4,6 +4,22 @@ from pathlib import Path
 
 BATCHES=tuple(range(1,11))
 
+def install_trimesh_color_guard():
+ import numpy as np
+ import trimesh
+ cls=trimesh.visual.material.PBRMaterial
+ if getattr(cls,'_hotel_haven_color_guard',False):return
+ original=cls.__init__
+ def guarded(self,*args,**kwargs):
+  color=kwargs.get('baseColorFactor')
+  if color is not None:
+   arr=np.asarray(color)
+   if arr.size and arr.dtype.kind=='f' and float(np.nanmax(arr))>1.0:
+    kwargs['baseColorFactor']=np.clip(np.rint(arr),0,255).astype(np.uint8)
+  original(self,*args,**kwargs)
+ cls.__init__=guarded
+ cls._hotel_haven_color_guard=True
+
 def generator_source(batch:int)->str:
  return f'Tools/ArtGeneration/batch{batch:02d}_generate.py'
 
@@ -49,6 +65,7 @@ def validate_generated_tree(root:Path,exports:Path)->dict:
  return {'generated_asset_records':len(records),'paired_exports':paired,'resolved_sources':sources,'resolved_dependencies':len(dependencies)}
 
 def generate_all(repo_root:Path|str):
+ install_trimesh_color_guard()
  from mechanical_animation_generate import generate as generate_mechanical
  from humanoid_animation_generate import generate as generate_humanoid
  from link_animation_dependencies import link
