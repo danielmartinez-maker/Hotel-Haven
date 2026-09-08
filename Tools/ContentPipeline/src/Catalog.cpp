@@ -54,6 +54,13 @@ bool contains_parent_component(std::string_view value) {
     return false;
 }
 
+bool path_within_root(
+    const std::filesystem::path& candidate,
+    const std::filesystem::path& repository_root) {
+    const auto relative = candidate.lexically_relative(repository_root);
+    return !relative.empty() && *relative.begin() != "..";
+}
+
 std::filesystem::path resolve_repository_source(
     std::string_view source_text,
     const std::filesystem::path& repository_root) {
@@ -64,9 +71,17 @@ std::filesystem::path resolve_repository_source(
     }
 
     const auto candidate = (repository_root / source).lexically_normal();
-    const auto relative = candidate.lexically_relative(repository_root);
-    if (relative.empty() || (!relative.empty() && *relative.begin() == "..")) {
+    if (!path_within_root(candidate, repository_root)) {
         throw std::runtime_error("asset source escapes repository root: " + candidate.string());
+    }
+
+    // Lexical containment is insufficient when an in-repository component is a
+    // symlink. Resolve the existing path prefix and reject any target that leaves
+    // the repository before fingerprinting or cooking can read it.
+    const auto canonical_root = std::filesystem::weakly_canonical(repository_root);
+    const auto canonical_candidate = std::filesystem::weakly_canonical(candidate);
+    if (!path_within_root(canonical_candidate, canonical_root)) {
+        throw std::runtime_error("asset source resolves outside repository root: " + candidate.string());
     }
     return candidate;
 }
