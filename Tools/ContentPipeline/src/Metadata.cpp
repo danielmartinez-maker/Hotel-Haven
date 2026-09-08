@@ -31,11 +31,12 @@ std::vector<std::string> required_string_array(const JsonValue& root, std::strin
 
 std::int64_t integer_value(const JsonValue& value, std::string_view field) {
     const double number = value.as_number();
-    if (std::floor(number) != number) throw std::runtime_error("metadata field must be an integer: " + std::string(field));
-    const long double wide = static_cast<long double>(number);
-    const long double minimum = static_cast<long double>(std::numeric_limits<std::int64_t>::min());
-    const long double maximum = static_cast<long double>(std::numeric_limits<std::int64_t>::max());
-    if (wide < minimum || wide > maximum) {
+    constexpr double kInt64LowerInclusive = -9223372036854775808.0;
+    constexpr double kInt64UpperExclusive = 9223372036854775808.0;
+    if (!std::isfinite(number) || std::floor(number) != number) {
+        throw std::runtime_error("metadata field must be an integer: " + std::string(field));
+    }
+    if (number < kInt64LowerInclusive || number >= kInt64UpperExclusive) {
         throw std::runtime_error("metadata integer field out of range: " + std::string(field));
     }
     return static_cast<std::int64_t>(number);
