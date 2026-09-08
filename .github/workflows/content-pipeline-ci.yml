@@ -43,6 +43,9 @@ jobs:
       - name: Generate Batch 02 exports
         run: python Tools/ArtGeneration/batch02_generate.py GameData/AssetDefinitions/Manifest/asset_batch_02.json Art/Exports/Batch02 --package
 
+      - name: Generate Batch 03 exports
+        run: python Tools/ArtGeneration/batch03_generate.py GameData/AssetDefinitions/Manifest/asset_batch_03.json Art/Exports/Batch03 --package
+
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
 
