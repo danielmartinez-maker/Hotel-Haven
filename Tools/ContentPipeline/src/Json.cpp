@@ -7,6 +7,8 @@
 
 namespace hh::assets {
 namespace {
+constexpr std::size_t kMaxNestingDepth = 256;
+
 [[noreturn]] void type_error(const char* expected) {
     throw std::runtime_error(std::string("JSON type mismatch, expected ") + expected);
 }
@@ -44,7 +46,7 @@ public:
 
     JsonValue parse_document() {
         skip_ws();
-        auto value = parse_value();
+        auto value = parse_value(0);
         skip_ws();
         if (pos_ != text_.size()) fail("trailing data");
         return value;
@@ -68,12 +70,16 @@ private:
         if (!consume(expected)) fail("unexpected character");
     }
 
-    JsonValue parse_value() {
+    JsonValue parse_value(std::size_t depth) {
         skip_ws();
         if (pos_ >= text_.size()) fail("unexpected end of input");
         switch (text_[pos_]) {
-        case '{': return parse_object();
-        case '[': return parse_array();
+        case '{':
+            if (depth >= kMaxNestingDepth) fail("maximum nesting depth exceeded");
+            return parse_object(depth);
+        case '[':
+            if (depth >= kMaxNestingDepth) fail("maximum nesting depth exceeded");
+            return parse_array(depth);
         case '"': return JsonValue(parse_string());
         case 't': consume_literal("true"); return JsonValue(true);
         case 'f': consume_literal("false"); return JsonValue(false);
@@ -84,7 +90,7 @@ private:
         }
     }
 
-    JsonValue parse_object() {
+    JsonValue parse_object(std::size_t depth) {
         expect('{');
         JsonValue::Object object;
         skip_ws();
@@ -95,7 +101,7 @@ private:
             auto key = parse_string();
             skip_ws();
             expect(':');
-            auto [it, inserted] = object.emplace(std::move(key), parse_value());
+            auto [it, inserted] = object.emplace(std::move(key), parse_value(depth + 1));
             static_cast<void>(it);
             if (!inserted) fail("duplicate object key");
             skip_ws();
@@ -105,13 +111,13 @@ private:
         return JsonValue(std::move(object));
     }
 
-    JsonValue parse_array() {
+    JsonValue parse_array(std::size_t depth) {
         expect('[');
         JsonValue::Array array;
         skip_ws();
         if (consume(']')) return JsonValue(std::move(array));
         for (;;) {
-            array.push_back(parse_value());
+            array.push_back(parse_value(depth + 1));
             skip_ws();
             if (consume(']')) break;
             expect(',');
