@@ -105,4 +105,20 @@ target_link_libraries(hh_renderer_tests PRIVATE
 )
 hh_enable_strict_warnings(hh_renderer_tests)
 
+# Layered process-startup probes isolate sanitizer/runtime failures from
+# renderer-core and D3D11 linkage before the full test executable starts.
+add_executable(hh_asan_runtime_startup tests/AsanRuntimeStartup.cpp)
+hh_enable_strict_warnings(hh_asan_runtime_startup)
+
+add_executable(hh_asan_core_startup tests/AsanCoreStartup.cpp)
+target_link_libraries(hh_asan_core_startup PRIVATE hh_renderer_core)
+hh_enable_strict_warnings(hh_asan_core_startup)
+
+add_executable(hh_asan_d3d_startup tests/AsanD3DStartup.cpp)
+target_link_libraries(hh_asan_d3d_startup PRIVATE hh_renderer_d3d11)
+hh_enable_strict_warnings(hh_asan_d3d_startup)
+
+add_test(NAME hh_asan_runtime_startup COMMAND hh_asan_runtime_startup)
+add_test(NAME hh_asan_core_startup COMMAND hh_asan_core_startup)
+add_test(NAME hh_asan_d3d_startup COMMAND hh_asan_d3d_startup)
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
