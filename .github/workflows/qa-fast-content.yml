@@ -1,0 +1,29 @@
+name: QA Fast Content
+
+on:
+  push:
+    branches:
+      - 'qa/**'
+    paths:
+      - 'Tools/ContentPipeline/**'
+      - '.github/workflows/qa-fast-content.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: qa-fast-content-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux-native-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S Tools/ContentPipeline -B build/qa-fast -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build/qa-fast --parallel 2
+      - name: Test
+        run: ctest --test-dir build/qa-fast --output-on-failure
