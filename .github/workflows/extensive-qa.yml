@@ -175,6 +175,8 @@ jobs:
         run: cmake -S renderer -B build/renderer-asan -A x64 -DCMAKE_CXX_FLAGS="/fsanitize=address"
       - name: Build ASan renderer
         run: cmake --build build/renderer-asan --config RelWithDebInfo --parallel
+      - name: Run verbose ASan diagnostic pass
+        run: ctest --test-dir build/renderer-asan -C RelWithDebInfo -V --timeout 60
       - name: Repeat ASan renderer tests ten times with per-test timeout
         run: ctest --test-dir build/renderer-asan -C RelWithDebInfo --output-on-failure --repeat until-fail:10 --timeout 60
       - name: Build ASan demo smoke target
