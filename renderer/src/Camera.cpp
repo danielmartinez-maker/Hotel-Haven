@@ -26,7 +26,12 @@ float normalizeDegrees(float value) noexcept {
 
 OrthoCamera::OrthoCamera() noexcept = default;
 
-void OrthoCamera::setTarget(Vec3 target) noexcept { target_ = target; }
+void OrthoCamera::setTarget(Vec3 target) noexcept {
+    if (!std::isfinite(target.x) || !std::isfinite(target.y) || !std::isfinite(target.z)) {
+        return;
+    }
+    target_ = target;
+}
 Vec3 OrthoCamera::target() const noexcept { return target_; }
 
 void OrthoCamera::setPitchDegrees(float value) noexcept {
