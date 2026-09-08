@@ -180,6 +180,12 @@ std::string repo_relative(const std::filesystem::path& path, const std::filesyst
     return relative.generic_string();
 }
 
+std::vector<std::string> canonical_dependencies(std::vector<std::string> dependencies) {
+    std::sort(dependencies.begin(), dependencies.end());
+    dependencies.erase(std::unique(dependencies.begin(), dependencies.end()), dependencies.end());
+    return dependencies;
+}
+
 bool existing_output_matches(
     const std::filesystem::path& output,
     const AssetRecord& record,
@@ -191,7 +197,7 @@ bool existing_output_matches(
         return document.type == record.metadata.asset_type &&
                document.asset_id == record.metadata.asset_id &&
                document.fingerprint == fingerprint &&
-               document.dependencies == record.metadata.dependencies &&
+               document.dependencies == canonical_dependencies(record.metadata.dependencies) &&
                document.source_path == repo_relative(record.source_path, options.repository_root) &&
                document.sidecar_path == repo_relative(record.sidecar_path, options.repository_root) &&
                document.payload == read_binary(record.export_path);
