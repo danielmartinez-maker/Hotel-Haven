@@ -7,6 +7,13 @@ BATCHES=tuple(range(1,11))
 def generator_source(batch:int)->str:
  return f'Tools/ArtGeneration/batch{batch:02d}_generate.py'
 
+def run_batch_generator(module,batch:int,manifest:Path,out:Path):
+ if hasattr(module,'generate_package'):
+  return module.generate_package(manifest,out,generator_source(batch))
+ if hasattr(module,'generate'):
+  return module.generate(manifest,out,True)
+ raise RuntimeError(f'batch {batch:02d} generator exposes neither generate_package nor generate')
+
 def normalize_sidecars(exports_root:Path)->int:
  renamed=0
  for sidecar in sorted(exports_root.rglob('*.asset.json')):
@@ -47,7 +54,7 @@ def generate_all(repo_root:Path|str):
  from link_animation_dependencies import link
  root=Path(repo_root);manifest_dir=root/'GameData/AssetDefinitions/Manifest';exports=root/'Art/Exports';exports.mkdir(parents=True,exist_ok=True);batch_counts={}
  for batch in BATCHES:
-  module=importlib.import_module(f'batch{batch:02d}_generate');manifest=manifest_dir/f'asset_batch_{batch:02d}.json';out=exports/f'Batch{batch:02d}';paths=module.generate_package(manifest,out,generator_source(batch));batch_counts[f'{batch:02d}']=len(paths)
+  module=importlib.import_module(f'batch{batch:02d}_generate');manifest=manifest_dir/f'asset_batch_{batch:02d}.json';out=exports/f'Batch{batch:02d}';paths=run_batch_generator(module,batch,manifest,out);batch_counts[f'{batch:02d}']=len(paths)
  mech_clips,mech_sets=generate_mechanical(exports/'Animations');hum_skeletons,hum_clips,hum_sets=generate_humanoid(root/'GameData/AssetDefinitions/animation_sets_v1.json',exports/'AnimationsHumanoid');linked,deferred=link(manifest_dir,exports);normalized=normalize_sidecars(exports);tree=validate_generated_tree(root,exports);expected_links=expected_animation_bindings(manifest_dir)
  summary={'schema':1,'batch_counts':batch_counts,'gameplay_asset_count':sum(batch_counts.values()),'mechanical_clips':mech_clips,'mechanical_sets':mech_sets,'humanoid_skeletons':hum_skeletons,'humanoid_clips':hum_clips,'humanoid_sets':hum_sets,'animation_links':linked,'expected_animation_links':expected_links,'animation_links_deferred':deferred,'normalized_sidecars':normalized,**tree}
  expected_records=500+mech_clips+mech_sets+hum_skeletons+hum_clips+hum_sets
