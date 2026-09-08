@@ -34,42 +34,32 @@ jobs:
       - name: Test art generators
         run: python -m pytest Tools/ArtGeneration/tests -q
 
-      - name: Validate 500 asset library
+      - name: Validate 500 asset library manifest
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
 
-      - name: Generate Batch 01 exports
-        run: python Tools/ArtGeneration/batch01_generate.py GameData/AssetDefinitions/Manifest/asset_batch_01.json Art/Exports/Batch01 --package
-      - name: Generate Batch 02 exports
-        run: python Tools/ArtGeneration/batch02_generate.py GameData/AssetDefinitions/Manifest/asset_batch_02.json Art/Exports/Batch02 --package
-      - name: Generate Batch 03 exports
-        run: python Tools/ArtGeneration/batch03_generate.py GameData/AssetDefinitions/Manifest/asset_batch_03.json Art/Exports/Batch03 --package
-      - name: Generate Batch 04 exports
-        run: python Tools/ArtGeneration/batch04_generate.py GameData/AssetDefinitions/Manifest/asset_batch_04.json Art/Exports/Batch04 --package
-      - name: Generate Batch 05 exports
-        run: python Tools/ArtGeneration/batch05_generate.py GameData/AssetDefinitions/Manifest/asset_batch_05.json Art/Exports/Batch05 --package
-      - name: Generate Batch 06 exports
-        run: python Tools/ArtGeneration/batch06_generate.py GameData/AssetDefinitions/Manifest/asset_batch_06.json Art/Exports/Batch06 --package
-      - name: Generate Batch 07 exports
-        run: python Tools/ArtGeneration/batch07_generate.py GameData/AssetDefinitions/Manifest/asset_batch_07.json Art/Exports/Batch07 --package
-      - name: Generate Batch 08 exports
-        run: python Tools/ArtGeneration/batch08_generate.py GameData/AssetDefinitions/Manifest/asset_batch_08.json Art/Exports/Batch08 --package
-      - name: Generate Batch 09 exports
-        run: python Tools/ArtGeneration/batch09_generate.py GameData/AssetDefinitions/Manifest/asset_batch_09.json Art/Exports/Batch09 --package
-      - name: Generate Batch 10 exports
-        run: python Tools/ArtGeneration/batch10_generate.py GameData/AssetDefinitions/Manifest/asset_batch_10.json Art/Exports/Batch10 --package
-
-      - name: Generate shared mechanical animations
-        run: python Tools/ArtGeneration/mechanical_animation_generate.py Art/Exports/Animations
-      - name: Generate shared humanoid animations
-        run: python Tools/ArtGeneration/humanoid_animation_generate.py GameData/AssetDefinitions/animation_sets_v1.json Art/Exports/AnimationsHumanoid
-      - name: Link animation dependencies
-        run: python Tools/ArtGeneration/link_animation_dependencies.py GameData/AssetDefinitions/Manifest Art/Exports
+      - name: Generate full asset library
+        run: python Tools/ArtGeneration/generate_all_assets.py .
 
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
+
       - name: Build
         run: cmake --build Tools/ContentPipeline/build --config Release
-      - name: Test
+
+      - name: Test native content pipeline
         run: ctest --test-dir Tools/ContentPipeline/build -C Release --output-on-failure
-      - name: Validate repository assets
+
+      - name: Validate generated repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
+
+      - name: Upload generated asset package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel-haven-generated-assets
+          path: |
+            Art/Exports/**
+            Art/Validation/full_generation_summary.json
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 14
