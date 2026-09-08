@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "batch": 10,
+  "asset_count": 50,
+  "range": "HH_A451-HH_A500",
+  "generator": "Tools/ArtGeneration/batch10_generate.py",
+  "character_factory": "Tools/ArtGeneration/character_factory.py",
+  "humanoid_animation_generator": "Tools/ArtGeneration/humanoid_animation_generate.py",
+  "local_validation": {
+    "character_glb_generated": 50,
+    "character_glb_reload_success": 50,
+    "unique_ids": 50,
+    "skeleton_assets": 2,
+    "humanoid_clips": 47,
+    "humanoid_animation_sets": 11,
+    "tests": "PASS"
+  },
+  "rig_model": "Articulated rigid-part humanoid hierarchy with stable named nodes for transform animation.",
+  "status": "PRODUCTION_GENERATOR_VALIDATED"
+}
