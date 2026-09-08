@@ -46,16 +46,24 @@ TEST_CASE("floor visibility does not overflow on hostile floor ids") {
 TEST_CASE("camera rejects non-finite control inputs") {
     using namespace hh::renderer;
     OrthoCamera camera;
+    camera.setTarget({3.0f, 4.0f, 5.0f});
     camera.setPitchDegrees(60.0f);
     camera.setYawDegrees(90.0f);
     camera.setOrthoHeight(20.0f);
     camera.setAspectRatio(2.0f);
 
+    camera.setTarget({std::numeric_limits<float>::quiet_NaN(), 4.0f, 5.0f});
+    camera.setTarget({3.0f, std::numeric_limits<float>::infinity(), 5.0f});
+    camera.setTarget({3.0f, 4.0f, -std::numeric_limits<float>::infinity()});
     camera.setPitchDegrees(std::numeric_limits<float>::quiet_NaN());
     camera.setYawDegrees(std::numeric_limits<float>::infinity());
     camera.setOrthoHeight(std::numeric_limits<float>::quiet_NaN());
     camera.setAspectRatio(std::numeric_limits<float>::infinity());
 
+    const Vec3 target = camera.target();
+    EXPECT_NEAR(target.x, 3.0f, 0.0001f);
+    EXPECT_NEAR(target.y, 4.0f, 0.0001f);
+    EXPECT_NEAR(target.z, 5.0f, 0.0001f);
     EXPECT_TRUE(std::isfinite(camera.pitchDegrees()));
     EXPECT_TRUE(std::isfinite(camera.yawDegrees()));
     EXPECT_TRUE(std::isfinite(camera.orthoHeight()));
