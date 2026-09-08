@@ -5,9 +5,13 @@ import numpy as np
 import trimesh
 
 EXPECTED_MOVING={
- 'ANSET_MECH_DOOR':'MOV_DoorLeaf','ANSET_MECH_SLIDING_DOOR':'MOV_SlidingPanel',
- 'ANSET_MECH_REVOLVING_DOOR':'MOV_RevolvingLeaf','ANSET_MECH_ELEVATOR':'MOV_ElevatorDoor',
- 'ANSET_MECH_CURTAIN':'MOV_CurtainPanel','ANSET_SERVICE_CART':'MOV_Wheel',
+ 'ANSET_MECH_DOOR':('MOV_DoorLeaf',),
+ 'ANSET_MECH_SLIDING_DOOR':('MOV_SlidingPanel','MOV_PocketPanel'),
+ 'ANSET_MECH_REVOLVING_DOOR':('MOV_RevolvingLeaf',),
+ 'ANSET_MECH_ELEVATOR':('MOV_ElevatorDoor',),
+ 'ANSET_MECH_OVERHEAD_DOOR':('MOV_DockPanel',),
+ 'ANSET_MECH_CURTAIN':('MOV_CurtainPanel',),
+ 'ANSET_SERVICE_CART':('MOV_Wheel',),
 }
 CHARACTER_NODES={'Hips','Spine','Chest','Head','UpperArm_L','LowerArm_L','Hand_L','UpperArm_R','LowerArm_R','Hand_R','UpperLeg_L','LowerLeg_L','Foot_L','UpperLeg_R','LowerLeg_R','Foot_R'}
 
@@ -68,8 +72,10 @@ def validate(repo_root:Path)->dict:
   if meta['profile']=='P_CHARACTER':
    missing=sorted(CHARACTER_NODES-nodes)
    if missing:failures.append(f'{aid}: missing character nodes {missing}')
-  elif aset in EXPECTED_MOVING and not any(n.startswith(EXPECTED_MOVING[aset]) for n in nodes):
-   failures.append(f'{aid}: {aset} missing {EXPECTED_MOVING[aset]}* node')
+  elif aset in EXPECTED_MOVING:
+   prefixes=EXPECTED_MOVING[aset]
+   if not any(any(n.startswith(prefix) for prefix in prefixes) for n in nodes):
+    failures.append(f'{aid}: {aset} missing one of {prefixes}')
   stats.append({'asset_id':aid,'faces':faces,'geometries':len(geoms),'diagonal_m':round(diag,5),'extents_m':[round(float(x),5) for x in ext],'material_colors':len(asset_colors)})
 
  if set(manifests)!=set(x['asset_id'] for x in stats):
