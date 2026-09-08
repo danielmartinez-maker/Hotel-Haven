@@ -49,6 +49,9 @@ jobs:
       - name: Generate Batch 04 exports
         run: python Tools/ArtGeneration/batch04_generate.py GameData/AssetDefinitions/Manifest/asset_batch_04.json Art/Exports/Batch04 --package
 
+      - name: Generate Batch 05 exports
+        run: python Tools/ArtGeneration/batch05_generate.py GameData/AssetDefinitions/Manifest/asset_batch_05.json Art/Exports/Batch05 --package
+
       - name: Generate shared mechanical animations
         run: python Tools/ArtGeneration/mechanical_animation_generate.py Art/Exports/Animations
 
