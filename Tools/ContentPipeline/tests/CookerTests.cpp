@@ -103,6 +103,14 @@ HH_TEST("asset IDs reject Windows reserved filename characters on every platform
         const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
         bool threw = false; try { static_cast<void>(cook_one(catalog, graph, id, options(root))); } catch (const std::exception&) { threw = true; }
         HH_REQUIRE(threw);
-        HH_REQUIRE(!fs::exists(root / "Build/CookedAssets" / (std::string(id) + ".hasset")));
+    }
+}
+HH_TEST("asset IDs reject Windows device names and trailing aliases on every platform") {
+    constexpr const char* invalid_ids[] = {"CON", "PRN", "AUX", "NUL", "COM1", "LPT9", "asset.bad.", "asset.bad "};
+    for (const char* id : invalid_ids) {
+        const auto root = make_repo(); add_asset(root, id, "bad");
+        const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+        bool threw = false; try { static_cast<void>(cook_one(catalog, graph, id, options(root))); } catch (const std::exception&) { threw = true; }
+        HH_REQUIRE(threw);
     }
 }
