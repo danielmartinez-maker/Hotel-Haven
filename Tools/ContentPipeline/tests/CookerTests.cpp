@@ -181,6 +181,45 @@ HH_TEST("cooker rejects cooked root symlinks resolving outside repository") {
     HH_REQUIRE(!fs::exists(outside / "asset.a.hasset"));
     fs::remove_all(outside);
 }
+
+HH_TEST("cooker rejects cook state symlinks resolving outside repository") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto cooked = root / "Build/CookedAssets";
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_state");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    fs::create_directories(cooked);
+    const auto outside_state = outside / "state.json";
+    write_text(outside_state, "{\"assets\":{},\"schema\":1}");
+    const auto before = read_text_file(outside_state);
+    fs::create_symlink(outside_state, cooked / ".cook-state.json");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    bool threw = false;
+    try { static_cast<void>(cook_one(catalog, graph, "asset.a", options(root))); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+    HH_REQUIRE(read_text_file(outside_state) == before);
+    HH_REQUIRE(!fs::exists(cooked / "asset.a.hasset"));
+    fs::remove_all(outside);
+}
+
+HH_TEST("cooker rejects cooked asset symlinks resolving outside repository") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    const auto first = cook_one(catalog, graph, "asset.a", options(root));
+    HH_REQUIRE(first.cooked);
+    const auto outside = root.parent_path() / (root.filename().string() + "_outside_asset");
+    fs::remove_all(outside);
+    fs::create_directories(outside);
+    const auto outside_asset = outside / "asset.a.hasset";
+    fs::rename(first.output, outside_asset);
+    const auto before = read_bytes(outside_asset);
+    fs::create_symlink(outside_asset, first.output);
+    bool threw = false;
+    try { static_cast<void>(cook_one(catalog, graph, "asset.a", options(root))); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+    HH_REQUIRE(read_bytes(outside_asset) == before);
+    fs::remove_all(outside);
+}
 #endif
 HH_TEST("asset IDs cannot become cooked filesystem paths") {
     const auto root = make_repo(); add_asset(root, "asset/bad", "bad");
