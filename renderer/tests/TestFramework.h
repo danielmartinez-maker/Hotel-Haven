@@ -37,7 +37,8 @@ struct Registrar {
 }
 
 inline void expectNear(float lhs, float rhs, float epsilon, const char* expression, const char* file, int line) {
-    if (std::fabs(lhs - rhs) > epsilon) {
+    if (!std::isfinite(lhs) || !std::isfinite(rhs) || !std::isfinite(epsilon) ||
+        epsilon < 0.0f || std::fabs(lhs - rhs) > epsilon) {
         fail(expression, file, line);
     }
 }

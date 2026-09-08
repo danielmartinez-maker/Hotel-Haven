@@ -46,16 +46,25 @@ TEST_CASE("floor visibility does not overflow on hostile floor ids") {
 TEST_CASE("camera rejects non-finite control inputs") {
     using namespace hh::renderer;
     OrthoCamera camera;
+    camera.setPitchDegrees(60.0f);
+    camera.setYawDegrees(90.0f);
+    camera.setOrthoHeight(20.0f);
+    camera.setAspectRatio(2.0f);
 
     camera.setPitchDegrees(std::numeric_limits<float>::quiet_NaN());
     camera.setYawDegrees(std::numeric_limits<float>::infinity());
     camera.setOrthoHeight(std::numeric_limits<float>::quiet_NaN());
     camera.setAspectRatio(std::numeric_limits<float>::infinity());
 
-    EXPECT_NEAR(camera.pitchDegrees(), 55.0f, 0.0001f);
-    EXPECT_NEAR(camera.yawDegrees(), 0.0f, 0.0001f);
-    EXPECT_NEAR(camera.orthoHeight(), 36.0f, 0.0001f);
-    EXPECT_NEAR(camera.aspectRatio(), 16.0f / 9.0f, 0.0001f);
+    EXPECT_TRUE(std::isfinite(camera.pitchDegrees()));
+    EXPECT_TRUE(std::isfinite(camera.yawDegrees()));
+    EXPECT_TRUE(std::isfinite(camera.orthoHeight()));
+    EXPECT_TRUE(std::isfinite(camera.aspectRatio()));
+    EXPECT_NEAR(camera.pitchDegrees(), 60.0f, 0.0001f);
+    EXPECT_NEAR(camera.yawDegrees(), 90.0f, 0.0001f);
+    EXPECT_NEAR(camera.orthoHeight(), 20.0f, 0.0001f);
+    EXPECT_NEAR(camera.aspectRatio(), 2.0f, 0.0001f);
+    EXPECT_NEAR(OrthoCamera::snapYaw90(std::numeric_limits<float>::infinity()), 0.0f, 0.0001f);
 
     const Vec3 position = camera.worldPosition();
     EXPECT_TRUE(std::isfinite(position.x));

@@ -1,7 +1,5 @@
 #include "hh/renderer/FloorVisibility.h"
 
-#include <cstdlib>
-
 namespace hh::renderer {
 
 FloorRenderVisibility floorVisibility(
@@ -12,9 +10,12 @@ FloorRenderVisibility floorVisibility(
         return FloorRenderVisibility::Full;
     }
 
-    if (mode == FloorContextMode::AdjacentContext &&
-        std::abs(itemFloor - activeFloor) == 1) {
-        return FloorRenderVisibility::TranslucentShell;
+    if (mode == FloorContextMode::AdjacentContext) {
+        const long long delta = static_cast<long long>(itemFloor) -
+                                static_cast<long long>(activeFloor);
+        if (delta == -1LL || delta == 1LL) {
+            return FloorRenderVisibility::TranslucentShell;
+        }
     }
 
     return FloorRenderVisibility::Hidden;

@@ -12,6 +12,9 @@ constexpr float kViewDistance = 100.0f;
 constexpr float kMinimumPositive = 0.001f;
 
 float normalizeDegrees(float value) noexcept {
+    if (!std::isfinite(value)) {
+        return 0.0f;
+    }
     float normalized = std::fmod(value, 360.0f);
     if (normalized < 0.0f) {
         normalized += 360.0f;
@@ -27,12 +30,20 @@ void OrthoCamera::setTarget(Vec3 target) noexcept { target_ = target; }
 Vec3 OrthoCamera::target() const noexcept { return target_; }
 
 void OrthoCamera::setPitchDegrees(float value) noexcept {
+    if (!std::isfinite(value)) {
+        return;
+    }
     pitchDegrees_ = std::clamp(value, kMinPitch, kMaxPitch);
 }
 
 float OrthoCamera::pitchDegrees() const noexcept { return pitchDegrees_; }
 
-void OrthoCamera::setYawDegrees(float value) noexcept { yawDegrees_ = normalizeDegrees(value); }
+void OrthoCamera::setYawDegrees(float value) noexcept {
+    if (!std::isfinite(value)) {
+        return;
+    }
+    yawDegrees_ = normalizeDegrees(value);
+}
 float OrthoCamera::yawDegrees() const noexcept { return yawDegrees_; }
 
 float OrthoCamera::snapYaw90(float value) noexcept {
@@ -46,12 +57,18 @@ void OrthoCamera::rotateSnapped(int quarterTurns) noexcept {
 }
 
 void OrthoCamera::setOrthoHeight(float value) noexcept {
+    if (!std::isfinite(value)) {
+        return;
+    }
     orthoHeight_ = std::max(value, kMinimumPositive);
 }
 
 float OrthoCamera::orthoHeight() const noexcept { return orthoHeight_; }
 
 void OrthoCamera::setAspectRatio(float value) noexcept {
+    if (!std::isfinite(value)) {
+        return;
+    }
     aspectRatio_ = std::max(value, kMinimumPositive);
 }
 
