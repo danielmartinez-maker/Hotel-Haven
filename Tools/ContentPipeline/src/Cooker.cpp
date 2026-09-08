@@ -137,6 +137,23 @@ void validate_cook_options(const CookOptions& options) {
     }
 }
 
+void validate_cooked_path(
+    const std::filesystem::path& path,
+    const CookOptions& options,
+    std::string_view label) {
+    const auto cooked_root = std::filesystem::absolute(options.cooked_root).lexically_normal();
+    const auto candidate = std::filesystem::absolute(path).lexically_normal();
+    if (!path_within_root(candidate, cooked_root)) {
+        throw std::runtime_error(std::string(label) + " escapes cooked root: " + candidate.string());
+    }
+
+    const auto canonical_cooked_root = std::filesystem::weakly_canonical(cooked_root);
+    const auto canonical_candidate = std::filesystem::weakly_canonical(candidate);
+    if (!path_within_root(canonical_candidate, canonical_cooked_root)) {
+        throw std::runtime_error(std::string(label) + " resolves outside cooked root: " + candidate.string());
+    }
+}
+
 std::string repo_relative(const std::filesystem::path& path, const std::filesystem::path& root) {
     const auto absolute_path = std::filesystem::absolute(path).lexically_normal();
     const auto absolute_root = std::filesystem::absolute(root).lexically_normal();
@@ -215,6 +232,7 @@ CookResult cook_internal(
     validate_cookable(record);
     const auto fingerprint = compute_fingerprint(record, catalog, graph, options.fingerprint);
     const auto output = options.cooked_root / (record.metadata.asset_id + ".hasset");
+    validate_cooked_path(output, options, "cooked asset");
     const auto existing = state.find(record.metadata.asset_id);
     if (!force && existing != state.end() && existing->second == fingerprint &&
         existing_output_matches(output, record, fingerprint, options)) {
@@ -232,20 +250,28 @@ CookResult cook_internal(
     const auto bytes = serialize_hasset(document);
     write_bytes_atomic(output, bytes);
     state[record.metadata.asset_id] = fingerprint;
-    write_text_atomic(options.cooked_root / ".cook-state.json", serialize_state(state));
+    const auto state_path = options.cooked_root / ".cook-state.json";
+    validate_cooked_path(state_path, options, "cook state");
+    write_text_atomic(state_path, serialize_state(state));
     return {record.metadata.asset_id, true, output, fingerprint};
+}
+
+CookState load_validated_state(const CookOptions& options) {
+    const auto state_path = options.cooked_root / ".cook-state.json";
+    validate_cooked_path(state_path, options, "cook state");
+    return load_state(state_path);
 }
 }
 
 CookResult cook_one(const AssetCatalog& catalog, const DependencyGraph& graph, std::string_view asset_id, const CookOptions& options) {
     validate_cook_options(options);
-    auto state = load_state(options.cooked_root / ".cook-state.json");
+    auto state = load_validated_state(options);
     return cook_internal(catalog, graph, asset_id, options, state, false);
 }
 
 std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
     validate_cook_options(options);
-    auto state = load_state(options.cooked_root / ".cook-state.json");
+    auto state = load_validated_state(options);
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, true));
     return results;
@@ -253,7 +279,7 @@ std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGr
 
 std::vector<CookResult> cook_changed(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
     validate_cook_options(options);
-    auto state = load_state(options.cooked_root / ".cook-state.json");
+    auto state = load_validated_state(options);
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, false));
     return results;
