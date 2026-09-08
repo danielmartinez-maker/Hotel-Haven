@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
@@ -31,6 +32,12 @@ std::vector<std::string> required_string_array(const JsonValue& root, std::strin
 std::int64_t integer_value(const JsonValue& value, std::string_view field) {
     const double number = value.as_number();
     if (std::floor(number) != number) throw std::runtime_error("metadata field must be an integer: " + std::string(field));
+    const long double wide = static_cast<long double>(number);
+    const long double minimum = static_cast<long double>(std::numeric_limits<std::int64_t>::min());
+    const long double maximum = static_cast<long double>(std::numeric_limits<std::int64_t>::max());
+    if (wide < minimum || wide > maximum) {
+        throw std::runtime_error("metadata integer field out of range: " + std::string(field));
+    }
     return static_cast<std::int64_t>(number);
 }
 
@@ -109,7 +116,12 @@ AssetMetadata load_metadata(const std::filesystem::path& sidecar) {
     const auto root = parse_json(read_text(sidecar));
     if (!root.is_object()) throw std::runtime_error("metadata root must be an object");
     AssetMetadata metadata;
-    metadata.schema = static_cast<int>(integer_value(required(root, "schema"), "schema"));
+    const auto schema = integer_value(required(root, "schema"), "schema");
+    if (schema < static_cast<std::int64_t>(std::numeric_limits<int>::min()) ||
+        schema > static_cast<std::int64_t>(std::numeric_limits<int>::max())) {
+        throw std::runtime_error("metadata integer field out of range: schema");
+    }
+    metadata.schema = static_cast<int>(schema);
     metadata.asset_id = required_string(root, "asset_id");
     metadata.asset_type = asset_type_from_string(required_string(root, "asset_type"));
     metadata.source = required_string(root, "source");
