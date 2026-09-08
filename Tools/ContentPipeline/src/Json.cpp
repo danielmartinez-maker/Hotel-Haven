@@ -132,14 +132,58 @@ private:
         return value;
     }
 
+    void append_raw_utf8(std::string& out, unsigned char first) {
+        std::size_t continuation_count = 0;
+        unsigned char second_min = 0x80u;
+        unsigned char second_max = 0xBFu;
+
+        if (first >= 0xC2u && first <= 0xDFu) {
+            continuation_count = 1;
+        } else if (first == 0xE0u) {
+            continuation_count = 2;
+            second_min = 0xA0u;
+        } else if ((first >= 0xE1u && first <= 0xECu) ||
+                   (first >= 0xEEu && first <= 0xEFu)) {
+            continuation_count = 2;
+        } else if (first == 0xEDu) {
+            continuation_count = 2;
+            second_max = 0x9Fu;
+        } else if (first == 0xF0u) {
+            continuation_count = 3;
+            second_min = 0x90u;
+        } else if (first >= 0xF1u && first <= 0xF3u) {
+            continuation_count = 3;
+        } else if (first == 0xF4u) {
+            continuation_count = 3;
+            second_max = 0x8Fu;
+        } else {
+            fail("invalid UTF-8 leading byte");
+        }
+
+        if (pos_ + continuation_count > text_.size()) fail("truncated UTF-8 sequence");
+        out.push_back(static_cast<char>(first));
+        for (std::size_t i = 0; i < continuation_count; ++i) {
+            const auto byte = static_cast<unsigned char>(text_[pos_]);
+            const unsigned char minimum = i == 0 ? second_min : 0x80u;
+            const unsigned char maximum = i == 0 ? second_max : 0xBFu;
+            if (byte < minimum || byte > maximum) fail("invalid UTF-8 continuation byte");
+            out.push_back(text_[pos_++]);
+        }
+    }
+
     std::string parse_string() {
         expect('"');
         std::string out;
         while (pos_ < text_.size()) {
             const char c = text_[pos_++];
             if (c == '"') return out;
-            if (static_cast<unsigned char>(c) < 0x20u) fail("unescaped control character");
-            if (c != '\\') { out.push_back(c); continue; }
+            const auto byte = static_cast<unsigned char>(c);
+            if (byte < 0x20u) fail("unescaped control character");
+            if (c != '\\') {
+                if (byte < 0x80u) out.push_back(c);
+                else append_raw_utf8(out, byte);
+                continue;
+            }
             if (pos_ >= text_.size()) fail("truncated escape");
             const char escape = text_[pos_++];
             switch (escape) {
