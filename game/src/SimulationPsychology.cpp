@@ -1,6 +1,7 @@
 #include "hh/game/Simulation.h"
 #include "hh/game/GuestGoals.h"
 #include "hh/game/GuestPsychology.h"
+#include "hh/game/GuestPsychologyArchive.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -24,9 +25,9 @@ const PersonView *findActiveGuest(const SimulationView &view,
   return found == view.people.end() ? nullptr : &*found;
 }
 
-void projectLegacyState(GuestPsychologySnapshot &snapshot,
-                        const ReservationView &reservation,
-                        const PersonView *person) noexcept {
+void projectLegacySatisfaction(GuestPsychologySnapshot &snapshot,
+                               const ReservationView &reservation,
+                               const PersonView *person) noexcept {
   const int legacySatisfaction = static_cast<int>(std::clamp(
       std::lround(person ? person->satisfaction : reservation.satisfaction), 0L,
       100L));
@@ -47,12 +48,24 @@ void projectLegacyState(GuestPsychologySnapshot &snapshot,
   snapshot.operational.cleanlinessConfidence = legacySatisfaction;
   snapshot.operational.environmentComfort = legacySatisfaction;
   snapshot.operational.valuePerception = legacySatisfaction;
-  if (person) {
-    snapshot.needs.hunger = static_cast<int>(
-        std::clamp(std::lround(person->hunger), 0L, 100L));
-    snapshot.needs.energy =
-        static_cast<int>(std::clamp(std::lround(person->rest), 0L, 100L));
-  }
+}
+
+void projectLiveNeeds(GuestPsychologySnapshot &snapshot,
+                      const PersonView *person) noexcept {
+  if (!person)
+    return;
+  snapshot.needs.hunger =
+      static_cast<int>(std::clamp(std::lround(person->hunger), 0L, 100L));
+  snapshot.needs.energy =
+      static_cast<int>(std::clamp(std::lround(person->rest), 0L, 100L));
+}
+
+bool hasLongCheckInMemory(const GuestPsychologySnapshot &snapshot) noexcept {
+  return std::any_of(snapshot.memories.begin(), snapshot.memories.end(),
+                     [](const GuestMemory &memory) {
+                       return memory.type ==
+                              ExperienceEventType::LongCheckInQueue;
+                     });
 }
 } // namespace
 
@@ -63,15 +76,26 @@ GuestPsychologySnapshot Simulation::guestPsychology(EntityId guestId) const {
     throw std::invalid_argument("guest psychology state not found");
 
   GuestPsychology service(0);
-  service.initializeGuest(guestId, reservation->profile);
+  const bool archived = !reservation->psychologyArchive.empty();
+  if (archived) {
+    auto restored =
+        detail::deserializeGuestPsychology(reservation->psychologyArchive);
+    if (restored.guestId != guestId || restored.profile != reservation->profile)
+      throw std::invalid_argument("guest psychology archive identity mismatch");
+    service.restoreGuest(restored);
+  } else {
+    service.initializeGuest(guestId, reservation->profile);
+  }
   const auto *person = findActiveGuest(current, guestId);
 
+  auto currentPsychology = *service.snapshot(guestId);
   const int waitSeconds = person ? person->queueWaitSeconds
                                  : reservation->checkInWaitSeconds;
   const int tolerance = person && person->queueToleranceSeconds > 0
                             ? person->queueToleranceSeconds
                             : detail::queueToleranceFor(reservation->profile);
-  if (waitSeconds > tolerance + 10 * 60) {
+  if (waitSeconds > tolerance + 10 * 60 &&
+      !hasLongCheckInMemory(currentPsychology)) {
     ExperienceEvent event;
     event.type = ExperienceEventType::LongCheckInQueue;
     event.timestampSeconds = current.elapsedSeconds;
@@ -84,17 +108,21 @@ GuestPsychologySnapshot Simulation::guestPsychology(EntityId guestId) const {
     event.memoryHalfLifeHours = 24;
     event.complaintEligible = true;
     service.recordExperience(guestId, event);
+    currentPsychology = *service.snapshot(guestId);
   }
 
-  auto snapshot = *service.snapshot(guestId);
-  projectLegacyState(snapshot, *reservation, person);
+  if (!archived)
+    projectLegacySatisfaction(currentPsychology, *reservation, person);
+  projectLiveNeeds(currentPsychology, person);
   if (waitSeconds > tolerance + 10 * 60) {
-    snapshot.satisfaction.checkIn = std::min(snapshot.satisfaction.checkIn, 20);
-    snapshot.satisfaction.waits = std::min(snapshot.satisfaction.waits, 20);
-    snapshot.satisfaction.arrivalDeparture =
-        std::min(snapshot.satisfaction.arrivalDeparture, 20);
+    currentPsychology.satisfaction.checkIn =
+        std::min(currentPsychology.satisfaction.checkIn, 20);
+    currentPsychology.satisfaction.waits =
+        std::min(currentPsychology.satisfaction.waits, 20);
+    currentPsychology.satisfaction.arrivalDeparture =
+        std::min(currentPsychology.satisfaction.arrivalDeparture, 20);
   }
-  return snapshot;
+  return currentPsychology;
 }
 
 GoalSelection
