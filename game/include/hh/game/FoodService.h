@@ -2,6 +2,7 @@
 
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -43,6 +44,7 @@ enum class FoodStage : std::uint8_t {
 enum class FoodBlockReason : std::uint8_t {
   None,
   MissingRecipe,
+  InvalidOrder,
   MissingIngredient,
   MissingStation,
   StationCapacity,
@@ -117,6 +119,13 @@ struct FoodServiceSnapshot {
 
 class FoodServiceSystem {
 public:
+  FoodServiceSystem();
+  ~FoodServiceSystem();
+  FoodServiceSystem(FoodServiceSystem &&) noexcept;
+  FoodServiceSystem &operator=(FoodServiceSystem &&) noexcept;
+  FoodServiceSystem(const FoodServiceSystem &);
+  FoodServiceSystem &operator=(const FoodServiceSystem &);
+
   void addRecipe(const Recipe &recipe);
   void setIngredientStock(std::string item, int units);
   [[nodiscard]] int ingredientUnits(std::string_view item) const;
@@ -139,6 +148,10 @@ public:
 
   [[nodiscard]] std::string save() const;
   static FoodServiceSystem load(std::string_view data);
+
+private:
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
 };
 
 } // namespace hh::game
