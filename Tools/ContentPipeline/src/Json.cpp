@@ -1,4 +1,5 @@
 #include "hh/assets/Json.h"
+#include <cerrno>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
@@ -240,8 +241,13 @@ private:
         }
         const std::string token(text_.substr(start, pos_ - start));
         char* end = nullptr;
+        errno = 0;
         const double value = std::strtod(token.c_str(), &end);
-        if (end == nullptr || *end != '\0' || !std::isfinite(value)) fail("invalid numeric value");
+        const int conversion_errno = errno;
+        if (end == nullptr || *end != '\0' || !std::isfinite(value) ||
+            (value == 0.0 && conversion_errno == ERANGE)) {
+            fail("invalid numeric value");
+        }
         return value;
     }
 
