@@ -32,4 +32,10 @@ enum class MainMenuModal : std::uint8_t {
     QuitConfirm,
 };
 
+enum class MainMenuPanel : std::uint8_t {
+    None,
+    Settings,
+    Credits,
+};
+
 }  // namespace hh::frontend
