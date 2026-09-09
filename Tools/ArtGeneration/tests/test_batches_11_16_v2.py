@@ -47,7 +47,7 @@ def test_v2_batches_generate_50_semantic_assets_each(tmp_path):
                 for token in ('Primary', 'Base', 'Seat', 'Top', 'Frame', 'Shell', 'Root', 'Hips', 'Door', 'Cab', 'Panel', 'Wheel', 'Fixture', 'Functional', 'Role')
             ), (path.stem, sorted(names))
 
-            sidecar = json.loads(path.with_name(path.name + '.asset.json').read_text(encoding='utf-8'))
+            sidecar = json.loads(path.with_suffix('.asset.json').read_text(encoding='utf-8'))
             assert sidecar['asset_id'] == path.stem
             assert sidecar['units'] == 'meters'
             assert sidecar['quality_revision'] == 2
@@ -68,7 +68,7 @@ def test_batch16_character_assets_keep_humanoid_dependencies(tmp_path):
         scene = trimesh.load(path, force='scene')
         nodes = set(scene.graph.nodes_geometry)
         assert {'Hips', 'Spine', 'Head'} <= nodes
-        sidecar = json.loads(path.with_name(path.name + '.asset.json').read_text(encoding='utf-8'))
+        sidecar = json.loads(path.with_suffix('.asset.json').read_text(encoding='utf-8'))
         assert sidecar['asset_type'] == 'SkinnedMeshAsset'
         assert animation_set in sidecar['dependencies']
         assert 'SK_HumanoidAdult' in sidecar['dependencies']
