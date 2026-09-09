@@ -118,6 +118,10 @@ int audit_command(std::string_view milestone, const std::filesystem::path& root,
             failed = true;
         }
     }
+    if (matched == 0) {
+        err << "MAJOR audit.milestone.empty: no assets matched milestone " << milestone << '\n';
+        return 1;
+    }
     if (!failed) out << "audited " << matched << " asset" << (matched == 1 ? "" : "s") << " for milestone " << milestone << '\n';
     return failed ? 1 : 0;
 }
