@@ -25,6 +25,30 @@ TEST_CASE("activation maps menu items to application commands") {
     EXPECT_EQ(controller.activate(), hh::frontend::MainMenuCommand::OpenLoadHotel);
 }
 
+TEST_CASE("settings and credits activate as living scene overlays") {
+    hh::frontend::MainMenuModel model(true);
+    hh::frontend::MainMenuController controller(model);
+
+    EXPECT_TRUE(model.select(hh::frontend::MainMenuItem::Settings));
+    EXPECT_EQ(controller.activate(), hh::frontend::MainMenuCommand::None);
+    EXPECT_EQ(model.panel(), hh::frontend::MainMenuPanel::Settings);
+    EXPECT_TRUE(controller.cancel());
+    EXPECT_EQ(model.panel(), hh::frontend::MainMenuPanel::None);
+
+    EXPECT_TRUE(model.select(hh::frontend::MainMenuItem::Credits));
+    EXPECT_EQ(controller.activate(), hh::frontend::MainMenuCommand::None);
+    EXPECT_EQ(model.panel(), hh::frontend::MainMenuPanel::Credits);
+}
+
+TEST_CASE("navigation is suspended while a submenu panel is open") {
+    hh::frontend::MainMenuModel model(true);
+    hh::frontend::MainMenuController controller(model);
+    EXPECT_TRUE(model.select(hh::frontend::MainMenuItem::Settings));
+    EXPECT_EQ(controller.activate(), hh::frontend::MainMenuCommand::None);
+    controller.navigate(1);
+    EXPECT_EQ(model.selected(), hh::frontend::MainMenuItem::Settings);
+}
+
 TEST_CASE("quit activation opens modal before emitting exit") {
     hh::frontend::MainMenuModel model(true);
     hh::frontend::MainMenuController controller(model);
