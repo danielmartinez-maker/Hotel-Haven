@@ -1,0 +1,30 @@
+name: FINAL-03 Apply Verified Patch
+on:
+  pull_request:
+    types: [synchronize]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.head_ref == 'feature/final-03-staff-organization'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply verified FINAL-03 snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .final03-patch/part-* | base64 -d | gzip -d > /tmp/final03.patch
+          git apply --check /tmp/final03.patch
+          git apply /tmp/final03.patch
+          git fetch origin main --depth=1
+          git checkout origin/main -- .github/workflows/game.yml
+          git rm -r .final03-patch .github/workflows/final03-apply.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(game): complete FINAL-03 staff organization"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
