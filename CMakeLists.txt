@@ -7,6 +7,7 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 enable_testing()
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 add_subdirectory(Tools/ContentPipeline)
 add_subdirectory(optimization)
 add_subdirectory(game)
@@ -18,6 +19,14 @@ add_test(
     COMMAND hotel_haven_headless --days 1 --seed 20260909
             --run-id ci-balance
             --balance-summary ${CMAKE_BINARY_DIR}/balance-runs/ci-balance.json)
+add_test(
+    NAME hh_balance_summary_frontier
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/Tools/BalanceLab/balance_lab.py
+            frontier
+            --input-dir ${CMAKE_BINARY_DIR}/balance-runs
+            --output-dir ${CMAKE_BINARY_DIR}/balance-output)
+set_tests_properties(hh_balance_summary_frontier PROPERTIES DEPENDS hh_balance_summary_cli)
 install(TARGETS hotel_haven_headless RUNTIME DESTINATION .)
 add_library(hh_world_view STATIC game/app/WorldView.cpp)
 target_include_directories(hh_world_view PUBLIC game/app renderer/include)
