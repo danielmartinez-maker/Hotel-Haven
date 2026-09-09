@@ -8,8 +8,8 @@
 namespace hh::optimization {
 
 struct MilpRequestOptions {
-    std::int32_t bucketMinutes{5};
-    std::int32_t horizonBuckets{12};
+    std::int32_t bucketMinutes{kLivePlanningBucketMinutes};
+    std::int32_t horizonBuckets{kLivePlanningHorizonBuckets};
 };
 
 std::string buildMilpRequestJson(const OptimizerSnapshot& snapshot, MilpRequestOptions options = {});
