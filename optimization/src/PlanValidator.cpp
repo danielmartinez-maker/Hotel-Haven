@@ -1,6 +1,7 @@
 #include "hh/optimization/PlanValidator.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <set>
 #include <tuple>
 #include <unordered_map>
@@ -20,9 +21,16 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
 
     if (plan.optimizationEpoch != snapshot.optimizationEpoch) fail("optimization epoch mismatch");
     if (plan.snapshotFingerprint != snapshotFingerprint(snapshot)) fail("snapshot fingerprint mismatch");
+    if (plan.bucketMinutes <= 0) fail("plan bucket size must be positive");
+    if (plan.horizonBuckets <= 0) fail("plan horizon must be positive");
+
+    const std::int64_t bucketSeconds = plan.bucketMinutes > 0
+        ? static_cast<std::int64_t>(plan.bucketMinutes) * 60
+        : 0;
+    const std::int64_t horizonBuckets = std::max<std::int64_t>(0, plan.horizonBuckets);
 
     std::set<EntityId> seenTasks;
-    std::unordered_map<EntityId, std::vector<std::pair<std::int32_t, std::int32_t>>> intervals;
+    std::unordered_map<EntityId, std::vector<std::pair<std::int64_t, std::int64_t>>> intervals;
 
     for (const auto& assignment : plan.assignments) {
         if (assignment.startBucket < 0 || assignment.durationBuckets <= 0) {
@@ -30,6 +38,11 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
             continue;
         }
         if (!seenTasks.insert(assignment.taskId).second) fail("task assigned more than once");
+
+        const std::int64_t start = assignment.startBucket;
+        const std::int64_t duration = assignment.durationBuckets;
+        const std::int64_t end = start + duration;
+        if (plan.horizonBuckets > 0 && end > horizonBuckets) fail("assignment outside plan horizon");
 
         const auto task = std::find_if(snapshot.tasks.begin(), snapshot.tasks.end(), [&](const Task& value) { return value.id == assignment.taskId; });
         if (task == snapshot.tasks.end()) {
@@ -43,18 +56,24 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
             fail("assignment references unknown employee");
         } else if (!employee->available) {
             fail("assignment references unavailable employee");
-        } else if (assignment.startBucket < employee->availableFromBucket || assignment.startBucket + assignment.durationBuckets > employee->availableUntilBucket) {
+        } else if (start < static_cast<std::int64_t>(employee->availableFromBucket) || end > static_cast<std::int64_t>(employee->availableUntilBucket)) {
             fail("assignment outside employee availability window");
         }
 
         const auto candidate = std::find_if(snapshot.candidates.begin(), snapshot.candidates.end(), [&](const Candidate& value) {
             return value.taskId == assignment.taskId && value.employeeId == assignment.employeeId;
         });
-        if (candidate == snapshot.candidates.end() || !candidate->eligible) fail("assignment violates task eligibility");
+        if (candidate == snapshot.candidates.end() || !candidate->eligible) {
+            fail("assignment violates task eligibility");
+        } else if (bucketSeconds > 0) {
+            const std::int64_t travelSeconds = std::max<std::int64_t>(0, candidate->travelSeconds);
+            const std::int64_t workSeconds = std::max<std::int64_t>(0, candidate->effectiveWorkSeconds);
+            const std::int64_t totalSeconds = travelSeconds + workSeconds;
+            const std::int64_t requiredBuckets = std::max<std::int64_t>(1, (totalSeconds + bucketSeconds - 1) / bucketSeconds);
+            if (duration < requiredBuckets) fail("assignment interval shorter than candidate travel plus work duration");
+        }
 
         auto& employeeIntervals = intervals[assignment.employeeId];
-        const std::int32_t start = assignment.startBucket;
-        const std::int32_t end = start + assignment.durationBuckets;
         for (const auto& [existingStart, existingEnd] : employeeIntervals) {
             if (start < existingEnd && existingStart < end) {
                 fail("employee assignments overlap");
@@ -69,6 +88,9 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
         if (stationAssignment.bucket < 0) {
             fail("station assignment has invalid bucket");
             continue;
+        }
+        if (plan.horizonBuckets > 0 && static_cast<std::int64_t>(stationAssignment.bucket) >= horizonBuckets) {
+            fail("station assignment outside plan horizon");
         }
         if (!seenStationCoverage.emplace(stationAssignment.stationId, stationAssignment.employeeId, stationAssignment.bucket).second) {
             fail("station assignment duplicated");
@@ -95,8 +117,8 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
         if (candidate == snapshot.stationCandidates.end() || !candidate->eligible) fail("station assignment violates eligibility");
 
         auto& employeeIntervals = intervals[stationAssignment.employeeId];
-        const auto start = stationAssignment.bucket;
-        const auto end = start + 1;
+        const std::int64_t start = stationAssignment.bucket;
+        const std::int64_t end = start + 1;
         for (const auto& [existingStart, existingEnd] : employeeIntervals) {
             if (start < existingEnd && existingStart < end) {
                 fail("employee station/task assignments overlap");
