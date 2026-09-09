@@ -12,20 +12,40 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 include(cmake/CompilerWarnings.cmake)
 
+# The renderer consumes only the runtime-safe asset envelope/parser target.
+# In the integrated root build it is already defined; standalone renderer
+# builds request the format-only content-pipeline mode.
+if(NOT TARGET hh_asset_format)
+    set(HH_CONTENT_PIPELINE_FORMAT_ONLY ON CACHE BOOL
+        "Build only the runtime-safe hh_asset_format target" FORCE)
+    add_subdirectory(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Tools/ContentPipeline
+        ${CMAKE_CURRENT_BINARY_DIR}/content-pipeline
+        EXCLUDE_FROM_ALL)
+endif()
+if(NOT TARGET hh_asset_format)
+    message(FATAL_ERROR "hh_asset_format runtime target is required by the renderer")
+endif()
+
 add_library(hh_renderer_core STATIC
     src/Camera.cpp
     src/FloorVisibility.cpp
+    src/GlbLoader.cpp
     src/Occlusion.cpp
+    src/RuntimeAssetRegistry.cpp
     src/SceneComposer.cpp
+    src/Visibility.cpp
 )
 
 target_include_directories(hh_renderer_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_link_libraries(hh_renderer_core PUBLIC hh_asset_format)
 hh_enable_strict_warnings(hh_renderer_core)
 
 add_library(hh_renderer_d3d11 STATIC
     src/d3d11/D3D11Renderer.cpp
+    src/d3d11/D3D11RendererOverlay.cpp
 )
 target_include_directories(hh_renderer_d3d11 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -44,6 +64,7 @@ hh_enable_strict_warnings(hh_renderer_d3d11)
 
 add_library(hh_renderer_win32 STATIC
     src/win32/Win32Window.cpp
+    src/win32/Win32WindowPointer.cpp
 )
 target_include_directories(hh_renderer_win32 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -79,6 +100,9 @@ add_custom_command(TARGET hotel_haven_renderer_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders/InstancedBox.hlsl"
         "$<TARGET_FILE_DIR:hotel_haven_renderer_demo>/shaders/InstancedBox.hlsl"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/Mesh.hlsl"
+        "$<TARGET_FILE_DIR:hotel_haven_renderer_demo>/shaders/Mesh.hlsl"
 )
 
 add_executable(hh_renderer_tests
@@ -87,14 +111,41 @@ add_executable(hh_renderer_tests
     tests/FloorVisibilityTests.cpp
     tests/OcclusionTests.cpp
     tests/SceneComposerTests.cpp
+    tests/VisibilityTests.cpp
+    tests/AssetFormatLinkTests.cpp
+    tests/GlbLoaderTests.cpp
+    tests/RuntimeAssetRegistryTests.cpp
     tests/D3D11SmokeTests.cpp
 )
 
 target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_compile_definitions(hh_renderer_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core d3d11 d3dcompiler)
+target_link_libraries(hh_renderer_tests PRIVATE
+    hh_renderer_core
+    hh_renderer_d3d11
+    hh_asset_format
+    d3d11
+    d3dcompiler
+    user32
+)
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
+
+# Dedicated integration executable used after the authoring pipeline cooks the
+# authoritative gameplay library. It loads every .hasset through the same
+# runtime registry/GLB path used by the shipping client.
+add_executable(hh_runtime_asset_library_audit
+    tests/RuntimeAssetLibraryAudit.cpp
+)
+target_include_directories(hh_runtime_asset_library_audit PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(hh_runtime_asset_library_audit PRIVATE
+    hh_renderer_core
+    hh_asset_format
+)
+hh_enable_strict_warnings(hh_runtime_asset_library_audit)

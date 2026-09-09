@@ -34,6 +34,7 @@ public:
     [[nodiscard]] bool consumeKeyPressed(int virtualKey) noexcept;
     [[nodiscard]] int consumeMouseWheelDelta() noexcept;
     [[nodiscard]] bool consumeLeftClick(POINT& point) noexcept;
+    [[nodiscard]] bool mousePosition(POINT& point) const noexcept;
     [[nodiscard]] bool consumeResize(std::uint32_t& width, std::uint32_t& height) noexcept;
 
     void requestClose() noexcept;
@@ -50,6 +51,7 @@ private:
     bool closed_{};
     bool resizePending_{};
     int mouseWheelDelta_{};
+    std::optional<POINT> mousePosition_;
     std::optional<POINT> leftClick_;
     std::array<bool, 256> keyDown_{};
     std::array<bool, 256> keyPressed_{};

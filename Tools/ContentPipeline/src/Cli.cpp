@@ -65,6 +65,7 @@ void usage(std::ostream& err) {
         << "  asset cook <asset-id|path>\n"
         << "  asset cook --changed\n"
         << "  asset cook --all\n"
+        << "  asset cook --runtime\n"
         << "  asset inspect <asset-id>\n"
         << "  asset deps <asset-id>\n"
         << "  asset audit --milestone <name>\n";
@@ -153,6 +154,11 @@ int run_asset_cli(std::span<const std::string_view> args, std::ostream& out, std
             if (args[1] == "--all") {
                 const auto results = cook_all(catalog, graph, options);
                 out << "cooked " << results.size() << " asset" << (results.size() == 1 ? "" : "s") << '\n';
+                return 0;
+            }
+            if (args[1] == "--runtime") {
+                const auto results = cook_runtime_meshes(catalog, graph, options);
+                out << "cooked " << results.size() << " runtime mesh asset" << (results.size() == 1 ? "" : "s") << '\n';
                 return 0;
             }
             const auto& record = resolve_for_cli(catalog, args[1], root);

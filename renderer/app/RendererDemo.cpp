@@ -13,6 +13,7 @@
 
 #include "d3d11/D3D11Renderer.h"
 #include "hh/renderer/SceneComposer.h"
+#include "hh/renderer/Visibility.h"
 #include "win32/Win32Window.h"
 
 namespace {
@@ -383,7 +384,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             contextMode,
             wallMode,
             camera.worldPosition());
-        rendererResult = renderer.render(composed, camera);
+        const hh::renderer::ComposedScene visible =
+            hh::renderer::prepareVisibleScene(composed, camera);
+        rendererResult = renderer.render(visible, camera);
         if (!rendererResult) {
             showFatalError(rendererResult.error);
             return 4;

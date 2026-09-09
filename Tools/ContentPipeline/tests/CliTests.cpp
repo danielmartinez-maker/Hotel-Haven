@@ -22,11 +22,11 @@ fs::path make_repo() {
     return root;
 }
 void write_text(const fs::path& p, std::string_view s) { fs::create_directories(p.parent_path()); std::ofstream(p, std::ios::binary) << s; }
-void add_asset(const fs::path& root, std::string id, std::string name, std::string deps = "[]", std::string extra = "") {
+void add_asset(const fs::path& root, std::string id, std::string name, std::string deps = "[]", std::string extra = "", std::string asset_type = "StaticMeshAsset") {
     write_text(root / ("Art/Source/" + name + ".blend"), "source-" + id);
     write_text(root / ("Art/Exports/" + name + ".glb"), "export-" + id);
     std::ofstream out(root / ("Art/Exports/" + name + ".glb.asset.json"), std::ios::binary);
-    out << "{\"schema\":1,\"asset_id\":\"" << id << "\",\"asset_type\":\"StaticMeshAsset\","
+    out << "{\"schema\":1,\"asset_id\":\"" << id << "\",\"asset_type\":\"" << asset_type << "\","
         << "\"source\":\"Art/Source/" << name << ".blend\",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":" << deps << extra << "}";
@@ -77,6 +77,18 @@ HH_TEST("CLI cook one changed and all operate through same cooker") {
     HH_REQUIRE(run({"cook", "asset.a"}, out, err) == 0); HH_REQUIRE(fs::exists(root / "Build/CookedAssets/asset.a.hasset"));
     HH_REQUIRE(run({"cook", "--changed"}, out, err) == 0);
     HH_REQUIRE(run({"cook", "--all"}, out, err) == 0);
+}
+HH_TEST("CLI runtime cook emits only renderer safe mesh envelopes") {
+    const auto root = make_repo();
+    add_asset(root, "HH_A001", "static");
+    add_asset(root, "HH_A002", "skinned", "[]", "", "SkinnedMeshAsset");
+    add_asset(root, "HH_SKEL_HUMAN", "skeleton", "[]", "", "SkeletonAsset");
+    CurrentPathGuard guard; fs::current_path(root); std::string out, err;
+    HH_REQUIRE(run({"cook", "--runtime"}, out, err) == 0);
+    HH_REQUIRE(out.find("cooked 2 runtime mesh assets") != std::string::npos);
+    HH_REQUIRE(fs::exists(root / "Build/CookedAssets/HH_A001.hasset"));
+    HH_REQUIRE(fs::exists(root / "Build/CookedAssets/HH_A002.hasset"));
+    HH_REQUIRE(!fs::exists(root / "Build/CookedAssets/HH_SKEL_HUMAN.hasset"));
 }
 HH_TEST("milestone audit requires ownership reviewers release state and no blockers") {
     const auto root = make_repo();

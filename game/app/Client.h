@@ -1,5 +1,5 @@
 #pragma once
-#include "WorldView.h"
+#include "RuntimeWorldAssets.h"
 #include "d3d11/D3D11Renderer.h"
 #include "hh/game/Simulation.h"
 #include "hh/renderer/Camera.h"
@@ -10,6 +10,19 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+
+// Legacy Win32/RPC headers still expose these as macros on current Windows SDKs.
+// They collide with ordinary C++ identifiers used by the client and must not
+// leak beyond the platform include boundary.
+#ifdef small
+#undef small
+#endif
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
 
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
@@ -35,11 +48,32 @@ struct Button {
   std::function<void()> action;
   bool active{};
 };
+class ClientRenderer final : public hh::renderer::D3D11Renderer {
+public:
+  explicit ClientRenderer(hh::renderer::RuntimeAssetRegistry &registry) noexcept
+      : registry_(&registry) {}
+
+  [[nodiscard]] hh::renderer::RendererResult
+  initialize(HWND window, std::uint32_t width, std::uint32_t height,
+             const std::filesystem::path &shaderPath,
+             bool softwareDevice = false) {
+    auto result = hh::renderer::D3D11Renderer::initialize(
+        window, width, height, shaderPath, softwareDevice);
+    if (result)
+      setAssetRegistry(registry_);
+    return result;
+  }
+
+private:
+  hh::renderer::RuntimeAssetRegistry *registry_{};
+};
 struct Client {
   hh::game::Simulation simulation;
   hh::game::SimulationView snapshot;
   HWND window{}, viewport{};
-  hh::renderer::D3D11Renderer renderer;
+  hh::renderer::RuntimeAssetRegistry assetRegistry;
+  ClientRenderer renderer{assetRegistry};
+  WorldAssetSet worldAssets;
   hh::renderer::OrthoCamera camera;
   std::filesystem::path directory, savePath;
   std::vector<Button> buttons;
