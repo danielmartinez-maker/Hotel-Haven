@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <string>
 
 namespace {
@@ -170,7 +171,7 @@ TEST_CASE("D3D11 renderer remains safe and recoverable after resize failure") {
     EXPECT_TRUE(renderer.initialize(window.handle(), 160, 120, shaderPath()).succeeded);
     EXPECT_TRUE(renderer.render(scene, camera).succeeded);
 
-    constexpr std::uint32_t invalidDimension = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION + 1u;
+    constexpr std::uint32_t invalidDimension = std::numeric_limits<std::uint32_t>::max();
     const RendererResult failedResize = renderer.resize(invalidDimension, invalidDimension);
     EXPECT_FALSE(failedResize.succeeded);
 
