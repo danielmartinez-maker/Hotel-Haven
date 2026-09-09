@@ -86,6 +86,8 @@ class WorkerTests(unittest.TestCase):
         ], objective_values={"labor_travel_cost": 7.25, "critical_service": 0.0})
         self.assertEqual(response["optimization_epoch"], 7)
         self.assertEqual(response["snapshot_fingerprint"], 12345)
+        self.assertEqual(response["bucket_minutes"], 5)
+        self.assertEqual(response["horizon_buckets"], 4)
         self.assertEqual([a["task_id"] for a in response["assignments"]], [11, 20])
         self.assertEqual(list(response["objective_values"]), ["critical_service", "labor_travel_cost"])
         self.assertEqual(json.dumps(response, sort_keys=True), json.dumps(response, sort_keys=True))
