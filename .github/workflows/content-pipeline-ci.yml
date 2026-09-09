@@ -67,6 +67,7 @@ jobs:
             Art/Exports/**
             Art/Validation/full_generation_summary.json
             Art/Validation/generated_geometry_qc.json
+            Art/Validation/library_release_audit_v1.md
             Art/Validation/Previews/**
           if-no-files-found: error
           compression-level: 6
