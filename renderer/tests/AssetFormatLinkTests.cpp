@@ -3,6 +3,7 @@
 
 #include <string>
 
+// RED checkpoint: renderer must link only the runtime-safe asset-format target.
 TEST_CASE("renderer links runtime hasset format without cooker") {
     hh::assets::HassetDocument document;
     document.asset_id = "HH_A001";
