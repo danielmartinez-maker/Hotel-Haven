@@ -37,6 +37,10 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_construction_save_tests PRIVATE hh_game)
   add_test(NAME hh_construction_save_tests COMMAND hh_construction_save_tests)
 
+  add_executable(hh_guest_psychology_tests tests/GuestPsychologyTests.cpp)
+  target_link_libraries(hh_guest_psychology_tests PRIVATE hh_game)
+  add_test(NAME hh_guest_psychology_tests COMMAND hh_guest_psychology_tests)
+
   add_executable(hh_optimizer_integration_tests tests/OptimizerIntegrationTests.cpp)
   target_include_directories(hh_optimizer_integration_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
   target_link_libraries(hh_optimizer_integration_tests PRIVATE hh_game hh_optimization)
