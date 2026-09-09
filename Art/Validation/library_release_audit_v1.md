@@ -7,6 +7,8 @@
 - Animation dependencies linked: **87 / 87**
 - Deferred animation dependencies: **0**
 - Interaction anchors normalized: **184 / 184**
+- Cooked Hasset v2 policy parity: **500 / 500**
+- Cooked interaction anchors: **184 / 184**
 - Profile contract conformance: **PASS** with **0** failures
 - Placement/pivot QC: **PASS** with **0** failures
 - Contextual placement exceptions: **10** documented assets
