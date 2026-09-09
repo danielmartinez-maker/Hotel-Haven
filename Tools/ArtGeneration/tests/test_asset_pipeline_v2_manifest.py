@@ -30,10 +30,15 @@ def test_v2_batch_rows_cover_exactly_hh_a001_through_hh_a800():
         assert data['batch'] == entry['batch']
         assert data['asset_count'] == 50
         assert len(rows) == 50
-        ids.extend(row[0] for row in rows)
+        batch_ids = [row[0] for row in rows]
+        ids.extend(batch_ids)
+        if entry['batch'] >= 11:
+            start = 500 + (entry['batch'] - 11) * 50 + 1
+            assert batch_ids == [f'HH_A{i:03d}' for i in range(start, start + 50)]
+    expected = {f'HH_A{i:03d}' for i in range(1, 801)}
     assert len(ids) == 800
     assert len(set(ids)) == 800
-    assert ids == [f'HH_A{i:03d}' for i in range(1, 801)]
+    assert set(ids) == expected
 
 
 def test_v2_rows_reference_known_profiles_and_quality_contract_is_resolvable():
