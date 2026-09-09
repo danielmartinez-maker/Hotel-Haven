@@ -108,6 +108,7 @@ add_executable(hh_renderer_tests
     tests/VisibilityTests.cpp
     tests/AssetFormatLinkTests.cpp
     tests/GlbLoaderTests.cpp
+    tests/RuntimeAssetRegistryTests.cpp
     tests/D3D11SmokeTests.cpp
 )
 
