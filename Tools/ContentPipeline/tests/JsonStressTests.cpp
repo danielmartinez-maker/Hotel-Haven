@@ -43,6 +43,15 @@ HH_TEST("json parser rejects numeric overflow instead of producing infinity") {
     }
 }
 
+HH_TEST("json parser rejects numeric underflow instead of silently producing zero") {
+    constexpr const char* cases[] = {"1e-9999", "-1e-9999"};
+    for (const char* text : cases) {
+        bool threw = false;
+        try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
 HH_TEST("json parser decodes UTF-16 surrogate pairs in unicode escapes") {
     const auto value = parse_json("\"\\uD83D\\uDE00\"");
     HH_REQUIRE(value.as_string() == std::string("\xF0\x9F\x98\x80", 4));
