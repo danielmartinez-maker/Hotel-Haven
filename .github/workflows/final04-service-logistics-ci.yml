@@ -21,6 +21,7 @@ on:
       - 'game/tests/LogisticsTests.cpp'
       - 'game/tests/EngineeringTests.cpp'
       - 'game/tests/ServiceLogisticsTests.cpp'
+      - 'game/tests/ServiceLogisticsSoakTests.cpp'
       - '.github/workflows/final04-service-logistics-ci.yml'
   workflow_dispatch:
 
@@ -36,11 +37,11 @@ jobs:
           for src in Logistics Housekeeping Laundry Engineering RoomService ServiceLogistics; do
             g++ $CXXFLAGS -c game/src/${src}.cpp -o build/final04/${src}.o
           done
-      - name: Run FINAL-04 behavior tests
+      - name: Run FINAL-04 behavior and soak tests
         run: |
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           OBJECTS='build/final04/Logistics.o build/final04/Housekeeping.o build/final04/Laundry.o build/final04/Engineering.o build/final04/RoomService.o build/final04/ServiceLogistics.o'
-          for test in Housekeeping Laundry Logistics Engineering ServiceLogistics; do
+          for test in Housekeeping Laundry Logistics Engineering ServiceLogistics ServiceLogisticsSoak; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $OBJECTS -o build/final04/${test}Tests
             build/final04/${test}Tests
           done
