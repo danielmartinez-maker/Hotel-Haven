@@ -22,6 +22,9 @@ public:
     [[nodiscard]] MainMenuModal modal() const noexcept { return modal_; }
     void setModal(MainMenuModal modal) noexcept { modal_ = modal; }
 
+    [[nodiscard]] MainMenuPanel panel() const noexcept { return panel_; }
+    void setPanel(MainMenuPanel panel) noexcept { panel_ = panel; }
+
 private:
     [[nodiscard]] static std::size_t indexOf(MainMenuItem item) noexcept;
     [[nodiscard]] MainMenuItem firstEnabled() const noexcept;
@@ -29,6 +32,7 @@ private:
     std::array<bool, 8> enabled_{};
     MainMenuItem selected_{MainMenuItem::NewHotel};
     MainMenuModal modal_{MainMenuModal::None};
+    MainMenuPanel panel_{MainMenuPanel::None};
 };
 
 }  // namespace hh::frontend
