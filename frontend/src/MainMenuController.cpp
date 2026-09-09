@@ -5,7 +5,8 @@
 namespace hh::frontend {
 
 void MainMenuController::navigate(int delta) noexcept {
-    if (delta == 0 || model_.modal() != MainMenuModal::None) {
+    if (delta == 0 || model_.modal() != MainMenuModal::None ||
+        model_.panel() != MainMenuPanel::None) {
         return;
     }
 
@@ -33,11 +34,21 @@ void MainMenuController::navigate(int delta) noexcept {
 }
 
 MainMenuCommand MainMenuController::activate() noexcept {
-    if (model_.modal() != MainMenuModal::None || !model_.isEnabled(model_.selected())) {
+    if (model_.modal() != MainMenuModal::None ||
+        model_.panel() != MainMenuPanel::None ||
+        !model_.isEnabled(model_.selected())) {
         return MainMenuCommand::None;
     }
     if (model_.selected() == MainMenuItem::Quit) {
         model_.setModal(MainMenuModal::QuitConfirm);
+        return MainMenuCommand::None;
+    }
+    if (model_.selected() == MainMenuItem::Settings) {
+        model_.setPanel(MainMenuPanel::Settings);
+        return MainMenuCommand::None;
+    }
+    if (model_.selected() == MainMenuItem::Credits) {
+        model_.setPanel(MainMenuPanel::Credits);
         return MainMenuCommand::None;
     }
     return commandFor(model_.selected());
@@ -52,15 +63,20 @@ MainMenuCommand MainMenuController::confirmQuit() noexcept {
 }
 
 bool MainMenuController::cancel() noexcept {
-    if (model_.modal() == MainMenuModal::None) {
-        return false;
+    if (model_.modal() != MainMenuModal::None) {
+        model_.setModal(MainMenuModal::None);
+        return true;
     }
-    model_.setModal(MainMenuModal::None);
-    return true;
+    if (model_.panel() != MainMenuPanel::None) {
+        model_.setPanel(MainMenuPanel::None);
+        return true;
+    }
+    return false;
 }
 
 bool MainMenuController::hover(MainMenuItem item) noexcept {
-    if (model_.modal() != MainMenuModal::None) {
+    if (model_.modal() != MainMenuModal::None ||
+        model_.panel() != MainMenuPanel::None) {
         return false;
     }
     return model_.select(item);
