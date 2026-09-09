@@ -41,6 +41,12 @@ public:
         const std::filesystem::path& shaderPath);
     [[nodiscard]] RendererResult resize(std::uint32_t width, std::uint32_t height);
     [[nodiscard]] RendererResult render(const ComposedScene& scene, const OrthoCamera& camera);
+    [[nodiscard]] RendererResult renderWorld(const ComposedScene& scene, const OrthoCamera& camera);
+    [[nodiscard]] RendererResult present();
+
+    [[nodiscard]] ID3D11Device* device() const noexcept { return device_.Get(); }
+    [[nodiscard]] IDXGISwapChain* swapChain() const noexcept { return swapChain_.Get(); }
+
     void shutdown() noexcept;
 
 private:
