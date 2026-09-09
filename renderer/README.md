@@ -13,6 +13,8 @@ Implemented renderer responsibilities:
 - wall presentation modes: full height, cutaway, and blueprint/wireframe;
 - focus-based foreground-wall cutaway using camera-to-focus AABB occlusion;
 - CPU scene composition into opaque, translucent, and wireframe batches;
+- CPU AABB frustum culling against the active orthographic camera;
+- stable back-to-front view-depth sorting for translucent geometry;
 - Direct3D 11 instanced box rendering;
 - resize-safe swap-chain render targets and depth buffer;
 - WARP-device and production-HLSL smoke test;
@@ -65,13 +67,17 @@ CMake copies `InstancedBox.hlsl` into a `shaders/` directory next to the executa
 
 ## Architecture
 
-`hh_renderer_core` contains platform-independent presentation policy and scene composition. `hh_renderer_d3d11` owns the Direct3D 11 GPU backend. `hh_renderer_win32` owns the native window and input event surface. `hotel_haven_renderer_demo` composes those modules into an inspectable procedural scene.
+`hh_renderer_core` contains platform-independent presentation policy, scene composition, and the camera-dependent visibility stage. `hh_renderer_d3d11` owns the Direct3D 11 GPU backend. `hh_renderer_win32` owns the native window and input event surface. `hotel_haven_renderer_demo` composes those modules into an inspectable procedural scene.
 
 The renderer consumes `RenderScene` / `BoxRenderItem` presentation DTOs. Future Construction code should translate authoritative physical geometry into those DTOs; the renderer must not infer room validity or mutate gameplay state.
+
+After `SceneComposer` resolves floor and wall presentation policy, `prepareVisibleScene` conservatively rejects composed box AABBs that lie completely outside the camera clip volume. It then stable-sorts the surviving translucent batch from farthest to nearest in camera view depth. Opaque and wireframe ordering is preserved. The D3D11 backend therefore receives only visible presentation items and does not own camera-frustum policy.
 
 ### GPU batching
 
 The D3D11 backend stores one unit cube vertex/index mesh and streams per-instance transforms/colors into a dynamic instance buffer. Opaque, translucent, and wireframe groups are issued as separate instanced batches instead of one draw call per hotel object. One upload/draw chunk supports up to 16,384 instances; larger groups are automatically chunked.
+
+Camera-frustum culling happens before those instance uploads, reducing CPU-to-GPU instance traffic for large hotels when much of the composed scene is outside the current view. Translucent batches are submitted in stable back-to-front view-depth order while retaining the existing depth-read/no-depth-write blend path.
 
 ## Non-authoritative demo constants
 
@@ -101,6 +107,9 @@ The native test executable covers:
 - context-floor translucency;
 - blueprint wall routing;
 - focus-based selective cutaway;
+- orthographic-frustum rejection of off-camera AABBs;
+- back-to-front translucent view-depth ordering;
+- stable translucent ordering at equal view depth;
 - Direct3D 11 WARP device creation;
 - production vertex/pixel shader compilation.
 
