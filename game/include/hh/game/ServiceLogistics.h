@@ -41,12 +41,20 @@ public:
   void registerAsset(AssetId asset, int condition = 10000);
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
+  [[nodiscard]] ServiceWorkResult workRoomTurnSecond(RoomId room);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type);
+  [[nodiscard]] ServiceWorkResult workEngineeringSecond(AssetId asset,
+                                                        WorkOrderType type);
   [[nodiscard]] RoomServiceOrderId placeRoomServiceOrder(
       GuestId guest, const RoomServiceOrder &order);
   [[nodiscard]] bool markRoomServiceProductionReady(RoomServiceOrderId order);
   [[nodiscard]] bool requestRoomServiceTrayPickup(RoomServiceOrderId order);
+
+  // Scenario/definition initialization only. Replaces the known operational
+  // resource families atomically and refuses to run across active service work.
+  [[nodiscard]] bool setScenarioInventory(int linen, int towels, int amenities,
+                                          int chemicals, int parts);
 
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
