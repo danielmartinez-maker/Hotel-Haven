@@ -3,7 +3,11 @@ project(HotelHavenContentPipeline LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-enable_testing()
+
+option(HH_CONTENT_PIPELINE_FORMAT_ONLY
+    "Build only the runtime-safe hh_asset_format target"
+    OFF)
+
 include(cmake/CompilerWarnings.cmake)
 
 add_library(hh_asset_format STATIC
@@ -13,6 +17,12 @@ add_library(hh_asset_format STATIC
 )
 target_include_directories(hh_asset_format PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 hh_enable_strict_warnings(hh_asset_format)
+
+if(HH_CONTENT_PIPELINE_FORMAT_ONLY)
+    return()
+endif()
+
+enable_testing()
 
 add_library(hh_assets STATIC
     src/Metadata.cpp
