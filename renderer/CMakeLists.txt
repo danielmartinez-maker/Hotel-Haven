@@ -115,9 +115,17 @@ add_executable(hh_renderer_tests
 
 target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 target_compile_definitions(hh_renderer_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core hh_asset_format d3d11 d3dcompiler)
+target_link_libraries(hh_renderer_tests PRIVATE
+    hh_renderer_core
+    hh_renderer_d3d11
+    hh_asset_format
+    d3d11
+    d3dcompiler
+    user32
+)
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
