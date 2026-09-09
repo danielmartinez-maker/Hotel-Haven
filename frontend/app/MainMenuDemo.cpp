@@ -91,6 +91,22 @@ QuitModalAction hitQuitModalAction(
         : QuitModalAction::Cancel;
 }
 
+bool hitSettingsToggle(
+    const hh::frontend::LayoutMetrics& layout,
+    float width,
+    float height,
+    POINT point) noexcept {
+    const float scale = layout.logicalScale;
+    const float panelWidth = 620.0F * scale;
+    const float panelHeight = 310.0F * scale;
+    const float left = (width - panelWidth) * 0.5F;
+    const float top = (height - panelHeight) * 0.5F;
+    const float x = static_cast<float>(point.x);
+    const float y = static_cast<float>(point.y);
+    return x >= left + 32.0F * scale && x <= left + panelWidth - 32.0F * scale &&
+           y >= top + 98.0F * scale && y <= top + 168.0F * scale;
+}
+
 void executeCommand(hh::frontend::MainMenuCommand command, hh::renderer::Win32Window& window) {
     using hh::frontend::MainMenuCommand;
     switch (command) {
@@ -113,13 +129,23 @@ void executeCommand(hh::frontend::MainMenuCommand command, hh::renderer::Win32Wi
             window.setTitle(L"Hotel Haven — Sandbox fixture");
             break;
         case MainMenuCommand::OpenSettings:
-            window.setTitle(L"Hotel Haven — Settings overlay fixture");
-            break;
         case MainMenuCommand::OpenCredits:
-            window.setTitle(L"Hotel Haven — Credits overlay fixture");
-            break;
         case MainMenuCommand::None:
             break;
+    }
+}
+
+void toggleReducedMotion(
+    bool& reducedMotion,
+    hh::frontend::MenuSceneController& sceneController,
+    hh::frontend::MenuTransitionDirector& transitions,
+    const hh::frontend::MainMenuModel& model,
+    hh::renderer::RenderScene& scene) {
+    reducedMotion = !reducedMotion;
+    sceneController.setReducedMotion(reducedMotion);
+    transitions.retarget(model.selected(), reducedMotion);
+    if (reducedMotion) {
+        scene = hh::frontend::ShowcaseHotelScene::build();
     }
 }
 
@@ -148,7 +174,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
     }
 
     const bool validSave = hasFlag(L"--valid-save");
-    const bool reducedMotion = hasFlag(L"--reduced-motion");
+    bool reducedMotion = hasFlag(L"--reduced-motion");
     const auto property = demoProperty();
 
     hh::frontend::MainMenuModel model(validSave);
@@ -197,7 +223,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         if (activatePressed) {
             if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
                 executeCommand(controller.confirmQuit(), window);
-            } else {
+            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
+                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
+            } else if (model.panel() == hh::frontend::MainMenuPanel::None) {
                 executeCommand(controller.activate(), window);
             }
         }
@@ -213,6 +241,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         POINT pointer{};
         hh::frontend::MainMenuItem hovered{};
         if (model.modal() == hh::frontend::MainMenuModal::None &&
+            model.panel() == hh::frontend::MainMenuPanel::None &&
             window.mousePosition(pointer) &&
             hitMenuItem(layout, pointer, hovered) &&
             model.isEnabled(hovered)) {
@@ -234,7 +263,15 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
                 } else if (action == QuitModalAction::Cancel) {
                     static_cast<void>(controller.cancel());
                 }
-            } else if (hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
+            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings &&
+                       hitSettingsToggle(
+                           layout,
+                           static_cast<float>(window.clientWidth()),
+                           static_cast<float>(window.clientHeight()),
+                           click)) {
+                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
+            } else if (model.panel() == hh::frontend::MainMenuPanel::None &&
+                       hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
                 static_cast<void>(controller.hover(hovered));
                 transitions.retarget(model.selected(), reducedMotion);
                 executeCommand(controller.activate(), window);
@@ -289,6 +326,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         frame.height = static_cast<float>(window.clientHeight());
         frame.uiScale = 1.0F;
         frame.property = validSave ? &property : nullptr;
+        frame.reducedMotion = reducedMotion;
         uiResult = ui.draw(model, view, frame);
         if (!uiResult && uiResult.recreateTarget) {
             uiResult = ui.resize(renderer.swapChain());
