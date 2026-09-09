@@ -79,6 +79,20 @@ HH_TEST("catalog rejects source paths escaping repository root") {
     HH_REQUIRE(threw);
 }
 
+HH_TEST("catalog rejects single-backslash rooted source paths on every platform") {
+    const auto root = make_repo();
+    write_bytes(root / "Art/Exports/a.glb", "export-asset.a");
+    std::ofstream out(root / "Art/Exports/a.glb.asset.json", std::ios::binary);
+    out << "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        << "\"source\":\"\\\\Art/Source/a.blend\",\"units\":\"meters\","
+        << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}";
+    out.close();
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
+}
+
 HH_TEST("catalog infers repository root when scanning a nested export directory") {
     const auto root = make_repo();
     write_bytes(root / "Art/Source/a.blend", "source-asset.a");
