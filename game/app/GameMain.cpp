@@ -7,6 +7,7 @@
 #include <iterator>
 #include <optional>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 #include <windowsx.h>
 
@@ -55,8 +56,59 @@ std::string readFile(const std::filesystem::path &path) {
   stream.seekg(0);
   return {std::istreambuf_iterator<char>(stream), {}};
 }
+
+std::optional<std::string_view> constructionType(Tool tool) {
+  switch (tool) {
+  case Tool::ObjectChair:
+    return "chair";
+  case Tool::ObjectDesk:
+    return "desk";
+  case Tool::GuestBed:
+    return "guest_bed";
+  case Tool::WallSconce:
+    return "wall_sconce";
+  case Tool::PowerSource:
+    return "power_source";
+  case Tool::WaterSource:
+    return "water_source";
+  case Tool::FireAlarm:
+    return "fire_alarm";
+  case Tool::SecurityCamera:
+    return "security_camera";
+  case Tool::PassengerElevator:
+    return "passenger_elevator";
+  case Tool::ServiceElevator:
+    return "service_elevator";
+  default:
+    return {};
+  }
+}
+
+ConstructionCommand constructionCommand(Tool tool, Position position) {
+  ConstructionCommand command;
+  if (const auto type = constructionType(tool))
+    command.placements.push_back({std::string(*type), position, 0});
+  return command;
+}
+
+float previewSize(Tool tool) {
+  if (tool == Tool::Bedroom)
+    return 6.f;
+  if (tool == Tool::ObjectDesk || tool == Tool::GuestBed)
+    return 2.f;
+  return 1.f;
+}
+
+CommandResult constructionResult(const ConstructionResult &result) {
+  return {result.ok, result.message,
+          result.objectIds.empty() ? 0 : result.objectIds.front()};
+}
+
 CommandResult applyBuildTool(Simulation &simulation, Tool tool,
                              Position position, std::size_t roomCount) {
+  if (constructionType(tool))
+    return constructionResult(
+        simulation.executeConstruction(constructionCommand(tool, position)));
   if (tool == Tool::Bedroom) {
     RoomBlueprint r;
     r.name =
@@ -76,7 +128,10 @@ CommandResult applyBuildTool(Simulation &simulation, Tool tool,
       TileKind::FrontDesk, TileKind::SupplyCloset, TileKind::Stairs,
       TileKind::Empty,     TileKind::Bathroom,     TileKind::StaffRoom,
       TileKind::Lobby};
-  return simulation.buildTile(position, kinds[static_cast<std::size_t>(tool)]);
+  const auto index = static_cast<std::size_t>(tool);
+  if (index >= kinds.size())
+    return {false, "Unknown construction tool", 0};
+  return simulation.buildTile(position, kinds[index]);
 }
 void captureClient(HWND window, const std::filesystem::path &path) {
   RECT r{};
@@ -232,6 +287,8 @@ Client::Client() : simulation(Simulation::tutorial(20260907)) {
                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                        CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
   snapshot = simulation.view();
+  construction = simulation.constructionSnapshot();
+  buildingSystems = simulation.buildingSystemsSnapshot();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
   camera.setYawDegrees(45);
@@ -245,6 +302,8 @@ Client::~Client() {
 }
 void Client::refresh() {
   snapshot = simulation.view();
+  construction = simulation.constructionSnapshot();
+  buildingSystems = simulation.buildingSystemsSnapshot();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
 }
@@ -284,12 +343,24 @@ void Client::hover(int x, int y) {
   hoverX = p ? p->x : -1;
   hoverY = p ? p->y : -1;
   previewTool = tool;
+  previewCostCents = 0;
   if (p && tool != Tool::Inspect) {
-    auto preview = simulation;
-    const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size());
-    previewValid = check.ok;
-    notice =
-        check.ok ? L"Placement preview · click to build" : wide(check.message);
+    if (constructionType(tool)) {
+      const auto check =
+          simulation.previewConstruction(constructionCommand(tool, *p));
+      previewValid = check.valid;
+      previewCostCents = check.costCents;
+      notice = check.valid
+                   ? L"Placement preview · " + money(check.costCents) +
+                         L" · click to build"
+                   : wide(check.message);
+    } else {
+      auto preview = simulation;
+      const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size());
+      previewValid = check.ok;
+      notice = check.ok ? L"Placement preview · click to build"
+                        : wide(check.message);
+    }
     InvalidateRect(window, nullptr, FALSE);
   }
 }
@@ -316,6 +387,7 @@ void Client::mapClick(int x, int y) {
     selected = out.id;
   result(out);
   hoverX = hoverY = -1;
+  previewCostCents = 0;
 }
 void Client::changeFloor(int requested) {
   floor = std::clamp(requested, 0, snapshot.floors - 1);
@@ -521,7 +593,6 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
             static_cast<std::int64_t>(std::floor(c.pendingSimulationSeconds));
         if (seconds > 0) {
           c.simulation.step(static_cast<double>(seconds));
-          c.snapshot = c.simulation.view();
           c.pendingSimulationSeconds -= static_cast<double>(seconds);
         }
       }
@@ -530,10 +601,18 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
         c.refresh();
         refreshTime = 0;
       }
-      const auto scene =
-          worldScene(c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX,
-                                  c.hoverY, c.tool == Tool::Bedroom ? 6.f : 1.f,
-                                  c.tool != Tool::Inspect, c.previewValid});
+      WorldViewOptions viewOptions;
+      viewOptions.floor = c.floor;
+      viewOptions.selected = c.selected;
+      viewOptions.overlay = c.overlay;
+      viewOptions.hoverX = c.hoverX;
+      viewOptions.hoverY = c.hoverY;
+      viewOptions.previewSize = previewSize(c.tool);
+      viewOptions.showPreview = c.tool != Tool::Inspect;
+      viewOptions.previewValid = c.previewValid;
+      viewOptions.construction = &c.construction;
+      viewOptions.buildingSystems = &c.buildingSystems;
+      const auto scene = worldSceneWithSystems(c.snapshot, viewOptions);
       const auto frame = composer.compose(
           scene,
           c.context ? hh::renderer::FloorContextMode::AdjacentContext
