@@ -143,6 +143,12 @@ CookResult cook_internal(
     document.dependencies = record.metadata.dependencies;
     document.source_path = repo_relative(record.source_path, options.repository_root);
     document.sidecar_path = repo_relative(record.sidecar_path, options.repository_root);
+    document.units = record.metadata.units;
+    document.lod_policy = record.metadata.lod_policy;
+    document.collision_policy = record.metadata.collision_policy;
+    document.cutaway_policy = record.metadata.cutaway_policy ? std::string(to_string(*record.metadata.cutaway_policy)) : std::string{};
+    document.pivot_profile = record.metadata.pivot_profile.value_or(std::string{});
+    document.interaction_anchors = record.metadata.interaction_anchors;
     document.payload = read_binary(record.export_path);
     const auto bytes = serialize_hasset(document);
     write_bytes_atomic(output, bytes);
