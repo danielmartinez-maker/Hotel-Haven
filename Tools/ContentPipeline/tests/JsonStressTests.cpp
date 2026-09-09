@@ -85,6 +85,30 @@ HH_TEST("json parser rejects malformed raw UTF-8") {
     }
 }
 
+HH_TEST("json parser accepts only RFC JSON whitespace outside strings") {
+    constexpr const char* valid_cases[] = {
+        " \t\r\n0 \t\r\n",
+        "\t[\r\n true, false ]\t",
+    };
+    for (const char* text : valid_cases) {
+        static_cast<void>(parse_json(text));
+    }
+
+    const std::string invalid_cases[] = {
+        std::string("\v0"),
+        std::string("\f0"),
+        std::string("0\v"),
+        std::string("0\f"),
+        std::string("[0,\v1]"),
+        std::string("{\"a\":\f1}"),
+    };
+    for (const auto& text : invalid_cases) {
+        bool threw = false;
+        try { static_cast<void>(parse_json(text)); } catch (const std::runtime_error&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
 HH_TEST("json parser survives five thousand deterministic hostile strings") {
     std::uint64_t state = 0x4a534f4e46555a5aull;
     constexpr char alphabet[] = "{}[],:\\\"0123456789truefalsenull abcdefABCDEF+-eE\\u\n\r\t";
