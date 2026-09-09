@@ -26,6 +26,7 @@ hh_enable_strict_warnings(hh_renderer_core)
 
 add_library(hh_renderer_d3d11 STATIC
     src/d3d11/D3D11Renderer.cpp
+    src/d3d11/D3D11RendererOverlay.cpp
 )
 target_include_directories(hh_renderer_d3d11 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -44,6 +45,7 @@ hh_enable_strict_warnings(hh_renderer_d3d11)
 
 add_library(hh_renderer_win32 STATIC
     src/win32/Win32Window.cpp
+    src/win32/Win32WindowPointer.cpp
 )
 target_include_directories(hh_renderer_win32 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -94,7 +96,7 @@ target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
 target_compile_definitions(hh_renderer_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core d3d11 d3dcompiler)
+target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core hh_renderer_d3d11 d3d11 d3dcompiler)
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
