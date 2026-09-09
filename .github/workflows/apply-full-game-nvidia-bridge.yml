@@ -2,14 +2,16 @@ name: Apply Full-Game NVIDIA Bridge
 
 on:
   push:
-    branches: [feature/full-game-nvidia-integration]
+    branches:
+      - feature/full-game-nvidia-integration
+    paths:
+      - '.github/workflows/apply-full-game-nvidia-bridge.yml'
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.event.head_commit.message == 'chore: bootstrap NVIDIA bridge'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +28,17 @@ jobs:
         run: cmake --build build --config Release --parallel 4
       - name: Test portable integration
         run: ctest --test-dir build -C Release --output-on-failure
-      - name: Commit generated integration
+      - name: Commit tested integration
+        shell: bash
         run: |
-          git config user.name "hotel-haven-integration-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add CMakeLists.txt game/CMakeLists.txt game/include/hh/game/Simulation.h game/src/Simulation.cpp game/src/StaffOptimization.h game/src/StaffOptimization.cpp
+          rm -f Tools/Integration/apply_full_game_nvidia_bridge.py
+          rm -f Tools/Integration/apply_scheduler_patch.py
+          rm -f .github/workflows/apply-full-game-nvidia-bridge.yml
+          rm -f .github/workflows/apply-full-game-nvidia-patch.yml
+          rmdir Tools/Integration 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
           git commit -m "feat: integrate deterministic staff optimizer seam"
           git push origin HEAD:feature/full-game-nvidia-integration
