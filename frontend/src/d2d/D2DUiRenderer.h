@@ -30,6 +30,7 @@ struct UiFrameState {
     float height{1080.0F};
     float uiScale{1.0F};
     const MenuPropertySummary* property{};
+    bool reducedMotion{};
     std::string version{"v0.1.0-alpha"};
 };
 
