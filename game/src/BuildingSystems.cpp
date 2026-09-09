@@ -7,44 +7,48 @@
 namespace hh::game::detail {
 bool utilityConnected(const BuildingSystemsSnapshot &systems, EntityId roomId,
                       UtilityKind kind) noexcept {
-  std::unordered_set<EntityId> sources;
-  std::unordered_set<EntityId> roomNodes;
-  std::unordered_set<EntityId> validNodes;
+  std::unordered_map<EntityId, const UtilityNodeSnapshot *> nodes;
+  std::vector<EntityId> roomNodes;
   for (const auto &node : systems.utilityNodes)
     if (node.kind == kind) {
-      validNodes.insert(node.id);
-      if (node.source && node.capacity > 0)
-        sources.insert(node.id);
+      nodes.emplace(node.id, &node);
       if (!node.source && node.roomId == roomId && node.load > 0)
-        roomNodes.insert(node.id);
+        roomNodes.push_back(node.id);
     }
-  if (sources.empty() || roomNodes.empty())
+  if (roomNodes.empty())
     return false;
 
   std::unordered_map<EntityId, std::vector<EntityId>> adjacency;
   for (const auto &edge : systems.utilityEdges)
-    if (validNodes.contains(edge.from) && validNodes.contains(edge.to)) {
+    if (nodes.contains(edge.from) && nodes.contains(edge.to)) {
       adjacency[edge.from].push_back(edge.to);
       adjacency[edge.to].push_back(edge.from);
     }
 
-  std::queue<EntityId> frontier;
-  std::unordered_set<EntityId> visited;
-  for (const auto source : sources) {
-    frontier.push(source);
-    visited.insert(source);
-  }
-  while (!frontier.empty()) {
-    const auto current = frontier.front();
-    frontier.pop();
-    if (roomNodes.contains(current))
+  for (const auto roomNode : roomNodes) {
+    std::queue<EntityId> frontier;
+    std::unordered_set<EntityId> visited;
+    frontier.push(roomNode);
+    visited.insert(roomNode);
+    std::int64_t capacity = 0;
+    std::int64_t load = 0;
+    while (!frontier.empty()) {
+      const auto current = frontier.front();
+      frontier.pop();
+      const auto *node = nodes.at(current);
+      if (node->source)
+        capacity += std::max(0, node->capacity);
+      else
+        load += std::max(0, node->load);
+      const auto found = adjacency.find(current);
+      if (found == adjacency.end())
+        continue;
+      for (const auto next : found->second)
+        if (visited.insert(next).second)
+          frontier.push(next);
+    }
+    if (capacity > 0 && capacity >= load)
       return true;
-    const auto found = adjacency.find(current);
-    if (found == adjacency.end())
-      continue;
-    for (const auto next : found->second)
-      if (visited.insert(next).second)
-        frontier.push(next);
   }
   return false;
 }
