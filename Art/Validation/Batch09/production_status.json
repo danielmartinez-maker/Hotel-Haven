@@ -5,6 +5,28 @@
   "range": "HH_A401-HH_A450",
   "generator": "Tools/ArtGeneration/batch09_generate.py",
   "shared_factory": "Tools/ArtGeneration/amenity_decor_factory.py",
-  "local_validation": {"glb_generated":50,"sidecars_generated":50,"glb_reload_success":50,"unique_ids":50,"tests":"PASS"},
-  "status": "PRODUCTION_GENERATOR_VALIDATED"
+  "completion": {
+    "semantic_geometry": "PASS",
+    "signage_and_exterior_differentiation": "PASS",
+    "generic_fallback_release_gate": "PASS",
+    "contextual_placement": "PASS",
+    "preview_qc": "PASS"
+  },
+  "ci_validation": {
+    "baseline_commit": "084e9b96646ff9e22bb4c7225346988aa887d448",
+    "run_id": 34367200413,
+    "python_tests": "69/69 PASS",
+    "full_library_assets": "500/500",
+    "animation_links": "87/87",
+    "deferred_animation_links": 0,
+    "interaction_anchors": "184/184",
+    "geometry_contracts": "PASS",
+    "placement_qc": "PASS",
+    "semantic_qc": "PASS",
+    "preview_qc": "10/10 batches PASS",
+    "native_build": "PASS",
+    "native_tests": "PASS",
+    "validated_generated_records": 591
+  },
+  "status": "PRODUCTION_GENERATOR_SEMANTIC_PREVIEW_VALIDATED"
 }
