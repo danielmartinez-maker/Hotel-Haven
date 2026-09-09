@@ -795,19 +795,77 @@ struct Simulation::Impl {
     detail::refreshRoomUtilityFlags(buildingSystems);
   }
 
+  Position buildWorkTarget(const BuildJobSnapshot &job) const {
+    std::vector<Position> footprint;
+    for (const auto &placement : job.construction.placements) {
+      const auto *definition = detail::constructionDefinition(placement.typeId);
+      if (!definition)
+        continue;
+      const auto cells = detail::constructionFootprint(placement, *definition);
+      footprint.insert(footprint.end(), cells.begin(), cells.end());
+    }
+    for (const auto id : job.construction.removeObjectIds) {
+      const auto object = std::find_if(
+          construction.objects.begin(), construction.objects.end(),
+          [&](const ConstructionObjectView &candidate) { return candidate.id == id; });
+      if (object == construction.objects.end())
+        continue;
+      const auto *definition = detail::constructionDefinition(object->typeId);
+      if (!definition)
+        continue;
+      ConstructionPlacement placement{object->typeId, object->origin,
+                                      object->rotationQuarterTurns};
+      const auto cells = detail::constructionFootprint(placement, *definition);
+      footprint.insert(footprint.end(), cells.begin(), cells.end());
+    }
+    if (footprint.empty())
+      return entrance();
+
+    Position best{-1, -1, -1};
+    constexpr std::array<std::array<int, 2>, 4> offsets{{
+        {{1, 0}}, {{-1, 0}}, {{0, 1}}, {{0, -1}}}};
+    for (const auto cell : footprint)
+      for (const auto offset : offsets) {
+        const Position candidate{cell.floor, cell.x + offset[0],
+                                 cell.y + offset[1]};
+        if (!inside(candidate) || !passable(candidate) ||
+            std::find(footprint.begin(), footprint.end(), candidate) !=
+                footprint.end() ||
+            objectOccupies(candidate, job.construction) ||
+            reservedByOtherBuild(candidate, job.id))
+          continue;
+        if (best.floor < 0 || candidate.floor < best.floor ||
+            (candidate.floor == best.floor && candidate.y < best.y) ||
+            (candidate.floor == best.floor && candidate.y == best.y &&
+             candidate.x < best.x))
+          best = candidate;
+      }
+    return best;
+  }
+
   void tryReserveBuildMaterials(BuildJobSnapshot &job) {
-    if (job.state != BuildJobState::WaitingForMaterials)
+    if (job.state != BuildJobState::WaitingForMaterials &&
+        job.state != BuildJobState::Blocked)
       return;
+    if (job.materialsConsumed)
+      return;
+    const Position target = buildWorkTarget(job);
+    if (!inside(target)) {
+      job.state = BuildJobState::Blocked;
+      job.blockedReason = "Build site has no usable work edge";
+      return;
+    }
     const auto required = detail::constructionMaterialsFor(job.construction);
-    if (!detail::hasMaterials(construction.availableMaterials, required))
+    if (!detail::hasMaterials(construction.availableMaterials, required)) {
+      job.state = BuildJobState::WaitingForMaterials;
+      job.blockedReason.clear();
       return;
+    }
     detail::subtractMaterials(construction.availableMaterials, required);
     detail::addMaterials(construction.reservedMaterials, required);
     job.reservedMaterials = required;
     job.state = BuildJobState::ReadyForLabor;
-    const Position target = job.construction.placements.empty()
-                                ? entrance()
-                                : job.construction.placements.front().origin;
+    job.blockedReason.clear();
     job.taskId = createTask(TaskKind::Build, job.id, target, job.workSeconds);
   }
   void refreshBuildJobs() {
