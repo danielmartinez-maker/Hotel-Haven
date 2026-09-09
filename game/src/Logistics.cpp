@@ -1,6 +1,5 @@
 #include "hh/game/Logistics.h"
 #include <algorithm>
-#include <limits>
 
 namespace hh::game {
 
@@ -134,8 +133,8 @@ bool LogisticsSystem::consumeUsable(std::string_view item, int quantity) {
       continue;
     const int available = inventoryAt(storage.id, item);
     const int take = std::min(remaining, available);
-    if (take > 0)
-      consumeAt(storage.id, item, take);
+    if (take > 0 && !consumeAt(storage.id, item, take))
+      return false;
     remaining -= take;
     if (remaining == 0)
       return true;
@@ -158,8 +157,8 @@ bool LogisticsSystem::consumeFromKind(StorageKind kind, std::string_view item,
     if (!storage.operational || storage.kind != kind)
       continue;
     const int take = std::min(remaining, inventoryAt(storage.id, item));
-    if (take > 0)
-      consumeAt(storage.id, item, take);
+    if (take > 0 && !consumeAt(storage.id, item, take))
+      return false;
     remaining -= take;
     if (remaining == 0)
       return true;
@@ -219,8 +218,7 @@ void LogisticsSystem::produceWaste(int quantity) {
 }
 
 void LogisticsSystem::requestWastePickup() {
-  if (wastePickupRemaining_ < 0 &&
-      totalInventory("waste") > 0)
+  if (wastePickupRemaining_ < 0 && totalInventory("waste") > 0)
     wastePickupRemaining_ = 120;
 }
 
@@ -300,9 +298,8 @@ void LogisticsSystem::tickSecond() {
       --wastePickupRemaining_;
     if (wastePickupRemaining_ == 0) {
       const int amount = totalInventory("waste");
-      if (amount > 0)
-        consumeFromKind(StorageKind::Waste, "waste", amount);
-      wastePickupRemaining_ = -1;
+      if (amount == 0 || consumeFromKind(StorageKind::Waste, "waste", amount))
+        wastePickupRemaining_ = -1;
     }
   }
 }
