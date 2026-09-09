@@ -1,0 +1,30 @@
+name: QA Fast Renderer
+
+on:
+  push:
+    branches:
+      - 'qa/**'
+    paths:
+      - 'renderer/**'
+      - '.github/workflows/qa-fast-renderer.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: qa-fast-renderer-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-renderer-smoke:
+    name: Windows D3D11 renderer smoke
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure renderer
+        run: cmake -S renderer -B build/qa-fast-renderer -A x64
+      - name: Build renderer tests
+        run: cmake --build build/qa-fast-renderer --config Release --parallel --target hh_renderer_tests
+      - name: Run renderer tests
+        run: ctest --test-dir build/qa-fast-renderer -C Release -V -R "^hh_renderer_tests$" --timeout 90
