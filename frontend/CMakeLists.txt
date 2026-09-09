@@ -27,6 +27,9 @@ add_executable(hh_frontend_tests
     tests/MainMenuModelTests.cpp
     tests/MainMenuNavigationTests.cpp
     tests/MenuHotelProviderTests.cpp
+    tests/MenuTransitionTests.cpp
+    tests/MenuSceneControllerTests.cpp
+    tests/MainMenuStressTests.cpp
 )
 
 target_include_directories(hh_frontend_tests PRIVATE
