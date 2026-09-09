@@ -1,0 +1,27 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+
+jobs:
+  windows-build-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure renderer
+        run: cmake -S renderer -B build/renderer -G "Visual Studio 17 2022" -A x64
+      - name: Build renderer
+        run: cmake --build build/renderer --config Release
+      - name: Test renderer
+        run: ctest --test-dir build/renderer -C Release --output-on-failure
+      - name: Configure frontend
+        run: cmake -S frontend -B build/frontend -G "Visual Studio 17 2022" -A x64
+      - name: Build frontend
+        run: cmake --build build/frontend --config Release
+      - name: Test frontend
+        run: ctest --test-dir build/frontend -C Release --output-on-failure
