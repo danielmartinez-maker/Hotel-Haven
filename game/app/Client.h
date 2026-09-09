@@ -11,6 +11,13 @@
 #include <vector>
 #include <windows.h>
 
+// Some Windows SDK headers still expose `small` as a legacy macro. Hotel
+// Haven uses `small` as the handle for its compact UI font, so keep that SDK
+// macro from rewriting the C++ member declaration and its call sites.
+#ifdef small
+#undef small
+#endif
+
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
 enum class Page { Build, Rooms, Staff, Guests, Supplies, Finance, Guide };
