@@ -64,6 +64,27 @@ void guest_room_requires_power_water_egress_and_accessible_path() {
           "fully serviced guest room remained blocked from sale");
 }
 
+void connected_utility_component_enforces_source_capacity() {
+  BuildingSystemsSnapshot systems;
+  systems.utilityNodes = {
+      {1, UtilityKind::Power, 0, true, 1, 0},
+      {2, UtilityKind::Power, 101, false, 0, 1},
+      {3, UtilityKind::Power, 102, false, 0, 1},
+  };
+  systems.utilityEdges = {{1, 2}, {1, 3}};
+  systems.rooms = {{101}, {102}};
+
+  detail::refreshRoomUtilityFlags(systems);
+  require(!systems.rooms[0].powerConnected &&
+              !systems.rooms[1].powerConnected,
+          "overloaded utility component remained connected despite insufficient capacity");
+
+  systems.utilityNodes[0].capacity = 2;
+  detail::refreshRoomUtilityFlags(systems);
+  require(systems.rooms[0].powerConnected && systems.rooms[1].powerConnected,
+          "adequately sized utility component did not restore connectivity");
+}
+
 void fire_and_security_coverage_are_authoritative_snapshot_state() {
   Simulation sim(3002, 16, 10, 1);
   const auto roomId = buildRoom(sim);
@@ -107,6 +128,7 @@ void elevator_dispatch_is_deterministic_for_equal_requests() {
 int main() {
   try {
     guest_room_requires_power_water_egress_and_accessible_path();
+    connected_utility_component_enforces_source_capacity();
     fire_and_security_coverage_are_authoritative_snapshot_state();
     elevator_dispatch_is_deterministic_for_equal_requests();
   } catch (const std::exception &error) {
