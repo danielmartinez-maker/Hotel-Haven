@@ -6,11 +6,16 @@
 - Generated asset records (gameplay + animation support): **591**
 - Animation dependencies linked: **87 / 87**
 - Deferred animation dependencies: **0**
+- Interaction anchors normalized: **184 / 184**
+- Profile contract conformance: **PASS** with **0** failures
+- Placement/pivot QC: **PASS** with **0** failures
+- Contextual placement exceptions: **10** documented assets
+- Floor-support hardening applied: **11** generated assets
 - Mechanical animation coverage: **24 clips / 7 sets**
 - Humanoid animation coverage: **47 clips / 11 sets / 2 skeletons**
 - Geometry QC: **PASS** with **0** failures
 - Maximum generated face count: **3024**
-- Material palette: **83** unique sampled RGB colors; non-white ratio **1.0**
+- Material palette: **86** unique sampled RGB colors; non-white ratio **1.0**
 - Unresolved BLOCKER/CRITICAL/MAJOR issues: **0**
 
 ## Profile face budgets
