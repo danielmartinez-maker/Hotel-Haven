@@ -26,7 +26,7 @@ void MainMenuController::navigate(int delta) noexcept {
             current = (current + 1) % items.size();
         }
         if (model_.isEnabled(items[current])) {
-            model_.select(items[current]);
+            static_cast<void>(model_.select(items[current]));
             return;
         }
     }
