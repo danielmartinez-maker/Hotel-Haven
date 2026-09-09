@@ -247,6 +247,71 @@ UiRendererResult D2DUiRenderer::draw(
         }
     }
 
+    if (model.panel() != MainMenuPanel::None) {
+        const float panelWidth = 620.0F * layout.logicalScale;
+        const float panelHeight = 310.0F * layout.logicalScale;
+        const float left = (frameState.width - panelWidth) * 0.5F;
+        const float top = (frameState.height - panelHeight) * 0.5F;
+        const float right = left + panelWidth;
+        const float bottom = top + panelHeight;
+        primitives.fillRect(D2D1::RectF(left, top, right, bottom),
+                            D2D1::ColorF(0.05F, 0.05F, 0.045F, 0.96F));
+        primitives.strokeRect(D2D1::RectF(left, top, right, bottom), kBrass,
+                              1.0F * layout.logicalScale);
+
+        if (model.panel() == MainMenuPanel::Settings) {
+            drawText(L"SETTINGS",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 top + 30.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 top + 78.0F * layout.logicalScale),
+                     propertyFormat.Get(), kIvory);
+            drawText(L"REDUCED MOTION",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 top + 116.0F * layout.logicalScale,
+                                 left + 330.0F * layout.logicalScale,
+                                 top + 150.0F * layout.logicalScale),
+                     menuFormat.Get(), kMuted);
+            drawText(frameState.reducedMotion ? L"[ ON ]" : L"[ OFF ]",
+                     D2D1::RectF(left + 360.0F * layout.logicalScale,
+                                 top + 116.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 top + 150.0F * layout.logicalScale),
+                     menuFormat.Get(), kBrass);
+            drawText(L"ENTER / A TO TOGGLE    ESC / B TO CLOSE",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 bottom - 58.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 bottom - 25.0F * layout.logicalScale),
+                     smallFormat.Get(), kMuted);
+        } else {
+            drawText(L"CREDITS",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 top + 30.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 top + 78.0F * layout.logicalScale),
+                     propertyFormat.Get(), kIvory);
+            drawText(L"HOTEL HAVEN",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 top + 112.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 top + 150.0F * layout.logicalScale),
+                     menuFormat.Get(), kIvory);
+            drawText(L"Created by Daniel Martinez",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 top + 158.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 top + 190.0F * layout.logicalScale),
+                     smallFormat.Get(), kMuted);
+            drawText(L"ESC / B TO CLOSE",
+                     D2D1::RectF(left + 38.0F * layout.logicalScale,
+                                 bottom - 58.0F * layout.logicalScale,
+                                 right - 38.0F * layout.logicalScale,
+                                 bottom - 25.0F * layout.logicalScale),
+                     smallFormat.Get(), kMuted);
+        }
+    }
+
     if (model.modal() == MainMenuModal::QuitConfirm) {
         const float w = 470.0F * layout.logicalScale;
         const float h = 190.0F * layout.logicalScale;
