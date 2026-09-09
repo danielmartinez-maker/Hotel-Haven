@@ -15,6 +15,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../renderer/cmake/CompilerWarnings.cmake)
 add_library(hh_frontend_core STATIC
     src/MainMenuModel.cpp
     src/MainMenuController.cpp
+    src/MainMenuView.cpp
 )
 target_include_directories(hh_frontend_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
