@@ -218,10 +218,22 @@ RendererResult D3D11Renderer::resize(std::uint32_t width, std::uint32_t height) 
     const HRESULT resizeResult = swapChain_->ResizeBuffers(
         0, width, height, DXGI_FORMAT_UNKNOWN, 0);
     if (FAILED(resizeResult)) {
+        width_ = 0;
+        height_ = 0;
+        viewport_ = {};
         return RendererResult::failure(hresultError("IDXGISwapChain::ResizeBuffers", resizeResult));
     }
 
-    return createSizeDependentResources(width, height);
+    RendererResult result = createSizeDependentResources(width, height);
+    if (!result) {
+        renderTargetView_.Reset();
+        depthStencilView_.Reset();
+        depthTexture_.Reset();
+        width_ = 0;
+        height_ = 0;
+        viewport_ = {};
+    }
+    return result;
 }
 
 RendererResult D3D11Renderer::createGeometryResources() {
