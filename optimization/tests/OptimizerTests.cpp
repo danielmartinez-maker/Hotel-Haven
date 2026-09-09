@@ -67,6 +67,7 @@ void testFallbackUsesPriorityEligibilityAndStableTieBreak() {
     if (plan.assignments.size() == 1) {
         check(plan.assignments[0].taskId == 100, "blocked task must never be assigned");
         check(plan.assignments[0].employeeId == 10, "equal bid must use lowest stable employee id");
+        check(plan.assignments[0].durationBuckets == 3, "fallback duration must include travel plus work time");
     }
     check(plan.snapshotFingerprint == snapshotFingerprint(snapshot), "plan must carry snapshot fingerprint");
 }
@@ -132,6 +133,19 @@ void testPlanValidatorRejectsUndersizedAndOutOfHorizonAssignments() {
     check(validatePlan(snapshot, valid).ok, "three five-minute buckets must cover a 720-second travel-plus-work assignment");
 }
 
+void testPlanValidatorRejectsCuOptPlanningWindowSpoofing() {
+    using namespace hh::optimization;
+    auto snapshot = baseSnapshot();
+    SchedulerPlan spoofed{};
+    spoofed.optimizationEpoch = snapshot.optimizationEpoch;
+    spoofed.snapshotFingerprint = snapshotFingerprint(snapshot);
+    spoofed.source = PlanSource::CuOpt;
+    spoofed.bucketMinutes = 60;
+    spoofed.horizonBuckets = 12;
+    spoofed.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 1}};
+    check(!validatePlan(snapshot, spoofed).ok, "cuOpt plan cannot redefine Hotel Haven planning bucket size");
+}
+
 void testMilpRequestIncludesStationCoverageAndClampsOverdueDeadline() {
     using namespace hh::optimization;
     auto snapshot = baseSnapshot();
@@ -168,6 +182,7 @@ int main() {
     testPlanValidatorRejectsStaleAndOverlappingPlans();
     testPlanValidatorRejectsTaskStationOverlap();
     testPlanValidatorRejectsUndersizedAndOutOfHorizonAssignments();
+    testPlanValidatorRejectsCuOptPlanningWindowSpoofing();
     testMilpRequestIncludesStationCoverageAndClampsOverdueDeadline();
     testMilpRequestIsDeterministicAndDeclaresLexicographicObjectives();
     if (failures != 0) {
