@@ -99,25 +99,53 @@ def test_packaged_animated_assets_declare_animation_set_dependency(tmp_path):
         assert sidecar['dependencies'] == [animation_set], asset_id
 
 
-def test_animated_architecture_has_camera_readable_hardware():
-    expected_nodes = {
-        'Double Service Door': {'Handle_Left', 'Handle_Right'},
-        'Pocket Door': {'PocketPull'},
-        'Accessible Guest Door': {'LeverHandle'},
-        'Security Door': {'LeverHandle', 'VisionPanel', 'KickPlate'},
-        'Loading Dock Door': {'GuideRail_Left', 'GuideRail_Right', 'LiftHandle'},
-        'Lobby Automatic Door': {'MotionSensor'},
-        'Balcony Door': {'LeverHandle'},
+def test_animated_architecture_has_camera_readable_hardware_and_hierarchy():
+    cases = {
+        'Double Service Door': ('MAT_SERVICE_PAINT', {'Handle_Left', 'Handle_Right'}),
+        'Pocket Door': ('MAT_WOOD_WARM', {'PocketPull'}),
+        'Accessible Guest Door': ('MAT_WOOD_WARM', {'LeverHandle'}),
+        'Security Door': ('MAT_SERVICE_PAINT', {'LeverHandle', 'VisionPanel', 'KickPlate'}),
+        'Loading Dock Door': ('MAT_SERVICE_PAINT', {'GuideRail_Left', 'GuideRail_Right', 'LiftHandle'}),
+        'Lobby Automatic Door': ('MAT_GLASS_CLEAR', {'MotionSensor'}),
+        'Balcony Door': ('MAT_WOOD_WARM', {'LeverHandle'}),
     }
-    materials = {
-        'Double Service Door': 'MAT_SERVICE_PAINT',
-        'Pocket Door': 'MAT_WOOD_WARM',
-        'Accessible Guest Door': 'MAT_WOOD_WARM',
-        'Security Door': 'MAT_SERVICE_PAINT',
-        'Loading Dock Door': 'MAT_SERVICE_PAINT',
-        'Lobby Automatic Door': 'MAT_GLASS_CLEAR',
-        'Balcony Door': 'MAT_WOOD_WARM',
-    }
-    for name, required in expected_nodes.items():
-        nodes = set(mod.build(name, materials[name]).graph.nodes_geometry)
+    for name, (material_family, required) in cases.items():
+        scene = mod.build(name, material_family)
+        nodes = set(scene.graph.nodes_geometry)
         assert required <= nodes, f'{name}: missing {sorted(required - nodes)}'
+
+    double = mod.build('Double Service Door', 'MAT_SERVICE_PAINT')
+    assert double.graph.transforms.parents['Handle_Left'] == 'MOV_DoorLeaf_0'
+    assert double.graph.transforms.parents['Handle_Right'] == 'MOV_DoorLeaf_1'
+
+    pocket = mod.build('Pocket Door', 'MAT_WOOD_WARM')
+    assert pocket.graph.transforms.parents['PocketPull'] == 'MOV_PocketPanel'
+
+    for name, material_family in [
+        ('Accessible Guest Door', 'MAT_WOOD_WARM'),
+        ('Security Door', 'MAT_SERVICE_PAINT'),
+        ('Balcony Door', 'MAT_WOOD_WARM'),
+    ]:
+        scene = mod.build(name, material_family)
+        assert scene.graph.transforms.parents['LeverHandle'] == 'MOV_DoorLeaf'
+
+    security = mod.build('Security Door', 'MAT_SERVICE_PAINT')
+    assert security.graph.transforms.parents['VisionPanel'] == 'MOV_DoorLeaf'
+    assert security.graph.transforms.parents['KickPlate'] == 'MOV_DoorLeaf'
+
+    dock = mod.build('Loading Dock Door', 'MAT_SERVICE_PAINT')
+    assert dock.graph.transforms.parents['LiftHandle'] == 'MOV_DockPanel_0'
+
+
+def test_swinging_door_animation_nodes_use_hinge_pivots():
+    cases = [
+        ('Double Service Door', 'MAT_SERVICE_PAINT', ('MOV_DoorLeaf_0', 'MOV_DoorLeaf_1')),
+        ('Accessible Guest Door', 'MAT_WOOD_WARM', ('MOV_DoorLeaf',)),
+        ('Security Door', 'MAT_SERVICE_PAINT', ('MOV_DoorLeaf',)),
+        ('Balcony Door', 'MAT_WOOD_WARM', ('MOV_DoorLeaf',)),
+    ]
+    for name, material_family, moving_nodes in cases:
+        scene = mod.build(name, material_family)
+        for node in moving_nodes:
+            transform, _ = scene.graph.get(node)
+            assert abs(float(transform[0, 3])) >= 0.35, f'{name}: {node} has no hinge-offset pivot'
