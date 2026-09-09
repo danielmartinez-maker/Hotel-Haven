@@ -12,6 +12,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 include(cmake/CompilerWarnings.cmake)
 
+# The renderer consumes only the runtime-safe asset envelope/parser target.
+# In the integrated root build it is already defined; standalone renderer
+# builds pull in the content-pipeline CMake graph solely to obtain that target.
+if(NOT TARGET hh_asset_format)
+    add_subdirectory(
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Tools/ContentPipeline
+        ${CMAKE_CURRENT_BINARY_DIR}/content-pipeline
+        EXCLUDE_FROM_ALL)
+endif()
+if(NOT TARGET hh_asset_format)
+    message(FATAL_ERROR "hh_asset_format runtime target is required by the renderer")
+endif()
+
 add_library(hh_renderer_core STATIC
     src/Camera.cpp
     src/FloorVisibility.cpp
@@ -23,6 +36,7 @@ add_library(hh_renderer_core STATIC
 target_include_directories(hh_renderer_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_link_libraries(hh_renderer_core PUBLIC hh_asset_format)
 hh_enable_strict_warnings(hh_renderer_core)
 
 add_library(hh_renderer_d3d11 STATIC
@@ -89,6 +103,7 @@ add_executable(hh_renderer_tests
     tests/OcclusionTests.cpp
     tests/SceneComposerTests.cpp
     tests/VisibilityTests.cpp
+    tests/AssetFormatLinkTests.cpp
     tests/D3D11SmokeTests.cpp
 )
 
@@ -96,7 +111,7 @@ target_include_directories(hh_renderer_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
 target_compile_definitions(hh_renderer_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core d3d11 d3dcompiler)
+target_link_libraries(hh_renderer_tests PRIVATE hh_renderer_core hh_asset_format d3d11 d3dcompiler)
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
