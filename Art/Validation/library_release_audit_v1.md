@@ -10,7 +10,7 @@
 - Humanoid animation coverage: **47 clips / 11 sets / 2 skeletons**
 - Geometry QC: **PASS** with **0** failures
 - Maximum generated face count: **3024**
-- Material palette: **54** unique sampled RGB colors; non-white ratio **1.0**
+- Material palette: **83** unique sampled RGB colors; non-white ratio **1.0**
 - Unresolved BLOCKER/CRITICAL/MAJOR issues: **0**
 
 ## Profile face budgets
