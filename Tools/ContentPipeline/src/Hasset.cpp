@@ -11,7 +11,8 @@ namespace {
 constexpr std::array<std::byte, 8> kMagic{
     std::byte{'H'}, std::byte{'H'}, std::byte{'A'}, std::byte{'S'},
     std::byte{'S'}, std::byte{'E'}, std::byte{'T'}, std::byte{0}};
-constexpr std::uint32_t kVersion = 1;
+constexpr std::uint32_t kLegacyVersion = 1;
+constexpr std::uint32_t kCurrentVersion = 2;
 
 void append_u32(std::vector<std::byte>& out, std::uint32_t value) {
     for (unsigned shift = 0; shift < 32u; shift += 8u) out.push_back(static_cast<std::byte>((value >> shift) & 0xffu));
@@ -79,7 +80,7 @@ std::vector<std::byte> serialize_hasset(const HassetDocument& document) {
     }
     std::vector<std::byte> out;
     out.insert(out.end(), kMagic.begin(), kMagic.end());
-    append_u32(out, kVersion);
+    append_u32(out, kCurrentVersion);
     append_u32(out, static_cast<std::uint32_t>(document.type));
     append_string(out, document.asset_id);
     append_string(out, document.fingerprint);
@@ -91,6 +92,17 @@ std::vector<std::byte> serialize_hasset(const HassetDocument& document) {
     for (const auto& dependency : dependencies) append_string(out, dependency);
     append_string(out, document.source_path);
     append_string(out, document.sidecar_path);
+    append_string(out, document.units);
+    append_string(out, document.lod_policy);
+    append_string(out, document.collision_policy);
+    append_string(out, document.cutaway_policy);
+    append_string(out, document.pivot_profile);
+    auto anchors = document.interaction_anchors;
+    std::sort(anchors.begin(), anchors.end());
+    anchors.erase(std::unique(anchors.begin(), anchors.end()), anchors.end());
+    if (anchors.size() > std::numeric_limits<std::uint32_t>::max()) throw std::runtime_error("too many hasset interaction anchors");
+    append_u32(out, static_cast<std::uint32_t>(anchors.size()));
+    for (const auto& anchor : anchors) append_string(out, anchor);
     append_u64(out, static_cast<std::uint64_t>(document.payload.size()));
     out.insert(out.end(), document.payload.begin(), document.payload.end());
     return out;
@@ -99,7 +111,8 @@ std::vector<std::byte> serialize_hasset(const HassetDocument& document) {
 HassetDocument parse_hasset(std::span<const std::byte> bytes) {
     Reader reader(bytes);
     for (const auto expected : kMagic) if (reader.byte() != expected) throw std::runtime_error("invalid hasset magic");
-    if (reader.u32() != kVersion) throw std::runtime_error("unsupported hasset version");
+    const auto version = reader.u32();
+    if (version != kLegacyVersion && version != kCurrentVersion) throw std::runtime_error("unsupported hasset version");
     const auto raw_type = reader.u32();
     if (raw_type > static_cast<std::uint32_t>(AssetType::AudioBank)) throw std::runtime_error("invalid hasset asset type");
     HassetDocument document;
@@ -111,6 +124,15 @@ HassetDocument parse_hasset(std::span<const std::byte> bytes) {
     for (std::uint32_t i = 0; i < dependency_count; ++i) document.dependencies.push_back(reader.string());
     document.source_path = reader.string();
     document.sidecar_path = reader.string();
+    if (version == kCurrentVersion) {
+        document.units = reader.string();
+        document.lod_policy = reader.string();
+        document.collision_policy = reader.string();
+        document.cutaway_policy = reader.string();
+        document.pivot_profile = reader.string();
+        const auto anchor_count = reader.u32();
+        for (std::uint32_t i = 0; i < anchor_count; ++i) document.interaction_anchors.push_back(reader.string());
+    }
     document.payload = reader.payload(reader.u64());
     if (!reader.finished()) throw std::runtime_error("trailing bytes in hasset");
     return document;

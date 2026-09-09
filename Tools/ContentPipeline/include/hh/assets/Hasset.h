@@ -13,6 +13,12 @@ struct HassetDocument {
     std::vector<std::string> dependencies;
     std::string source_path;
     std::string sidecar_path;
+    std::string units;
+    std::string lod_policy;
+    std::string collision_policy;
+    std::string cutaway_policy;
+    std::string pivot_profile;
+    std::vector<std::string> interaction_anchors;
     std::vector<std::byte> payload;
 };
 
