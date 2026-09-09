@@ -11,11 +11,17 @@
 #include <vector>
 #include <windows.h>
 
-// Some Windows SDK headers still expose `small` as a legacy macro. Hotel
-// Haven uses `small` as the handle for its compact UI font, so keep that SDK
-// macro from rewriting the C++ member declaration and its call sites.
+// Some Windows SDK headers still expose legacy `small`, `near`, and `far`
+// macros. Hotel Haven uses those identifiers as ordinary C++ names, so keep
+// the SDK macros from rewriting declarations and local variables.
 #ifdef small
 #undef small
+#endif
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
 #endif
 
 namespace hh::client {
