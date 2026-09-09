@@ -71,7 +71,7 @@ int main() {
     constructionOptions.construction = &constructionState;
     const auto withoutObject = worldScene(constructionGame.view(), {});
     const auto withObject =
-        worldScene(constructionGame.view(), constructionOptions);
+        worldSceneWithSystems(constructionGame.view(), constructionOptions);
     require(withObject.items.size() > withoutObject.items.size(),
             "placed construction object was omitted from world scene");
 
@@ -85,19 +85,17 @@ int main() {
     const auto buildingSystems = utilityGame.buildingSystemsSnapshot();
     WorldViewOptions naturalOptions;
     naturalOptions.buildingSystems = &buildingSystems;
-    const auto natural = worldScene(utilitySnapshot, naturalOptions);
+    const auto natural = worldSceneWithSystems(utilitySnapshot, naturalOptions);
     auto utilityOptions = naturalOptions;
     utilityOptions.overlay = Overlay::Utilities;
-    const auto utilities = worldScene(utilitySnapshot, utilityOptions);
-    require(utilities.items.size() == natural.items.size(),
-            "utility overlay changed physical geometry");
-    bool utilityChanged = false;
-    for (std::size_t i = 0; i < natural.items.size(); ++i)
-      utilityChanged |= natural.items[i].color.r != utilities.items[i].color.r ||
-                        natural.items[i].color.g != utilities.items[i].color.g ||
-                        natural.items[i].color.b != utilities.items[i].color.b;
-    require(utilityChanged,
-            "utility overlay did not expose disconnected room state");
+    const auto utilities =
+        worldSceneWithSystems(utilitySnapshot, utilityOptions);
+    require(utilities.items.size() ==
+                natural.items.size() + utilitySnapshot.rooms.size(),
+            "utility overlay did not emit one diagnostic layer per room");
+    const auto &disconnectedDiagnostic = utilities.items[natural.items.size()];
+    require(disconnectedDiagnostic.color.r > disconnectedDiagnostic.color.g,
+            "utility overlay did not mark disconnected room invalid");
     require(utilityGame.view().rooms.front().id == utilityRoom,
             "utility rendering mutated authoritative state");
 
