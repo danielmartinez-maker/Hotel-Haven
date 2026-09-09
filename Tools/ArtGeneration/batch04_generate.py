@@ -128,7 +128,7 @@ def soft_goods(name):
         for i,z in enumerate((0.05,0.14,0.23)):
             add(s, box((0.62-0.04*i,0.42-0.02*i,0.08),(0,0,z),'MAT_LINEN'), f'FoldedLinen_{i}')
     else:
-        add(s, box((0.58,0.10,0.95),(0,0,0.82),'MAT_LINEN'), 'RobeBody')
+        add(s, box((0.58,0.10,1.58),(0,0,0.79),'MAT_LINEN'), 'RobeBody')
         add(s, box((0.32,0.10,0.72),(-0.35,0,0.82),'MAT_LINEN'), 'SleeveL')
         add(s, box((0.32,0.10,0.72),(0.35,0,0.82),'MAT_LINEN'), 'SleeveR')
         add(s, box((0.70,0.035,0.035),(0,0,1.42),'MAT_WOOD_WARM'), 'Hanger')
@@ -212,12 +212,15 @@ def bathroom_detail(name):
         add(s,box((0.78,0.30,0.05),(0,0,0.78),'MAT_STAINLESS'),'Shelf')
         for i,z in enumerate((0.84,0.95)):
             add(s,box((0.50,0.24,0.09),(0,0,z),'MAT_LINEN'),f'TowelFold_{i}')
+        for label,x in (('Left',-0.34),('Right',0.34)):
+            add(s,box((0.04,0.04,0.78),(x,0.10,0.39),'MAT_STAINLESS'),f'ShelfRail_{label}')
     elif 'Mirror Lit' in name:
         add(s,box((0.82,0.05,0.94),(0,0,0.47),'MAT_EMISSIVE_WARM'),'LightFrame')
         add(s,box((0.72,0.02,0.84),(0,-0.035,0.47),'MAT_GLASS_CLEAR'),'Mirror')
     elif 'Wall Sconce' in name:
         add(s,box((0.18,0.12,0.30),(0,0,0.55),'MAT_EMISSIVE_WARM'),'Sconce')
         add(s,box((0.12,0.08,0.18),(0,0.08,0.34),'MAT_BRASS_POLISHED'),'Bracket')
+        add(s,box((0.035,0.035,0.40),(0,0.095,0.20),'MAT_BRASS_POLISHED'),'SconceCableChase')
     elif 'Scale' in name:
         add(s,box((0.36,0.36,0.045),(0,0,0.0225),'MAT_PLASTIC_RUBBER'),'ScaleBody')
         add(s,box((0.11,0.06,0.01),(0,-0.12,0.05),'MAT_ELECTRONICS'),'Display')
@@ -225,7 +228,7 @@ def bathroom_detail(name):
         add(s,box((0.30,0.11,0.18),(0,0,0.55),'MAT_ELECTRONICS'),'DryerBody')
         add(s,box((0.11,0.08,0.30),(-0.08,0,0.35),'MAT_ELECTRONICS'),'Handle')
         add(s,box((0.38,0.08,0.38),(0,0.08,0.48),'MAT_PLASTIC_RUBBER'),'WallMount')
-        add(s,cyl(0.035,0.45,(0.18,0.04,0.36),'MAT_ELECTRONICS',10),'Cord')
+        add(s,cyl(0.035,0.45,(0.18,0.04,0.225),'MAT_ELECTRONICS',10),'Cord')
     elif 'Toiletry Tray' in name:
         add(s,box((0.55,0.32,0.05),(0,0,0.025),'MAT_PLASTIC_RUBBER'),'Tray')
         for i,x in enumerate((-0.16,0,0.16)):
@@ -276,6 +279,8 @@ def reception(name):
         add(s,rotated_box((0.18,0.76,0.40),(1.19,0.02,0.55),18,'MAT_UPHOLSTERY'),'Arm_Right')
         for x in (-0.72,0,0.72):
             add(s,box((0.62,0.54,0.10),(x,-0.02,0.58),'MAT_UPHOLSTERY'),f'CurvedCushion_{x}')
+        for i,(x,y) in enumerate(((-0.92,-0.22),(-0.30,-0.26),(0.30,-0.26),(0.92,-0.22))):
+            add(s,box((0.075,0.075,0.38),(x,y,0.19),'MAT_WOOD_DARK'),f'CurvedSofaLeg_{i}')
         return s
 
     if 'Armchair' in name or 'Lounge Chair' in name:
@@ -387,8 +392,8 @@ def sidecar(asset_id, subcategory, mat, profile):
         'tags':['hotel-haven','batch_04',subcategory],
         'dependencies':[],
         'cutaway_policy':'normal',
-        'source_revision':2,
-        'metadata_revision':2,
+        'source_revision':3,
+        'metadata_revision':3,
         'cooker_schema':1,
         'lifecycle_state':'PRODUCTION',
     }
