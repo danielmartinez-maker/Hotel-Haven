@@ -24,6 +24,25 @@ target_include_directories(hh_frontend_core PUBLIC
 )
 hh_enable_strict_warnings(hh_frontend_core)
 
+add_library(hh_frontend_d2d STATIC
+    src/d2d/D2DUiRenderer.cpp
+    src/d2d/FontManager.cpp
+    src/d2d/UiPrimitiveRenderer.cpp
+)
+target_include_directories(hh_frontend_d2d PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_frontend_d2d PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN)
+target_link_libraries(hh_frontend_d2d PUBLIC
+    hh_frontend_core
+    d2d1
+    dwrite
+    d3d11
+    dxgi
+)
+hh_enable_strict_warnings(hh_frontend_d2d)
+
 add_executable(hh_frontend_tests
     tests/TestMain.cpp
     tests/MainMenuModelTests.cpp
@@ -32,11 +51,13 @@ add_executable(hh_frontend_tests
     tests/MenuTransitionTests.cpp
     tests/MenuSceneControllerTests.cpp
     tests/MainMenuStressTests.cpp
+    tests/D2DUiSmokeTests.cpp
 )
 
 target_include_directories(hh_frontend_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_libraries(hh_frontend_tests PRIVATE hh_frontend_core)
+target_link_libraries(hh_frontend_tests PRIVATE hh_frontend_core hh_frontend_d2d)
 hh_enable_strict_warnings(hh_frontend_tests)
 add_test(NAME hh_frontend_tests COMMAND hh_frontend_tests)
