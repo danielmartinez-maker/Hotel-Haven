@@ -14,8 +14,10 @@ include(cmake/CompilerWarnings.cmake)
 
 # The renderer consumes only the runtime-safe asset envelope/parser target.
 # In the integrated root build it is already defined; standalone renderer
-# builds pull in the content-pipeline CMake graph solely to obtain that target.
+# builds request the format-only content-pipeline mode.
 if(NOT TARGET hh_asset_format)
+    set(HH_CONTENT_PIPELINE_FORMAT_ONLY ON CACHE BOOL
+        "Build only the runtime-safe hh_asset_format target" FORCE)
     add_subdirectory(
         ${CMAKE_CURRENT_SOURCE_DIR}/../Tools/ContentPipeline
         ${CMAKE_CURRENT_BINARY_DIR}/content-pipeline
