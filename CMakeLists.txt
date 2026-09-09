@@ -19,6 +19,11 @@ add_test(
     COMMAND hotel_haven_headless --days 14 --seed 20260909
             --run-id ci-balance
             --balance-summary ${CMAKE_BINARY_DIR}/balance-runs/ci-balance.json)
+add_test(
+    NAME hh_balance_output_alias_cli
+    COMMAND hotel_haven_headless --days 0 --seed 20260909
+            --run-id ci-balance-alias
+            --balance-output ${CMAKE_BINARY_DIR}/balance-runs/ci-balance-alias.json)
 if(Python3_Interpreter_FOUND)
     add_test(
         NAME hh_balance_summary_semantics
