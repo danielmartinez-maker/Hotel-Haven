@@ -123,7 +123,9 @@ void writeBalanceSummary(const std::filesystem::path &path,
        << "  \"guest_satisfaction\": " << guestSatisfaction(view) << ",\n"
        << "  \"fatigue_load\": " << staffFatigueLoad(view) << ",\n"
        << "  \"excess_wait_minutes\": " << excessWaitMinutes(view) << ",\n"
-       << "  \"gop_minor\": " << gop << "\n"
+       << "  \"gop_minor\": " << gop << ",\n"
+       << "  \"completed_stays\": " << view.economy.completedStays << ",\n"
+       << "  \"reputation\": " << view.economy.reputation << "\n"
        << "}\n";
   write(path, json.str());
 }
