@@ -200,10 +200,11 @@ TEST_CASE("D3D11 WARP overlay path caches and submits a cooked mesh") {
     RuntimeAssetRegistry registry;
     const AssetHandle handle = registry.addHasset(makeTriangleHasset());
 
-    D3D11Renderer renderer(&registry);
+    D3D11Renderer renderer;
     const RendererResult initializeResult = renderer.initialize(
         window.get(), 64u, 64u, shaderPath("InstancedBox.hlsl"), true);
     EXPECT_TRUE(initializeResult);
+    renderer.setAssetRegistry(&registry);
 
     OrthoCamera camera;
     camera.setAspectRatio(1.0f);
