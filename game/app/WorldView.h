@@ -1,7 +1,9 @@
 #pragma once
 #include "hh/game/Simulation.h"
 #include "hh/renderer/RenderScene.h"
+#include <functional>
 #include <optional>
+#include <string_view>
 
 namespace hh::client {
 enum class Overlay { Natural, Status, Cleanliness, Condition };
@@ -25,6 +27,13 @@ struct WorldAssetSet {
   std::optional<WorldAssetVisual> receptionDesk;
   std::optional<WorldAssetVisual> pottedPlant;
 };
+
+using WorldAssetResolver =
+    std::function<WorldAssetVisual(std::string_view assetId)>;
+
+// The string IDs are an installation/startup concern only. This converts them
+// once to the compact visual records consumed by every subsequent frame.
+WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver);
 
 struct WorldViewOptions {
   int floor{};
