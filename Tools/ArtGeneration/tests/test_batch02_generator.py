@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import trimesh
 
 ROOT = Path(__file__).resolve().parents[3]
 GEN = ROOT / 'Tools' / 'ArtGeneration' / 'batch02_generate.py'
 MANIFEST = ROOT / 'GameData' / 'AssetDefinitions' / 'Manifest' / 'asset_batch_02.json'
+
+spec = importlib.util.spec_from_file_location('batch02_generate', GEN)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+
+
+def _rgb_for_primary_surface(name: str, material_family: str) -> tuple[int, int, int]:
+    scene = mod.build(name, material_family)
+    primary = 'FinishWall' if ('Paint Finish' in name or 'Wood Panel' in name or 'Wall Cladding' in name) else 'FinishTile'
+    geom = scene.geometry[primary]
+    rgba = np.asarray(geom.visual.material.baseColorFactor).reshape(-1)
+    if rgba.dtype.kind == 'f' and float(np.nanmax(rgba)) <= 1.0:
+        rgba = rgba * 255.0
+    return tuple(int(x) for x in np.clip(np.rint(rgba[:3]), 0, 255))
 
 
 def test_manifest_has_50_assets():
@@ -52,3 +68,56 @@ def test_sidecars_are_hmg070_schema_and_animated_nodes_exist(tmp_path):
         if sidecar['asset_id'] in animated:
             scene = trimesh.load(tmp_path / f"{sidecar['asset_id']}.glb", force='scene')
             assert any(str(n).startswith('MOV_') for n in scene.graph.nodes_geometry), sidecar['asset_id']
+
+
+def test_same_family_finish_variants_have_distinct_primary_colors():
+    pairs = [
+        (('Carpet Tile Warm Beige', 'MAT_CARPET_STANDARD'), ('Carpet Tile Charcoal', 'MAT_CARPET_STANDARD')),
+        (('White Bathroom Tile', 'MAT_TILE_CERAMIC'), ('Blue Bathroom Tile', 'MAT_TILE_CERAMIC')),
+        (('Wood Panel Walnut', 'MAT_WOOD_WARM'), ('Wood Panel Oak', 'MAT_WOOD_WARM')),
+    ]
+    for left, right in pairs:
+        assert _rgb_for_primary_surface(*left) != _rgb_for_primary_surface(*right), (left[0], right[0])
+
+    paint_colors = {
+        _rgb_for_primary_surface('Paint Finish Warm Ivory', 'MAT_PLASTER_WARM'),
+        _rgb_for_primary_surface('Paint Finish Soft Grey', 'MAT_PLASTER_COOL'),
+        _rgb_for_primary_surface('Paint Finish Muted Blue', 'MAT_PLASTER_COOL'),
+        _rgb_for_primary_surface('Paint Finish Olive', 'MAT_PLASTER_WARM'),
+        _rgb_for_primary_surface('Paint Finish Burgundy Accent', 'MAT_PLASTER_WARM'),
+    }
+    assert len(paint_colors) == 5
+
+
+def test_packaged_animated_assets_declare_animation_set_dependency(tmp_path):
+    subprocess.run([sys.executable, str(GEN), str(MANIFEST), str(tmp_path), '--package'], check=True)
+    data = json.loads(MANIFEST.read_text())
+    rows = [a for g in data['groups'] for a in g['assets']]
+    expected = {row[0]: row[5] for row in rows if row[5] is not None}
+    for asset_id, animation_set in expected.items():
+        sidecar = json.loads((tmp_path / f'{asset_id}.asset.json').read_text())
+        assert sidecar['dependencies'] == [animation_set], asset_id
+
+
+def test_animated_architecture_has_camera_readable_hardware():
+    expected_nodes = {
+        'Double Service Door': {'Handle_Left', 'Handle_Right'},
+        'Pocket Door': {'PocketPull'},
+        'Accessible Guest Door': {'LeverHandle'},
+        'Security Door': {'LeverHandle', 'VisionPanel', 'KickPlate'},
+        'Loading Dock Door': {'GuideRail_Left', 'GuideRail_Right', 'LiftHandle'},
+        'Lobby Automatic Door': {'MotionSensor'},
+        'Balcony Door': {'LeverHandle'},
+    }
+    materials = {
+        'Double Service Door': 'MAT_SERVICE_PAINT',
+        'Pocket Door': 'MAT_WOOD_WARM',
+        'Accessible Guest Door': 'MAT_WOOD_WARM',
+        'Security Door': 'MAT_SERVICE_PAINT',
+        'Loading Dock Door': 'MAT_SERVICE_PAINT',
+        'Lobby Automatic Door': 'MAT_GLASS_CLEAR',
+        'Balcony Door': 'MAT_WOOD_WARM',
+    }
+    for name, required in expected_nodes.items():
+        nodes = set(mod.build(name, materials[name]).graph.nodes_geometry)
+        assert required <= nodes, f'{name}: missing {sorted(required - nodes)}'
