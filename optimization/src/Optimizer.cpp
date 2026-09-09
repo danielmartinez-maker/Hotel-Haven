@@ -141,8 +141,8 @@ SchedulerPlan DeterministicFallbackOptimizer::optimize(const OptimizerSnapshot& 
     plan.simulationSecond = snapshot.simulationSecond;
     plan.snapshotFingerprint = snapshotFingerprint(snapshot);
     plan.source = PlanSource::DeterministicFallback;
-    plan.bucketMinutes = 5;
-    plan.horizonBuckets = 12;
+    plan.bucketMinutes = kLivePlanningBucketMinutes;
+    plan.horizonBuckets = kLivePlanningHorizonBuckets;
 
     std::vector<Task> ready;
     for (const auto& task : snapshot.tasks) {
