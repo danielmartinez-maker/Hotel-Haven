@@ -143,7 +143,8 @@ void stale_and_invalid_plans_fall_back_without_mutating_snapshot() {
   require(staleResolution.valid, "stale plan did not produce a valid fallback");
   require(!staleResolution.acceptedProposed && staleResolution.fellBack,
           "stale plan was accepted instead of falling back");
-  require(staleResolution.plan.source == "native-deterministic",
+  require(staleResolution.plan.source ==
+              hh::optimization::PlanSource::DeterministicFallback,
           "stale plan did not fall back to native optimizer");
   require(hh::optimization::snapshotFingerprint(snapshot) == before,
           "stale-plan fallback mutated optimizer input state");
@@ -156,7 +157,8 @@ void stale_and_invalid_plans_fall_back_without_mutating_snapshot() {
           "invalid plan did not produce a valid native fallback");
   require(!invalidResolution.acceptedProposed && invalidResolution.fellBack,
           "invalid plan was accepted instead of falling back");
-  require(invalidResolution.plan.source == "native-deterministic",
+  require(invalidResolution.plan.source ==
+              hh::optimization::PlanSource::DeterministicFallback,
           "invalid plan did not resolve through native fallback");
   require(hh::optimization::snapshotFingerprint(snapshot) == before,
           "invalid-plan fallback mutated optimizer input state");
