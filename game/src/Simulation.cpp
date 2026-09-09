@@ -1,4 +1,7 @@
 #include "hh/game/Simulation.h"
+#include "hh/game/BuildJobs.h"
+#include "hh/game/BuildingSystems.h"
+#include "hh/game/Construction.h"
 #include "hh/assets/Json.h"
 #include "StaffOptimization.h"
 #include "hh/optimization/Types.h"
@@ -156,7 +159,6 @@ GuestProfileView generateGuestProfile(std::mt19937_64 &random) {
     }
     roll -= candidate.weight;
   }
-
   const auto varied = [&](double mean) {
     return std::clamp(mean + (randomUnit(random) * 2.0 - 1.0) * .08, 0.0,
                       1.0);
@@ -185,7 +187,6 @@ GuestProfileView generateGuestProfile(std::mt19937_64 &random) {
         !traitConflicts(profile.traitFlags, trait))
       profile.traitFlags |= flag;
   }
-
   const auto has = [&](GuestTrait trait) {
     return (profile.traitFlags & guestTraitFlag(trait)) != 0;
   };
@@ -332,6 +333,10 @@ int queueToleranceFor(const GuestProfileView &profile, double baseSeconds = 480)
                   traitModifier),
       120L, 1200L));
 }
+
+bool materialsZero(const ConstructionMaterials &materials) {
+  return materials == ConstructionMaterials{};
+}
 } // namespace
 
 struct Simulation::Impl {
@@ -353,6 +358,8 @@ struct Simulation::Impl {
   std::vector<PendingOrder> orders;
   InventoryView inventory{24, 48, 36, 24, 8};
   EconomyView economy{2500000};
+  ConstructionSnapshot construction;
+  BuildingSystemsSnapshot buildingSystems;
   double baseDemand{1.5}, turnoverWork{2400}, repairWork{1800},
       checkInWork{300}, hungerRate{10.0 / 60.0}, restLoss{5.0 / 60.0},
       roomConditionLossPerDay{2.5};
@@ -423,6 +430,12 @@ struct Simulation::Impl {
         return &x;
     return nullptr;
   }
+  const Room *getRoom(EntityId id) const {
+    for (const auto &x : rooms)
+      if (x.id == id)
+        return &x;
+    return nullptr;
+  }
   Person *getPerson(EntityId id) {
     for (auto &x : people)
       if (x.id == id)
@@ -433,6 +446,30 @@ struct Simulation::Impl {
     for (auto &x : reservations)
       if (x.id == id)
         return &x;
+    return nullptr;
+  }
+  BuildJobSnapshot *getBuildJob(EntityId id) {
+    for (auto &job : construction.buildJobs)
+      if (job.id == id)
+        return &job;
+    return nullptr;
+  }
+  BuildJobSnapshot *getBuildJobForTask(EntityId taskId) {
+    for (auto &job : construction.buildJobs)
+      if (job.taskId == taskId)
+        return &job;
+    return nullptr;
+  }
+  ElevatorSnapshot *getElevator(EntityId id) {
+    for (auto &elevator : buildingSystems.elevators)
+      if (elevator.id == id)
+        return &elevator;
+    return nullptr;
+  }
+  RoomSystemSnapshot *getRoomSystem(EntityId roomId) {
+    for (auto &system : buildingSystems.rooms)
+      if (system.roomId == roomId)
+        return &system;
     return nullptr;
   }
   Position locate(TileKind kind) const {
@@ -455,11 +492,11 @@ struct Simulation::Impl {
         r.status = RoomStatus::VacantReady;
     }
   }
-  void createTask(TaskKind kind, EntityId target, Position pos, double work) {
+  EntityId createTask(TaskKind kind, EntityId target, Position pos, double work) {
     for (auto &t : tasks)
       if (t.targetId == target && t.kind == kind &&
           t.status != TaskStatus::Completed)
-        return;
+        return t.id;
     Task t;
     t.id = nextId++;
     t.kind = kind;
@@ -467,7 +504,342 @@ struct Simulation::Impl {
     t.target = pos;
     t.total = t.workRemainingSeconds = work;
     tasks.push_back(t);
+    return t.id;
   }
+
+  bool objectRemovedBy(const ConstructionObjectView &object,
+                       const ConstructionCommand &command) const {
+    return std::find(command.removeObjectIds.begin(),
+                     command.removeObjectIds.end(),
+                     object.id) != command.removeObjectIds.end();
+  }
+  bool objectOccupies(Position position, const ConstructionCommand &command) const {
+    for (const auto &object : construction.objects) {
+      if (objectRemovedBy(object, command))
+        continue;
+      const auto *definition = detail::constructionDefinition(object.typeId);
+      if (!definition)
+        continue;
+      ConstructionPlacement placed{object.typeId, object.origin,
+                                   object.rotationQuarterTurns};
+      for (const auto cell : detail::constructionFootprint(placed, *definition))
+        if (same(cell, position))
+          return true;
+    }
+    return false;
+  }
+  bool reservedByOtherBuild(Position position, EntityId ignoredJob) const {
+    for (const auto &job : construction.buildJobs) {
+      if (job.id == ignoredJob || job.state == BuildJobState::Completed ||
+          job.state == BuildJobState::Cancelled)
+        continue;
+      for (const auto &placement : job.construction.placements) {
+        const auto *definition = detail::constructionDefinition(placement.typeId);
+        if (!definition)
+          continue;
+        for (const auto cell :
+             detail::constructionFootprint(placement, *definition))
+          if (same(cell, position))
+            return true;
+      }
+    }
+    return false;
+  }
+  ConstructionPreview validateConstruction(const ConstructionCommand &command,
+                                             EntityId ignoredJob = 0,
+                                             bool checkCash = true) const {
+    ConstructionPreview result;
+    if (command.placements.empty() && command.removeObjectIds.empty()) {
+      result.reason = ConstructionReason::InvalidCommand;
+      result.message = "Construction command is empty";
+      return result;
+    }
+    std::unordered_set<EntityId> removalIds;
+    for (const auto id : command.removeObjectIds) {
+      if (!removalIds.insert(id).second) {
+        result.reason = ConstructionReason::InvalidCommand;
+        result.message = "Construction removal list contains duplicates";
+        return result;
+      }
+      const auto found = std::find_if(
+          construction.objects.begin(), construction.objects.end(),
+          [&](const ConstructionObjectView &object) { return object.id == id; });
+      if (found == construction.objects.end()) {
+        result.reason = ConstructionReason::ObjectNotFound;
+        result.message = "Construction object does not exist";
+        return result;
+      }
+    }
+
+    std::unordered_set<int> commandCells;
+    std::int64_t cost = 0;
+    for (const auto &placement : command.placements) {
+      const auto *definition = detail::constructionDefinition(placement.typeId);
+      if (!definition) {
+        result.reason = ConstructionReason::UnknownType;
+        result.message = "Unknown construction object type";
+        return result;
+      }
+      if (definition->costCents < 0 ||
+          cost > std::numeric_limits<std::int64_t>::max() -
+                     definition->costCents) {
+        result.reason = ConstructionReason::InvalidCommand;
+        result.message = "Construction cost is invalid";
+        return result;
+      }
+      cost += definition->costCents;
+      const auto footprint = detail::constructionFootprint(placement, *definition);
+      for (const auto cell : footprint) {
+        if (!inside(cell)) {
+          result.reason = ConstructionReason::OutsideProperty;
+          result.message = "Object footprint is outside the property";
+          return result;
+        }
+        const auto support = map[index(cell)];
+        const bool supported =
+            definition->support == ConstructionSupport::Wall
+                ? support == TileKind::Wall
+                : passableKind(support);
+        if (!supported) {
+          result.reason = ConstructionReason::InvalidSupport;
+          result.message = "Object requires a different structural support";
+          return result;
+        }
+        for (const auto &room : rooms)
+          if ((room.status == RoomStatus::Occupied ||
+               room.status == RoomStatus::Reserved) &&
+              cell.floor == room.floor && cell.x >= room.x &&
+              cell.x < room.x + room.width && cell.y >= room.y &&
+              cell.y < room.y + room.height) {
+            result.reason = ConstructionReason::RoomOccupied;
+            result.message = "Occupied or reserved room cannot be altered";
+            return result;
+          }
+        if (objectOccupies(cell, command) ||
+            reservedByOtherBuild(cell, ignoredJob) ||
+            !commandCells.insert(index(cell)).second) {
+          result.reason = ConstructionReason::OccupiedFootprint;
+          result.message = "Object footprint is already occupied";
+          return result;
+        }
+        if (definition->blocksMovement &&
+            std::any_of(people.begin(), people.end(), [&](const Person &person) {
+              return same(person.position, cell);
+            })) {
+          result.reason = ConstructionReason::AccessObstructed;
+          result.message = "A person is standing in the object footprint";
+          return result;
+        }
+      }
+      if (definition->requiresAccess) {
+        bool accessible = false;
+        for (const auto cell : footprint) {
+          constexpr std::array<std::array<int, 2>, 4> offsets{{
+              {{1, 0}}, {{-1, 0}}, {{0, 1}}, {{0, -1}}}};
+          for (const auto offset : offsets) {
+            const Position adjacent{cell.floor, cell.x + offset[0],
+                                    cell.y + offset[1]};
+            if (inside(adjacent) && passable(adjacent) &&
+                !objectOccupies(adjacent, command))
+              accessible = true;
+          }
+        }
+        if (!accessible) {
+          result.reason = ConstructionReason::AccessObstructed;
+          result.message = "Object has no usable access edge";
+          return result;
+        }
+      }
+    }
+    result.costCents = cost;
+    if (checkCash && economy.cashCents < cost) {
+      result.reason = ConstructionReason::InsufficientCash;
+      result.message = "Insufficient cash for construction";
+      return result;
+    }
+    result.valid = true;
+    result.reason = ConstructionReason::None;
+    result.message = "Construction placement is valid";
+    return result;
+  }
+  ConstructionResult commitConstruction(const ConstructionCommand &command,
+                                        bool chargeCash,
+                                        EntityId ignoredJob = 0) {
+    const auto preview = validateConstruction(command, ignoredJob, chargeCash);
+    if (!preview.valid)
+      return {false, preview.reason, preview.costCents, preview.message, {}};
+    for (const auto id : command.removeObjectIds)
+      construction.objects.erase(
+          std::remove_if(construction.objects.begin(), construction.objects.end(),
+                         [&](const ConstructionObjectView &object) {
+                           return object.id == id;
+                         }),
+          construction.objects.end());
+    ConstructionResult result;
+    result.ok = true;
+    result.costCents = preview.costCents;
+    result.message = "Construction committed";
+    for (const auto &placement : command.placements) {
+      const auto *definition = detail::constructionDefinition(placement.typeId);
+      const int rotation =
+          detail::normalizedQuarterTurns(placement.rotationQuarterTurns);
+      ConstructionObjectView object;
+      object.id = nextId++;
+      object.typeId = placement.typeId;
+      object.origin = placement.origin;
+      object.rotationQuarterTurns = rotation;
+      object.width = rotation % 2 == 0 ? definition->width : definition->height;
+      object.height = rotation % 2 == 0 ? definition->height : definition->width;
+      object.blocksMovement = definition->blocksMovement;
+      construction.objects.push_back(object);
+      result.objectIds.push_back(object.id);
+    }
+    if (chargeCash) {
+      economy.cashCents -= preview.costCents;
+      economy.constructionCostCents += preview.costCents;
+    }
+    return result;
+  }
+
+  UtilityNodeSnapshot *utilitySource(UtilityKind kind) {
+    for (auto &node : buildingSystems.utilityNodes)
+      if (node.kind == kind && node.source)
+        return &node;
+    return nullptr;
+  }
+  UtilityNodeSnapshot *roomUtilityNode(EntityId roomId, UtilityKind kind) {
+    for (auto &node : buildingSystems.utilityNodes)
+      if (node.kind == kind && !node.source && node.roomId == roomId)
+        return &node;
+    return nullptr;
+  }
+  UtilityNodeSnapshot &ensureUtilitySource(UtilityKind kind) {
+    if (auto *source = utilitySource(kind))
+      return *source;
+    UtilityNodeSnapshot node;
+    node.id = nextId++;
+    node.kind = kind;
+    node.source = true;
+    node.capacity = 1'000'000;
+    buildingSystems.utilityNodes.push_back(node);
+    return buildingSystems.utilityNodes.back();
+  }
+  RoomSystemSnapshot &ensureRoomSystem(EntityId roomId) {
+    if (auto *system = getRoomSystem(roomId))
+      return *system;
+    RoomSystemSnapshot system;
+    system.roomId = roomId;
+    buildingSystems.rooms.push_back(system);
+    return buildingSystems.rooms.back();
+  }
+  void setRoomUtilityInternal(EntityId roomId, UtilityKind kind,
+                              bool connected) {
+    ensureRoomSystem(roomId);
+    auto *node = roomUtilityNode(roomId, kind);
+    if (!node) {
+      UtilityNodeSnapshot created;
+      created.id = nextId++;
+      created.kind = kind;
+      created.roomId = roomId;
+      created.load = 1;
+      buildingSystems.utilityNodes.push_back(created);
+      node = &buildingSystems.utilityNodes.back();
+    }
+    const EntityId roomNodeId = node->id;
+    buildingSystems.utilityEdges.erase(
+        std::remove_if(buildingSystems.utilityEdges.begin(),
+                       buildingSystems.utilityEdges.end(),
+                       [&](const UtilityEdgeSnapshot &edge) {
+                         return edge.from == roomNodeId || edge.to == roomNodeId;
+                       }),
+        buildingSystems.utilityEdges.end());
+    if (connected) {
+      const EntityId sourceId = ensureUtilitySource(kind).id;
+      buildingSystems.utilityEdges.push_back({sourceId, roomNodeId});
+    }
+    detail::refreshRoomUtilityFlags(buildingSystems);
+  }
+  void initializeLegacyRoomSystems(EntityId roomId) {
+    auto &system = ensureRoomSystem(roomId);
+    system.egress = true;
+    system.accessible = true;
+    setRoomUtilityInternal(roomId, UtilityKind::Power, true);
+    setRoomUtilityInternal(roomId, UtilityKind::Water, true);
+  }
+  void removeRoomSystems(EntityId roomId) {
+    std::unordered_set<EntityId> removedNodes;
+    for (const auto &node : buildingSystems.utilityNodes)
+      if (!node.source && node.roomId == roomId)
+        removedNodes.insert(node.id);
+    buildingSystems.utilityEdges.erase(
+        std::remove_if(buildingSystems.utilityEdges.begin(),
+                       buildingSystems.utilityEdges.end(),
+                       [&](const UtilityEdgeSnapshot &edge) {
+                         return removedNodes.contains(edge.from) ||
+                                removedNodes.contains(edge.to);
+                       }),
+        buildingSystems.utilityEdges.end());
+    buildingSystems.utilityNodes.erase(
+        std::remove_if(buildingSystems.utilityNodes.begin(),
+                       buildingSystems.utilityNodes.end(),
+                       [&](const UtilityNodeSnapshot &node) {
+                         return !node.source && node.roomId == roomId;
+                       }),
+        buildingSystems.utilityNodes.end());
+    buildingSystems.rooms.erase(
+        std::remove_if(buildingSystems.rooms.begin(), buildingSystems.rooms.end(),
+                       [&](const RoomSystemSnapshot &room) {
+                         return room.roomId == roomId;
+                       }),
+        buildingSystems.rooms.end());
+    detail::refreshRoomUtilityFlags(buildingSystems);
+  }
+
+  void tryReserveBuildMaterials(BuildJobSnapshot &job) {
+    if (job.state != BuildJobState::WaitingForMaterials)
+      return;
+    const auto required = detail::constructionMaterialsFor(job.construction);
+    if (!detail::hasMaterials(construction.availableMaterials, required))
+      return;
+    detail::subtractMaterials(construction.availableMaterials, required);
+    detail::addMaterials(construction.reservedMaterials, required);
+    job.reservedMaterials = required;
+    job.state = BuildJobState::ReadyForLabor;
+    const Position target = job.construction.placements.empty()
+                                ? entrance()
+                                : job.construction.placements.front().origin;
+    job.taskId = createTask(TaskKind::Build, job.id, target, job.workSeconds);
+  }
+  void refreshBuildJobs() {
+    for (auto &job : construction.buildJobs)
+      tryReserveBuildMaterials(job);
+  }
+  void markBuildStarted(Task &task) {
+    if (task.kind != TaskKind::Build)
+      return;
+    if (auto *job = getBuildJobForTask(task.id)) {
+      if (!job->materialsConsumed) {
+        detail::subtractMaterials(construction.reservedMaterials,
+                                  job->reservedMaterials);
+        job->materialsConsumed = true;
+      }
+      job->state = BuildJobState::Building;
+    }
+  }
+  void completeBuildJob(Task &task) {
+    auto *job = getBuildJobForTask(task.id);
+    if (!job)
+      return;
+    const auto result = commitConstruction(job->construction, false, job->id);
+    if (!result.ok) {
+      job->state = BuildJobState::Blocked;
+      job->blockedReason = result.message;
+      return;
+    }
+    job->state = BuildJobState::Completed;
+    job->blockedReason.clear();
+  }
+
   void hourlyBookings(int day, int hour) {
     if (!has(TileKind::Entrance) || !has(TileKind::FrontDesk))
       return;
@@ -479,7 +851,8 @@ struct Simulation::Impl {
     constexpr double segmentMarketCalibration = 1.15;
     for (auto &room : rooms) {
       Room *r = &room;
-      if (r->closed || r->status != RoomStatus::VacantReady || !r->reachable)
+      if (r->closed || r->status != RoomStatus::VacantReady || !r->reachable ||
+          !detail::validateRoomSystems(buildingSystems, r->id).sellable)
         continue;
       std::mt19937_64 marketRandom(
           mixedSeed(seed, static_cast<std::uint64_t>(day),
@@ -601,7 +974,6 @@ struct Simulation::Impl {
       scoreValue = 70 + (scoreValue - 70) * .80;
     const int overallSatisfaction =
         static_cast<int>(std::clamp(std::lround(scoreValue), 0L, 100L));
-
     double reviewChance = .65;
     if (overallSatisfaction <= 40)
       reviewChance += .20;
@@ -698,8 +1070,9 @@ struct Simulation::Impl {
   bool eligible(const Person &p, TaskKind k) const {
     return (k == TaskKind::Turnover || k == TaskKind::Restock)
                ? p.kind == PersonKind::Housekeeper
-           : k == TaskKind::Repair ? p.kind == PersonKind::Maintenance
-                                   : p.kind == PersonKind::Receptionist;
+           : (k == TaskKind::Repair || k == TaskKind::Build)
+               ? p.kind == PersonKind::Maintenance
+               : p.kind == PersonKind::Receptionist;
   }
   void postAccruedWage(Person &person) {
     const std::int64_t cents = person.accruedWageUnits / 3600;
@@ -730,6 +1103,8 @@ struct Simulation::Impl {
       return 450;
     case TaskKind::Repair:
       return 300;
+    case TaskKind::Build:
+      return 250;
     case TaskKind::Turnover:
       return 200;
     case TaskKind::Restock:
@@ -763,6 +1138,11 @@ struct Simulation::Impl {
       resources = task.resourcesClaimed || inventory.parts >= 1;
     if (task.kind == TaskKind::CheckIn || task.kind == TaskKind::CheckOut)
       resources = has(TileKind::FrontDesk);
+    if (task.kind == TaskKind::Build) {
+      const auto *job = getBuildJob(task.targetId);
+      resources = job && (job->state == BuildJobState::ReadyForLabor ||
+                          job->state == BuildJobState::Building);
+    }
     if (!resources) {
       task.status = TaskStatus::Blocked;
       task.blockedReason = "Required local supplies unavailable";
@@ -812,7 +1192,6 @@ struct Simulation::Impl {
     snapshot.optimizationEpoch =
         elapsed < 0 ? 0 : static_cast<std::uint64_t>(elapsed);
     snapshot.simulationSecond = elapsed;
-
     for (const auto &person : people) {
       if (person.kind == PersonKind::Guest)
         continue;
@@ -823,11 +1202,9 @@ struct Simulation::Impl {
       employee.regularWageMinorPerHour = person.hourlyWageCents;
       employee.overtimeWageMinorPerHour = person.hourlyWageCents;
       employee.availableFromBucket = 0;
-      employee.availableUntilBucket =
-          hh::optimization::kLivePlanningHorizonBuckets;
+      employee.availableUntilBucket = hh::optimization::kLivePlanningHorizonBuckets;
       snapshot.employees.push_back(employee);
     }
-
     for (const auto &task : tasks) {
       hh::optimization::Task optimizedTask;
       optimizedTask.id = task.id;
@@ -840,9 +1217,12 @@ struct Simulation::Impl {
               ? 100
               : task.kind == TaskKind::Turnover ? 60 : 30;
       optimizedTask.revenueImpactPoints =
-          task.kind == TaskKind::Turnover ? 80 : task.kind == TaskKind::Repair ? 70 : 40;
+          task.kind == TaskKind::Turnover
+              ? 80
+              : task.kind == TaskKind::Repair ? 70
+              : task.kind == TaskKind::Build  ? 55
+                                              : 40;
       snapshot.tasks.push_back(optimizedTask);
-
       if (task.status != TaskStatus::Ready)
         continue;
       for (const auto &person : people) {
@@ -881,7 +1261,6 @@ struct Simulation::Impl {
     std::unordered_set<EntityId> employees;
     std::unordered_set<EntityId> assignedTasks;
     int repairPartsNeeded = 0;
-
     for (const auto &assignment : plan.assignments) {
       if (assignment.startBucket != 0)
         continue;
@@ -927,8 +1306,6 @@ struct Simulation::Impl {
       if (task.status == TaskStatus::Ready || task.status == TaskStatus::Blocked)
         refreshTaskReadiness(task);
 
-    // Immediate front-desk service stays on the native path. Checkout is
-    // deliberately serviced before older check-in backlog.
     for (auto &task : tasks)
       if (task.status == TaskStatus::Ready && task.kind == TaskKind::CheckOut)
         assignNativeGreedy(task);
@@ -946,6 +1323,7 @@ struct Simulation::Impl {
       for (auto &task : tasks)
         if (task.status == TaskStatus::Ready)
           assignNativeGreedy(task);
+
     for (auto &t : tasks)
       if (t.employeeId && t.status != TaskStatus::Completed &&
           t.status != TaskStatus::Blocked) {
@@ -990,15 +1368,19 @@ struct Simulation::Impl {
             } else {
               p->state = PersonState::Working;
               t.status = TaskStatus::Working;
+              markBuildStarted(t);
             }
           }
         } else if (p->state == PersonState::Working) {
           const double fatiguePerHour =
               t.kind == TaskKind::Turnover
                   ? 10.0
-                  : (t.kind == TaskKind::CheckIn || t.kind == TaskKind::CheckOut
-                         ? 4.0
-                         : 6.0);
+                  : t.kind == TaskKind::Build
+                        ? 8.0
+                        : (t.kind == TaskKind::CheckIn ||
+                                   t.kind == TaskKind::CheckOut
+                               ? 4.0
+                               : 6.0);
           p->fatigue = std::min(100.0, p->fatigue + fatiguePerHour / 3600.0);
           double efficiency = 0.75 + 0.75 * p->skill / 100.0;
           if (p->fatigue > 80)
@@ -1029,6 +1411,8 @@ struct Simulation::Impl {
             if (t.kind == TaskKind::CheckOut)
               if (auto *g = getPerson(t.targetId))
                 completeCheckout(*g);
+            if (t.kind == TaskKind::Build)
+              completeBuildJob(t);
             if (auto *r = getRoom(t.targetId)) {
               if (t.kind == TaskKind::Turnover && !r->closed) {
                 if (r->condition < 35) {
@@ -1130,7 +1514,6 @@ struct Simulation::Impl {
                           p.state == PersonState::CheckedOut;
                  }),
                  people.end());
-
     for (auto &task : tasks)
       if (task.status == TaskStatus::Completed)
         completedTaskHistory.push_back(std::move(task));
@@ -1144,7 +1527,6 @@ struct Simulation::Impl {
           completedTaskHistory.begin() + static_cast<std::ptrdiff_t>(
                                              completedTaskHistory.size() -
                                              completedTaskHistoryLimit));
-
     for (auto &reservation : reservations)
       if (reservationFinished(reservation))
         completedReservationHistory.push_back(std::move(reservation));
@@ -1157,9 +1539,9 @@ struct Simulation::Impl {
   }
   void minute() {
     elapsed += 1;
-    int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
+    int minuteValue = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
         day = elapsed / 86400;
-    bool hourBoundary = (elapsed % 3600) == 0;
+    const bool hourBoundary = (elapsed % 3600) == 0;
     if (hourBoundary)
       hourlyBookings(day, hour);
     if (hourBoundary && hour == 11)
@@ -1177,10 +1559,13 @@ struct Simulation::Impl {
           o.delivered = true;
         }
     }
+    refreshBuildJobs();
     staffAndTasks();
     guests();
+    for (auto &elevator : buildingSystems.elevators)
+      detail::tickElevator(elevator);
     compactTransientState();
-    if (hour == 0 && minute == 0 && hourBoundary) {
+    if (hour == 0 && minuteValue == 0 && hourBoundary) {
       for (auto &p : people)
         if (p.kind != PersonKind::Guest)
           postAccruedWage(p);
@@ -1209,7 +1594,8 @@ struct Simulation::Impl {
     }
     int available = 0, occupied = 0;
     for (auto &r : rooms)
-      if (!r.closed && r.status != RoomStatus::Incomplete) {
+      if (!r.closed && r.status != RoomStatus::Incomplete &&
+          detail::validateRoomSystems(buildingSystems, r.id).sellable) {
         available++;
         occupied += r.status == RoomStatus::Occupied;
       }
@@ -1243,8 +1629,6 @@ Simulation &Simulation::operator=(const Simulation &o) {
 
 Simulation Simulation::tutorial(std::uint64_t seed) {
   Simulation s(seed, 32, 20, 3);
-  // Scenario seed capital: enough to open the six-room starter hotel with a
-  // meaningful expansion reserve after construction is posted.
   s.impl_->economy.cashCents = 5'000'000;
   for (int x = 0; x < 26; ++x)
     s.buildTile({0, x, 8}, x == 0  ? TileKind::Entrance
@@ -1262,14 +1646,7 @@ Simulation Simulation::tutorial(std::uint64_t seed) {
     for (int i = 0; i < 3; ++i) {
       const int x = 4 + i * 8;
       s.buildFurnishedRoom({std::to_string((floor + 1) * 100 + i + 1),
-                            floor,
-                            x,
-                            9,
-                            6,
-                            6,
-                            {floor, x, 9},
-                            1,
-                            1,
+                            floor, x, 9, 6, 6, {floor, x, 9}, 1, 1,
                             135.0 + i * 10 + floor * 5});
     }
   s.hireStaff({"Alex", PersonKind::Receptionist, 8, 22, 20});
@@ -1305,9 +1682,19 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
                   [&](auto &person) { return same(person.position, p); }))
     return {false, "A person is standing on this tile"};
   for (auto &r : impl_->rooms)
-    if (p.floor == r.floor && p.x >= r.x && p.x < r.x + r.width && p.y >= r.y &&
-        p.y < r.y + r.height)
+    if (p.floor == r.floor && p.x >= r.x && p.x < r.x + r.width &&
+        p.y >= r.y && p.y < r.y + r.height)
       return {false, "Use room commands to alter a room"};
+  for (const auto &object : impl_->construction.objects) {
+    const auto *definition = detail::constructionDefinition(object.typeId);
+    if (!definition)
+      continue;
+    ConstructionPlacement placed{object.typeId, object.origin,
+                                 object.rotationQuarterTurns};
+    for (const auto cell : detail::constructionFootprint(placed, *definition))
+      if (same(cell, p))
+        return {false, "Remove placed objects before altering their support"};
+  }
   if (old == k)
     return {true, "Tile unchanged"};
   if (impl_->economy.cashCents < 500)
@@ -1327,10 +1714,11 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   if (!impl_->inside({b.floor, b.x, b.y}) ||
       !impl_->inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
     return {false, "Room footprint outside property"};
-  if (b.door.floor != b.floor || b.door.x < b.x || b.door.x >= b.x + b.width ||
-      b.door.y < b.y || b.door.y >= b.y + b.height ||
-      (b.door.x != b.x && b.door.x != b.x + b.width - 1 && b.door.y != b.y &&
-       b.door.y != b.y + b.height - 1))
+  if (b.door.floor != b.floor || b.door.x < b.x ||
+      b.door.x >= b.x + b.width || b.door.y < b.y ||
+      b.door.y >= b.y + b.height ||
+      (b.door.x != b.x && b.door.x != b.x + b.width - 1 &&
+       b.door.y != b.y && b.door.y != b.y + b.height - 1))
     return {false, "Door must lie on room perimeter"};
   for (auto &r : impl_->rooms)
     if (r.floor == b.floor && b.x < r.x + r.width && b.x + b.width > r.x &&
@@ -1346,8 +1734,8 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   for (int y = b.y; y < b.y + b.height; ++y)
     for (int x = b.x; x < b.x + b.width; ++x) {
       Position p{b.floor, x, y};
-      bool edge = x == b.x || x == b.x + b.width - 1 || y == b.y ||
-                  y == b.y + b.height - 1;
+      const bool edge = x == b.x || x == b.x + b.width - 1 || y == b.y ||
+                        y == b.y + b.height - 1;
       impl_->map[impl_->index(p)] = same(p, b.door) ? TileKind::Door
                                     : edge          ? TileKind::Wall
                                                     : TileKind::Floor;
@@ -1372,6 +1760,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->initializeLegacyRoomSystems(r.id);
   impl_->economy.cashCents -= cost;
   impl_->economy.constructionCostCents += cost;
   return {true,
@@ -1421,7 +1810,8 @@ CommandResult Simulation::fireStaff(EntityId id) {
 }
 CommandResult Simulation::setStaffShift(EntityId id, int a, int b) {
   auto *p = impl_->getPerson(id);
-  if (!p || p->kind == PersonKind::Guest || a < 0 || a > 23 || b < 0 || b > 23)
+  if (!p || p->kind == PersonKind::Guest || a < 0 || a > 23 || b < 0 ||
+      b > 23)
     return {false, "Invalid employee or shift"};
   p->shiftStartHour = a;
   p->shiftEndHour = b;
@@ -1489,6 +1879,7 @@ CommandResult Simulation::removeRoom(EntityId id) {
   for (int y = it->y; y < it->y + it->height; ++y)
     for (int x = it->x; x < it->x + it->width; ++x)
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
+  impl_->removeRoomSystems(id);
   impl_->rooms.erase(it);
   impl_->refreshReachability();
   return {true, "Room removed", id};
@@ -1566,6 +1957,158 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
 void Simulation::setStaffOptimizerEnabled(bool enabled) {
   impl_->staffOptimizerEnabled = enabled;
 }
+
+ConstructionPreview
+Simulation::previewConstruction(const ConstructionCommand &command) const {
+  return impl_->validateConstruction(command);
+}
+ConstructionResult
+Simulation::executeConstruction(const ConstructionCommand &command) {
+  return impl_->commitConstruction(command, true);
+}
+BuildQueueResult Simulation::queueBuild(const BuildPlan &plan) {
+  if (plan.workSeconds <= 0 || plan.workSeconds > 7 * 86400)
+    return {false, 0, ConstructionReason::InvalidCommand,
+            "Build work duration is invalid"};
+  const auto preview = impl_->validateConstruction(plan.construction);
+  if (!preview.valid)
+    return {false, 0, preview.reason, preview.message};
+  BuildJobSnapshot job;
+  job.id = impl_->nextId++;
+  job.construction = plan.construction;
+  job.reservedCashCents = preview.costCents;
+  job.workSeconds = plan.workSeconds;
+  impl_->economy.cashCents -= preview.costCents;
+  impl_->economy.constructionCostCents += preview.costCents;
+  impl_->construction.buildJobs.push_back(job);
+  impl_->tryReserveBuildMaterials(impl_->construction.buildJobs.back());
+  return {true, job.id, ConstructionReason::None, "Build job queued"};
+}
+CommandResult Simulation::cancelBuild(EntityId jobId) {
+  auto *job = impl_->getBuildJob(jobId);
+  if (!job || job->state == BuildJobState::Completed ||
+      job->state == BuildJobState::Cancelled)
+    return {false, "Build job cannot be cancelled"};
+  if (job->taskId) {
+    for (auto &task : impl_->tasks)
+      if (task.id == job->taskId && task.status != TaskStatus::Completed) {
+        if (auto *person = impl_->getPerson(task.employeeId)) {
+          if (person->task == task.id) {
+            person->task = 0;
+            person->state = PersonState::Idle;
+            person->destination = person->position;
+          }
+        }
+        task.status = TaskStatus::Completed;
+        task.employeeId = 0;
+        task.blockedReason = "Build cancelled";
+      }
+  }
+  if (!job->materialsConsumed) {
+    detail::subtractMaterials(impl_->construction.reservedMaterials,
+                              job->reservedMaterials);
+    detail::addMaterials(impl_->construction.availableMaterials,
+                         job->reservedMaterials);
+    impl_->economy.cashCents += job->reservedCashCents;
+    impl_->economy.constructionCostCents -= job->reservedCashCents;
+  }
+  job->state = BuildJobState::Cancelled;
+  return {true, "Build job cancelled", jobId};
+}
+CommandResult
+Simulation::addConstructionMaterials(const ConstructionMaterials &materials) {
+  if (!detail::validMaterials(materials) || materialsZero(materials))
+    return {false, "Construction material quantities are invalid"};
+  ConstructionMaterials combined = impl_->construction.availableMaterials;
+  detail::addMaterials(combined, materials);
+  if (!detail::validMaterials(combined))
+    return {false, "Construction material capacity exceeded"};
+  impl_->construction.availableMaterials = combined;
+  return {true, "Construction materials stocked"};
+}
+ConstructionSnapshot Simulation::constructionSnapshot() const {
+  return impl_->construction;
+}
+
+CommandResult Simulation::setRoomUtility(EntityId roomId, UtilityKind kind,
+                                         bool connected) {
+  if (!impl_->getRoom(roomId) ||
+      (kind != UtilityKind::Power && kind != UtilityKind::Water))
+    return {false, "Room or utility is invalid"};
+  impl_->setRoomUtilityInternal(roomId, kind, connected);
+  return {true, connected ? "Room utility connected" : "Room utility disconnected",
+          roomId};
+}
+CommandResult Simulation::setRoomInfrastructure(EntityId roomId,
+                                                InfrastructureKind kind,
+                                                bool installed) {
+  if (!impl_->getRoom(roomId))
+    return {false, "Room not found"};
+  auto &system = impl_->ensureRoomSystem(roomId);
+  switch (kind) {
+  case InfrastructureKind::Egress:
+    system.egress = installed;
+    break;
+  case InfrastructureKind::Accessibility:
+    system.accessible = installed;
+    break;
+  case InfrastructureKind::Fire:
+    system.fireCovered = installed;
+    break;
+  case InfrastructureKind::Security:
+    system.securityCovered = installed;
+    break;
+  }
+  return {true, installed ? "Infrastructure installed" : "Infrastructure removed",
+          roomId};
+}
+RoomSaleValidation Simulation::validateRoomForSale(EntityId roomId) const {
+  if (!impl_->getRoom(roomId))
+    return {false, {BuildingSystemReason::RoomNotFound}};
+  return detail::validateRoomSystems(impl_->buildingSystems, roomId);
+}
+CommandResult Simulation::installElevator(const ElevatorSpec &spec) {
+  if ((spec.kind != ElevatorKind::Passenger &&
+       spec.kind != ElevatorKind::Service) ||
+      spec.minFloor < 0 || spec.maxFloor >= impl_->floors ||
+      spec.minFloor > spec.maxFloor || spec.startFloor < spec.minFloor ||
+      spec.startFloor > spec.maxFloor || spec.capacity < 1 ||
+      spec.capacity > 100 || spec.travelSecondsPerFloor < 1 ||
+      spec.travelSecondsPerFloor > 600 || spec.doorSeconds < 1 ||
+      spec.doorSeconds > 120)
+    return {false, "Elevator specification is invalid"};
+  ElevatorSnapshot elevator;
+  elevator.id = impl_->nextId++;
+  elevator.kind = spec.kind;
+  elevator.minFloor = spec.minFloor;
+  elevator.maxFloor = spec.maxFloor;
+  elevator.currentFloor = spec.startFloor;
+  elevator.targetFloor = spec.startFloor;
+  elevator.capacity = spec.capacity;
+  elevator.travelSecondsPerFloor = spec.travelSecondsPerFloor;
+  elevator.doorSeconds = spec.doorSeconds;
+  impl_->buildingSystems.elevators.push_back(elevator);
+  return {true, "Elevator installed", elevator.id};
+}
+CommandResult Simulation::requestElevator(EntityId elevatorId, int pickupFloor,
+                                          int destinationFloor) {
+  auto *elevator = impl_->getElevator(elevatorId);
+  if (!elevator || pickupFloor < elevator->minFloor ||
+      pickupFloor > elevator->maxFloor ||
+      destinationFloor < elevator->minFloor ||
+      destinationFloor > elevator->maxFloor)
+    return {false, "Elevator request is outside its served floors"};
+  ElevatorRequestSnapshot request;
+  request.id = impl_->nextId++;
+  request.pickupFloor = pickupFloor;
+  request.destinationFloor = destinationFloor;
+  elevator->requests.push_back(request);
+  return {true, "Elevator requested", request.id};
+}
+BuildingSystemsSnapshot Simulation::buildingSystemsSnapshot() const {
+  return impl_->buildingSystems;
+}
+
 void Simulation::step(double seconds) {
   if (!std::isfinite(seconds) || seconds < 0 || seconds > 1.0e9)
     throw std::invalid_argument("step seconds must be finite and bounded");
@@ -1614,7 +2157,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 11 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -1662,7 +2205,7 @@ std::string Simulation::save() const {
   }
   o << impl_->reservations.size() + impl_->completedReservationHistory.size()
     << '\n';
-  for (auto &r : impl_->reservations) {
+  auto writeReservation = [&](const Reservation &r) {
     o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
@@ -1671,30 +2214,23 @@ std::string Simulation::save() const {
     writeGuestProfile(o, r.profile);
     o << ' ' << r.walkedRelocated << ' ' << r.checkInTravelSeconds << ' '
       << r.checkInWaitSeconds << '\n';
-  }
-  for (auto &r : impl_->completedReservationHistory) {
-    o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
-      << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
-      << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
-      << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << ' ';
-    writeGuestProfile(o, r.profile);
-    o << ' ' << r.walkedRelocated << ' ' << r.checkInTravelSeconds << ' '
-      << r.checkInWaitSeconds << '\n';
-  }
+  };
+  for (auto &r : impl_->reservations)
+    writeReservation(r);
+  for (auto &r : impl_->completedReservationHistory)
+    writeReservation(r);
   o << impl_->tasks.size() + impl_->completedTaskHistory.size() << '\n';
+  auto writeTask = [&](const Task &t) {
+    o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
+      << ' ' << t.employeeId << ' ' << t.target.floor << ' ' << t.target.x
+      << ' ' << t.target.y << ' ' << t.workRemainingSeconds << ' '
+      << std::quoted(t.blockedReason) << ' ' << t.total << ' '
+      << t.resourcesClaimed << '\n';
+  };
   for (auto &t : impl_->tasks)
-    o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
-      << ' ' << t.employeeId << ' ' << t.target.floor << ' ' << t.target.x
-      << ' ' << t.target.y << ' ' << t.workRemainingSeconds << ' '
-      << std::quoted(t.blockedReason) << ' ' << t.total << ' '
-      << t.resourcesClaimed << '\n';
+    writeTask(t);
   for (auto &t : impl_->completedTaskHistory)
-    o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
-      << ' ' << t.employeeId << ' ' << t.target.floor << ' ' << t.target.x
-      << ' ' << t.target.y << ' ' << t.workRemainingSeconds << ' '
-      << std::quoted(t.blockedReason) << ' ' << t.total << ' '
-      << t.resourcesClaimed << '\n';
+    writeTask(t);
   o << impl_->reviews.size() << '\n';
   for (auto &r : impl_->reviews)
     o << r.reservationId << ' ' << r.day << ' ' << r.score << ' '
@@ -1705,8 +2241,66 @@ std::string Simulation::save() const {
     inv(p.items);
     o << ' ' << p.etaDay << ' ' << p.delivered << '\n';
   }
+
+  const auto writeMaterials = [&](const ConstructionMaterials &materials) {
+    o << materials.lumber << ' ' << materials.drywall << ' '
+      << materials.electrical << ' ' << materials.plumbing << ' '
+      << materials.hardware;
+  };
+  o << "FINAL01\n";
+  o << impl_->construction.objects.size() << '\n';
+  for (const auto &object : impl_->construction.objects)
+    o << object.id << ' ' << std::quoted(object.typeId) << ' '
+      << object.origin.floor << ' ' << object.origin.x << ' ' << object.origin.y
+      << ' ' << object.width << ' ' << object.height << ' '
+      << object.rotationQuarterTurns << ' ' << object.blocksMovement << '\n';
+  writeMaterials(impl_->construction.availableMaterials);
+  o << '\n';
+  writeMaterials(impl_->construction.reservedMaterials);
+  o << '\n' << impl_->construction.buildJobs.size() << '\n';
+  for (const auto &job : impl_->construction.buildJobs) {
+    o << job.id << ' ' << ei(job.state) << ' ' << job.reservedCashCents << ' '
+      << job.workSeconds << ' ' << job.materialsConsumed << ' ' << job.taskId
+      << ' ' << std::quoted(job.blockedReason) << ' ';
+    writeMaterials(job.reservedMaterials);
+    o << ' ' << job.construction.placements.size();
+    for (const auto &placement : job.construction.placements)
+      o << ' ' << std::quoted(placement.typeId) << ' ' << placement.origin.floor
+        << ' ' << placement.origin.x << ' ' << placement.origin.y << ' '
+        << placement.rotationQuarterTurns;
+    o << ' ' << job.construction.removeObjectIds.size();
+    for (const auto id : job.construction.removeObjectIds)
+      o << ' ' << id;
+    o << '\n';
+  }
+
+  o << impl_->buildingSystems.utilityNodes.size() << '\n';
+  for (const auto &node : impl_->buildingSystems.utilityNodes)
+    o << node.id << ' ' << ei(node.kind) << ' ' << node.roomId << ' '
+      << node.source << ' ' << node.capacity << ' ' << node.load << '\n';
+  o << impl_->buildingSystems.utilityEdges.size() << '\n';
+  for (const auto &edge : impl_->buildingSystems.utilityEdges)
+    o << edge.from << ' ' << edge.to << '\n';
+  o << impl_->buildingSystems.rooms.size() << '\n';
+  for (const auto &room : impl_->buildingSystems.rooms)
+    o << room.roomId << ' ' << room.egress << ' ' << room.accessible << ' '
+      << room.fireCovered << ' ' << room.securityCovered << '\n';
+  o << impl_->buildingSystems.elevators.size() << '\n';
+  for (const auto &elevator : impl_->buildingSystems.elevators) {
+    o << elevator.id << ' ' << ei(elevator.kind) << ' ' << elevator.minFloor
+      << ' ' << elevator.maxFloor << ' ' << elevator.currentFloor << ' '
+      << elevator.targetFloor << ' ' << elevator.capacity << ' '
+      << elevator.travelSecondsPerFloor << ' ' << elevator.doorSeconds << ' '
+      << ei(elevator.state) << ' ' << elevator.phaseSecondsRemaining << ' '
+      << elevator.activeRequestId << ' ' << elevator.requests.size();
+    for (const auto &request : elevator.requests)
+      o << ' ' << request.id << ' ' << request.pickupFloor << ' '
+        << request.destinationFloor << ' ' << request.boarded;
+    o << '\n';
+  }
   return o.str();
 }
+
 Simulation Simulation::load(std::string_view data) {
   if (data.size() > 64 * 1024 * 1024)
     throw std::invalid_argument("simulation save too large");
@@ -1714,7 +2308,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 10)
+  if (magic != "HHGS" || version < 2 || version > 11)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -1926,7 +2520,9 @@ Simulation Simulation::load(std::string_view data) {
     i >> t.id >> k >> st >> t.targetId >> t.employeeId >> t.target.floor >>
         t.target.x >> t.target.y >> t.workRemainingSeconds >>
         std::quoted(t.blockedReason) >> t.total >> t.resourcesClaimed;
-    if (k < ei(TaskKind::CheckIn) || k > ei(TaskKind::CheckOut) ||
+    const int maxTaskKind =
+        version >= 11 ? ei(TaskKind::Build) : ei(TaskKind::CheckOut);
+    if (k < ei(TaskKind::CheckIn) || k > maxTaskKind ||
         st < ei(TaskStatus::Ready) || st > ei(TaskStatus::Completed) ||
         !d.inside(t.target) || !std::isfinite(t.workRemainingSeconds) ||
         !std::isfinite(t.total))
@@ -1963,6 +2559,147 @@ Simulation Simulation::load(std::string_view data) {
   }
   if (!i)
     throw std::invalid_argument("corrupt simulation save");
+
+  auto readMaterials = [&](ConstructionMaterials &materials) {
+    i >> materials.lumber >> materials.drywall >> materials.electrical >>
+        materials.plumbing >> materials.hardware;
+    return static_cast<bool>(i) && detail::validMaterials(materials);
+  };
+  bool hasFinal01 = version >= 11;
+  if (!hasFinal01) {
+    i >> std::ws;
+    if (!i.eof()) {
+      std::string marker;
+      i >> marker;
+      if (marker != "FINAL01")
+        throw std::invalid_argument("unexpected trailing save data");
+      hasFinal01 = true;
+    }
+  } else {
+    std::string marker;
+    i >> marker;
+    if (marker != "FINAL01")
+      throw std::invalid_argument("missing FINAL-01 save state");
+  }
+  if (hasFinal01) {
+    i >> n;
+    if (n > 100000)
+      throw std::invalid_argument("too many construction objects");
+    d.construction.objects.resize(n);
+    for (auto &object : d.construction.objects) {
+      i >> object.id >> std::quoted(object.typeId) >> object.origin.floor >>
+          object.origin.x >> object.origin.y >> object.width >> object.height >>
+          object.rotationQuarterTurns >> object.blocksMovement;
+      const auto *definition = detail::constructionDefinition(object.typeId);
+      if (!i || !definition || !d.inside(object.origin) || object.width < 1 ||
+          object.height < 1 || object.rotationQuarterTurns < 0 ||
+          object.rotationQuarterTurns > 3)
+        throw std::invalid_argument("invalid construction object");
+    }
+    if (!readMaterials(d.construction.availableMaterials) ||
+        !readMaterials(d.construction.reservedMaterials))
+      throw std::invalid_argument("invalid construction materials");
+    i >> n;
+    if (n > 100000)
+      throw std::invalid_argument("too many build jobs");
+    d.construction.buildJobs.resize(n);
+    for (auto &job : d.construction.buildJobs) {
+      int state;
+      size_t placements{}, removals{};
+      i >> job.id >> state >> job.reservedCashCents >> job.workSeconds >>
+          job.materialsConsumed >> job.taskId >> std::quoted(job.blockedReason);
+      if (!readMaterials(job.reservedMaterials))
+        throw std::invalid_argument("invalid reserved build materials");
+      i >> placements;
+      if (placements > 100000)
+        throw std::invalid_argument("too many build placements");
+      job.construction.placements.resize(placements);
+      for (auto &placement : job.construction.placements)
+        i >> std::quoted(placement.typeId) >> placement.origin.floor >>
+            placement.origin.x >> placement.origin.y >>
+            placement.rotationQuarterTurns;
+      i >> removals;
+      if (removals > 100000)
+        throw std::invalid_argument("too many build removals");
+      job.construction.removeObjectIds.resize(removals);
+      for (auto &id : job.construction.removeObjectIds)
+        i >> id;
+      if (!i || state < ei(BuildJobState::WaitingForMaterials) ||
+          state > ei(BuildJobState::Cancelled) || job.reservedCashCents < 0 ||
+          job.workSeconds <= 0 || job.workSeconds > 7 * 86400)
+        throw std::invalid_argument("invalid build job");
+      job.state = static_cast<BuildJobState>(state);
+    }
+
+    i >> n;
+    if (n > 100000)
+      throw std::invalid_argument("too many utility nodes");
+    d.buildingSystems.utilityNodes.resize(n);
+    for (auto &node : d.buildingSystems.utilityNodes) {
+      int kind;
+      i >> node.id >> kind >> node.roomId >> node.source >> node.capacity >>
+          node.load;
+      if (!i || kind < ei(UtilityKind::Power) || kind > ei(UtilityKind::Water) ||
+          node.capacity < 0 || node.load < 0)
+        throw std::invalid_argument("invalid utility node");
+      node.kind = static_cast<UtilityKind>(kind);
+    }
+    i >> n;
+    if (n > 200000)
+      throw std::invalid_argument("too many utility edges");
+    d.buildingSystems.utilityEdges.resize(n);
+    for (auto &edge : d.buildingSystems.utilityEdges)
+      i >> edge.from >> edge.to;
+    i >> n;
+    if (n > 100000)
+      throw std::invalid_argument("too many room systems");
+    d.buildingSystems.rooms.resize(n);
+    for (auto &room : d.buildingSystems.rooms)
+      i >> room.roomId >> room.egress >> room.accessible >> room.fireCovered >>
+          room.securityCovered;
+    i >> n;
+    if (n > 10000)
+      throw std::invalid_argument("too many elevators");
+    d.buildingSystems.elevators.resize(n);
+    for (auto &elevator : d.buildingSystems.elevators) {
+      int kind, state;
+      size_t requests{};
+      i >> elevator.id >> kind >> elevator.minFloor >> elevator.maxFloor >>
+          elevator.currentFloor >> elevator.targetFloor >> elevator.capacity >>
+          elevator.travelSecondsPerFloor >> elevator.doorSeconds >> state >>
+          elevator.phaseSecondsRemaining >> elevator.activeRequestId >> requests;
+      if (!i || kind < ei(ElevatorKind::Passenger) ||
+          kind > ei(ElevatorKind::Service) || state < ei(ElevatorState::Idle) ||
+          state > ei(ElevatorState::Alighting) || elevator.minFloor < 0 ||
+          elevator.maxFloor >= f || elevator.minFloor > elevator.maxFloor ||
+          elevator.currentFloor < elevator.minFloor ||
+          elevator.currentFloor > elevator.maxFloor ||
+          elevator.targetFloor < elevator.minFloor ||
+          elevator.targetFloor > elevator.maxFloor || elevator.capacity < 1 ||
+          elevator.travelSecondsPerFloor < 1 || elevator.doorSeconds < 1 ||
+          elevator.phaseSecondsRemaining < 0 || requests > 100000)
+        throw std::invalid_argument("invalid elevator state");
+      elevator.kind = static_cast<ElevatorKind>(kind);
+      elevator.state = static_cast<ElevatorState>(state);
+      elevator.requests.resize(requests);
+      for (auto &request : elevator.requests) {
+        i >> request.id >> request.pickupFloor >> request.destinationFloor >>
+            request.boarded;
+        if (!i || request.pickupFloor < elevator.minFloor ||
+            request.pickupFloor > elevator.maxFloor ||
+            request.destinationFloor < elevator.minFloor ||
+            request.destinationFloor > elevator.maxFloor)
+          throw std::invalid_argument("invalid elevator request");
+      }
+    }
+    detail::refreshRoomUtilityFlags(d.buildingSystems);
+  } else {
+    for (const auto &room : d.rooms)
+      d.initializeLegacyRoomSystems(room.id);
+  }
+
+  if (!i)
+    throw std::invalid_argument("corrupt simulation save");
   i >> std::ws;
   if (!i.eof())
     throw std::invalid_argument("unexpected trailing save data");
@@ -1976,6 +2713,8 @@ Simulation Simulation::load(std::string_view data) {
   std::unordered_map<EntityId, const Person *> personById;
   std::unordered_map<EntityId, const Reservation *> reservationById;
   std::unordered_map<EntityId, const Task *> taskById;
+  std::unordered_map<EntityId, const BuildJobSnapshot *> buildJobById;
+  std::unordered_set<EntityId> utilityNodeIds;
   for (const auto &room : d.rooms) {
     addEntityId(room.id);
     roomById.emplace(room.id, &room);
@@ -1999,6 +2738,50 @@ Simulation Simulation::load(std::string_view data) {
   }
   for (const auto &order : d.orders)
     addEntityId(order.id);
+  for (const auto &object : d.construction.objects) {
+    addEntityId(object.id);
+    const auto *definition = detail::constructionDefinition(object.typeId);
+    if (!definition)
+      throw std::invalid_argument("invalid construction object type");
+    const ConstructionPlacement placement{object.typeId, object.origin,
+                                          object.rotationQuarterTurns};
+    for (const auto cell : detail::constructionFootprint(placement, *definition))
+      if (!d.inside(cell))
+        throw std::invalid_argument("invalid construction object footprint");
+  }
+  for (const auto &job : d.construction.buildJobs) {
+    addEntityId(job.id);
+    buildJobById.emplace(job.id, &job);
+  }
+  for (const auto &node : d.buildingSystems.utilityNodes) {
+    addEntityId(node.id);
+    utilityNodeIds.insert(node.id);
+    if (!node.source && !roomById.contains(node.roomId))
+      throw std::invalid_argument("utility node references missing room");
+  }
+  for (const auto &edge : d.buildingSystems.utilityEdges)
+    if (!utilityNodeIds.contains(edge.from) || !utilityNodeIds.contains(edge.to))
+      throw std::invalid_argument("utility edge references missing node");
+  std::unordered_set<EntityId> roomSystemIds;
+  for (const auto &system : d.buildingSystems.rooms)
+    if (!roomById.contains(system.roomId) ||
+        !roomSystemIds.insert(system.roomId).second)
+      throw std::invalid_argument("invalid room building-system reference");
+  for (const auto &room : d.rooms)
+    if (!roomSystemIds.contains(room.id))
+      throw std::invalid_argument("room is missing building-system state");
+  for (const auto &elevator : d.buildingSystems.elevators) {
+    addEntityId(elevator.id);
+    std::unordered_set<EntityId> requestIds;
+    for (const auto &request : elevator.requests) {
+      addEntityId(request.id);
+      if (!requestIds.insert(request.id).second)
+        throw std::invalid_argument("duplicate elevator request");
+    }
+    if (elevator.activeRequestId != 0 &&
+        !requestIds.contains(elevator.activeRequestId))
+      throw std::invalid_argument("invalid active elevator request");
+  }
 
   std::unordered_map<EntityId, int> guestsByReservation;
   for (const auto &person : d.people) {
@@ -2009,9 +2792,8 @@ Simulation Simulation::load(std::string_view data) {
       if (person.state == PersonState::CheckedOut &&
           !reservationFinished(*reservationById.at(person.reservationId)))
         throw std::invalid_argument("invalid saved guest lifecycle");
-      if (!sameGuestProfile(
-              person.profile,
-              reservationById.at(person.reservationId)->profile))
+      if (!sameGuestProfile(person.profile,
+                            reservationById.at(person.reservationId)->profile))
         throw std::invalid_argument("mismatched saved guest profile");
     } else {
       if (person.reservationId != 0)
@@ -2056,10 +2838,13 @@ Simulation Simulation::load(std::string_view data) {
     const bool active = task.status != TaskStatus::Completed;
     const bool guestTask =
         task.kind == TaskKind::CheckIn || task.kind == TaskKind::CheckOut;
+    const bool roomTask =
+        task.kind == TaskKind::Turnover || task.kind == TaskKind::Repair;
+    const bool buildTask = task.kind == TaskKind::Build;
     if (active &&
         ((guestTask && !personById.contains(task.targetId)) ||
-         ((task.kind == TaskKind::Turnover || task.kind == TaskKind::Repair) &&
-          !roomById.contains(task.targetId))))
+         (roomTask && !roomById.contains(task.targetId)) ||
+         (buildTask && !buildJobById.contains(task.targetId))))
       throw std::invalid_argument("invalid saved task target");
     if (task.status == TaskStatus::Traveling ||
         task.status == TaskStatus::Working) {
@@ -2072,11 +2857,24 @@ Simulation Simulation::load(std::string_view data) {
       throw std::invalid_argument("invalid saved unassigned task");
     }
   }
+  for (const auto &job : d.construction.buildJobs) {
+    if (job.taskId != 0) {
+      const auto task = taskById.find(job.taskId);
+      if (task == taskById.end() || task->second->kind != TaskKind::Build ||
+          task->second->targetId != job.id)
+        throw std::invalid_argument("invalid saved build task reference");
+    }
+    if ((job.state == BuildJobState::ReadyForLabor ||
+         job.state == BuildJobState::Building) &&
+        job.taskId == 0)
+      throw std::invalid_argument("active build job has no task");
+  }
   for (const auto &review : d.reviews) {
     const auto reservation = reservationById.find(review.reservationId);
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
   }
+  detail::refreshRoomUtilityFlags(d.buildingSystems);
   d.compactTransientState();
   return s;
 }
