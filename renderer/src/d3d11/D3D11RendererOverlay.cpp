@@ -1,16 +1,22 @@
 #include "d3d11/D3D11Renderer.h"
 
-#include <string_view>
 #include <sstream>
+#include <string_view>
 
 namespace hh::renderer {
 namespace {
+
+struct OverlayCameraConstants {
+    DirectX::XMFLOAT4X4 viewProjection;
+};
+
 std::string overlayHresultError(std::string_view operation, HRESULT result) {
     std::ostringstream stream;
     stream << operation << " failed (HRESULT 0x" << std::hex << std::uppercase
            << static_cast<unsigned long>(result) << ')';
     return stream.str();
 }
+
 }  // namespace
 
 RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const OrthoCamera& camera) {
@@ -27,7 +33,7 @@ RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const Orth
     if (FAILED(mapResult)) {
         return RendererResult::failure(overlayHresultError("ID3D11DeviceContext::Map(camera)", mapResult));
     }
-    auto* constants = static_cast<CameraConstants*>(mapped.pData);
+    auto* constants = static_cast<OverlayCameraConstants*>(mapped.pData);
     DirectX::XMStoreFloat4x4(&constants->viewProjection, camera.viewProjectionMatrix());
     context_->Unmap(cameraConstantBuffer_.Get(), 0);
 
