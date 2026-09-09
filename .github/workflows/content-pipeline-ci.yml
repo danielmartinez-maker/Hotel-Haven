@@ -58,6 +58,12 @@ jobs:
       - name: Validate generated repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
 
+      - name: Cook full generated asset library
+        run: Tools/ContentPipeline/build/Release/asset.exe cook --all
+
+      - name: Validate cooked policy parity and release gates
+        run: python Tools/ContentPipeline/scripts/validate_asset_library.py --cooked-root Build/CookedAssets --write-audit
+
       - name: Upload generated asset package
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,8 +73,10 @@ jobs:
             Art/Exports/**
             Art/Validation/full_generation_summary.json
             Art/Validation/generated_geometry_qc.json
+            Art/Validation/cooked_policy_parity.json
             Art/Validation/library_release_audit_v1.md
             Art/Validation/Previews/**
+            Build/CookedAssets/**
           if-no-files-found: error
           compression-level: 6
           retention-days: 14
