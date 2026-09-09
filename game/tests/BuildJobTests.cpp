@@ -96,6 +96,26 @@ void maintenance_labor_commits_reserved_construction_atomically() {
   const auto snapshot = sim.constructionSnapshot();
   require(snapshot.buildJobs.size() == 1,
           "labor fixture lost build-job diagnostics");
+  if (snapshot.buildJobs.front().state != BuildJobState::Completed) {
+    const auto view = sim.view();
+    std::cerr << "BUILD_DIAGNOSTIC state="
+              << static_cast<int>(snapshot.buildJobs.front().state)
+              << " taskId=" << snapshot.buildJobs.front().taskId
+              << " materialsConsumed="
+              << snapshot.buildJobs.front().materialsConsumed
+              << " blockedReason='" << snapshot.buildJobs.front().blockedReason
+              << "' activeTasks=" << view.tasks.size();
+    if (!view.tasks.empty())
+      std::cerr << " taskState=" << static_cast<int>(view.tasks.front().status)
+                << " taskEmployee=" << view.tasks.front().employeeId
+                << " taskRemaining=" << view.tasks.front().workRemainingSeconds
+                << " taskBlocked='" << view.tasks.front().blockedReason << "'";
+    if (!view.people.empty())
+      std::cerr << " workerState=" << static_cast<int>(view.people.front().state)
+                << " workerTask=" << view.people.front().task
+                << " workerOnShift=" << view.people.front().onShift;
+    std::cerr << '\n';
+  }
   require(snapshot.buildJobs.front().state == BuildJobState::Completed,
           "maintenance labor did not complete the build job");
   require(snapshot.buildJobs.front().materialsConsumed,
