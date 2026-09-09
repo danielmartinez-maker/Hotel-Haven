@@ -87,6 +87,13 @@ HH_TEST("milestone audit requires ownership reviewers release state and no block
     add_asset(root, "asset.notready", "notready", "[]", ",\"milestone\":\"vertical-slice\",\"lifecycle_state\":\"APPROVED\"");
     HH_REQUIRE(run({"audit", "--milestone", "vertical-slice"}, out, err) != 0);
 }
+HH_TEST("milestone audit fails closed when no assets match") {
+    const auto root = make_repo();
+    add_asset(root, "asset.a", "a");
+    CurrentPathGuard guard; fs::current_path(root); std::string out, err;
+    HH_REQUIRE(run({"audit", "--milestone", "missing-milestone"}, out, err) != 0);
+    HH_REQUIRE(err.find("no assets matched") != std::string::npos);
+}
 HH_TEST("export reports deterministic configuration failure when Blender is unavailable") {
     const auto root = make_repo(); add_asset(root, "asset.a", "a"); CurrentPathGuard guard; fs::current_path(root); unset_blender();
     std::string out, err; HH_REQUIRE(run({"export", "asset.a"}, out, err) != 0); HH_REQUIRE(err.find("HOTEL_HAVEN_BLENDER") != std::string::npos);
