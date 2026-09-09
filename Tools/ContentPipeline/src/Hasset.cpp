@@ -25,6 +25,7 @@ void append_string(std::vector<std::byte>& out, std::string_view value) {
     for (const unsigned char c : value) out.push_back(static_cast<std::byte>(c));
 }
 bool absolute_path_text(std::string_view value) {
+    if (!value.empty() && (value.front() == '/' || value.front() == '\\')) return true;
     return std::filesystem::path(value).is_absolute() ||
            (value.size() >= 3 && ((value[0] >= 'A' && value[0] <= 'Z') || (value[0] >= 'a' && value[0] <= 'z')) && value[1] == ':' && (value[2] == '/' || value[2] == '\\'));
 }
