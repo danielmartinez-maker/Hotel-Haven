@@ -2,6 +2,7 @@
 #include "hh/assets/Catalog.h"
 #include "hh/assets/Cooker.h"
 #include "hh/assets/DependencyGraph.h"
+#include "hh/assets/Hasset.h"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
@@ -29,6 +30,8 @@ void add_asset(const fs::path& root, std::string id, std::string name, std::stri
     out << "{\"schema\":1,\"asset_id\":\"" << id << "\",\"asset_type\":\"StaticMeshAsset\","
         << "\"source\":\"Art/Source/" << name << ".blend\",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"cutaway_policy\":\"fade_when_foreground\",\"pivot_profile\":\"floor_contact_center\","
+        << "\"interaction_anchors\":[\"INT_USE_01\",\"INT_REPAIR_01\"],"
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":" << deps << "}";
 }
 CookOptions options(const fs::path& root) {
@@ -51,6 +54,18 @@ HH_TEST("first cook writes hasset and unchanged cook is a no-op") {
     HH_REQUIRE(first.cooked); HH_REQUIRE(fs::exists(first.output));
     const auto second = cook_one(catalog, graph, "asset.a", options(root));
     HH_REQUIRE(!second.cooked); HH_REQUIRE(second.fingerprint == first.fingerprint);
+}
+HH_TEST("cooker transports runtime policy metadata into hasset v2") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    const auto cooked = cook_one(catalog, graph, "asset.a", options(root));
+    const auto parsed = parse_hasset(read_bytes(cooked.output));
+    HH_REQUIRE(parsed.units == "meters");
+    HH_REQUIRE(parsed.lod_policy == "prop_standard");
+    HH_REQUIRE(parsed.collision_policy == "simple_authored");
+    HH_REQUIRE(parsed.cutaway_policy == "fade_when_foreground");
+    HH_REQUIRE(parsed.pivot_profile == "floor_contact_center");
+    HH_REQUIRE(parsed.interaction_anchors == std::vector<std::string>({"INT_REPAIR_01", "INT_USE_01"}));
 }
 HH_TEST("changed source recooks asset") {
     const auto root = make_repo(); add_asset(root, "asset.a", "a");
