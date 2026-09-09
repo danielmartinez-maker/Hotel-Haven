@@ -15,4 +15,8 @@ if(HH_GAME_BUILD_TESTS)
   add_executable(hh_game_tests tests/SimulationTests.cpp)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
+
+  add_executable(hh_workforce_tests tests/WorkforceTests.cpp)
+  target_link_libraries(hh_workforce_tests PRIVATE hh_game)
+  add_test(NAME Workforce COMMAND hh_workforce_tests)
 endif()
