@@ -49,14 +49,28 @@ bool aabbIntersectsClipVolume(
     return true;
 }
 
-float viewDepth(
-    const ComposedBox& box,
-    const DirectX::XMMATRIX& viewMatrix) noexcept {
-    const Vec3& center = box.item.center;
+float pointViewDepth(Vec3 center, const DirectX::XMMATRIX& viewMatrix) noexcept {
     const DirectX::XMVECTOR world =
         DirectX::XMVectorSet(center.x, center.y, center.z, 1.0f);
     const DirectX::XMVECTOR view = DirectX::XMVector4Transform(world, viewMatrix);
     return DirectX::XMVectorGetZ(view);
+}
+
+float viewDepth(
+    const ComposedBox& box,
+    const DirectX::XMMATRIX& viewMatrix) noexcept {
+    return pointViewDepth(box.item.center, viewMatrix);
+}
+
+float viewDepth(
+    const ComposedMesh& mesh,
+    const DirectX::XMMATRIX& viewMatrix) noexcept {
+    const Aabb& bounds = mesh.item.bounds;
+    return pointViewDepth({
+        (bounds.min.x + bounds.max.x) * 0.5f,
+        (bounds.min.y + bounds.max.y) * 0.5f,
+        (bounds.min.z + bounds.max.z) * 0.5f,
+    }, viewMatrix);
 }
 
 void appendVisible(
@@ -67,6 +81,18 @@ void appendVisible(
     for (const ComposedBox& box : source) {
         if (aabbIntersectsClipVolume(box.item.bounds, viewProjection)) {
             destination.push_back(box);
+        }
+    }
+}
+
+void appendVisible(
+    const std::vector<ComposedMesh>& source,
+    std::vector<ComposedMesh>& destination,
+    const DirectX::XMMATRIX& viewProjection) {
+    destination.reserve(source.size());
+    for (const ComposedMesh& mesh : source) {
+        if (aabbIntersectsClipVolume(mesh.item.bounds, viewProjection)) {
+            destination.push_back(mesh);
         }
     }
 }
@@ -82,12 +108,21 @@ ComposedScene prepareVisibleScene(
     appendVisible(scene.opaque, visible.opaque, viewProjection);
     appendVisible(scene.translucent, visible.translucent, viewProjection);
     appendVisible(scene.wireframe, visible.wireframe, viewProjection);
+    appendVisible(scene.opaqueMeshes, visible.opaqueMeshes, viewProjection);
+    appendVisible(scene.translucentMeshes, visible.translucentMeshes, viewProjection);
+    appendVisible(scene.wireframeMeshes, visible.wireframeMeshes, viewProjection);
 
     const DirectX::XMMATRIX view = camera.viewMatrix();
     std::stable_sort(
         visible.translucent.begin(),
         visible.translucent.end(),
         [&view](const ComposedBox& lhs, const ComposedBox& rhs) {
+            return viewDepth(lhs, view) > viewDepth(rhs, view);
+        });
+    std::stable_sort(
+        visible.translucentMeshes.begin(),
+        visible.translucentMeshes.end(),
+        [&view](const ComposedMesh& lhs, const ComposedMesh& rhs) {
             return viewDepth(lhs, view) > viewDepth(rhs, view);
         });
 
