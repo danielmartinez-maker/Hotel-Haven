@@ -87,6 +87,7 @@ add_executable(hh_renderer_tests
     tests/FloorVisibilityTests.cpp
     tests/OcclusionTests.cpp
     tests/SceneComposerTests.cpp
+    tests/VisibilityTests.cpp
     tests/D3D11SmokeTests.cpp
 )
 
