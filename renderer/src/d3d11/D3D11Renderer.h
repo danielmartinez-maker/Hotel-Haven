@@ -38,7 +38,8 @@ public:
         HWND window,
         std::uint32_t width,
         std::uint32_t height,
-        const std::filesystem::path& shaderPath);
+        const std::filesystem::path& shaderPath,
+        bool softwareDevice = false);
     [[nodiscard]] RendererResult resize(std::uint32_t width, std::uint32_t height);
     [[nodiscard]] RendererResult render(const ComposedScene& scene, const OrthoCamera& camera);
     void shutdown() noexcept;
