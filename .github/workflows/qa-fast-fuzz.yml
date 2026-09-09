@@ -1,0 +1,71 @@
+name: QA Fast Fuzz
+
+on:
+  push:
+    branches:
+      - 'qa/**'
+    paths:
+      - 'Tools/ContentPipeline/**'
+      - '.github/workflows/qa-fast-fuzz.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: qa-fast-fuzz-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  parser-fuzz-smoke:
+    name: libFuzzer parser smoke
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+      ASAN_OPTIONS: abort_on_error=1:detect_leaks=1:strict_string_checks=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure fuzz targets
+        run: >-
+          cmake -S Tools/ContentPipeline -B build/qa-fast-fuzz
+          -DCMAKE_BUILD_TYPE=Debug
+          -DHH_ENABLE_LIBFUZZER=ON
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build fuzz targets
+        run: cmake --build build/qa-fast-fuzz --parallel 2 --target hh_json_fuzzer hh_hasset_fuzzer
+      - name: Seed corpora
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/fast-fuzz/json build/fast-fuzz/hasset
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+
+          Path('build/fast-fuzz/json/object').write_bytes(b'{"schema":1,"dependencies":[]}')
+          Path('build/fast-fuzz/json/unicode').write_bytes('"caf\u00e9 \U0001f600"'.encode('utf-8'))
+
+          def s(value: bytes) -> bytes:
+              return struct.pack('<I', len(value)) + value
+
+          data = bytearray(b'HHASSET\x00')
+          data += struct.pack('<II', 1, 0)
+          data += s(b'asset.seed')
+          data += s(b'0' * 64)
+          data += struct.pack('<I', 0)
+          data += s(b'Art/Source/seed.blend')
+          data += s(b'Art/Exports/seed.glb.asset.json')
+          data += struct.pack('<Q', 0)
+          Path('build/fast-fuzz/hasset/valid').write_bytes(data)
+          PY
+      - name: Fuzz JSON parser
+        run: >-
+          build/qa-fast-fuzz/hh_json_fuzzer build/fast-fuzz/json
+          -runs=2000 -max_len=4096 -timeout=5 -rss_limit_mb=1024 -print_final_stats=1
+      - name: Fuzz hasset parser
+        run: >-
+          build/qa-fast-fuzz/hh_hasset_fuzzer build/fast-fuzz/hasset
+          -runs=2000 -max_len=4096 -timeout=5 -rss_limit_mb=1024 -print_final_stats=1
