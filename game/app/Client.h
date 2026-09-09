@@ -48,12 +48,31 @@ struct Button {
   std::function<void()> action;
   bool active{};
 };
+class ClientRenderer final : public hh::renderer::D3D11Renderer {
+public:
+  explicit ClientRenderer(hh::renderer::RuntimeAssetRegistry &registry) noexcept
+      : registry_(&registry) {}
+
+  [[nodiscard]] hh::renderer::RendererResult
+  initialize(HWND window, std::uint32_t width, std::uint32_t height,
+             const std::filesystem::path &shaderPath,
+             bool softwareDevice = false) {
+    auto result = hh::renderer::D3D11Renderer::initialize(
+        window, width, height, shaderPath, softwareDevice);
+    if (result)
+      setAssetRegistry(registry_);
+    return result;
+  }
+
+private:
+  hh::renderer::RuntimeAssetRegistry *registry_{};
+};
 struct Client {
   hh::game::Simulation simulation;
   hh::game::SimulationView snapshot;
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
-  hh::renderer::D3D11Renderer renderer{&assetRegistry};
+  ClientRenderer renderer{assetRegistry};
   WorldAssetSet worldAssets;
   hh::renderer::OrthoCamera camera;
   std::filesystem::path directory, savePath;
