@@ -6,6 +6,8 @@
 
 #include <filesystem>
 
+#include "d3d11/D3D11Renderer.h"
+
 TEST_CASE("D3D11 WARP device and production shader compile") {
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
@@ -59,4 +61,14 @@ TEST_CASE("D3D11 WARP device and production shader compile") {
         pixelErrors.GetAddressOf());
     EXPECT_TRUE(SUCCEEDED(pixelResult));
     EXPECT_TRUE(pixelShader != nullptr);
+}
+
+TEST_CASE("renderWorld and present reject use before initialization") {
+    hh::renderer::D3D11Renderer renderer;
+    hh::renderer::ComposedScene scene;
+    hh::renderer::OrthoCamera camera;
+    EXPECT_FALSE(static_cast<bool>(renderer.renderWorld(scene, camera)));
+    EXPECT_FALSE(static_cast<bool>(renderer.present()));
+    EXPECT_TRUE(renderer.device() == nullptr);
+    EXPECT_TRUE(renderer.swapChain() == nullptr);
 }
