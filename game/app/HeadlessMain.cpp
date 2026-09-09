@@ -105,7 +105,7 @@ void writeBalanceSummary(const std::filesystem::path &path,
                          std::string_view runId, std::uint64_t seed, int days,
                          const hh::game::SimulationView &view) {
   if (runId.empty())
-    throw std::invalid_argument("--run-id is required with --balance-summary");
+    throw std::invalid_argument("--run-id is required with Balance Lab output");
   if (!path.parent_path().empty())
     std::filesystem::create_directories(path.parent_path());
 
@@ -159,14 +159,15 @@ int main(int argc, char **argv) {
         definitions = value();
       else if (arg == "--run-id")
         runId = value();
-      else if (arg == "--balance-summary")
+      else if (arg == "--balance-summary" || arg == "--balance-output")
         balanceSummary = value();
       else if (arg == "--restock")
         restock = true;
       else if (arg == "--help") {
         std::cout << "Hotel Haven campaign runner\n--days N (0..365) --seed N "
                      "--load FILE --save FILE --data balance.json "
-                     "--run-id ID --balance-summary FILE --restock\n"
+                     "--run-id ID --balance-output FILE "
+                     "[--balance-summary FILE] --restock\n"
                      "Writes one CSV row for each campaign day and optionally "
                      "a Balance Lab JSON run summary.\n";
         return 0;
