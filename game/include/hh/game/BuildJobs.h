@@ -46,6 +46,7 @@ struct BuildJobSnapshot {
   ConstructionCommand construction;
   std::int64_t reservedCashCents{};
   ConstructionMaterials reservedMaterials;
+  int workSeconds{300};
   bool materialsConsumed{};
   EntityId taskId{};
   std::string blockedReason;
