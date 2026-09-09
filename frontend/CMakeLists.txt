@@ -83,13 +83,15 @@ add_executable(hh_frontend_tests
     tests/MenuSceneControllerTests.cpp
     tests/MainMenuStressTests.cpp
     tests/MainMenuAcceptanceTests.cpp
+    tests/ShowcaseHotelSceneTests.cpp
     tests/D2DUiSmokeTests.cpp
+    src/ShowcaseHotelScene.cpp
 )
 
 target_include_directories(hh_frontend_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_libraries(hh_frontend_tests PRIVATE hh_frontend_core hh_frontend_d2d)
+target_link_libraries(hh_frontend_tests PRIVATE hh_frontend_core hh_frontend_d2d hh_renderer_core)
 hh_enable_strict_warnings(hh_frontend_tests)
 add_test(NAME hh_frontend_tests COMMAND hh_frontend_tests)
