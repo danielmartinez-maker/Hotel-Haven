@@ -30,7 +30,7 @@ int main() {
     HousekeepingSystem housekeeping(logistics);
     constexpr RoomId room = 102;
     housekeeping.registerRoom(room);
-    housekeeping.requestRoomTurn(room);
+    require(housekeeping.requestRoomTurn(room) != 0, "blocked room turn not created");
     housekeeping.tickSeconds(1800);
     const auto snapshot = housekeeping.snapshot();
     require(!snapshot.jobs.empty(), "missing housekeeping job");
