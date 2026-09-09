@@ -160,3 +160,4 @@ const AssetRecord& AssetCatalog::resolve(std::string_view id_or_path) const {
     }
     throw std::out_of_range("cannot resolve asset: " + std::string(id_or_path));
 }
+}
