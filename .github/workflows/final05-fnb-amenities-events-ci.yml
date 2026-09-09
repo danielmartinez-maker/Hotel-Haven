@@ -1,0 +1,40 @@
+name: FINAL-05 F&B Amenities Events CI
+
+on:
+  push:
+    branches:
+      - feature/final-05-fnb-amenities-events
+  pull_request:
+    paths:
+      - 'game/include/hh/game/FoodService.h'
+      - 'game/include/hh/game/Events.h'
+      - 'game/include/hh/game/Amenities.h'
+      - 'game/src/FoodService.cpp'
+      - 'game/src/Events.cpp'
+      - 'game/src/Amenities.cpp'
+      - 'game/src/Simulation.cpp'
+      - 'game/tests/FoodServiceTests.cpp'
+      - 'game/tests/EventTests.cpp'
+      - 'game/tests/AmenityTests.cpp'
+      - 'game/tests/SimulationFinal05Tests.cpp'
+      - 'game/CMakeLists.txt'
+      - '.github/workflows/final05-fnb-amenities-events-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  portable-final05-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile FINAL-05 portable systems
+        run: |
+          mkdir -p build/final05
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          for src in FoodService; do
+            g++ $CXXFLAGS -c game/src/${src}.cpp -o build/final05/${src}.o
+          done
+      - name: Run FINAL-05 behavior tests
+        run: |
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          g++ $CXXFLAGS game/tests/FoodServiceTests.cpp build/final05/FoodService.o -o build/final05/FoodServiceTests
+          build/final05/FoodServiceTests
