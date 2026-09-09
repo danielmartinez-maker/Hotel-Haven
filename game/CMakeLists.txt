@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
-  src/Simulation.cpp
+  src/SimulationIntegrated.cpp
   src/SimulationPsychology.cpp
   src/StaffOptimization.cpp
   src/Construction.cpp
   src/BuildJobs.cpp
   src/BuildingSystems.cpp
   src/GuestPsychology.cpp
+  src/GuestPsychologyRestore.cpp
+  src/GuestPsychologyArchive.cpp
   src/GuestGoals.cpp
   src/GuestLoyalty.cpp)
 target_include_directories(hh_game PUBLIC include)
