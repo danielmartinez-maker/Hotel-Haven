@@ -249,8 +249,8 @@ void Client::paint(HDC output) {
   const int bottom = height - FooterHeight - 52;
   if (page == Page::Build) {
     heading(L"Build your property");
-    paragraph(L"Tile tools shape rooms and corridors. Object tools use the "
-              L"authoritative placement validator and exact construction cost.",
+    paragraph(L"Tile tools shape rooms and corridors. Object tools queue "
+              L"authoritative cash, material, and maintenance-labor jobs.",
               52);
     const std::array<std::wstring, 23> labels = {
         L"Inspect / select", L"Room · 6 × 6", L"Corridor / floor", L"Wall",
@@ -275,7 +275,9 @@ void Client::paint(HDC output) {
     }
     y += static_cast<int>((labels.size() + 1) / 2) * 35;
     if (y + 28 < bottom)
-      label(L"Placed objects", std::to_wstring(construction.objects.size()));
+      label(L"Objects / lifts", std::to_wstring(construction.objects.size()) +
+                                    L" / " +
+                                    std::to_wstring(buildingSystems.elevators.size()));
     if (y + 28 < bottom) {
       int activeJobs = 0;
       for (const auto &job : construction.buildJobs)
@@ -458,6 +460,16 @@ void Client::paint(HDC output) {
     });
     fullButton(L"Order 10 repair parts",
                [this] { result(simulation.orderSupplies({0, 0, 0, 0, 10})); });
+    const auto &m = construction.availableMaterials;
+    paragraph(L"Construction stock · L " + std::to_wstring(m.lumber) +
+                  L" · D " + std::to_wstring(m.drywall) + L" · E " +
+                  std::to_wstring(m.electrical) + L" · P " +
+                  std::to_wstring(m.plumbing) + L" · H " +
+                  std::to_wstring(m.hardware),
+              36);
+    fullButton(L"Deliver construction pallet", [this] {
+      result(simulation.addConstructionMaterials({20, 20, 20, 20, 20}));
+    });
     for (const auto &o : snapshot.supplyOrders)
       if (!o.delivered && y + 30 < bottom) {
         paragraph(L"Order #" + std::to_wstring(o.id) + L" · expected day " +
