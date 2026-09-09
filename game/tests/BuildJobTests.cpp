@@ -28,6 +28,16 @@ BuildPlan deskPlan(Position position = {0, 4, 4}) {
   return plan;
 }
 
+StaffHire builder() {
+  StaffHire worker;
+  worker.name = "Builder";
+  worker.role = PersonKind::Maintenance;
+  worker.shiftStartHour = 0;
+  worker.shiftEndHour = 23;
+  worker.hourlyWage = 24;
+  return worker;
+}
+
 void construction_plan_reserves_cash_and_waits_for_materials() {
   Simulation sim(2001, 12, 8, 1);
   supportFloor(sim);
@@ -76,13 +86,7 @@ void maintenance_labor_commits_reserved_construction_atomically() {
   supportFloor(sim);
   require(sim.addConstructionMaterials({4, 4, 4, 4, 4}).ok,
           "labor fixture construction materials could not be stocked");
-  StaffHire worker;
-  worker.name = "Builder";
-  worker.role = PersonKind::Maintenance;
-  worker.shiftStartHour = 0;
-  worker.shiftEndHour = 23;
-  worker.hourlyWage = 24;
-  require(sim.hireStaff(worker).ok,
+  require(sim.hireStaff(builder()).ok,
           "labor fixture maintenance worker could not be hired");
 
   BuildPlan plan = deskPlan();
@@ -128,6 +132,32 @@ void maintenance_labor_commits_reserved_construction_atomically() {
   require(snapshot.reservedMaterials == ConstructionMaterials{},
           "completed build left consumed materials reserved");
 }
+
+void wall_fixture_labor_uses_adjacent_passable_work_edge() {
+  Simulation sim(2004, 12, 8, 1);
+  supportFloor(sim);
+  require(sim.buildTile({0, 6, 4}, TileKind::Wall).ok,
+          "wall fixture support could not be built");
+  require(sim.addConstructionMaterials({0, 0, 2, 0, 2}).ok,
+          "wall fixture materials could not be stocked");
+  require(sim.hireStaff(builder()).ok,
+          "wall fixture maintenance worker could not be hired");
+
+  BuildPlan plan;
+  plan.construction.placements.push_back({"wall_sconce", {0, 6, 4}, 0});
+  plan.workSeconds = 60;
+  const auto queued = sim.queueBuild(plan);
+  require(queued.ok, "wall fixture build plan did not queue");
+  sim.step(1200);
+
+  const auto snapshot = sim.constructionSnapshot();
+  require(snapshot.buildJobs.size() == 1 &&
+              snapshot.buildJobs.front().state == BuildJobState::Completed,
+          "wall fixture labor could not complete from an adjacent work edge");
+  require(snapshot.objects.size() == 1 &&
+              snapshot.objects.front().typeId == "wall_sconce",
+          "completed wall fixture labor did not create the fixture");
+}
 } // namespace
 
 int main() {
@@ -135,6 +165,7 @@ int main() {
     construction_plan_reserves_cash_and_waits_for_materials();
     cancelling_unstarted_work_refunds_cash_and_reserved_materials();
     maintenance_labor_commits_reserved_construction_atomically();
+    wall_fixture_labor_uses_adjacent_passable_work_edge();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
