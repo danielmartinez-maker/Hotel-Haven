@@ -13,6 +13,11 @@ add_subdirectory(game)
 add_executable(hotel_haven_headless game/app/HeadlessMain.cpp)
 target_link_libraries(hotel_haven_headless PRIVATE hh_game)
 add_test(NAME hh_campaign COMMAND hotel_haven_headless --days 14 --restock)
+add_test(
+    NAME hh_balance_summary_cli
+    COMMAND hotel_haven_headless --days 1 --seed 20260909
+            --run-id ci-balance
+            --balance-summary ${CMAKE_BINARY_DIR}/balance-runs/ci-balance.json)
 install(TARGETS hotel_haven_headless RUNTIME DESTINATION .)
 add_library(hh_world_view STATIC game/app/WorldView.cpp)
 target_include_directories(hh_world_view PUBLIC game/app renderer/include)
