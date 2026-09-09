@@ -1,0 +1,35 @@
+name: Apply Full-Game NVIDIA Bridge
+
+on:
+  push:
+    branches: [feature/full-game-nvidia-integration]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'chore: bootstrap NVIDIA bridge'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-game-nvidia-integration
+          fetch-depth: 0
+      - name: Apply deterministic integration patch
+        run: python Tools/Integration/apply_full_game_nvidia_bridge.py
+      - name: Check patch formatting
+        run: git diff --check
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build portable targets
+        run: cmake --build build --config Release --parallel 4
+      - name: Test portable integration
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Commit generated integration
+        run: |
+          git config user.name "hotel-haven-integration-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add CMakeLists.txt game/CMakeLists.txt game/include/hh/game/Simulation.h game/src/Simulation.cpp game/src/StaffOptimization.h game/src/StaffOptimization.cpp
+          git commit -m "feat: integrate deterministic staff optimizer seam"
+          git push origin HEAD:feature/full-game-nvidia-integration
