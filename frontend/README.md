@@ -4,7 +4,7 @@ This module implements HH-UI-MAIN-001, the Living Hotel main menu for Hotel Have
 
 ## Architecture boundary
 
-The frontend is presentation-only. `MainMenuModel` owns UI state, `MainMenuController` converts input into `MainMenuCommand` values, `MainMenuView` owns formatting/layout, `MenuTransitionDirector` and `MenuSceneController` own presentation motion, and `D2DUiRenderer` draws the Direct2D/DirectWrite overlay.
+The frontend is presentation-only. `MainMenuModel` owns UI state, `MainMenuController` converts input into menu/application actions, `MainMenuView` owns formatting/layout, `MenuTransitionDirector` and `MenuSceneController` own presentation motion, and `D2DUiRenderer` draws the Direct2D/DirectWrite overlay.
 
 The menu does not parse authoritative save files and never advances Hotel Haven simulation state. Save/application code is expected to implement `IMenuHotelProvider` and supply a read-only `MenuHotelSnapshot`/`MenuPropertySummary`. The canonical `ShowcaseHotelScene` is a presentation fallback when no usable hotel snapshot exists.
 
@@ -26,7 +26,7 @@ Default launch represents a first-run/no-save state. Optional fixtures:
 
 ```text
 --valid-save       Enables Continue and displays the Beaumont property plaque.
---reduced-motion   Disables idle/selection camera movement.
+--reduced-motion   Starts with Reduced Motion enabled.
 ```
 
 Controls:
@@ -34,13 +34,21 @@ Controls:
 ```text
 Up / W             Previous enabled menu item
 Down / S           Next enabled menu item
-Enter / Space      Activate selected item
-Mouse              Hover and activate menu items
-Escape             Cancel active modal
-Y                   Confirm the quit fixture while the quit modal is open
+Enter / Space      Activate / confirm / toggle the Settings option
+Escape             Cancel the active modal or overlay
+Mouse              Hover, activate, toggle Settings, and use quit buttons
+D-pad / Left stick Navigate enabled menu items
+Gamepad A           Activate / confirm / toggle the Settings option
+Gamepad B           Cancel the active modal or overlay
 ```
 
-The New Hotel, Load Hotel, Scenarios, Sandbox, Settings, Credits, and Continue actions intentionally emit frontend/application commands or demo fixtures. Their full workflows are outside HH-UI-MAIN-001 v0.1.
+Settings and Credits are lightweight overlays over the still-running Living Hotel scene. Settings currently exposes the v0.1 Reduced Motion option; toggling it freezes ambient presentation actors and disables menu camera motion without unloading the scene. Credits also overlays without reinitializing the renderer or backdrop.
+
+Continue, New Hotel, Load Hotel, Scenarios, and Sandbox intentionally emit frontend/application commands or demo surfaces. Their full workflow internals are outside HH-UI-MAIN-001 v0.1.
+
+## Controller input boundary
+
+`MenuGamepadMapper` is platform-agnostic and converts a normalized `MenuGamepadState` into edge-triggered menu actions. Held D-pad/stick/A/B input therefore does not accumulate repeated menu actions. `XInputMenuGamepad` is the Windows adapter used by the demo and polls controller 0 through the Windows XInput API.
 
 ## Failure behavior
 
@@ -57,7 +65,7 @@ The UI layer fails closed rather than taking down navigation. Expected productio
 
 ## Automated validation
 
-`hh_frontend_tests` covers menu order, focus wrapping, disabled Continue behavior, command generation, property formatting, partial metadata, responsive layout, deterministic ambient scheduling, interruptible transitions, reduced-motion camera invariants, rapid quit-modal cycling, 10,000 navigation events, Direct2D safe-failure behavior, and font fallback contracts.
+`hh_frontend_tests` covers menu order, focus wrapping, disabled Continue behavior, command generation, Settings/Credits overlay state, property formatting, partial metadata, responsive layout, deterministic ambient scheduling and showcase actor motion, controller edge mapping, interruptible transitions, reduced-motion camera invariants, rapid quit-modal cycling, 10,000 navigation events, Direct2D safe-failure behavior, and font fallback contracts.
 
 The Windows CI workflow builds the frontend and renderer in Release mode and runs both test suites with strict warnings enabled. The renderer suite also validates the D3D11 WARP/shader path and the render-world/present interop seam.
 
