@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
+from semantic_asset_quality import semantic_contract_failures, variant_signature_failures
+
 EXPECTED_MOVING = {
     'ANSET_MECH_DOOR': ('MOV_DoorLeaf',),
     'ANSET_MECH_SLIDING_DOOR': ('MOV_SlidingPanel', 'MOV_PocketPanel'),
@@ -34,11 +36,10 @@ PROFILE_FACE_BUDGETS = {
     'P_CHARACTER': 2500,
 }
 
-# The master gameplay-asset manifest explicitly says placement authority lives
-# in the owning gameplay systems rather than this art-production metadata.
-# These pieces share furniture/prefab production profiles for LOD/collision,
-# but are visually mounted to walls, ceilings, or secondary surfaces. Floor-Z
-# contact would therefore be a false-positive QA requirement for them.
+# Placement authority ultimately lives in the owning gameplay systems. These
+# pieces use normal art-production profiles but are intentionally mounted on
+# walls, ceilings, counters, or other secondary surfaces, so floor contact is
+# not an appropriate release criterion for them.
 CONTEXTUAL_PLACEMENT_OVERRIDES = {
     'HH_A153': 'wall-mounted television',
     'HH_A165': 'hanging bathrobe',
@@ -135,12 +136,7 @@ def profile_contract_failures(asset_id: str, meta: dict, sidecar: dict, contract
     return failures
 
 
-def placement_failures(
-    asset_id: str,
-    pivot_profile: str,
-    bounds_min,
-    bounds_max,
-) -> list[str]:
+def placement_failures(asset_id: str, pivot_profile: str, bounds_min, bounds_max) -> list[str]:
     if asset_id in CONTEXTUAL_PLACEMENT_OVERRIDES:
         return []
     if pivot_profile in {'contextual', 'contextual_architecture'}:
@@ -182,8 +178,10 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     qc_status = report.get('status', 'UNKNOWN')
     contract_failures = report.get('profile_contract_failure_count', 0)
     placement_failure_count = report.get('placement_failure_count', 0)
+    semantic_failure_count = report.get('semantic_failure_count', 0)
     contract_status = 'PASS' if contract_failures == 0 else 'FAIL'
     placement_status = 'PASS' if placement_failure_count == 0 else 'FAIL'
+    semantic_status = 'PASS' if semantic_failure_count == 0 else 'FAIL'
     anchor_bindings = report.get('interaction_anchor_bindings', 0)
     expected_anchor_bindings = report.get('expected_interaction_anchor_bindings', 0)
 
@@ -205,6 +203,7 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
         f'- Interaction anchors normalized: **{anchor_bindings} / {expected_anchor_bindings}**',
         f'- Profile contract conformance: **{contract_status}** with **{contract_failures}** failures',
         f'- Placement/pivot QC: **{placement_status}** with **{placement_failure_count}** failures',
+        f'- Semantic identity QC: **{semantic_status}** with **{semantic_failure_count}** failures',
         f'- Contextual placement exceptions: **{report.get("contextual_placement_override_count", 0)}** documented assets',
         f'- Floor-support hardening applied: **{summary.get("floor_support_assets_hardened", 0)}** generated assets',
         f'- Mechanical animation coverage: **{summary.get("mechanical_clips", 0)} clips / {summary.get("mechanical_sets", 0)} sets**',
@@ -223,9 +222,7 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
         lines.append(f'| {profile} | {budget} |')
     lines.extend(['', '## Batch status', '', '| Batch | Status |', '| --- | --- |'])
     for batch in range(1, 11):
-        lines.append(
-            f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |'
-        )
+        lines.append(f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |')
     lines.extend([
         '',
         '## Operational note',
@@ -244,13 +241,13 @@ def validate(repo_root: Path) -> dict:
     failures = []
     contract_failure_details = []
     placement_failure_details = []
+    semantic_failure_details = []
     stats = []
+    signature_by_asset = {}
     material_samples = 0
     nonwhite_materials = 0
     unique_colors = set()
-    expected_anchor_bindings = sum(
-        len(meta.get('interaction_anchors', [])) for meta in manifests.values()
-    )
+    expected_anchor_bindings = sum(len(meta.get('interaction_anchors', [])) for meta in manifests.values())
     anchor_bindings = 0
     available_animation_sets = {
         json.loads(path.read_text())['asset_id']
@@ -281,10 +278,7 @@ def validate(repo_root: Path) -> dict:
             failures.append(f'{asset_id}: sidecar load failed: {exc}')
             continue
 
-        dependency_failures = animation_dependency_failures(
-            asset_id, meta, sidecar, available_animation_sets
-        )
-        failures.extend(dependency_failures)
+        failures.extend(animation_dependency_failures(asset_id, meta, sidecar, available_animation_sets))
         contract_failures = profile_contract_failures(asset_id, meta, sidecar, contract)
         contract_failure_details.extend(contract_failures)
         failures.extend(contract_failures)
@@ -357,11 +351,13 @@ def validate(repo_root: Path) -> dict:
             failures.append(f'{asset_id}: implausibly large diagonal {diagonal:.3f}m')
         budget = PROFILE_FACE_BUDGETS.get(meta['profile'], 5000)
         if faces > budget:
-            failures.append(
-                f'{asset_id}: face count {faces} exceeds {meta["profile"]} budget {budget}'
-            )
+            failures.append(f'{asset_id}: face count {faces} exceeds {meta["profile"]} budget {budget}')
 
-        nodes = set(scene.graph.nodes_geometry)
+        nodes = set(map(str, scene.graph.nodes_geometry))
+        semantic_failures = semantic_contract_failures(asset_id, nodes)
+        semantic_failure_details.extend(semantic_failures)
+        failures.extend(semantic_failures)
+
         animation_set = meta['animation_set']
         if meta['profile'] == 'P_CHARACTER':
             missing_nodes = sorted(CHARACTER_NODES - nodes)
@@ -369,13 +365,15 @@ def validate(repo_root: Path) -> dict:
                 failures.append(f'{asset_id}: missing character nodes {missing_nodes}')
         elif animation_set in EXPECTED_MOVING:
             prefixes = EXPECTED_MOVING[animation_set]
-            if not any(
-                any(str(node).startswith(prefix) for prefix in prefixes) for node in nodes
-            ):
-                failures.append(
-                    f'{asset_id}: {animation_set} missing one of {prefixes}'
-                )
+            if not any(any(node.startswith(prefix) for prefix in prefixes) for node in nodes):
+                failures.append(f'{asset_id}: {animation_set} missing one of {prefixes}')
 
+        signature_by_asset[asset_id] = (
+            len(geoms),
+            faces,
+            tuple(round(float(x), 3) for x in extents),
+            tuple(sorted(asset_colors)),
+        )
         stats.append({
             'asset_id': asset_id,
             'profile': meta['profile'],
@@ -388,6 +386,10 @@ def validate(repo_root: Path) -> dict:
             'material_colors': len(asset_colors),
         })
 
+    variant_failures = variant_signature_failures(signature_by_asset)
+    semantic_failure_details.extend(variant_failures)
+    failures.extend(variant_failures)
+
     if set(manifests) != set(item['asset_id'] for item in stats):
         missing = sorted(set(manifests) - set(item['asset_id'] for item in stats))
         if missing:
@@ -397,13 +399,9 @@ def validate(repo_root: Path) -> dict:
     if material_samples == 0:
         failures.append('no PBR material samples found in generated GLBs')
     if colored_ratio < 0.60:
-        failures.append(
-            f'PBR palette collapsed toward white: nonwhite ratio={colored_ratio:.3f}'
-        )
+        failures.append(f'PBR palette collapsed toward white: nonwhite ratio={colored_ratio:.3f}')
     if len(unique_colors) < 12:
-        failures.append(
-            f'PBR palette has only {len(unique_colors)} unique RGB colors; expected at least 12'
-        )
+        failures.append(f'PBR palette has only {len(unique_colors)} unique RGB colors; expected at least 12')
 
     contextual_overrides = sorted(set(manifests) & set(CONTEXTUAL_PLACEMENT_OVERRIDES))
     report = {
@@ -416,6 +414,8 @@ def validate(repo_root: Path) -> dict:
         'profile_contract_failures': contract_failure_details,
         'placement_failure_count': len(placement_failure_details),
         'placement_failures': placement_failure_details,
+        'semantic_failure_count': len(semantic_failure_details),
+        'semantic_failures': semantic_failure_details,
         'contextual_placement_override_count': len(contextual_overrides),
         'contextual_placement_overrides': {
             asset_id: CONTEXTUAL_PLACEMENT_OVERRIDES[asset_id]
@@ -457,7 +457,7 @@ def validate(repo_root: Path) -> dict:
     print(
         f"geometry QA PASSED: {len(stats)} assets; max_faces={report['max_faces']}; "
         f"colors={report['unique_material_colors']}; nonwhite={report['nonwhite_material_ratio']}; "
-        f"anchors={anchor_bindings}/{expected_anchor_bindings}; contracts=PASS; placement=PASS"
+        f"anchors={anchor_bindings}/{expected_anchor_bindings}; contracts=PASS; placement=PASS; semantic=PASS"
     )
     return report
 
