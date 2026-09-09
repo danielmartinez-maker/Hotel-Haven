@@ -24,7 +24,7 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
 
-  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics)
+  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics SimulationServiceLogistics)
     add_executable(hh_${service_test}_tests tests/${service_test}Tests.cpp)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
