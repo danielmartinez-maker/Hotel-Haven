@@ -284,6 +284,39 @@ void material_memories_influence_repeat_intent() {
               calculateRepeatIntent(negative, 0),
           "repeat intent ignored material memory sentiment");
 }
+
+void material_experience_persists_in_versioned_save() {
+  auto sim = Simulation::tutorial(174);
+  require(sim.loadDefinitions(R"({"baseDemand":100})").ok,
+          "material experience fixture definitions rejected");
+  sim.step(3600);
+  const auto guestId = firstGuest(sim.view()).reservationId;
+  ExperienceEvent meal;
+  meal.type = ExperienceEventType::GreatMeal;
+  meal.timestampSeconds = sim.view().elapsedSeconds;
+  meal.category = ExperienceCategory::Food;
+  meal.observedValue = 95;
+  meal.expectedValue = 75;
+  meal.rawImpact = 25;
+  meal.memorySalience = 10000;
+  meal.memoryHalfLifeHours = 48;
+  require(sim.recordGuestExperience(guestId, meal).ok,
+          "simulation rejected material guest experience");
+  const auto before = sim.guestPsychology(guestId);
+  require(std::any_of(before.memories.begin(), before.memories.end(),
+                      [](const GuestMemory &memory) {
+                        return memory.type == ExperienceEventType::GreatMeal;
+                      }),
+          "material guest experience was not retained before save");
+  const auto saved = sim.save();
+  require(saved.rfind("HHGS 12 ", 0) == 0,
+          "psychology schema change did not advance save version to 12");
+  const auto loaded = Simulation::load(saved);
+  require(loaded.guestPsychology(guestId) == before,
+          "material psychology history changed across v12 save/load");
+  require(loaded.save() == saved,
+          "v12 psychology save was not byte-stable after round trip");
+}
 } // namespace
 
 int main() {
@@ -301,6 +334,7 @@ int main() {
     live_guest_psychology_survives_save_round_trip();
     repeat_intent_responds_to_expectation_adjusted_satisfaction();
     material_memories_influence_repeat_intent();
+    material_experience_persists_in_versioned_save();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
