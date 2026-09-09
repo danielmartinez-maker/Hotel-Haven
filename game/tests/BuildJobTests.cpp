@@ -112,8 +112,10 @@ void maintenance_labor_commits_reserved_construction_atomically() {
                 << " taskBlocked='" << view.tasks.front().blockedReason << "'";
     if (!view.people.empty())
       std::cerr << " workerState=" << static_cast<int>(view.people.front().state)
-                << " workerTask=" << view.people.front().task
-                << " workerOnShift=" << view.people.front().onShift;
+                << " workerOnShift=" << view.people.front().onShift
+                << " workerPos=" << view.people.front().position.floor << ','
+                << view.people.front().position.x << ','
+                << view.people.front().position.y;
     std::cerr << '\n';
   }
   require(snapshot.buildJobs.front().state == BuildJobState::Completed,
