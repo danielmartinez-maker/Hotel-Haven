@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hh/game/ServiceLogistics.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -223,6 +224,16 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+
+  [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
+  [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
+  [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
+  [[nodiscard]] WorkOrderId createWorkOrder(AssetId assetId, WorkOrderType type);
+  [[nodiscard]] RoomServiceOrderId placeRoomServiceOrder(
+      GuestId guestId, const RoomServiceOrder &order);
+  [[nodiscard]] bool markRoomServiceProductionReady(RoomServiceOrderId orderId);
+  [[nodiscard]] bool requestRoomServiceTrayPickup(RoomServiceOrderId orderId);
+
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;
