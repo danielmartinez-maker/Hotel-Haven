@@ -32,6 +32,9 @@ enum class FoodOrderChannel : std::uint8_t {
 enum class FoodStage : std::uint8_t {
   Queued,
   Blocked,
+  AwaitingSeat,
+  Seated,
+  Ordered,
   Prep,
   Cook,
   Plate,
@@ -50,7 +53,8 @@ enum class FoodBlockReason : std::uint8_t {
   StationCapacity,
   NoStaffCapacity,
   OutsideServiceWindow,
-  VenueCapacity
+  VenueCapacity,
+  MissingVenue
 };
 
 struct IngredientRequirement {
@@ -78,6 +82,27 @@ struct FoodStationConfig {
   int capacity{1};
   bool enabled{true};
 };
+struct FoodVenueConfig {
+  VenueId id{};
+  FoodOrderChannel channel{FoodOrderChannel::Restaurant};
+  int seatCapacity{1};
+  int openMinuteOfDay{};
+  int closeMinuteOfDay{24 * 60};
+  int seatSeconds{1};
+  int orderSeconds{1};
+  int serveSeconds{1};
+  int paymentSeconds{1};
+  bool enabled{true};
+};
+struct FoodVenueView {
+  VenueId id{};
+  FoodOrderChannel channel{FoodOrderChannel::Restaurant};
+  int seatCapacity{};
+  int activeSeats{};
+  int openMinuteOfDay{};
+  int closeMinuteOfDay{};
+  bool enabled{};
+};
 struct MenuOrder {
   RecipeId recipeId{};
   FoodOrderChannel channel{FoodOrderChannel::Restaurant};
@@ -89,6 +114,7 @@ struct FoodOrderView {
   GuestId guestId{};
   RecipeId recipeId{};
   FoodOrderChannel channel{FoodOrderChannel::Restaurant};
+  VenueId venueId{};
   FoodStage stage{FoodStage::Queued};
   FoodBlockReason blockReason{FoodBlockReason::None};
   int remainingStageSeconds{};
@@ -113,6 +139,7 @@ struct FoodServiceSnapshot {
   std::int64_t elapsedSeconds{};
   std::vector<IngredientStockView> inventory;
   std::vector<FoodStationView> stations;
+  std::vector<FoodVenueView> venues;
   std::vector<FoodOrderView> orders;
   std::int64_t revenueCents{};
 };
@@ -131,6 +158,8 @@ public:
   [[nodiscard]] int ingredientUnits(std::string_view item) const;
   void addStation(const FoodStationConfig &station);
   void setStaffCapacity(int capacity);
+  void addVenue(const FoodVenueConfig &venue);
+  void setElapsedSeconds(std::int64_t elapsedSeconds);
 
   [[nodiscard]] FoodOrderId createFoodOrder(
       GuestId guest, const MenuOrder &order,

@@ -9,6 +9,7 @@ add_library(hh_game
   src/RoomService.cpp
   src/ServiceLogistics.cpp
   src/FoodService.cpp
+  src/FoodServiceVenueStubs.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
@@ -30,4 +31,8 @@ if(HH_GAME_BUILD_TESTS)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
   endforeach()
+
+  add_executable(hh_FoodRoomServiceIntegration_tests tests/FoodRoomServiceIntegrationTests.cpp)
+  target_link_libraries(hh_FoodRoomServiceIntegration_tests PRIVATE hh_game)
+  add_test(NAME FoodRoomServiceIntegration COMMAND hh_FoodRoomServiceIntegration_tests)
 endif()
