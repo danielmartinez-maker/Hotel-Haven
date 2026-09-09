@@ -151,3 +151,34 @@ TEST_CASE("D3D11 renderer recovers after shader initialization failure") {
     EXPECT_TRUE(renderer.render(scene, camera).succeeded);
     renderer.shutdown();
 }
+
+TEST_CASE("D3D11 renderer remains safe and recoverable after resize failure") {
+    using namespace hh::renderer;
+
+    HINSTANCE instance = GetModuleHandleW(nullptr);
+    EXPECT_TRUE(instance != nullptr);
+
+    std::string windowError;
+    Win32Window window;
+    EXPECT_TRUE(window.create(instance, SW_HIDE, 160, 120, windowError));
+
+    OrthoCamera camera;
+    camera.setAspectRatio(160.0f / 120.0f);
+    const ComposedScene scene = makeScene();
+
+    D3D11Renderer renderer;
+    EXPECT_TRUE(renderer.initialize(window.handle(), 160, 120, shaderPath()).succeeded);
+    EXPECT_TRUE(renderer.render(scene, camera).succeeded);
+
+    constexpr std::uint32_t invalidDimension = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION + 1u;
+    const RendererResult failedResize = renderer.resize(invalidDimension, invalidDimension);
+    EXPECT_FALSE(failedResize.succeeded);
+
+    // A failed size transition must leave the renderer in a safe non-rendering
+    // state rather than retaining nonzero dimensions with released RTV/DSV state.
+    EXPECT_TRUE(renderer.render(scene, camera).succeeded);
+
+    EXPECT_TRUE(renderer.resize(160, 120).succeeded);
+    EXPECT_TRUE(renderer.render(scene, camera).succeeded);
+    renderer.shutdown();
+}
