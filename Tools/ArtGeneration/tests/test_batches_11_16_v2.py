@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import sys
 from pathlib import Path
 
 import trimesh
@@ -9,6 +10,7 @@ import trimesh
 ROOT = Path(__file__).resolve().parents[3]
 ART = ROOT / 'Tools' / 'ArtGeneration'
 MANIFEST = ROOT / 'GameData' / 'AssetDefinitions' / 'Manifest'
+sys.path.insert(0, str(ART))
 
 
 def _rows(batch: int):
