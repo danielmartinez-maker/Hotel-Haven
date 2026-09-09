@@ -1,3 +1,4 @@
+#include "hh/game/BuildJobs.h"
 #include "hh/game/Construction.h"
 #include "hh/game/Simulation.h"
 #include <iostream>
