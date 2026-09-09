@@ -297,8 +297,7 @@ Each cached asset owns:
 - immutable vertex buffer;
 - immutable index buffer;
 - submesh/material metadata;
-- local bounds;
-- last-known registry generation if needed for explicit reload later.
+- local bounds.
 
 GPU creation occurs on first render/preload requiring a device. No per-frame vertex/index buffer recreation is allowed.
 
@@ -329,6 +328,8 @@ Instances are grouped by:
 
 Repeated placements of the same hotel asset use instanced draws. The renderer must not issue one draw call per repeated chair/bed/wall module when the instances are compatible.
 
+Transparent material submeshes are emitted after opaque material submeshes. Their owning asset instances are ordered by camera-space depth using transformed world bounds, preserving stable order on equal depth.
+
 ## Floor, cutaway, blueprint, and visibility behavior
 
 Existing renderer policies apply to asset items as well as boxes:
@@ -337,7 +338,7 @@ Existing renderer policies apply to asset items as well as boxes:
 - adjacent context floors reduce instance alpha;
 - wall-category asset items participate in full/cutaway/blueprint modes;
 - blueprint uses the mesh wireframe rasterizer path;
-- cutaway applies a presentation-only vertical scale/clip strategy to wall-category instances until authored cutaway meshes exist;
+- cutaway scales wall-category asset instances to the existing renderer factor `0.35` along renderer Y while preserving their world-space floor-contact base; this matches current box cutaway behavior until authored cutaway meshes exist;
 - selection/debug overlays remain presentation-only;
 - frustum culling uses transformed production-mesh AABBs;
 - translucent instance order uses camera view depth.
@@ -420,7 +421,7 @@ The full 500-asset generation/cook chain may live in a dedicated integration wor
 - asset world bounds cull off-camera instances;
 - translucent asset items sort stably back-to-front;
 - blueprint wall assets route to wireframe;
-- cutaway affects only wall-category asset items.
+- cutaway affects only wall-category asset items and preserves their base position.
 
 ### D3D11 smoke
 
