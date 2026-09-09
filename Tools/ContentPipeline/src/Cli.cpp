@@ -48,6 +48,20 @@ bool blocking(const std::vector<Diagnostic>& diagnostics, std::ostream& err, std
     return failed;
 }
 
+bool validate_record_files(const AssetRecord& record, std::ostream& err) {
+    bool failed = false;
+    auto require_regular_file = [&](const std::filesystem::path& path, const char* code, const char* label) {
+        if (!std::filesystem::is_regular_file(path)) {
+            err << "MAJOR " << record.metadata.asset_id << ' ' << code << ": " << label
+                << " is missing or is not a regular file: " << path.generic_string() << '\n';
+            failed = true;
+        }
+    };
+    require_regular_file(record.source_path, "validation.source.missing", "asset source");
+    require_regular_file(record.export_path, "validation.export.missing", "asset export");
+    return failed;
+}
+
 std::string join(const std::vector<std::string>& values) {
     if (values.empty()) return "(none)";
     std::string out;
@@ -84,14 +98,20 @@ int validate_command(std::string_view target, const std::filesystem::path& root,
         const auto catalog = AssetCatalog::scan(target_path);
         static_cast<void>(DependencyGraph::build(catalog));
         bool failed = false;
-        for (const auto& [id, record] : catalog.records()) failed = blocking(validate_metadata(record.metadata), err, id) || failed;
+        for (const auto& [id, record] : catalog.records()) {
+            const bool metadata_failed = blocking(validate_metadata(record.metadata), err, id);
+            const bool files_failed = validate_record_files(record, err);
+            failed = metadata_failed || files_failed || failed;
+        }
         if (!failed) out << "validated " << catalog.size() << " asset" << (catalog.size() == 1 ? "" : "s") << '\n';
         return failed ? 1 : 0;
     }
     const auto catalog = AssetCatalog::scan(root / "Art/Exports");
     static_cast<void>(DependencyGraph::build(catalog));
     const auto& record = resolve_for_cli(catalog, target, root);
-    const bool failed = blocking(validate_metadata(record.metadata), err, record.metadata.asset_id);
+    const bool metadata_failed = blocking(validate_metadata(record.metadata), err, record.metadata.asset_id);
+    const bool files_failed = validate_record_files(record, err);
+    const bool failed = metadata_failed || files_failed;
     if (!failed) out << "validated " << record.metadata.asset_id << '\n';
     return failed ? 1 : 0;
 }
