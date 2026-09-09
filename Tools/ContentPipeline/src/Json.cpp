@@ -58,7 +58,11 @@ private:
     }
 
     void skip_ws() {
-        while (pos_ < text_.size() && std::isspace(static_cast<unsigned char>(text_[pos_])) != 0) ++pos_;
+        while (pos_ < text_.size()) {
+            const char c = text_[pos_];
+            if (c != ' ' && c != '\t' && c != '\r' && c != '\n') break;
+            ++pos_;
+        }
     }
 
     bool consume(char expected) {
