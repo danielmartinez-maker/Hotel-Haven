@@ -34,6 +34,24 @@ PROFILE_FACE_BUDGETS = {
     'P_CHARACTER': 2500,
 }
 
+# The master gameplay-asset manifest explicitly says placement authority lives
+# in the owning gameplay systems rather than this art-production metadata.
+# These pieces share furniture/prefab production profiles for LOD/collision,
+# but are visually mounted to walls, ceilings, or secondary surfaces. Floor-Z
+# contact would therefore be a false-positive QA requirement for them.
+CONTEXTUAL_PLACEMENT_OVERRIDES = {
+    'HH_A153': 'wall-mounted television',
+    'HH_A165': 'hanging bathrobe',
+    'HH_A175': 'wall towel shelf',
+    'HH_A177': 'wall sconce',
+    'HH_A179': 'wall-mounted hair dryer',
+    'HH_A204': 'ceiling chandelier',
+    'HH_A221': 'front-desk computer placed on counter',
+    'HH_A238': 'wall/lobby clock',
+    'HH_A371': 'presentation screen',
+    'HH_A372': 'conference whiteboard',
+}
+
 
 def manifest_rows(manifest_dir: Path):
     out = {}
@@ -123,6 +141,8 @@ def placement_failures(
     bounds_min,
     bounds_max,
 ) -> list[str]:
+    if asset_id in CONTEXTUAL_PLACEMENT_OVERRIDES:
+        return []
     if pivot_profile in {'contextual', 'contextual_architecture'}:
         return []
     if pivot_profile not in {'floor_contact_center', 'feet_midpoint'}:
@@ -185,6 +205,8 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
         f'- Interaction anchors normalized: **{anchor_bindings} / {expected_anchor_bindings}**',
         f'- Profile contract conformance: **{contract_status}** with **{contract_failures}** failures',
         f'- Placement/pivot QC: **{placement_status}** with **{placement_failure_count}** failures',
+        f'- Contextual placement exceptions: **{report.get("contextual_placement_override_count", 0)}** documented assets',
+        f'- Floor-support hardening applied: **{summary.get("floor_support_assets_hardened", 0)}** generated assets',
         f'- Mechanical animation coverage: **{summary.get("mechanical_clips", 0)} clips / {summary.get("mechanical_sets", 0)} sets**',
         f'- Humanoid animation coverage: **{summary.get("humanoid_clips", 0)} clips / {summary.get("humanoid_sets", 0)} sets / {summary.get("humanoid_skeletons", 0)} skeletons**',
         f'- Geometry QC: **{qc_status}** with **{qc_failures}** failures',
@@ -383,6 +405,7 @@ def validate(repo_root: Path) -> dict:
             f'PBR palette has only {len(unique_colors)} unique RGB colors; expected at least 12'
         )
 
+    contextual_overrides = sorted(set(manifests) & set(CONTEXTUAL_PLACEMENT_OVERRIDES))
     report = {
         'schema': 1,
         'status': 'PASS' if not failures else 'FAIL',
@@ -393,6 +416,11 @@ def validate(repo_root: Path) -> dict:
         'profile_contract_failures': contract_failure_details,
         'placement_failure_count': len(placement_failure_details),
         'placement_failures': placement_failure_details,
+        'contextual_placement_override_count': len(contextual_overrides),
+        'contextual_placement_overrides': {
+            asset_id: CONTEXTUAL_PLACEMENT_OVERRIDES[asset_id]
+            for asset_id in contextual_overrides
+        },
         'interaction_anchor_bindings': anchor_bindings,
         'expected_interaction_anchor_bindings': expected_anchor_bindings,
         'max_faces': max((item['faces'] for item in stats), default=0),
