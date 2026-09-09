@@ -6,6 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -82,15 +84,29 @@ std::vector<std::byte> makeMeshGlb(float alpha) {
   return glb;
 }
 
-std::vector<std::byte> makeHasset(const std::string& id, float alpha = 1.0f) {
+std::vector<std::byte> makeHasset(
+    const std::string& id,
+    float alpha = 1.0f,
+    hh::assets::AssetType type = hh::assets::AssetType::StaticMesh) {
   hh::assets::HassetDocument document;
-  document.type = hh::assets::AssetType::StaticMesh;
+  document.type = type;
   document.asset_id = id;
   document.fingerprint = "runtime-world-test";
   document.source_path = "Art/Exports/" + id + ".glb";
   document.sidecar_path = "Art/Exports/" + id + ".asset.json";
   document.payload = makeMeshGlb(alpha);
   return hh::assets::serialize_hasset(document);
+}
+
+void writeBytes(const std::filesystem::path& path,
+                const std::vector<std::byte>& bytes) {
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  if (!output)
+    throw std::runtime_error("cannot create runtime test asset");
+  output.write(reinterpret_cast<const char*>(bytes.data()),
+               static_cast<std::streamsize>(bytes.size()));
+  if (!output)
+    throw std::runtime_error("cannot write runtime test asset");
 }
 
 } // namespace
@@ -120,6 +136,29 @@ int main() {
             "alpha material did not mark world asset translucent");
     require(assets.pottedPlant->handle == registry.resolve("HH_A396"),
             "potted plant handle mismatch");
+
+    const auto root = std::filesystem::temp_directory_path() /
+                      "hotel-haven-runtime-world-assets";
+    std::filesystem::remove_all(root);
+    std::filesystem::create_directories(root);
+    for (const char* id : ids) {
+      writeBytes(root / (std::string(id) + ".hasset"),
+                 makeHasset(id, std::string(id) == "HH_A171" ? 0.55f : 1.0f));
+    }
+    writeBytes(root / "HH_A451.hasset",
+               makeHasset("HH_A451", 1.0f, hh::assets::AssetType::SkinnedMesh));
+
+    hh::renderer::RuntimeAssetRegistry startupRegistry;
+    const hh::client::WorldAssetSet startupAssets =
+        hh::client::loadWorldAssetsFromDirectory(startupRegistry, root);
+    require(startupRegistry.size() == 10u,
+            "startup did not load the complete cooked asset directory");
+    require(startupAssets.guestBed->handle == startupRegistry.resolve("HH_A113"),
+            "startup asset set did not bind guest bed handle");
+    require(startupRegistry.resolve("HH_A451").value < startupRegistry.size(),
+            "startup rejected a cooked skinned bind-pose mesh");
+    std::filesystem::remove_all(root);
+
     std::cout << "Runtime registry world asset bridge passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

@@ -104,6 +104,16 @@ TEST_CASE("runtime asset registry resolves cooked static meshes to stable handle
     EXPECT_EQ(registry.asset(handle).mesh.primitives.size(), 1u);
 }
 
+TEST_CASE("runtime asset registry accepts cooked skinned meshes as bind pose meshes") {
+    hh::renderer::RuntimeAssetRegistry registry;
+    const auto handle = registry.addHasset(makeHasset("HH_A451", hh::assets::AssetType::SkinnedMesh));
+
+    EXPECT_EQ(registry.size(), 1u);
+    EXPECT_EQ(registry.asset(handle).assetId, std::string("HH_A451"));
+    EXPECT_EQ(registry.asset(handle).assetType, hh::assets::AssetType::SkinnedMesh);
+    EXPECT_EQ(registry.asset(handle).mesh.primitives.size(), 1u);
+}
+
 TEST_CASE("runtime asset registry rejects duplicate asset IDs") {
     hh::renderer::RuntimeAssetRegistry registry;
     (void)registry.addHasset(makeHasset("HH_A001", hh::assets::AssetType::StaticMesh));
@@ -116,7 +126,7 @@ TEST_CASE("runtime asset registry rejects duplicate asset IDs") {
     EXPECT_TRUE(threw);
 }
 
-TEST_CASE("runtime asset registry rejects cooked non-static assets") {
+TEST_CASE("runtime asset registry rejects cooked non-mesh assets") {
     hh::renderer::RuntimeAssetRegistry registry;
     bool threw = false;
     try {
