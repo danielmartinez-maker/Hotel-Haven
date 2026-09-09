@@ -181,6 +181,8 @@ def normalize_success_response(request: dict[str, Any], assignments: list[dict[s
         "optimization_epoch": int(request["optimization_epoch"]),
         "simulation_second": int(request["simulation_second"]),
         "snapshot_fingerprint": int(request["snapshot_fingerprint"]),
+        "bucket_minutes": int(request["bucket_minutes"]),
+        "horizon_buckets": int(request["horizon_buckets"]),
         "source": "cuopt",
         "assignments": ordered_assignments,
         "station_coverage": ordered_station_coverage,
