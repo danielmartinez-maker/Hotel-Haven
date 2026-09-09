@@ -61,6 +61,17 @@ HH_TEST("validate accepts exports directory and rejects invalid metadata") {
     write_text(root / "Art/Exports/bad.glb", "bad"); write_text(root / "Art/Exports/bad.glb.asset.json", text);
     HH_REQUIRE(run({"validate", "Art/Exports"}, out, err) != 0);
 }
+HH_TEST("validate rejects missing source and export payload files") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a"); CurrentPathGuard guard; fs::current_path(root);
+    std::string out, err;
+
+    fs::remove(root / "Art/Source/a.blend");
+    HH_REQUIRE(run({"validate", "Art/Exports"}, out, err) != 0);
+
+    write_text(root / "Art/Source/a.blend", "source-asset.a");
+    fs::remove(root / "Art/Exports/a.glb");
+    HH_REQUIRE(run({"validate", "Art/Exports"}, out, err) != 0);
+}
 HH_TEST("inspect and deps produce deterministic useful output") {
     const auto root = make_repo(); add_asset(root, "asset.b", "b"); add_asset(root, "asset.a", "a", "[\"asset.b\"]");
     CurrentPathGuard guard; fs::current_path(root); std::string out1, out2, err;
