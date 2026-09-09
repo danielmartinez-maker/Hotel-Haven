@@ -89,7 +89,9 @@ double staffFatigueLoad(const hh::game::SimulationView &view) {
   return count ? total / static_cast<double>(count) : 0.0;
 }
 double excessWaitMinutes(const hh::game::SimulationView &view) {
-  constexpr int acceptableWaitSeconds = 5 * 60;
+  // Keep the Balance Lab service-wait objective aligned with the simulation's
+  // authoritative guest satisfaction penalty threshold.
+  constexpr int acceptableWaitSeconds = 8 * 60;
   double totalSeconds = 0.0;
   for (const auto &person : view.people)
     if (person.kind == hh::game::PersonKind::Guest)
