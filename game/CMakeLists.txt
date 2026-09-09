@@ -7,6 +7,7 @@ add_library(hh_game
   src/Logistics.cpp
   src/Engineering.cpp
   src/RoomService.cpp
+  src/ServiceLogistics.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)

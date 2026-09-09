@@ -49,6 +49,8 @@ public:
   [[nodiscard]] RoomServiceSnapshot snapshot() const;
 
 private:
+  friend class ServiceLogisticsRuntime;
+
   struct ActiveOrder {
     RoomServiceOrderId id{};
     GuestId guestId{};

@@ -47,6 +47,8 @@ public:
   [[nodiscard]] LaundrySnapshot snapshot() const;
 
 private:
+  friend class ServiceLogisticsRuntime;
+
   struct Batch {
     LaundryBatchId id{};
     int quantity{};

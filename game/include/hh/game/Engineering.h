@@ -44,6 +44,8 @@ public:
   [[nodiscard]] EngineeringSnapshot snapshot() const;
 
 private:
+  friend class ServiceLogisticsRuntime;
+
   struct Asset {
     AssetId id{};
     int condition{10000};

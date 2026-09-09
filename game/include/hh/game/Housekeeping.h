@@ -43,6 +43,8 @@ public:
   [[nodiscard]] HousekeepingSnapshot snapshot() const;
 
 private:
+  friend class ServiceLogisticsRuntime;
+
   struct RoomState { RoomId id{}; ServiceRoomStatus status{ServiceRoomStatus::Ready}; };
   struct Job {
     TaskId id{};

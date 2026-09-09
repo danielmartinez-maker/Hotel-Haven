@@ -128,6 +128,8 @@ public:
   [[nodiscard]] LogisticsSnapshot snapshot() const;
 
 private:
+  friend class ServiceLogisticsRuntime;
+
   struct StorageNode {
     StorageNodeId id{};
     StorageKind kind{StorageKind::CentralStorage};
