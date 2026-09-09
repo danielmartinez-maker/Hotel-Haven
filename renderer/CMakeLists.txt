@@ -100,6 +100,9 @@ add_custom_command(TARGET hotel_haven_renderer_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders/InstancedBox.hlsl"
         "$<TARGET_FILE_DIR:hotel_haven_renderer_demo>/shaders/InstancedBox.hlsl"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/Mesh.hlsl"
+        "$<TARGET_FILE_DIR:hotel_haven_renderer_demo>/shaders/Mesh.hlsl"
 )
 
 add_executable(hh_renderer_tests
