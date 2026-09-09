@@ -101,3 +101,19 @@ def test_storage_and_amenity_casegoods_have_readable_feature_nodes():
     for name, expected in cases.items():
         nodes = set(mod.build(name, 'MAT_WOOD_WARM').graph.nodes_geometry)
         assert expected <= nodes, f'{name}: missing {sorted(expected - nodes)}'
+
+
+def test_floor_contact_profiles_reach_the_placement_plane():
+    floor_profiles = {
+        'P_FURNITURE_STATIC',
+        'P_INTERACTIVE_PREFAB',
+        'P_INTERACTIVE_ANIMATED',
+        'P_SERVICE_PROP_ANIMATED',
+    }
+    for asset_id, name, _subcategory, material, profile, _animset, _anchors in rows():
+        if profile not in floor_profiles:
+            continue
+        scene = mod.build(name, material)
+        assert scene.bounds is not None
+        floor_z = float(scene.bounds[0][2])
+        assert floor_z <= 0.12, f'{asset_id} {name}: floor_z={floor_z:.3f}m'
