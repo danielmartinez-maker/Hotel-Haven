@@ -23,6 +23,10 @@ ValidationResult validatePlan(const OptimizerSnapshot& snapshot, const Scheduler
     if (plan.snapshotFingerprint != snapshotFingerprint(snapshot)) fail("snapshot fingerprint mismatch");
     if (plan.bucketMinutes <= 0) fail("plan bucket size must be positive");
     if (plan.horizonBuckets <= 0) fail("plan horizon must be positive");
+    if (plan.source == PlanSource::CuOpt &&
+        (plan.bucketMinutes != kLivePlanningBucketMinutes || plan.horizonBuckets != kLivePlanningHorizonBuckets)) {
+        fail("cuOpt plan planning window mismatch");
+    }
 
     const std::int64_t bucketSeconds = plan.bucketMinutes > 0
         ? static_cast<std::int64_t>(plan.bucketMinutes) * 60
