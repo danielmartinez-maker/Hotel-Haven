@@ -31,9 +31,10 @@ if(WIN32)
     add_custom_command(TARGET hotel_haven POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:hotel_haven>/shaders"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/renderer/shaders/InstancedBox.hlsl" "$<TARGET_FILE_DIR:hotel_haven>/shaders/InstancedBox.hlsl"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/renderer/shaders/Mesh.hlsl" "$<TARGET_FILE_DIR:hotel_haven>/shaders/Mesh.hlsl"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/game/data" "$<TARGET_FILE_DIR:hotel_haven>/data")
     install(TARGETS hotel_haven RUNTIME DESTINATION .)
-    install(FILES renderer/shaders/InstancedBox.hlsl DESTINATION shaders)
+    install(FILES renderer/shaders/InstancedBox.hlsl renderer/shaders/Mesh.hlsl DESTINATION shaders)
 endif()
 install(DIRECTORY game/data/ DESTINATION data)
 install(FILES README.md docs/IMPLEMENTATION_STATUS.md DESTINATION .)
