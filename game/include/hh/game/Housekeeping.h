@@ -38,6 +38,8 @@ public:
   void registerRoom(RoomId room, ServiceRoomStatus status = ServiceRoomStatus::Ready);
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
   [[nodiscard]] ServiceRoomStatus roomStatus(RoomId room) const;
+  [[nodiscard]] TaskId latestJob(RoomId room) const;
+  [[nodiscard]] ServiceWorkResult workSecond(TaskId job);
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
   [[nodiscard]] HousekeepingSnapshot snapshot() const;
@@ -57,6 +59,8 @@ private:
 
   [[nodiscard]] RoomState *room(RoomId id);
   [[nodiscard]] const RoomState *room(RoomId id) const;
+  [[nodiscard]] Job *job(TaskId id);
+  [[nodiscard]] const Job *job(TaskId id) const;
   [[nodiscard]] bool beginStage(Job &job);
   void completeStage(Job &job);
   [[nodiscard]] static int duration(HousekeepingStage stage);
