@@ -119,6 +119,69 @@ jobs:
       - name: Fuzz malformed metadata through sanitized CLI
         run: python Tools/QA/fuzz_content_pipeline.py build/content-sanitize/asset --cases 300 --seed 1212233285
 
+  libfuzzer-content:
+    name: Clang libFuzzer parser campaign
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+      ASAN_OPTIONS: abort_on_error=1:detect_leaks=1:strict_string_checks=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure coverage-guided fuzz targets
+        run: >-
+          cmake -S Tools/ContentPipeline -B build/libfuzz
+          -DCMAKE_BUILD_TYPE=Debug
+          -DHH_ENABLE_LIBFUZZER=ON
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build parser fuzz targets
+        run: cmake --build build/libfuzz --parallel 2 --target hh_json_fuzzer hh_hasset_fuzzer
+      - name: Seed parser corpora
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/fuzz-corpus/json build/fuzz-corpus/hasset
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+
+          json_dir = Path('build/fuzz-corpus/json')
+          seeds = [
+              b'{}',
+              b'[]',
+              b'{"schema":1,"asset_id":"seed","dependencies":[]}',
+              b'"\\uD83D\\uDE00"',
+              '"caf\u00e9 \U0001f600"'.encode('utf-8'),
+              b'[null,true,false,-1.25e3,{"x":[1,2,3]}]',
+          ]
+          for index, seed in enumerate(seeds):
+              (json_dir / f'seed-{index}').write_bytes(seed)
+
+          def s(value: bytes) -> bytes:
+              return struct.pack('<I', len(value)) + value
+
+          hasset = bytearray(b'HHASSET\x00')
+          hasset += struct.pack('<II', 1, 0)
+          hasset += s(b'asset.seed')
+          hasset += s(b'0' * 64)
+          hasset += struct.pack('<I', 0)
+          hasset += s(b'Art/Source/seed.blend')
+          hasset += s(b'Art/Exports/seed.glb.asset.json')
+          hasset += struct.pack('<Q', 0)
+          Path('build/fuzz-corpus/hasset/valid-seed').write_bytes(hasset)
+          Path('build/fuzz-corpus/hasset/truncated-seed').write_bytes(hasset[:20])
+          PY
+      - name: Run JSON libFuzzer campaign
+        run: >-
+          build/libfuzz/hh_json_fuzzer build/fuzz-corpus/json
+          -runs=25000 -max_len=4096 -timeout=5 -rss_limit_mb=1024 -print_final_stats=1
+      - name: Run hasset libFuzzer campaign
+        run: >-
+          build/libfuzz/hh_hasset_fuzzer build/fuzz-corpus/hasset
+          -runs=25000 -max_len=4096 -timeout=5 -rss_limit_mb=1024 -print_final_stats=1
+
   clang-content:
     name: Clang content portability 50x
     runs-on: ubuntu-latest
