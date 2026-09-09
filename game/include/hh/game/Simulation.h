@@ -22,6 +22,10 @@ enum class InfrastructureKind;
 struct BuildingSystemsSnapshot;
 struct RoomSaleValidation;
 struct ElevatorSpec;
+struct GuestPsychologySnapshot;
+struct GuestOpportunitySnapshot;
+struct GoalSelection;
+struct SatisfactionBreakdown;
 
 struct Position {
   int floor{};
@@ -316,6 +320,13 @@ public:
   CommandResult requestElevator(EntityId elevatorId, int pickupFloor,
                                 int destinationFloor);
   [[nodiscard]] BuildingSystemsSnapshot buildingSystemsSnapshot() const;
+
+  [[nodiscard]] GuestPsychologySnapshot guestPsychology(EntityId guestId) const;
+  [[nodiscard]] GoalSelection
+  chooseGuestGoal(EntityId guestId,
+                  const GuestOpportunitySnapshot &opportunities) const;
+  [[nodiscard]] SatisfactionBreakdown
+  finalizeStaySatisfaction(EntityId guestId) const;
 
   void step(double seconds);
 
