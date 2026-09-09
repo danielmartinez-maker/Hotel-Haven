@@ -73,6 +73,10 @@ def bed(name):
     for x in (-w*0.24,w*0.24):
         add(s, box((w*0.34,0.34,0.10),(x,l*0.30,h+0.17),'MAT_LINEN'), f'Pillow_{x}')
     add(s, box((w*0.92,l*0.43,0.06),(0,-l*0.20,h+0.16),'MAT_LINEN'), 'DuvetFold')
+    if 'Rollaway' not in name and 'Four Poster' not in name:
+        support_h = max(0.04, h - 0.29)
+        for i,(x,y) in enumerate(((-w*0.40,-l*0.40),(w*0.40,-l*0.40),(-w*0.40,l*0.40),(w*0.40,l*0.40))):
+            add(s, box((0.075,0.075,support_h),(x,y,support_h/2),'MAT_WOOD_DARK'), f'BedLeg_{i}')
     if 'Four Poster' in name:
         for x in (-w/2+0.05,w/2-0.05):
             for y in (-l/2+0.05,l/2-0.05):
@@ -84,7 +88,7 @@ def bed(name):
     if 'Rollaway' in name:
         for x in (-w*0.35,w*0.35):
             for y in (-l*0.38,l*0.38):
-                add(s, cyl(0.05,0.04,(x,y,0.05),'MAT_STAINLESS',12), f'Caster_{x}_{y}')
+                add(s, cyl(0.05,0.10,(x,y,0.05),'MAT_STAINLESS',12), f'Caster_{x}_{y}')
         add(s, box((w*0.72,0.05,0.30),(0,l/2+0.02,0.48),'MAT_STAINLESS'), 'FoldHandle')
     return s
 
@@ -98,6 +102,8 @@ def crib():
     for y in (-l/2,l/2):
         add(s, box((w,0.06,0.72),(0,y,0.72),'MAT_WOOD_WARM'), f'End_{y}')
     add(s, box((w*0.88,l*0.85,0.12),(0,0,0.48),'MAT_LINEN'), 'Mattress')
+    for i,(x,y) in enumerate(((-w*0.38,-l*0.38),(w*0.38,-l*0.38),(-w*0.38,l*0.38),(w*0.38,l*0.38))):
+        add(s, box((0.055,0.055,0.33),(x,y,0.165),'MAT_WOOD_DARK'), f'CribLeg_{i}')
     return s
 
 
@@ -134,7 +140,7 @@ def case_piece(name, material):
             add(s, box((w+0.10,d+0.04,0.10),(0,0,0.05),'MAT_WOOD_DARK'), 'ArmoirePlinth')
     elif 'Refrigerator' in name:
         add(s, box((w*0.94,0.03,h*0.92),(0,-d/2-0.015,h*0.52),'MAT_STAINLESS'), 'FridgeDoor')
-        add(s, box((0.035,0.035,h*0.46),(w*0.35,-d/2-0.045,h*0.55),'MAT_BLACKENED_STEEL' if 'MAT_BLACKENED_STEEL' in PALETTE else 'MAT_ELECTRONICS'), 'FridgeHandle')
+        add(s, box((0.035,0.035,h*0.46),(w*0.35,-d/2-0.045,h*0.55),'MAT_ELECTRONICS'), 'FridgeHandle')
     elif 'Safe' in name:
         add(s, box((w*0.82,0.03,h*0.72),(0,-d/2-0.016,h*0.55),'MAT_STAINLESS'), 'SafeDoor')
         add(s, box((0.16,0.025,0.14),(w*0.22,-d/2-0.035,h*0.58),'MAT_ELECTRONICS'), 'Keypad')
@@ -154,9 +160,9 @@ def case_piece(name, material):
     else:
         drawers = 2 if 'Drawer Nightstand' in name else 3 if 'Dresser Three' in name else 6 if 'Dresser Six' in name else 0
         if drawers:
-            rows = 3 if drawers >= 3 else drawers
+            row_count = 3 if drawers >= 3 else drawers
             cols = 2 if drawers == 6 else 1
-            for r in range(rows):
+            for r in range(row_count):
                 for c in range(cols):
                     dw = w*0.42 if cols == 2 else w*0.86
                     x = (-w*0.23 if c == 0 else w*0.23) if cols == 2 else 0
@@ -221,6 +227,9 @@ def sofa(name):
     seats = 2 if 'Two Seat' in name else 3
     for i,x in enumerate(np.linspace(-w*0.30,w*0.30,seats)):
         add(s,box((w/seats*0.78,d*0.72,0.12),(x,-0.02,h+0.12),'MAT_UPHOLSTERY'),f'Cushion_{i}')
+    leg_h = h - 0.09
+    for i,(x,y) in enumerate(((-w*0.40,-d*0.34),(w*0.40,-d*0.34),(-w*0.40,d*0.34),(w*0.40,d*0.34))):
+        add(s,box((0.075,0.075,leg_h),(x,y,leg_h/2),'MAT_WOOD_DARK'),f'SofaLeg_{i}')
     return s
 
 
@@ -259,6 +268,7 @@ def television(name):
         add(s,box((0.45,0.25,0.06),(0,0,0.03),'MAT_STAINLESS'),'Base')
     else:
         add(s,box((0.48,0.05,0.12),(0,0,0.34),'MAT_STAINLESS'),'WallBracket')
+        add(s,box((0.08,0.035,0.55),(0,0.04,0.275),'MAT_ELECTRONICS'),'CableChase')
     return s
 
 
@@ -332,8 +342,8 @@ def make_sidecar(asset_id, subcategory, material, animset):
         'tags':tags,
         'dependencies':[animset] if animset else [],
         'cutaway_policy':'normal',
-        'source_revision':2,
-        'metadata_revision':2,
+        'source_revision':3,
+        'metadata_revision':3,
         'cooker_schema':1,
         'lifecycle_state':'PRODUCTION',
     }
