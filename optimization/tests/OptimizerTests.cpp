@@ -77,7 +77,7 @@ void testPlanValidatorRejectsStaleAndOverlappingPlans() {
     SchedulerPlan stale{};
     stale.optimizationEpoch = snapshot.optimizationEpoch;
     stale.snapshotFingerprint = snapshotFingerprint(snapshot) + 1;
-    stale.assignments.push_back(Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 2});
+    stale.assignments.push_back(Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 3});
     check(!validatePlan(snapshot, stale).ok, "stale plan fingerprint must be rejected");
 
     snapshot.tasks.push_back(Task{.id = 101, .state = TaskState::Ready, .priority = 60, .deadlineSecond = 51'000, .estimatedWorkSeconds = 600});
@@ -86,7 +86,7 @@ void testPlanValidatorRejectsStaleAndOverlappingPlans() {
     overlap.optimizationEpoch = snapshot.optimizationEpoch;
     overlap.snapshotFingerprint = snapshotFingerprint(snapshot);
     overlap.assignments = {
-        Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 2},
+        Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 3},
         Assignment{.taskId = 101, .employeeId = 10, .startBucket = 1, .durationBuckets = 2},
     };
     check(!validatePlan(snapshot, overlap).ok, "overlapping employee assignments must be rejected");
@@ -98,9 +98,38 @@ void testPlanValidatorRejectsTaskStationOverlap() {
     SchedulerPlan plan{};
     plan.optimizationEpoch = snapshot.optimizationEpoch;
     plan.snapshotFingerprint = snapshotFingerprint(snapshot);
-    plan.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 2}};
+    plan.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 3}};
     plan.stationAssignments = {StationAssignment{.stationId = 300, .employeeId = 10, .bucket = 1}};
     check(!validatePlan(snapshot, plan).ok, "employee cannot cover a station while executing a task");
+}
+
+void testPlanValidatorRejectsUndersizedAndOutOfHorizonAssignments() {
+    using namespace hh::optimization;
+    auto snapshot = baseSnapshot();
+
+    SchedulerPlan undersized{};
+    undersized.optimizationEpoch = snapshot.optimizationEpoch;
+    undersized.snapshotFingerprint = snapshotFingerprint(snapshot);
+    undersized.bucketMinutes = 5;
+    undersized.horizonBuckets = 12;
+    undersized.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 1}};
+    check(!validatePlan(snapshot, undersized).ok, "plan must reject task intervals shorter than travel plus work time");
+
+    SchedulerPlan outsideHorizon{};
+    outsideHorizon.optimizationEpoch = snapshot.optimizationEpoch;
+    outsideHorizon.snapshotFingerprint = snapshotFingerprint(snapshot);
+    outsideHorizon.bucketMinutes = 5;
+    outsideHorizon.horizonBuckets = 3;
+    outsideHorizon.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 1, .durationBuckets = 3}};
+    check(!validatePlan(snapshot, outsideHorizon).ok, "plan must reject task intervals outside the declared horizon");
+
+    SchedulerPlan valid{};
+    valid.optimizationEpoch = snapshot.optimizationEpoch;
+    valid.snapshotFingerprint = snapshotFingerprint(snapshot);
+    valid.bucketMinutes = 5;
+    valid.horizonBuckets = 12;
+    valid.assignments = {Assignment{.taskId = 100, .employeeId = 10, .startBucket = 0, .durationBuckets = 3}};
+    check(validatePlan(snapshot, valid).ok, "three five-minute buckets must cover a 720-second travel-plus-work assignment");
 }
 
 void testMilpRequestIncludesStationCoverageAndClampsOverdueDeadline() {
@@ -138,6 +167,7 @@ int main() {
     testFallbackUsesPriorityEligibilityAndStableTieBreak();
     testPlanValidatorRejectsStaleAndOverlappingPlans();
     testPlanValidatorRejectsTaskStationOverlap();
+    testPlanValidatorRejectsUndersizedAndOutOfHorizonAssignments();
     testMilpRequestIncludesStationCoverageAndClampsOverdueDeadline();
     testMilpRequestIsDeterministicAndDeclaresLexicographicObjectives();
     if (failures != 0) {
