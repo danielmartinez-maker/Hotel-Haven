@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <cmath>
+#include <stdexcept>
 
 namespace hh::game {
 namespace {
@@ -97,6 +98,92 @@ std::uint64_t mix(std::uint64_t value) noexcept {
   value = (value ^ (value >> 27)) * 0x94d049bb133111ebULL;
   return value ^ (value >> 31);
 }
+
+int clampScore(int value) noexcept { return std::clamp(value, 0, 100); }
+
+void applyHourlyRate(int &score, std::int64_t &remainder, int pointsPerHour,
+                     std::int64_t seconds) noexcept {
+  remainder += static_cast<std::int64_t>(pointsPerHour) * seconds;
+  const auto wholePoints = remainder / 3600;
+  remainder %= 3600;
+  score = clampScore(score + static_cast<int>(wholePoints));
+  if ((score == 0 && remainder < 0) || (score == 100 && remainder > 0))
+    remainder = 0;
+}
+
+int sensitivityBasisPoints(const GuestProfileView &profile,
+                           ExperienceCategory category) noexcept {
+  double sensitivity = profile.serviceSensitivity;
+  switch (category) {
+  case ExperienceCategory::Room:
+    sensitivity = profile.comfortSensitivity;
+    break;
+  case ExperienceCategory::Service:
+  case ExperienceCategory::Convenience:
+  case ExperienceCategory::ArrivalDeparture:
+    sensitivity = profile.serviceSensitivity;
+    break;
+  case ExperienceCategory::Cleanliness:
+    sensitivity = profile.cleanlinessSensitivity;
+    break;
+  case ExperienceCategory::Food:
+    sensitivity = profile.foodSensitivity;
+    break;
+  case ExperienceCategory::Amenities:
+    sensitivity = profile.comfortSensitivity;
+    break;
+  case ExperienceCategory::Quiet:
+    sensitivity = profile.noiseSensitivity;
+    break;
+  case ExperienceCategory::Value:
+    sensitivity = profile.priceSensitivity;
+    break;
+  }
+  return static_cast<int>(std::lround(std::clamp(sensitivity, 0.0, 1.0) * 10000));
+}
+
+ComplaintType complaintTypeFor(ExperienceEventType type) noexcept {
+  switch (type) {
+  case ExperienceEventType::LongCheckInQueue:
+    return ComplaintType::CheckInDelay;
+  case ExperienceEventType::RoomNotReady:
+    return ComplaintType::RoomReadiness;
+  case ExperienceEventType::DirtyBathroom:
+    return ComplaintType::Cleanliness;
+  case ExperienceEventType::BrokenAC:
+    return ComplaintType::Maintenance;
+  case ExperienceEventType::SlowRoomService:
+  case ExperienceEventType::GreatMeal:
+    return ComplaintType::FoodService;
+  case ExperienceEventType::ElevatorDelay:
+    return ComplaintType::ElevatorDelay;
+  case ExperienceEventType::NoiseDisturbance:
+    return ComplaintType::Noise;
+  case ExperienceEventType::StaffRudeness:
+  case ExperienceEventType::StaffExceptionalService:
+    return ComplaintType::StaffConduct;
+  default:
+    return ComplaintType::ServiceFailure;
+  }
+}
+
+ComplaintUrgency urgencyFor(int magnitude) noexcept {
+  if (magnitude >= 80)
+    return ComplaintUrgency::Critical;
+  if (magnitude >= 60)
+    return ComplaintUrgency::High;
+  if (magnitude >= 40)
+    return ComplaintUrgency::Medium;
+  return ComplaintUrgency::Low;
+}
+
+void recalculateOverall(SatisfactionBreakdown &satisfaction) noexcept {
+  const int weighted = satisfaction.room * 28 + satisfaction.service * 24 +
+                       satisfaction.cleanliness * 16 + satisfaction.food * 10 +
+                       satisfaction.amenities * 8 + satisfaction.convenience * 6 +
+                       satisfaction.value * 5 + satisfaction.arrivalDeparture * 3;
+  satisfaction.overall = clampScore((weighted + 50) / 100);
+}
 } // namespace
 
 GuestPsychology::GuestPsychology(std::uint64_t campaignSeed) noexcept
@@ -111,6 +198,165 @@ GuestProfileView GuestPsychology::generateGuestProfile(GuestId guestId) const {
 
 bool GuestPsychology::validProfile(const GuestProfileView &profile) noexcept {
   return detail::validGuestProfile(profile);
+}
+
+void GuestPsychology::initializeGuest(GuestId guestId,
+                                      const GuestProfileView &profile) {
+  if (guestId == 0 || !validProfile(profile))
+    throw std::invalid_argument("guest psychology identity or profile is invalid");
+  Record record;
+  record.snapshot.guestId = guestId;
+  record.snapshot.profile = profile;
+  guests_[guestId] = std::move(record);
+}
+
+std::optional<GuestPsychologySnapshot>
+GuestPsychology::snapshot(GuestId guestId) const {
+  const auto found = guests_.find(guestId);
+  if (found == guests_.end())
+    return std::nullopt;
+  return found->second.snapshot;
+}
+
+void GuestPsychology::updateNeeds(GuestId guestId, std::int64_t seconds,
+                                  bool sleeping) {
+  if (seconds < 0)
+    throw std::invalid_argument("guest need update duration must be non-negative");
+  const auto found = guests_.find(guestId);
+  if (found == guests_.end())
+    throw std::invalid_argument("guest psychology state not found");
+  auto &record = found->second;
+  auto &needs = record.snapshot.needs;
+  auto &remainders = record.needRemainders;
+  const auto flags = record.snapshot.profile.traitFlags;
+  const int socialRate =
+      (flags & guestTraitFlag(GuestTrait::Social))      ? -3
+      : (flags & guestTraitFlag(GuestTrait::Private)) ? -1
+                                                       : 0;
+  if (sleeping) {
+    applyHourlyRate(needs.energy, remainders[0], +22, seconds);
+    applyHourlyRate(needs.hygiene, remainders[2], -2, seconds);
+    return;
+  }
+  applyHourlyRate(needs.energy, remainders[0], -5, seconds);
+  applyHourlyRate(needs.hunger, remainders[1], -10, seconds);
+  applyHourlyRate(needs.hygiene, remainders[2], -2, seconds);
+  applyHourlyRate(needs.social, remainders[5], socialRate, seconds);
+}
+
+void GuestPsychology::recordExperience(GuestId guestId,
+                                       const ExperienceEvent &event) {
+  const auto found = guests_.find(guestId);
+  if (found == guests_.end())
+    throw std::invalid_argument("guest psychology state not found");
+  auto &state = found->second.snapshot;
+  const int impact = std::clamp(event.rawImpact, -100, 100);
+  const int magnitude = std::abs(impact);
+  const auto apply = [&](int &score) { score = clampScore(score + impact); };
+
+  switch (event.category) {
+  case ExperienceCategory::Room:
+    apply(state.satisfaction.room);
+    apply(state.operational.environmentComfort);
+    break;
+  case ExperienceCategory::Service:
+    apply(state.satisfaction.service);
+    apply(state.operational.serviceConfidence);
+    break;
+  case ExperienceCategory::Cleanliness:
+    apply(state.satisfaction.cleanliness);
+    apply(state.operational.cleanlinessConfidence);
+    break;
+  case ExperienceCategory::Food:
+    apply(state.satisfaction.food);
+    break;
+  case ExperienceCategory::Amenities:
+    apply(state.satisfaction.amenities);
+    break;
+  case ExperienceCategory::Quiet:
+    apply(state.satisfaction.noise);
+    apply(state.operational.environmentComfort);
+    break;
+  case ExperienceCategory::Convenience:
+    apply(state.satisfaction.convenience);
+    apply(state.operational.serviceConfidence);
+    break;
+  case ExperienceCategory::Value:
+    apply(state.satisfaction.value);
+    apply(state.operational.valuePerception);
+    break;
+  case ExperienceCategory::ArrivalDeparture:
+    apply(state.satisfaction.arrivalDeparture);
+    apply(state.operational.serviceConfidence);
+    break;
+  }
+  if (event.type == ExperienceEventType::LongCheckInQueue ||
+      event.type == ExperienceEventType::FastCheckIn) {
+    apply(state.satisfaction.checkIn);
+    apply(state.satisfaction.waits);
+  }
+  if (event.type == ExperienceEventType::ElevatorDelay ||
+      event.type == ExperienceEventType::SlowRoomService)
+    apply(state.satisfaction.waits);
+  recalculateOverall(state.satisfaction);
+
+  if (magnitude > 0 && event.memorySalience > 0) {
+    GuestMemory memory;
+    memory.type = event.type;
+    memory.timestampSeconds = event.timestampSeconds;
+    memory.locationId = event.locationId;
+    memory.sourceEntityId = event.sourceEntityId;
+    memory.category = event.category;
+    memory.valence = impact < 0 ? -1 : 1;
+    memory.magnitude = magnitude;
+    memory.salience = std::clamp(event.memorySalience, 0, 10000);
+    memory.halfLifeHours = std::max(0, event.memoryHalfLifeHours);
+    memory.resolved = event.resolved;
+    state.memories.push_back(memory);
+  }
+
+  if (!event.complaintEligible || event.resolved || impact >= 0 ||
+      magnitude < 25)
+    return;
+  const bool sensitivityEligible =
+      sensitivityBasisPoints(state.profile, event.category) >= 5500;
+  const bool traitEligible =
+      (state.profile.traitFlags & guestTraitFlag(GuestTrait::ComplaintProne)) != 0;
+  if (!sensitivityEligible && magnitude < 50 && !traitEligible)
+    return;
+  const bool duplicate = std::any_of(
+      state.complaints.begin(), state.complaints.end(),
+      [&](const Complaint &complaint) {
+        return !complaint.resolved && complaint.sourceEvent == event.type &&
+               complaint.timestampSeconds == event.timestampSeconds &&
+               complaint.locationId == event.locationId &&
+               complaint.sourceEntityId == event.sourceEntityId;
+      });
+  if (duplicate)
+    return;
+  Complaint complaint;
+  complaint.type = complaintTypeFor(event.type);
+  complaint.urgency = urgencyFor(magnitude);
+  complaint.timestampSeconds = event.timestampSeconds;
+  complaint.locationId = event.locationId;
+  complaint.sourceEntityId = event.sourceEntityId;
+  complaint.sourceEvent = event.type;
+  complaint.magnitude = magnitude;
+  state.complaints.push_back(complaint);
+}
+
+double GuestPsychology::memoryContribution(const GuestMemory &memory,
+                                            std::int64_t nowSeconds) noexcept {
+  const auto ageSeconds = std::max<std::int64_t>(0, nowSeconds - memory.timestampSeconds);
+  const double salience = std::clamp(memory.salience, 0, 10000) / 10000.0;
+  double decay = 1.0;
+  if (memory.halfLifeHours > 0) {
+    const double halfLives = static_cast<double>(ageSeconds) /
+                             (static_cast<double>(memory.halfLifeHours) * 3600.0);
+    decay = std::pow(.5, halfLives);
+  }
+  return static_cast<double>(std::clamp(memory.valence, -1, 1)) *
+         std::clamp(memory.magnitude, 0, 100) * salience * decay;
 }
 
 namespace detail {
