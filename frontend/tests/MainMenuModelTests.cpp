@@ -31,6 +31,6 @@ TEST_CASE("valid save enables continue and selects continue") {
 
 TEST_CASE("disabled item cannot become selected") {
     hh::frontend::MainMenuModel model(false);
-    model.select(hh::frontend::MainMenuItem::Continue);
+    static_cast<void>(model.select(hh::frontend::MainMenuItem::Continue));
     EXPECT_EQ(model.selected(), hh::frontend::MainMenuItem::NewHotel);
 }
