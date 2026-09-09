@@ -84,6 +84,7 @@ add_executable(hh_frontend_tests
     tests/MainMenuStressTests.cpp
     tests/MainMenuAcceptanceTests.cpp
     tests/ShowcaseHotelSceneTests.cpp
+    tests/MenuInputTests.cpp
     tests/D2DUiSmokeTests.cpp
     src/ShowcaseHotelScene.cpp
 )
