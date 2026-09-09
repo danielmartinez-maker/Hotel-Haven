@@ -138,6 +138,7 @@ struct GuestProfileView {
   double foodSensitivity{0.5};
   double patience{0.5};
   std::uint32_t traitFlags{};
+  bool operator==(const GuestProfileView &) const = default;
 };
 struct PersonView {
   EntityId id{};
