@@ -19,9 +19,9 @@ std::vector<std::byte> readBinaryFile(const std::filesystem::path& path) {
         throw std::runtime_error("cannot open cooked asset: " + path.string());
     }
 
-    std::vector<char> chars(
-        std::istreambuf_iterator<char>(input),
-        std::istreambuf_iterator<char>());
+    const std::istreambuf_iterator<char> begin(input);
+    const std::istreambuf_iterator<char> end;
+    const std::vector<char> chars(begin, end);
     if (!input.eof() && input.fail()) {
         throw std::runtime_error("failed reading cooked asset: " + path.string());
     }
