@@ -2,7 +2,10 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <stdexcept>
+#include <string>
+#include <vector>
 using namespace hh::client;
 using namespace hh::renderer;
 static void require(bool value, const char *message) {
@@ -23,6 +26,41 @@ bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
 } // namespace
 int main() {
   try {
+    const std::map<std::string, std::uint32_t> expectedIds{
+        {"HH_A030", 30},  {"HH_A113", 113}, {"HH_A121", 121},
+        {"HH_A126", 126}, {"HH_A166", 166}, {"HH_A169", 169},
+        {"HH_A171", 171}, {"HH_A186", 186}, {"HH_A396", 396},
+    };
+    std::vector<std::string> requestedIds;
+    const WorldAssetSet resolved = resolveWorldAssets(
+        [&](std::string_view id) {
+          requestedIds.emplace_back(id);
+          const auto found = expectedIds.find(std::string(id));
+          if (found == expectedIds.end())
+            throw std::runtime_error("unexpected world asset id");
+          return visual(found->second);
+        });
+    require(requestedIds.size() == expectedIds.size(),
+            "startup world asset resolver did not resolve exactly nine assets");
+    require(resolved.straightStair->handle == AssetHandle{30},
+            "straight stair startup binding mismatch");
+    require(resolved.guestBed->handle == AssetHandle{113},
+            "guest bed startup binding mismatch");
+    require(resolved.nightstand->handle == AssetHandle{121},
+            "nightstand startup binding mismatch");
+    require(resolved.guestDesk->handle == AssetHandle{126},
+            "guest desk startup binding mismatch");
+    require(resolved.bathroomVanity->handle == AssetHandle{166},
+            "bathroom vanity startup binding mismatch");
+    require(resolved.bathroomToilet->handle == AssetHandle{169},
+            "bathroom toilet startup binding mismatch");
+    require(resolved.showerGlass->handle == AssetHandle{171},
+            "shower startup binding mismatch");
+    require(resolved.receptionDesk->handle == AssetHandle{186},
+            "reception desk startup binding mismatch");
+    require(resolved.pottedPlant->handle == AssetHandle{396},
+            "potted plant startup binding mismatch");
+
     auto game = hh::game::Simulation::tutorial(19);
     const auto before = game.save();
     const auto snapshot = game.view();
@@ -99,7 +137,7 @@ int main() {
     require(ghost.color.r > ghost.color.g, "invalid preview must be red");
     require(game.save() == before,
             "world rendering mutated authoritative state");
-    std::cout << "World assets, overlays, preview bounds and read-only rendering passed\n";
+    std::cout << "World asset bindings, geometry, overlays and read-only rendering passed\n";
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';
     return 1;
