@@ -48,11 +48,10 @@ void EngineeringSystem::tickSecond() {
     if (order.stage == WorkOrderStage::Completed)
       continue;
     if (!order.partClaimed) {
-      if (logistics_->inventoryUsable("maintenance_part") < 1) {
+      if (!logistics_->consumeUsable("maintenance_part", 1)) {
         order.blockedReason = BlockReason::AwaitingPart;
         continue;
       }
-      logistics_->consumeUsable("maintenance_part", 1);
       order.partClaimed = true;
       order.stage = WorkOrderStage::Working;
       order.blockedReason = BlockReason::None;
