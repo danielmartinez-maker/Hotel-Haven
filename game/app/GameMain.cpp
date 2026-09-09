@@ -84,6 +84,34 @@ std::optional<std::string_view> constructionType(Tool tool) {
   }
 }
 
+std::wstring constructionReasonName(ConstructionReason reason) {
+  switch (reason) {
+  case ConstructionReason::None:
+    return L"OK";
+  case ConstructionReason::OutsideProperty:
+    return L"OutsideProperty";
+  case ConstructionReason::OccupiedFootprint:
+    return L"OccupiedFootprint";
+  case ConstructionReason::InvalidSupport:
+    return L"InvalidSupport";
+  case ConstructionReason::AccessObstructed:
+    return L"AccessObstructed";
+  case ConstructionReason::RoomOccupied:
+    return L"RoomOccupied";
+  case ConstructionReason::InsufficientCash:
+    return L"InsufficientCash";
+  case ConstructionReason::UnknownType:
+    return L"UnknownType";
+  case ConstructionReason::ObjectNotFound:
+    return L"ObjectNotFound";
+  case ConstructionReason::ActiveDependency:
+    return L"ActiveDependency";
+  case ConstructionReason::InvalidCommand:
+    return L"InvalidCommand";
+  }
+  return L"InvalidCommand";
+}
+
 ConstructionCommand constructionCommand(Tool tool, Position position) {
   ConstructionCommand command;
   if (const auto type = constructionType(tool))
@@ -99,16 +127,15 @@ float previewSize(Tool tool) {
   return 1.f;
 }
 
-CommandResult constructionResult(const ConstructionResult &result) {
-  return {result.ok, result.message,
-          result.objectIds.empty() ? 0 : result.objectIds.front()};
-}
-
 CommandResult applyBuildTool(Simulation &simulation, Tool tool,
                              Position position, std::size_t roomCount) {
-  if (constructionType(tool))
-    return constructionResult(
-        simulation.executeConstruction(constructionCommand(tool, position)));
+  if (constructionType(tool)) {
+    BuildPlan plan;
+    plan.construction = constructionCommand(tool, position);
+    plan.workSeconds = 300;
+    const auto queued = simulation.queueBuild(plan);
+    return {queued.ok, queued.message, queued.jobId};
+  }
   if (tool == Tool::Bedroom) {
     RoomBlueprint r;
     r.name =
@@ -352,8 +379,9 @@ void Client::hover(int x, int y) {
       previewCostCents = check.costCents;
       notice = check.valid
                    ? L"Placement preview · " + money(check.costCents) +
-                         L" · click to build"
-                   : wide(check.message);
+                         L" · click to queue build"
+                   : wide(check.message) + L" [" +
+                         constructionReasonName(check.reason) + L"]";
     } else {
       auto preview = simulation;
       const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size());
