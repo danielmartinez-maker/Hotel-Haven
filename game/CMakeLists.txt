@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
   src/Simulation.cpp
+  src/SimulationPsychology.cpp
   src/StaffOptimization.cpp
   src/Construction.cpp
   src/BuildJobs.cpp
