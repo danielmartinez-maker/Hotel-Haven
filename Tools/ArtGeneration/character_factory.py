@@ -68,7 +68,6 @@ def add_lapels(scene,scale,color):
  add(scene,box((.07*scale,.018*scale,.29*scale),(-.075*scale,-.132*scale,1.25*scale),color,'lapel'),'Accessory_Lapel_L','Spine')
  add(scene,box((.07*scale,.018*scale,.29*scale),(.075*scale,-.132*scale,1.25*scale),color,'lapel'),'Accessory_Lapel_R','Spine')
 def add_buttons(scene,scale,color,count=3):
- # Buttons are gameplay-scale accents; tiny icospheres wasted ~320 faces each.
  for i in range(count):
   add(scene,box((.026*scale,.012*scale,.026*scale),(0,-.149*scale,(1.30-i*.09)*scale),color,'button'),f'Accessory_Button_{i}','Spine')
 
@@ -80,6 +79,16 @@ def add_archetype_details(scene,name,index,scale,cloth,pants):
   add(scene,box((.18*scale,.07*scale,.19*scale),(.16*scale,-.16*scale,1.02*scale),COLORS['tan'],'bag'),'Accessory_CrossbodyBag','Spine')
  if 'Business' in name or 'Conference Attendee' in name or 'Manager' in name or 'VIP' in name:
   add_lapels(scene,scale,COLORS['charcoal']);add(scene,box((.055*scale,.018*scale,.32*scale),(0,-.145*scale,1.22*scale),COLORS['gold'],'tie'),'Accessory_Tie','Spine')
+ if 'Business' in name:
+  add(scene,box((.28*scale,.10*scale,.34*scale),(.30*scale,-.02*scale,.62*scale),COLORS['tan'],'briefcase'),'Accessory_Briefcase','Hand_R')
+  add(scene,box((.12*scale,.035*scale,.05*scale),(.30*scale,-.02*scale,.82*scale),COLORS['black'],'briefcase_handle'),'Accessory_BriefcaseHandle','Hand_R')
+ if 'Family Parent' in name:
+  add(scene,box((.28*scale,.12*scale,.34*scale),(-.29*scale,-.01*scale,.72*scale),COLORS['cream'],'family_tote'),'Accessory_FamilyTote','Hand_L')
+  add(scene,box((.035*scale,.05*scale,.38*scale),(-.29*scale,.02*scale,.95*scale),COLORS['tan'],'tote_strap'),'Accessory_FamilyToteStrap','Hand_L')
+ if 'Child' in name:
+  add(scene,box((.27*scale,.12*scale,.34*scale),(0,.15*scale,1.13*scale),COLORS['blue'],'child_pack'),'Accessory_ChildBackpack','Spine')
+  for side,sgn in (('L',-1),('R',1)):
+   add(scene,box((.035*scale,.025*scale,.28*scale),(.10*scale*sgn,-.12*scale,1.19*scale),COLORS['black'],'child_strap'),f'Accessory_ChildPackStrap_{side}','Spine')
  if 'Influencer' in name:
   add(scene,box((.16*scale,.08*scale,.11*scale),(.20*scale,-.20*scale,1.16*scale),COLORS['black'],'camera'),'Accessory_Camera','Spine')
   add(scene,cyl(.025*scale,.20*scale,(.20*scale,-.20*scale,1.30*scale),COLORS['black'],'camera',10),'Accessory_CameraGrip','Spine')
@@ -99,10 +108,8 @@ def add_staff_details(scene,name,scale):
  if 'Receptionist' in name or 'Concierge' in name:
   add_lapels(scene,scale,COLORS['gold']);add(scene,box((.08*scale,.02*scale,.04*scale),(.12*scale,-.145*scale,1.36*scale),COLORS['gold'],'badge'),'Accessory_NameBadge','Chest')
  if 'Receptionist' in name:
-  # A broad folder/tablet silhouette is readable from the management camera and distinguishes desk staff from concierge staff.
   add(scene,box((.23*scale,.055*scale,.31*scale),(.20*scale,-.20*scale,1.08*scale),COLORS['slate'],'folder'),'Accessory_ReceptionFolder','Chest')
  if 'Concierge' in name:
-  # The diagonal hospitality sash is intentionally large enough to read at orthographic gameplay distance.
   sash=box((.075*scale,.022*scale,.52*scale),(0,-.16*scale,1.20*scale),COLORS['gold'],'sash')
   sash.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(25.0),(0,1,0),point=(0,-.16*scale,1.20*scale)))
   add(scene,sash,'Accessory_ConciergeSash','Chest')
@@ -118,8 +125,11 @@ def add_staff_details(scene,name,scale):
   add_lapels(scene,scale,COLORS['white']);add(scene,box((.31*scale,.025*scale,.29*scale),(0,-.145*scale,1.18*scale),COLORS['charcoal'],'vest'),'Accessory_Vest','Spine')
  if 'Maintenance' in name:
   add(scene,box((.42*scale,.018*scale,.06*scale),(0,-.145*scale,1.32*scale),COLORS['orange'],'stripe'),'Accessory_HiVisStripe','Chest');add(scene,box((.38*scale,.05*scale,.08*scale),(0,0,.85*scale),COLORS['black'],'belt'),'Accessory_ToolBelt','Hips')
+  add(scene,box((.15*scale,.08*scale,.21*scale),(.18*scale,-.02*scale,.78*scale),COLORS['tan'],'tool_pouch'),'Accessory_ToolPouch','Hips')
  if 'Security' in name:
   add(scene,box((.10*scale,.025*scale,.14*scale),(.12*scale,-.13*scale,1.36*scale),COLORS['gold'],'badge'),'Accessory_Badge','Chest');add(scene,box((.38*scale,.05*scale,.07*scale),(0,0,.85*scale),COLORS['black'],'belt'),'Accessory_DutyBelt','Hips')
+  add(scene,box((.07*scale,.035*scale,.16*scale),(-.14*scale,-.14*scale,1.34*scale),COLORS['black'],'radio'),'Accessory_Radio','Chest')
+  add(scene,box((.012*scale,.012*scale,.15*scale),(-.14*scale,-.14*scale,1.49*scale),COLORS['black'],'antenna'),'Accessory_RadioAntenna','Chest')
  if 'Manager' in name:
   add_lapels(scene,scale,COLORS['gold']);add(scene,box((.055*scale,.018*scale,.32*scale),(0,-.145*scale,1.22*scale),COLORS['burgundy'],'tie'),'Accessory_ManagerTie','Spine')
 
