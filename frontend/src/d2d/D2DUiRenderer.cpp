@@ -105,12 +105,12 @@ UiRendererResult D2DUiRenderer::createTargetBitmap(IDXGISwapChain* swapChain) {
         return UiRendererResult::failure(hresultMessage("IDXGISwapChain::GetBuffer(IDXGISurface)", surfaceResult));
     }
 
-    const D2D1_BITMAP_PROPERTIES1 properties = D2D1::BitmapProperties1(
+    const D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
         D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
+        D2D1::PixelFormat(DXGI_FORMAT_R8G8B8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
 
     const HRESULT bitmapResult = context_->CreateBitmapFromDxgiSurface(
-        surface.Get(), &properties, target_.GetAddressOf());
+        surface.Get(), &bitmapProperties, target_.GetAddressOf());
     if (FAILED(bitmapResult)) {
         return UiRendererResult::failure(hresultMessage("CreateBitmapFromDxgiSurface", bitmapResult));
     }
@@ -146,7 +146,7 @@ void D2DUiRenderer::drawText(
     if (FAILED(context_->CreateSolidColorBrush(color, brush.GetAddressOf()))) {
         return;
     }
-    context_->DrawTextW(text.c_str(), static_cast<UINT32>(text.size()), format, rect, brush.Get());
+    context_->DrawText(text.c_str(), static_cast<UINT32>(text.size()), format, rect, brush.Get());
 }
 
 UiRendererResult D2DUiRenderer::draw(
@@ -159,11 +159,11 @@ UiRendererResult D2DUiRenderer::draw(
 
     const LayoutMetrics layout = view.layout(frameState.width, frameState.height, frameState.uiScale);
     FontManager fonts;
-    auto brand = fonts.createDisplayFormat(writeFactory_.Get(), 42.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
-    auto property = fonts.createDisplayFormat(writeFactory_.Get(), 30.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
-    auto menu = fonts.createInterfaceFormat(writeFactory_.Get(), 22.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
-    auto small = fonts.createInterfaceFormat(writeFactory_.Get(), 14.0F * layout.logicalScale);
-    if (brand == nullptr || property == nullptr || menu == nullptr || small == nullptr) {
+    auto brandFormat = fonts.createDisplayFormat(writeFactory_.Get(), 42.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
+    auto propertyFormat = fonts.createDisplayFormat(writeFactory_.Get(), 30.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
+    auto menuFormat = fonts.createInterfaceFormat(writeFactory_.Get(), 22.0F * layout.logicalScale, DWRITE_FONT_WEIGHT_SEMI_BOLD);
+    auto smallFormat = fonts.createInterfaceFormat(writeFactory_.Get(), 14.0F * layout.logicalScale);
+    if (brandFormat == nullptr || propertyFormat == nullptr || menuFormat == nullptr || smallFormat == nullptr) {
         return UiRendererResult::failure("DirectWrite font creation failed for all configured fallbacks");
     }
 
@@ -181,11 +181,11 @@ UiRendererResult D2DUiRenderer::draw(
     drawText(L"HOTEL HAVEN",
              D2D1::RectF(layout.navigationLeft, 64.0F * layout.logicalScale,
                          layout.navigationLeft + 430.0F * layout.logicalScale, 125.0F * layout.logicalScale),
-             brand.Get(), kIvory);
+             brandFormat.Get(), kIvory);
     drawText(L"BUILD · MANAGE · BELONG",
              D2D1::RectF(layout.navigationLeft, 126.0F * layout.logicalScale,
                          layout.navigationLeft + 430.0F * layout.logicalScale, 155.0F * layout.logicalScale),
-             small.Get(), kMuted);
+             smallFormat.Get(), kMuted);
 
     float y = layout.navigationTop;
     for (const MainMenuItem item : MainMenuModel::orderedItems()) {
@@ -208,14 +208,14 @@ UiRendererResult D2DUiRenderer::draw(
         drawText(labelFor(item),
                  D2D1::RectF(layout.navigationLeft + shift, y + 9.0F * layout.logicalScale,
                              layout.navigationLeft + layout.navigationWidth, y + itemHeight),
-                 menu.Get(), enabled ? kIvory : kDisabled);
+                 menuFormat.Get(), enabled ? kIvory : kDisabled);
         y += 55.0F * layout.logicalScale;
     }
 
     drawText(widen(frameState.version),
              D2D1::RectF(layout.versionLeft, layout.versionBottom - 28.0F * layout.logicalScale,
                          layout.versionLeft + 250.0F * layout.logicalScale, layout.versionBottom),
-             small.Get(), kMuted);
+             smallFormat.Get(), kMuted);
 
     if (frameState.property != nullptr) {
         const auto card = view.formatProperty(*frameState.property);
@@ -226,13 +226,13 @@ UiRendererResult D2DUiRenderer::draw(
                                         top - 22.0F * layout.logicalScale,
                                         right + 24.0F * layout.logicalScale,
                                         top + 390.0F * layout.logicalScale), kPanel);
-        drawText(widen(card.hotelName), D2D1::RectF(left, top, right, top + 48.0F * layout.logicalScale), property.Get(), kIvory);
-        drawText(widen(card.location), D2D1::RectF(left, top + 48.0F * layout.logicalScale, right, top + 78.0F * layout.logicalScale), small.Get(), kMuted);
+        drawText(widen(card.hotelName), D2D1::RectF(left, top, right, top + 48.0F * layout.logicalScale), propertyFormat.Get(), kIvory);
+        drawText(widen(card.location), D2D1::RectF(left, top + 48.0F * layout.logicalScale, right, top + 78.0F * layout.logicalScale), smallFormat.Get(), kMuted);
         std::wstring stars;
         for (int i = 0; i < 5; ++i) {
             stars += i < card.visualStars ? L"★" : L"☆";
         }
-        drawText(stars, D2D1::RectF(left, top + 80.0F * layout.logicalScale, right, top + 112.0F * layout.logicalScale), menu.Get(), kBrass);
+        drawText(stars, D2D1::RectF(left, top + 80.0F * layout.logicalScale, right, top + 112.0F * layout.logicalScale), menuFormat.Get(), kBrass);
 
         const std::array<std::pair<std::wstring, std::string>, 5> stats{{
             {L"DAY", card.day}, {L"OCCUPANCY", card.occupancy},
@@ -241,8 +241,8 @@ UiRendererResult D2DUiRenderer::draw(
         }};
         float sy = top + 145.0F * layout.logicalScale;
         for (const auto& [label, value] : stats) {
-            drawText(label, D2D1::RectF(left, sy, left + 190.0F * layout.logicalScale, sy + 26.0F * layout.logicalScale), small.Get(), kMuted);
-            drawText(widen(value), D2D1::RectF(left + 180.0F * layout.logicalScale, sy, right, sy + 26.0F * layout.logicalScale), small.Get(), kIvory);
+            drawText(label, D2D1::RectF(left, sy, left + 190.0F * layout.logicalScale, sy + 26.0F * layout.logicalScale), smallFormat.Get(), kMuted);
+            drawText(widen(value), D2D1::RectF(left + 180.0F * layout.logicalScale, sy, right, sy + 26.0F * layout.logicalScale), smallFormat.Get(), kIvory);
             sy += 43.0F * layout.logicalScale;
         }
     }
@@ -254,8 +254,8 @@ UiRendererResult D2DUiRenderer::draw(
         const float top = (frameState.height - h) * 0.5F;
         primitives.fillRect(D2D1::RectF(left, top, left + w, top + h), D2D1::ColorF(0.05F, 0.05F, 0.045F, 0.96F));
         primitives.strokeRect(D2D1::RectF(left, top, left + w, top + h), kBrass, 1.0F);
-        drawText(L"Exit Hotel Haven?", D2D1::RectF(left + 34.0F, top + 30.0F, left + w - 30.0F, top + 78.0F), property.Get(), kIvory);
-        drawText(L"[ EXIT ]    [ CANCEL ]", D2D1::RectF(left + 34.0F, top + 116.0F, left + w - 30.0F, top + 155.0F), menu.Get(), kIvory);
+        drawText(L"Exit Hotel Haven?", D2D1::RectF(left + 34.0F, top + 30.0F, left + w - 30.0F, top + 78.0F), propertyFormat.Get(), kIvory);
+        drawText(L"[ EXIT ]    [ CANCEL ]", D2D1::RectF(left + 34.0F, top + 116.0F, left + w - 30.0F, top + 155.0F), menuFormat.Get(), kIvory);
     }
 
     const HRESULT result = context_->EndDraw();
