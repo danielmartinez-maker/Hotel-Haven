@@ -61,11 +61,14 @@ std::string jsonEscape(std::string_view value) {
   return out.str();
 }
 double guestSatisfaction(const hh::game::SimulationView &view) {
-  if (!view.reviews.empty()) {
+  // Reservation satisfaction is the authoritative 0..100 gameplay value and
+  // includes completed-stay history in SimulationView. Review scores use the
+  // separate 1.0..10.0 presentation scale and must not feed this objective.
+  if (!view.reservations.empty()) {
     double total = 0.0;
-    for (const auto &review : view.reviews)
-      total += review.score;
-    return total / static_cast<double>(view.reviews.size());
+    for (const auto &reservation : view.reservations)
+      total += reservation.satisfaction;
+    return total / static_cast<double>(view.reservations.size());
   }
 
   double total = 0.0;
