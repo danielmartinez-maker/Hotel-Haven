@@ -76,6 +76,21 @@ HH_TEST("hasset serializer rejects absolute provenance paths") {
     try { static_cast<void>(serialize_hasset(document)); } catch (const std::exception&) { threw = true; }
     HH_REQUIRE(threw);
 }
+HH_TEST("hasset serializer rejects Windows rooted provenance on every platform") {
+    constexpr const char* rooted_paths[] = {
+        "\\Art\\Source\\Bed.blend",
+        "\\\\server\\share\\Bed.blend",
+        "C:/work/Art/Source/Bed.blend",
+        "C:\\work\\Art\\Source\\Bed.blend",
+    };
+    for (const char* path : rooted_paths) {
+        auto document = sample();
+        document.source_path = path;
+        bool threw = false;
+        try { static_cast<void>(serialize_hasset(document)); } catch (const std::exception&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
 HH_TEST("hasset serializer rejects provenance traversal") {
     auto document = sample();
     document.source_path = "../outside/Bed.blend";
