@@ -26,6 +26,7 @@ struct GuestPsychologySnapshot;
 struct GuestOpportunitySnapshot;
 struct GoalSelection;
 struct SatisfactionBreakdown;
+struct ExperienceEvent;
 
 struct Position {
   int floor{};
@@ -184,6 +185,7 @@ struct ReservationView {
   bool completed{};
   bool walkedRelocated{};
   GuestProfileView profile;
+  std::string psychologyArchive;
 };
 struct TaskView {
   EntityId id{};
@@ -327,6 +329,8 @@ public:
                   const GuestOpportunitySnapshot &opportunities) const;
   [[nodiscard]] SatisfactionBreakdown
   finalizeStaySatisfaction(EntityId guestId) const;
+  CommandResult recordGuestExperience(EntityId guestId,
+                                      const ExperienceEvent &event);
 
   void step(double seconds);
 
@@ -336,6 +340,9 @@ public:
   static Simulation load(std::string_view data);
 
 private:
+  [[nodiscard]] std::string saveV11() const;
+  static Simulation loadV11(std::string_view data);
+
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
