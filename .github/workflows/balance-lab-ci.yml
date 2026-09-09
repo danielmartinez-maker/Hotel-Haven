@@ -1,0 +1,24 @@
+name: Balance Lab CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Balance Lab
+        working-directory: Tools/BalanceLab
+        run: python -m unittest -v
+      - name: Compile-check Balance Lab
+        working-directory: Tools/BalanceLab
+        run: python -m py_compile balance_lab.py
