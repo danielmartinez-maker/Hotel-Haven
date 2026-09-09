@@ -13,6 +13,9 @@ ComposedScene SceneComposer::compose(
     result.opaque.reserve(scene.items.size());
     result.translucent.reserve(scene.items.size());
     result.wireframe.reserve(scene.items.size());
+    result.opaqueMeshes.reserve(scene.meshes.size());
+    result.translucentMeshes.reserve(scene.meshes.size());
+    result.wireframeMeshes.reserve(scene.meshes.size());
 
     for (const BoxRenderItem& sourceItem : scene.items) {
         const FloorRenderVisibility visibility =
@@ -46,6 +49,41 @@ ComposedScene SceneComposer::compose(
             result.translucent.push_back(composed);
         } else {
             result.opaque.push_back(composed);
+        }
+    }
+
+    for (const MeshRenderItem& sourceItem : scene.meshes) {
+        const FloorRenderVisibility visibility =
+            floorVisibility(sourceItem.floorId, scene.activeFloor, contextMode);
+        if (visibility == FloorRenderVisibility::Hidden) {
+            continue;
+        }
+
+        ComposedMesh composed{sourceItem, false};
+        if (visibility == FloorRenderVisibility::TranslucentShell) {
+            composed.item.tint.a *= 0.25f;
+        }
+
+        if (sourceItem.category == RenderCategory::Wall) {
+            if (wallMode == WallRenderMode::Blueprint) {
+                result.wireframeMeshes.push_back(composed);
+                continue;
+            }
+
+            if (wallMode == WallRenderMode::Cutaway) {
+                composed.cutaway = true;
+            } else if (scene.focusTarget.has_value() &&
+                       segmentIntersectsAabb(cameraWorldPosition,
+                                             *scene.focusTarget,
+                                             sourceItem.bounds)) {
+                composed.cutaway = true;
+            }
+        }
+
+        if (visibility == FloorRenderVisibility::TranslucentShell || sourceItem.translucent) {
+            result.translucentMeshes.push_back(composed);
+        } else {
+            result.opaqueMeshes.push_back(composed);
         }
     }
 
