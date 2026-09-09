@@ -25,6 +25,20 @@ const HousekeepingSystem::RoomState *HousekeepingSystem::room(RoomId id) const {
   return nullptr;
 }
 
+HousekeepingSystem::Job *HousekeepingSystem::job(TaskId id) {
+  for (auto &entry : jobs_)
+    if (entry.id == id)
+      return &entry;
+  return nullptr;
+}
+
+const HousekeepingSystem::Job *HousekeepingSystem::job(TaskId id) const {
+  for (const auto &entry : jobs_)
+    if (entry.id == id)
+      return &entry;
+  return nullptr;
+}
+
 int HousekeepingSystem::duration(HousekeepingStage stage) {
   switch (stage) {
   case HousekeepingStage::StripLinen: return 120;
@@ -43,9 +57,9 @@ TaskId HousekeepingSystem::requestRoomTurn(RoomId roomId) {
   auto *roomState = room(roomId);
   if (!roomState)
     return 0;
-  for (const auto &job : jobs_)
-    if (job.roomId == roomId && job.stage != HousekeepingStage::Completed)
-      return job.id;
+  for (const auto &entry : jobs_)
+    if (entry.roomId == roomId && entry.stage != HousekeepingStage::Completed)
+      return entry.id;
   roomState->status = ServiceRoomStatus::Dirty;
   const auto id = nextId_++;
   jobs_.push_back({id, roomId, HousekeepingStage::StripLinen,
@@ -59,99 +73,114 @@ ServiceRoomStatus HousekeepingSystem::roomStatus(RoomId id) const {
   return entry ? entry->status : ServiceRoomStatus::Blocked;
 }
 
-bool HousekeepingSystem::beginStage(Job &job) {
-  job.blockedReason = BlockReason::None;
-  switch (job.stage) {
+TaskId HousekeepingSystem::latestJob(RoomId roomId) const {
+  for (auto it = jobs_.rbegin(); it != jobs_.rend(); ++it)
+    if (it->roomId == roomId)
+      return it->id;
+  return 0;
+}
+
+bool HousekeepingSystem::beginStage(Job &entry) {
+  entry.blockedReason = BlockReason::None;
+  switch (entry.stage) {
   case HousekeepingStage::StripLinen:
     if (!logistics_->canAddToKind(StorageKind::DirtyLinen, 1)) {
-      job.blockedReason = BlockReason::MissingDirtyStorage;
+      entry.blockedReason = BlockReason::MissingDirtyStorage;
       return false;
     }
     break;
   case HousekeepingStage::CleanBathroom:
     if (!logistics_->consumeUsable("cleaning_chemical", 1)) {
-      job.blockedReason = BlockReason::MissingChemicals;
+      entry.blockedReason = BlockReason::MissingChemicals;
       return false;
     }
     break;
   case HousekeepingStage::ReplaceLinen:
     if (logistics_->inventoryUsable("clean_linen_set") < 1) {
-      job.blockedReason = BlockReason::MissingCleanLinen;
+      entry.blockedReason = BlockReason::MissingCleanLinen;
       return false;
     }
     if (logistics_->inventoryUsable("towel_unit") < 2) {
-      job.blockedReason = BlockReason::MissingTowels;
+      entry.blockedReason = BlockReason::MissingTowels;
       return false;
     }
     if (!logistics_->consumeUsable("clean_linen_set", 1)) {
-      job.blockedReason = BlockReason::MissingCleanLinen;
+      entry.blockedReason = BlockReason::MissingCleanLinen;
       return false;
     }
     if (!logistics_->consumeUsable("towel_unit", 2)) {
-      job.blockedReason = BlockReason::MissingTowels;
+      entry.blockedReason = BlockReason::MissingTowels;
       return false;
     }
     break;
   case HousekeepingStage::ReplenishAmenities:
     if (!logistics_->consumeUsable("amenity_kit", 1)) {
-      job.blockedReason = BlockReason::MissingAmenities;
+      entry.blockedReason = BlockReason::MissingAmenities;
       return false;
     }
     break;
   default:
     break;
   }
-  job.stageStarted = true;
-  if (auto *state = room(job.roomId))
+  entry.stageStarted = true;
+  if (auto *state = room(entry.roomId))
     state->status = ServiceRoomStatus::Turning;
   return true;
 }
 
-void HousekeepingSystem::completeStage(Job &job) {
-  if (job.stage == HousekeepingStage::StripLinen) {
+void HousekeepingSystem::completeStage(Job &entry) {
+  if (entry.stage == HousekeepingStage::StripLinen) {
     if (!logistics_->addToKind(StorageKind::DirtyLinen, "dirty_linen_set", 1)) {
-      job.blockedReason = BlockReason::MissingDirtyStorage;
-      job.stageStarted = false;
-      if (auto *state = room(job.roomId))
+      entry.blockedReason = BlockReason::MissingDirtyStorage;
+      entry.stageStarted = false;
+      if (auto *state = room(entry.roomId))
         state->status = ServiceRoomStatus::Blocked;
       return;
     }
-  } else if (job.stage == HousekeepingStage::CollectTrash) {
+  } else if (entry.stage == HousekeepingStage::CollectTrash) {
     logistics_->produceWaste(1);
   }
 
-  if (job.stage == HousekeepingStage::Inspect) {
-    job.stage = HousekeepingStage::Completed;
-    job.remainingSeconds = 0;
-    job.stageStarted = true;
-    job.blockedReason = BlockReason::None;
-    if (auto *state = room(job.roomId))
+  if (entry.stage == HousekeepingStage::Inspect) {
+    entry.stage = HousekeepingStage::Completed;
+    entry.remainingSeconds = 0;
+    entry.stageStarted = true;
+    entry.blockedReason = BlockReason::None;
+    if (auto *state = room(entry.roomId))
       state->status = ServiceRoomStatus::Ready;
     return;
   }
 
-  job.stage = static_cast<HousekeepingStage>(static_cast<unsigned>(job.stage) + 1U);
-  job.remainingSeconds = duration(job.stage);
-  job.stageStarted = false;
-  job.blockedReason = BlockReason::None;
+  entry.stage = static_cast<HousekeepingStage>(
+      static_cast<unsigned>(entry.stage) + 1U);
+  entry.remainingSeconds = duration(entry.stage);
+  entry.stageStarted = false;
+  entry.blockedReason = BlockReason::None;
 }
 
-void HousekeepingSystem::tickSecond() {
-  ++elapsedSeconds_;
-  for (auto &job : jobs_) {
-    if (job.stage == HousekeepingStage::Completed)
-      continue;
-    if (!job.stageStarted && !beginStage(job)) {
-      if (auto *state = room(job.roomId))
-        state->status = ServiceRoomStatus::Blocked;
-      continue;
-    }
-    if (job.remainingSeconds > 0)
-      --job.remainingSeconds;
-    if (job.remainingSeconds == 0)
-      completeStage(job);
+ServiceWorkResult HousekeepingSystem::workSecond(TaskId id) {
+  auto *entry = job(id);
+  if (!entry)
+    return {};
+  if (entry->stage == HousekeepingStage::Completed)
+    return {true, false, true, BlockReason::None};
+
+  if (!entry->stageStarted && !beginStage(*entry)) {
+    if (auto *state = room(entry->roomId))
+      state->status = ServiceRoomStatus::Blocked;
+    return {true, false, false, entry->blockedReason};
   }
+
+  if (entry->remainingSeconds > 0)
+    --entry->remainingSeconds;
+  if (entry->remainingSeconds == 0)
+    completeStage(*entry);
+
+  const bool completed = entry->stage == HousekeepingStage::Completed;
+  return {true, true, completed, entry->blockedReason};
 }
+
+void HousekeepingSystem::tickSecond() { ++elapsedSeconds_; }
 
 void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
   for (std::int64_t i = 0; i < seconds; ++i)
@@ -161,9 +190,9 @@ void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
 HousekeepingSnapshot HousekeepingSystem::snapshot() const {
   HousekeepingSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
-  for (const auto &job : jobs_)
-    out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
-                        job.blockedReason});
+  for (const auto &entry : jobs_)
+    out.jobs.push_back({entry.id, entry.roomId, entry.stage,
+                        entry.remainingSeconds, entry.blockedReason});
   return out;
 }
 
