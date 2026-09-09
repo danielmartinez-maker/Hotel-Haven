@@ -15,6 +15,7 @@
 #include "hh/renderer/FloorVisibility.h"
 #include "hh/renderer/SceneComposer.h"
 #include "win32/Win32Window.h"
+#include "win32/XInputMenuGamepad.h"
 
 namespace {
 
@@ -182,6 +183,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
     hh::frontend::MainMenuView view;
     hh::frontend::MenuTransitionDirector transitions;
     hh::frontend::MenuSceneController sceneController;
+    hh::frontend::XInputMenuGamepad gamepad;
     sceneController.setReducedMotion(reducedMotion);
     transitions.retarget(model.selected(), reducedMotion);
 
@@ -209,17 +211,21 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         const float elapsedSeconds = std::chrono::duration<float>(now - started).count();
         previous = now;
 
-        if (window.consumeKeyPressed(VK_UP) || window.consumeKeyPressed('W')) {
+        const hh::frontend::MenuInputFrame gamepadInput = gamepad.poll();
+        if (window.consumeKeyPressed(VK_UP) || window.consumeKeyPressed('W') ||
+            gamepadInput.navigationDelta < 0) {
             controller.navigate(-1);
             transitions.retarget(model.selected(), reducedMotion);
         }
-        if (window.consumeKeyPressed(VK_DOWN) || window.consumeKeyPressed('S')) {
+        if (window.consumeKeyPressed(VK_DOWN) || window.consumeKeyPressed('S') ||
+            gamepadInput.navigationDelta > 0) {
             controller.navigate(1);
             transitions.retarget(model.selected(), reducedMotion);
         }
 
         const bool activatePressed =
-            window.consumeKeyPressed(VK_RETURN) || window.consumeKeyPressed(VK_SPACE);
+            window.consumeKeyPressed(VK_RETURN) || window.consumeKeyPressed(VK_SPACE) ||
+            gamepadInput.activate;
         if (activatePressed) {
             if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
                 executeCommand(controller.confirmQuit(), window);
@@ -229,7 +235,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
                 executeCommand(controller.activate(), window);
             }
         }
-        if (window.consumeKeyPressed(VK_ESCAPE)) {
+
+        const bool cancelPressed = window.consumeKeyPressed(VK_ESCAPE) || gamepadInput.cancel;
+        if (cancelPressed) {
             if (!controller.cancel()) {
                 window.setTitle(L"Hotel Haven — Living Hotel Main Menu v0.1");
             }
