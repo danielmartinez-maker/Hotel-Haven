@@ -1,6 +1,8 @@
 #include "hh/game/Simulation.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
+#include <array>
+#include <bit>
 #include <cmath>
 #include <iomanip>
 #include <limits>
@@ -30,20 +32,304 @@ bool passableKind(TileKind kind) {
 }
 struct Room : RoomView {};
 struct Person : PersonView {
-  EntityId reservation{};
   EntityId task{};
   std::int64_t accruedWageUnits{};
 };
 struct Reservation : ReservationView {
-  double satisfaction{70};
   double checkoutCleanliness{100};
   bool arrived{};
 };
+bool reservationFinished(const Reservation &reservation) {
+  return reservation.completed || reservation.walkedRelocated;
+}
 struct Task : TaskView {
   double total{};
   bool resourcesClaimed{};
 };
 struct PendingOrder : SupplyOrderView {};
+
+struct GuestArchetypeDefaults {
+  GuestArchetype archetype;
+  int weight;
+  std::int64_t budgetPerNightCents;
+  double priceSensitivity;
+  double serviceSensitivity;
+  double cleanlinessSensitivity;
+  double noiseSensitivity;
+  double privacySensitivity;
+  double safetySensitivity;
+  double comfortSensitivity;
+  double foodSensitivity;
+  double patience;
+};
+
+constexpr std::array<GuestArchetypeDefaults, 13> guestArchetypeDefaults{{
+    {GuestArchetype::BudgetLeisure, 13, 9000, .90, .45, .55, .40, .35, .55,
+     .55, .45, .55},
+    {GuestArchetype::Backpacker, 8, 7000, .95, .35, .40, .35, .25, .45, .35,
+     .35, .70},
+    {GuestArchetype::BusinessTraveler, 18, 18000, .45, .75, .80, .85, .55,
+     .65, .70, .70, .45},
+    {GuestArchetype::ExecutiveBusiness, 7, 26000, .25, .90, .90, .85, .80,
+     .80, .90, .75, .40},
+    {GuestArchetype::CoupleLeisure, 14, 17000, .55, .60, .70, .65, .60, .65,
+     .75, .70, .65},
+    {GuestArchetype::FamilyLeisure, 12, 19000, .65, .70, .85, .65, .35, .85,
+     .75, .75, .55},
+    {GuestArchetype::LuxuryLeisure, 5, 30000, .20, .95, .95, .85, .90, .90,
+     .98, .90, .45},
+    {GuestArchetype::ConferenceDelegate, 7, 16000, .50, .70, .75, .75, .50,
+     .65, .65, .70, .50},
+    {GuestArchetype::GroupTourTraveler, 5, 11000, .80, .45, .60, .50, .30,
+     .65, .50, .55, .60},
+    {GuestArchetype::AirportTransitTraveler, 4, 13000, .70, .55, .70, .65,
+     .40, .70, .60, .45, .35},
+    {GuestArchetype::WellnessTraveler, 3, 22000, .35, .80, .85, .75, .80,
+     .75, .85, .75, .75},
+    {GuestArchetype::VipCelebrity, 2, 30000, .10, .98, .98, .95, .98, .95,
+     1.0, .90, .25},
+    {GuestArchetype::CriticReviewer, 2, 22000, .35, 1.0, 1.0, .90, .85, .85,
+     .95, .95, .35},
+}};
+constexpr double normalReviewReputationWeight = .15;
+constexpr double criticReviewReputationWeight =
+    normalReviewReputationWeight * 5.0;
+static_assert(criticReviewReputationWeight == .75);
+
+std::uint64_t mixedSeed(std::uint64_t seed, std::uint64_t a,
+                        std::uint64_t b, std::uint64_t c,
+                        std::uint64_t stream = 0) {
+  auto mix = [](std::uint64_t value) {
+    value += 0x9e3779b97f4a7c15ULL;
+    value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    value = (value ^ (value >> 27)) * 0x94d049bb133111ebULL;
+    return value ^ (value >> 31);
+  };
+  return mix(seed ^ mix(a) ^ mix(b + 0x632be59bd9b4e019ULL) ^
+             mix(c + 0x8cb92baa7f3d8dd7ULL) ^ mix(stream));
+}
+
+double randomUnit(std::mt19937_64 &random) {
+  return static_cast<double>(random() >> 11) *
+         (1.0 / static_cast<double>(std::uint64_t{1} << 53));
+}
+
+bool traitConflicts(std::uint32_t flags, GuestTrait candidate) {
+  const auto has = [&](GuestTrait trait) {
+    return (flags & guestTraitFlag(trait)) != 0;
+  };
+  switch (candidate) {
+  case GuestTrait::Patient:
+    return has(GuestTrait::Impatient);
+  case GuestTrait::Impatient:
+    return has(GuestTrait::Patient);
+  case GuestTrait::Neat:
+    return has(GuestTrait::Messy);
+  case GuestTrait::Messy:
+    return has(GuestTrait::Neat);
+  case GuestTrait::LightSleeper:
+    return has(GuestTrait::HeavySleeper);
+  case GuestTrait::HeavySleeper:
+    return has(GuestTrait::LightSleeper);
+  case GuestTrait::Social:
+    return has(GuestTrait::Private);
+  case GuestTrait::Private:
+    return has(GuestTrait::Social);
+  case GuestTrait::EarlyRiser:
+    return has(GuestTrait::NightOwl);
+  case GuestTrait::NightOwl:
+    return has(GuestTrait::EarlyRiser);
+  default:
+    return false;
+  }
+}
+
+GuestProfileView generateGuestProfile(std::mt19937_64 &random) {
+  int roll = static_cast<int>(random() % 100);
+  const GuestArchetypeDefaults *defaults = &guestArchetypeDefaults.back();
+  for (const auto &candidate : guestArchetypeDefaults) {
+    if (roll < candidate.weight) {
+      defaults = &candidate;
+      break;
+    }
+    roll -= candidate.weight;
+  }
+
+  const auto varied = [&](double mean) {
+    return std::clamp(mean + (randomUnit(random) * 2.0 - 1.0) * .08, 0.0,
+                      1.0);
+  };
+  GuestProfileView profile;
+  profile.archetype = defaults->archetype;
+  profile.budgetPerNightCents = static_cast<std::int64_t>(std::llround(
+      defaults->budgetPerNightCents * (.90 + randomUnit(random) * .20)));
+  profile.priceSensitivity = varied(defaults->priceSensitivity);
+  profile.serviceSensitivity = varied(defaults->serviceSensitivity);
+  profile.cleanlinessSensitivity = varied(defaults->cleanlinessSensitivity);
+  profile.noiseSensitivity = varied(defaults->noiseSensitivity);
+  profile.privacySensitivity = varied(defaults->privacySensitivity);
+  profile.safetySensitivity = varied(defaults->safetySensitivity);
+  profile.comfortSensitivity = varied(defaults->comfortSensitivity);
+  profile.foodSensitivity = varied(defaults->foodSensitivity);
+  profile.patience = varied(defaults->patience);
+
+  const int traitCount = static_cast<int>(random() % 4);
+  for (int attempts = 0;
+       std::popcount(profile.traitFlags) < traitCount && attempts < 64;
+       ++attempts) {
+    const auto trait = static_cast<GuestTrait>(random() % 17);
+    const auto flag = guestTraitFlag(trait);
+    if ((profile.traitFlags & flag) == 0 &&
+        !traitConflicts(profile.traitFlags, trait))
+      profile.traitFlags |= flag;
+  }
+
+  const auto has = [&](GuestTrait trait) {
+    return (profile.traitFlags & guestTraitFlag(trait)) != 0;
+  };
+  if (has(GuestTrait::Neat))
+    profile.cleanlinessSensitivity =
+        std::min(1.0, profile.cleanlinessSensitivity + .12);
+  if (has(GuestTrait::Messy))
+    profile.cleanlinessSensitivity =
+        std::max(0.0, profile.cleanlinessSensitivity - .10);
+  if (has(GuestTrait::LightSleeper))
+    profile.noiseSensitivity = std::min(1.0, profile.noiseSensitivity + .15);
+  if (has(GuestTrait::HeavySleeper))
+    profile.noiseSensitivity = std::max(0.0, profile.noiseSensitivity - .15);
+  if (has(GuestTrait::Foodie))
+    profile.foodSensitivity = std::min(1.0, profile.foodSensitivity + .20);
+  if (has(GuestTrait::Workaholic))
+    profile.serviceSensitivity = std::min(1.0, profile.serviceSensitivity + .10);
+  if (has(GuestTrait::Social))
+    profile.privacySensitivity = std::max(0.0, profile.privacySensitivity - .15);
+  if (has(GuestTrait::Private))
+    profile.privacySensitivity = std::min(1.0, profile.privacySensitivity + .20);
+  if (has(GuestTrait::Frugal)) {
+    profile.priceSensitivity = std::min(1.0, profile.priceSensitivity + .20);
+    profile.budgetPerNightCents = profile.budgetPerNightCents * 9 / 10;
+  }
+  if (has(GuestTrait::StatusConscious)) {
+    profile.serviceSensitivity = std::min(1.0, profile.serviceSensitivity + .15);
+    profile.comfortSensitivity = std::min(1.0, profile.comfortSensitivity + .15);
+  }
+  if (has(GuestTrait::FitnessFocused))
+    profile.comfortSensitivity = std::min(1.0, profile.comfortSensitivity + .08);
+  if (has(GuestTrait::EarlyRiser))
+    profile.patience = std::min(1.0, profile.patience + .05);
+  if (has(GuestTrait::NightOwl))
+    profile.patience = std::max(0.0, profile.patience - .03);
+  if (has(GuestTrait::ComplaintProne))
+    profile.serviceSensitivity = std::min(1.0, profile.serviceSensitivity + .18);
+  if (has(GuestTrait::Forgiving))
+    profile.serviceSensitivity = std::max(0.0, profile.serviceSensitivity - .10);
+  return profile;
+}
+
+bool validGuestProfile(const GuestProfileView &profile) {
+  const auto archetype = static_cast<int>(profile.archetype);
+  const auto normalized = [](double value) {
+    return std::isfinite(value) && value >= 0 && value <= 1;
+  };
+  constexpr auto validTraitFlags =
+      (guestTraitFlag(GuestTrait::Forgiving) << 1) - 1;
+  if (archetype < 0 || archetype >= 13 || profile.budgetPerNightCents < 4000 ||
+      profile.budgetPerNightCents > 1'000'000 ||
+      !normalized(profile.priceSensitivity) ||
+      !normalized(profile.serviceSensitivity) ||
+      !normalized(profile.cleanlinessSensitivity) ||
+      !normalized(profile.noiseSensitivity) ||
+      !normalized(profile.privacySensitivity) ||
+      !normalized(profile.safetySensitivity) ||
+      !normalized(profile.comfortSensitivity) ||
+      !normalized(profile.foodSensitivity) || !normalized(profile.patience) ||
+      (profile.traitFlags & ~validTraitFlags) != 0 ||
+      std::popcount(profile.traitFlags) > 3)
+    return false;
+  for (GuestTrait trait : {GuestTrait::Patient, GuestTrait::Impatient,
+                           GuestTrait::Neat, GuestTrait::Messy,
+                           GuestTrait::LightSleeper, GuestTrait::HeavySleeper,
+                           GuestTrait::Social, GuestTrait::Private,
+                           GuestTrait::EarlyRiser, GuestTrait::NightOwl})
+    if ((profile.traitFlags & guestTraitFlag(trait)) != 0 &&
+        traitConflicts(profile.traitFlags & ~guestTraitFlag(trait), trait))
+      return false;
+  return true;
+}
+
+bool sameGuestProfile(const GuestProfileView &a, const GuestProfileView &b) {
+  return a.archetype == b.archetype &&
+         a.budgetPerNightCents == b.budgetPerNightCents &&
+         a.priceSensitivity == b.priceSensitivity &&
+         a.serviceSensitivity == b.serviceSensitivity &&
+         a.cleanlinessSensitivity == b.cleanlinessSensitivity &&
+         a.noiseSensitivity == b.noiseSensitivity &&
+         a.privacySensitivity == b.privacySensitivity &&
+         a.safetySensitivity == b.safetySensitivity &&
+         a.comfortSensitivity == b.comfortSensitivity &&
+         a.foodSensitivity == b.foodSensitivity && a.patience == b.patience &&
+         a.traitFlags == b.traitFlags;
+}
+
+void writeGuestProfile(std::ostream &output, const GuestProfileView &profile) {
+  output << ei(profile.archetype) << ' ' << profile.budgetPerNightCents << ' '
+         << profile.priceSensitivity << ' ' << profile.serviceSensitivity
+         << ' ' << profile.cleanlinessSensitivity << ' '
+         << profile.noiseSensitivity << ' ' << profile.privacySensitivity
+         << ' ' << profile.safetySensitivity << ' '
+         << profile.comfortSensitivity << ' ' << profile.foodSensitivity << ' '
+         << profile.patience << ' ' << profile.traitFlags;
+}
+
+bool readGuestProfile(std::istream &input, GuestProfileView &profile) {
+  int archetype{};
+  input >> archetype >> profile.budgetPerNightCents >>
+      profile.priceSensitivity >> profile.serviceSensitivity >>
+      profile.cleanlinessSensitivity >> profile.noiseSensitivity >>
+      profile.privacySensitivity >> profile.safetySensitivity >>
+      profile.comfortSensitivity >> profile.foodSensitivity >> profile.patience >>
+      profile.traitFlags;
+  profile.archetype = static_cast<GuestArchetype>(archetype);
+  return static_cast<bool>(input) && validGuestProfile(profile);
+}
+
+int queueToleranceFor(const GuestProfileView &profile, double baseSeconds = 480) {
+  double segmentModifier = 1.0;
+  switch (profile.archetype) {
+  case GuestArchetype::FamilyLeisure:
+    segmentModifier = 1.15;
+    break;
+  case GuestArchetype::GroupTourTraveler:
+    segmentModifier = 1.20;
+    break;
+  case GuestArchetype::BusinessTraveler:
+    segmentModifier = .90;
+    break;
+  case GuestArchetype::ExecutiveBusiness:
+    segmentModifier = .85;
+    break;
+  case GuestArchetype::AirportTransitTraveler:
+    segmentModifier = .70;
+    break;
+  case GuestArchetype::VipCelebrity:
+    segmentModifier = .60;
+    break;
+  case GuestArchetype::CriticReviewer:
+    segmentModifier = .75;
+    break;
+  default:
+    break;
+  }
+  double traitModifier = 1.0;
+  if (profile.traitFlags & guestTraitFlag(GuestTrait::Patient))
+    traitModifier *= 1.30;
+  if (profile.traitFlags & guestTraitFlag(GuestTrait::Impatient))
+    traitModifier *= .65;
+  return static_cast<int>(std::clamp(
+      std::lround(baseSeconds * (.5 + profile.patience) * segmentModifier *
+                  traitModifier),
+      120L, 1200L));
+}
 } // namespace
 
 struct Simulation::Impl {
@@ -182,15 +468,22 @@ struct Simulation::Impl {
   void hourlyBookings(int day, int hour) {
     if (!has(TileKind::Entrance) || !has(TileKind::FrontDesk))
       return;
-    std::vector<Room *> free;
-    for (auto &r : rooms)
-      if (!r.closed && r.status == RoomStatus::VacantReady && r.reachable)
-        free.push_back(&r);
-    std::shuffle(free.begin(), free.end(), rng);
-    const double reputationUtility =
+    const auto receptionRoute = path(entrance(), frontDesk());
+    if (receptionRoute.empty() && !same(entrance(), frontDesk()))
+      return;
+    const double baseReputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
-    for (Room *r : free) {
-      const double priceRatio = r->nightlyRateCents / 16000.0;
+    constexpr double segmentMarketCalibration = 1.15;
+    for (auto &room : rooms) {
+      Room *r = &room;
+      if (r->closed || r->status != RoomStatus::VacantReady || !r->reachable)
+        continue;
+      std::mt19937_64 marketRandom(
+          mixedSeed(seed, static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), r->id, 0x4d41524b4554ULL));
+      const auto profile = generateGuestProfile(marketRandom);
+      const double priceRatio = static_cast<double>(r->nightlyRateCents) /
+                                profile.budgetPerNightCents;
       double priceUtility = 0;
       if (priceRatio <= 0.75)
         priceUtility = 1;
@@ -200,21 +493,29 @@ struct Simulation::Impl {
         priceUtility = 0.8 - (priceRatio - 1.0) * 2.2;
       else if (priceRatio <= 1.5)
         priceUtility = 0.25 - (priceRatio - 1.25);
+      if (priceUtility > 0)
+        priceUtility =
+            std::pow(priceUtility, .5 + profile.priceSensitivity * 1.5);
+      const double reputationUtility = std::pow(
+          baseReputationUtility, .5 + profile.serviceSensitivity);
       const double dailyChance =
-          std::clamp(baseDemand * reputationUtility * priceUtility, 0.0, 1.0);
+          std::clamp(baseDemand * segmentMarketCalibration * reputationUtility *
+                         priceUtility,
+                     0.0, 1.0);
       const double hourlyChance =
           dailyChance >= 1.0 ? 1.0
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
-      if (std::generate_canonical<double, 32>(rng) > hourlyChance)
+      if (randomUnit(marketRandom) > hourlyChance)
         continue;
       Reservation z;
       z.id = nextId++;
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = day + (hour > 15 ? 1 : 0);
-      z.departureDay = z.arrivalDay + 1 + (int)(rng() % 3);
+      z.departureDay = z.arrivalDay + 1 + static_cast<int>(marketRandom() % 3);
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
+      z.profile = profile;
       reservations.push_back(z);
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
@@ -224,7 +525,7 @@ struct Simulation::Impl {
     if (!has(TileKind::FrontDesk))
       return;
     for (auto &z : reservations)
-      if (!z.arrived && !z.completed && z.arrivalDay <= day) {
+      if (!z.arrived && !reservationFinished(z) && z.arrivalDay <= day) {
         auto *r = getRoom(z.roomId);
         if (!r || r->status == RoomStatus::OutOfOrder)
           continue;
@@ -240,8 +541,10 @@ struct Simulation::Impl {
         p.hunger = 90;
         p.rest = 90;
         p.patience = 100;
+        p.queueToleranceSeconds = queueToleranceFor(z.profile);
         p.goal = "Reach front desk";
-        p.reservation = z.id;
+        p.reservationId = z.id;
+        p.profile = z.profile;
         people.push_back(p);
       }
   }
@@ -266,15 +569,18 @@ struct Simulation::Impl {
           }
         }
         for (auto &p : people)
-          if (p.reservation == z.id) {
+          if (p.reservationId == z.id) {
             p.destination = frontDesk();
             p.state = PersonState::Traveling;
+            p.queueWaitSeconds = 0;
+            p.patience = 100;
+            p.queueToleranceSeconds = queueToleranceFor(p.profile, 360);
             p.goal = "Reach front desk for checkout";
           }
       }
   }
   void completeCheckout(Person &guest) {
-    auto *z = getReservation(guest.reservation);
+    auto *z = getReservation(guest.reservationId);
     if (!z || z->completed)
       return;
     auto *r = getRoom(z->roomId);
@@ -283,18 +589,101 @@ struct Simulation::Impl {
     const auto charge = z->nightlyRateCents * (z->departureDay - z->arrivalDay);
     economy.revenueCents += charge;
     economy.cashCents += charge;
-    const int score =
-        static_cast<int>(std::clamp(z->satisfaction + z->checkoutCleanliness -
-                                        80 - ((r && !r->reachable) ? 20 : 0),
-                                    0.0, 100.0));
-    reviews.push_back({z->id, static_cast<int>(elapsed / 86400), score,
-                       score >= 80   ? "A comfortable, well-run stay."
-                       : score >= 60 ? "Fine, though service could improve."
-                                     : "Service delays hurt the stay."});
-    economy.reputation = economy.reputation * 0.85 + score * 0.15;
+    double scoreValue =
+        z->satisfaction + (z->checkoutCleanliness - 80.0) *
+                              (.5 + z->profile.cleanlinessSensitivity) -
+        ((r && !r->reachable) ? 20.0 : 0.0);
+    if (scoreValue < 70 &&
+        (z->profile.traitFlags & guestTraitFlag(GuestTrait::Forgiving)))
+      scoreValue = 70 + (scoreValue - 70) * .80;
+    const int overallSatisfaction =
+        static_cast<int>(std::clamp(std::lround(scoreValue), 0L, 100L));
+
+    double reviewChance = .65;
+    if (overallSatisfaction <= 40)
+      reviewChance += .20;
+    if (overallSatisfaction >= 90)
+      reviewChance += .10;
+    if (z->profile.archetype == GuestArchetype::GroupTourTraveler)
+      reviewChance *= .50;
+    if (overallSatisfaction < 70 &&
+        (z->profile.traitFlags & guestTraitFlag(GuestTrait::ComplaintProne)))
+      reviewChance += .15;
+    if (z->profile.archetype == GuestArchetype::CriticReviewer)
+      reviewChance = 1.0;
+    reviewChance = std::clamp(reviewChance, 0.0, 1.0);
+    std::mt19937_64 reviewRandom(mixedSeed(
+        seed, static_cast<std::uint64_t>(z->arrivalDay),
+        static_cast<std::uint64_t>(z->profile.archetype), z->roomId,
+        0x524556494557ULL));
+    if (randomUnit(reviewRandom) <= reviewChance) {
+      const double reviewScore = std::clamp(
+          1.0 + overallSatisfaction * .09 +
+              (randomUnit(reviewRandom) * .60 - .30),
+          1.0, 10.0);
+      reviews.push_back(
+          {z->id, static_cast<int>(elapsed / 86400), reviewScore,
+           reviewScore >= 8.0   ? "A comfortable, well-run stay."
+           : reviewScore >= 6.0 ? "Fine, though service could improve."
+                                : "Service delays hurt the stay."});
+      const double reputationWeight =
+          z->profile.archetype == GuestArchetype::CriticReviewer
+              ? criticReviewReputationWeight
+          : z->profile.archetype == GuestArchetype::VipCelebrity ? .30
+                                      : normalReviewReputationWeight;
+      economy.reputation = economy.reputation * (1.0 - reputationWeight) +
+                           overallSatisfaction * reputationWeight;
+    }
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
+  }
+  bool abandonCheckIn(Person &guest) {
+    auto *reservation = getReservation(guest.reservationId);
+    if (!reservation || reservation->checkedIn ||
+        reservationFinished(*reservation))
+      return false;
+    for (const auto &task : tasks)
+      if (task.kind == TaskKind::CheckIn && task.targetId == guest.id &&
+          task.status == TaskStatus::Working)
+        return false;
+    for (auto &task : tasks)
+      if (task.kind == TaskKind::CheckIn && task.targetId == guest.id &&
+          task.status != TaskStatus::Completed) {
+        if (auto *employee = getPerson(task.employeeId)) {
+          if (employee->task == task.id) {
+            employee->task = 0;
+            employee->state = PersonState::Idle;
+            employee->destination = employee->position;
+          }
+        }
+        task.status = TaskStatus::Completed;
+        task.workRemainingSeconds = 0;
+        task.blockedReason = "Guest abandoned check-in";
+      }
+    reservation->walkedRelocated = true;
+    reservation->checkInTravelSeconds = guest.travelSeconds;
+    reservation->checkInWaitSeconds = guest.queueWaitSeconds;
+    guest.satisfaction = std::max(0.0, guest.satisfaction - 20.0);
+    reservation->satisfaction = guest.satisfaction;
+    if (auto *room = getRoom(reservation->roomId)) {
+      if (room->reservationId == reservation->id) {
+        room->reservationId = 0;
+        if (room->condition < 35) {
+          room->status = RoomStatus::OutOfOrder;
+          createTask(TaskKind::Repair, room->id, room->door, repairWork);
+        } else {
+          room->status = room->cleanliness >= 70 ? RoomStatus::VacantReady
+                                                 : RoomStatus::VacantDirty;
+        }
+      }
+    }
+    economy.reputation = economy.reputation * .90 +
+                         std::max(0.0, guest.satisfaction - 25.0) * .10;
+    guest.destination = entrance();
+    guest.state = PersonState::Traveling;
+    guest.goal = "Leave hotel";
+    return true;
   }
   bool shiftActive(const Person &p, int hour) const {
     if (p.shiftStartHour == p.shiftEndHour)
@@ -445,8 +834,10 @@ struct Simulation::Impl {
             if (t.kind == TaskKind::CheckIn) {
               if (auto *g = getPerson(t.targetId)) {
                 for (auto &z : reservations)
-                  if (z.id == g->reservation) {
+                  if (z.id == g->reservationId) {
                     if (auto *r = getRoom(z.roomId)) {
+                      z.checkInTravelSeconds = g->travelSeconds;
+                      z.checkInWaitSeconds = g->queueWaitSeconds;
                       g->destination = r->door;
                       g->state = PersonState::Traveling;
                       g->goal = "Reach assigned room";
@@ -513,8 +904,10 @@ struct Simulation::Impl {
           else {
             p.queueWaitSeconds += 1;
             p.patience = std::max(0.0, p.patience - 1.0 / 120);
-            if (p.queueWaitSeconds > 8 * 60)
-              p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
+            if (p.queueWaitSeconds > p.queueToleranceSeconds)
+              p.satisfaction = std::max(
+                  0.0, p.satisfaction -
+                           0.6 / 60.0 * p.profile.serviceSensitivity);
           }
           if (same(p.position, p.destination)) {
             if (p.goal == "Reach front desk") {
@@ -539,11 +932,16 @@ struct Simulation::Impl {
         } else if (p.state == PersonState::Waiting) {
           p.queueWaitSeconds += 1;
           p.patience = std::max(0.0, p.patience - 1.0 / 120);
-          if (p.queueWaitSeconds > 8 * 60)
-            p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
+          if (p.queueWaitSeconds > p.queueToleranceSeconds)
+            p.satisfaction =
+                std::max(0.0, p.satisfaction -
+                                  0.6 / 60.0 * p.profile.serviceSensitivity);
+          if (p.goal == "Wait for check-in" &&
+              p.queueWaitSeconds > p.queueToleranceSeconds + 10 * 60)
+            abandonCheckIn(p);
         }
         for (auto &z : reservations)
-          if (z.id == p.reservation)
+          if (z.id == p.reservationId)
             z.satisfaction = p.satisfaction;
       }
   }
@@ -569,12 +967,12 @@ struct Simulation::Impl {
                                              completedTaskHistoryLimit));
 
     for (auto &reservation : reservations)
-      if (reservation.completed)
+      if (reservationFinished(reservation))
         completedReservationHistory.push_back(std::move(reservation));
     reservations.erase(
         std::remove_if(reservations.begin(), reservations.end(),
                        [](const auto &reservation) {
-                         return reservation.completed;
+                         return reservationFinished(reservation);
                        }),
         reservations.end());
   }
@@ -1034,7 +1432,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 7 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -1066,7 +1464,7 @@ std::string Simulation::save() const {
       << ' ' << r.nightlyRateCents << ' ' << r.reservationId << ' '
       << r.reachable << ' ' << r.closed << '\n';
   o << impl_->people.size() << '\n';
-  for (auto &p : impl_->people)
+  for (auto &p : impl_->people) {
     o << p.id << ' ' << std::quoted(p.name) << ' ' << ei(p.kind) << ' '
       << ei(p.state) << ' ' << p.position.floor << ' ' << p.position.x << ' '
       << p.position.y << ' ' << p.destination.floor << ' ' << p.destination.x
@@ -1075,22 +1473,33 @@ std::string Simulation::save() const {
       << ' ' << p.shiftStartHour << ' ' << p.shiftEndHour << ' '
       << p.travelSeconds << ' ' << p.queueWaitSeconds << ' '
       << std::quoted(p.goal) << ' ' << p.onShift << ' ' << p.hourlyWageCents
-      << ' ' << p.reservation << ' ' << p.task << ' ' << p.accruedWageUnits
-      << '\n';
+      << ' ' << p.reservationId << ' ' << p.task << ' ' << p.accruedWageUnits
+      << ' ' << p.queueToleranceSeconds << ' ';
+    writeGuestProfile(o, p.profile);
+    o << '\n';
+  }
   o << impl_->reservations.size() + impl_->completedReservationHistory.size()
     << '\n';
-  for (auto &r : impl_->reservations)
+  for (auto &r : impl_->reservations) {
     o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << '\n';
-  for (auto &r : impl_->completedReservationHistory)
+      << r.checkoutCleanliness << ' ';
+    writeGuestProfile(o, r.profile);
+    o << ' ' << r.walkedRelocated << ' ' << r.checkInTravelSeconds << ' '
+      << r.checkInWaitSeconds << '\n';
+  }
+  for (auto &r : impl_->completedReservationHistory) {
     o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << '\n';
+      << r.checkoutCleanliness << ' ';
+    writeGuestProfile(o, r.profile);
+    o << ' ' << r.walkedRelocated << ' ' << r.checkInTravelSeconds << ' '
+      << r.checkInWaitSeconds << '\n';
+  }
   o << impl_->tasks.size() + impl_->completedTaskHistory.size() << '\n';
   for (auto &t : impl_->tasks)
     o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
@@ -1123,7 +1532,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 7)
+  if (magic != "HHGS" || version < 2 || version > 10)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -1228,11 +1637,20 @@ Simulation Simulation::load(std::string_view data) {
       i >> p.hourlyWageCents;
     else
       i >> legacyWage;
-    i >> p.reservation >> p.task;
+    i >> p.reservationId >> p.task;
     if (version >= 6)
       i >> p.accruedWageUnits;
     else
       i >> legacyAccruedWageMicros;
+    if (version >= 8) {
+      i >> p.queueToleranceSeconds;
+      if (!readGuestProfile(i, p.profile))
+        throw std::invalid_argument("invalid saved guest profile");
+    } else {
+      p.profile = GuestProfileView{};
+      p.queueToleranceSeconds =
+          k == ei(PersonKind::Guest) ? queueToleranceFor(p.profile) : 0;
+    }
     if (version < 6) {
       if (!std::isfinite(legacyWage) || legacyWage < 0 || legacyWage > 10000 ||
           legacyAccruedWageMicros < 0 ||
@@ -1254,7 +1672,12 @@ Simulation Simulation::load(std::string_view data) {
         p.skill > 100 || p.shiftStartHour < 0 || p.shiftStartHour > 23 ||
         p.shiftEndHour < 0 || p.shiftEndHour > 23 || p.travelSeconds < 0 ||
         p.queueWaitSeconds < 0 || p.hourlyWageCents < 0 ||
-        p.hourlyWageCents > 1000000 || p.accruedWageUnits < 0)
+        p.hourlyWageCents > 1000000 || p.accruedWageUnits < 0 ||
+        !validGuestProfile(p.profile) ||
+        (k == ei(PersonKind::Guest)
+             ? (p.queueToleranceSeconds < 120 ||
+                p.queueToleranceSeconds > 1200)
+             : p.queueToleranceSeconds != 0))
       throw std::invalid_argument("invalid saved person");
     p.kind = static_cast<PersonKind>(k);
     p.state = static_cast<PersonState>(st);
@@ -1276,6 +1699,20 @@ Simulation Simulation::load(std::string_view data) {
       i >> r.checkoutStarted >> r.checkoutCleanliness;
     else if (r.completed)
       r.checkoutStarted = true;
+    if (version >= 8) {
+      if (!readGuestProfile(i, r.profile))
+        throw std::invalid_argument("invalid saved guest profile");
+      i >> r.walkedRelocated;
+    } else {
+      r.profile = GuestProfileView{};
+      r.walkedRelocated = false;
+    }
+    if (version >= 10)
+      i >> r.checkInTravelSeconds >> r.checkInWaitSeconds;
+    else {
+      r.checkInTravelSeconds = 0;
+      r.checkInWaitSeconds = 0;
+    }
     if (version < 6) {
       if (!std::isfinite(legacyNightlyRate) || legacyNightlyRate <= 0 ||
           legacyNightlyRate > 5000)
@@ -1290,7 +1727,13 @@ Simulation Simulation::load(std::string_view data) {
         r.nightlyRateCents <= 0 || r.nightlyRateCents > 500000 ||
         !std::isfinite(r.satisfaction) || r.satisfaction < 0 ||
         r.satisfaction > 100 || !std::isfinite(r.checkoutCleanliness) ||
-        r.checkoutCleanliness < 0 || r.checkoutCleanliness > 100)
+        r.checkoutCleanliness < 0 || r.checkoutCleanliness > 100 ||
+        r.checkInTravelSeconds < 0 || r.checkInWaitSeconds < 0 ||
+        (!r.arrived &&
+         (r.checkInTravelSeconds != 0 || r.checkInWaitSeconds != 0)) ||
+        !validGuestProfile(r.profile) || (r.completed && r.walkedRelocated) ||
+        (r.walkedRelocated &&
+         (!r.arrived || r.checkedIn || r.checkoutStarted)))
       throw std::invalid_argument("invalid saved reservation");
   i >> n;
   if (n > 100000)
@@ -1313,10 +1756,16 @@ Simulation Simulation::load(std::string_view data) {
   if (n > 100000)
     throw std::invalid_argument("too many saved reviews");
   d.reviews.resize(n);
-  for (auto &r : d.reviews)
+  for (auto &r : d.reviews) {
     i >> r.reservationId >> r.day >> r.score >> std::quoted(r.text);
+    if (version <= 8) {
+      if (!i || !std::isfinite(r.score) || r.score < 0 || r.score > 100)
+        throw std::invalid_argument("invalid legacy saved review");
+      r.score = std::clamp(1.0 + r.score * .09, 1.0, 10.0);
+    }
+  }
   for (const auto &r : d.reviews)
-    if (r.day < 0 || r.score < 0 || r.score > 100)
+    if (r.day < 0 || !std::isfinite(r.score) || r.score < 1 || r.score > 10)
       throw std::invalid_argument("invalid saved review");
   i >> n;
   if (n > 100000)
@@ -1372,14 +1821,18 @@ Simulation Simulation::load(std::string_view data) {
   std::unordered_map<EntityId, int> guestsByReservation;
   for (const auto &person : d.people) {
     if (person.kind == PersonKind::Guest) {
-      if (!reservationById.contains(person.reservation) || person.task != 0)
+      if (!reservationById.contains(person.reservationId) || person.task != 0)
         throw std::invalid_argument("invalid saved guest references");
-      ++guestsByReservation[person.reservation];
+      ++guestsByReservation[person.reservationId];
       if (person.state == PersonState::CheckedOut &&
-          !reservationById.at(person.reservation)->completed)
+          !reservationFinished(*reservationById.at(person.reservationId)))
         throw std::invalid_argument("invalid saved guest lifecycle");
+      if (!sameGuestProfile(
+              person.profile,
+              reservationById.at(person.reservationId)->profile))
+        throw std::invalid_argument("mismatched saved guest profile");
     } else {
-      if (person.reservation != 0)
+      if (person.reservationId != 0)
         throw std::invalid_argument("invalid saved employee references");
       if (person.task != 0) {
         const auto task = taskById.find(person.task);
@@ -1391,15 +1844,16 @@ Simulation Simulation::load(std::string_view data) {
   }
   for (const auto &reservation : d.reservations) {
     const auto room = roomById.find(reservation.roomId);
-    if ((!reservation.completed && room == roomById.end()) ||
+    const bool finished = reservationFinished(reservation);
+    if ((!finished && room == roomById.end()) ||
         (reservation.checkedIn && !reservation.arrived) ||
         (reservation.checkoutStarted && !reservation.checkedIn) ||
         (reservation.completed && !reservation.checkoutStarted) ||
-        (!reservation.completed &&
+        (!finished &&
          guestsByReservation[reservation.id] != (reservation.arrived ? 1 : 0)) ||
-        (reservation.completed && guestsByReservation[reservation.id] > 1))
+        (finished && guestsByReservation[reservation.id] > 1))
       throw std::invalid_argument("invalid saved reservation references");
-    if (!reservation.checkoutStarted && !reservation.completed &&
+    if (!reservation.checkoutStarted && !finished &&
         room->second->reservationId != reservation.id)
       throw std::invalid_argument("invalid saved room assignment");
   }
@@ -1409,7 +1863,7 @@ Simulation Simulation::load(std::string_view data) {
       if (reservation == reservationById.end() ||
           reservation->second->roomId != room.id ||
           reservation->second->checkoutStarted ||
-          reservation->second->completed)
+          reservationFinished(*reservation->second))
         throw std::invalid_argument("invalid saved room reservation");
     }
     if ((room.status == RoomStatus::Reserved ||

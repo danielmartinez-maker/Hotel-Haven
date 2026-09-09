@@ -58,7 +58,7 @@ struct Client {
   bool context = false, running = true, smoke = false, initialized = false;
   std::string fatalError;
   std::wstring notice = L"Welcome. Open the guide to begin your first hotel.";
-  HFONT normal{}, small{}, title{}, number{};
+  HFONT normal{}, smallFont{}, title{}, number{};
   Client();
   ~Client();
   void refresh();
