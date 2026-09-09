@@ -64,6 +64,7 @@ struct Simulation::Impl {
   std::vector<ReviewView> reviews;
   std::vector<PendingOrder> orders;
   InventoryView inventory{24, 48, 36, 24, 8};
+  ServiceLogisticsRuntime services{1};
   EconomyView economy{2500000};
   double baseDemand{1.5}, turnoverWork{2400}, repairWork{1800},
       checkInWork{300}, hungerRate{10.0 / 60.0}, restLoss{5.0 / 60.0},
@@ -646,6 +647,18 @@ Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
     throw std::invalid_argument("invalid map dimensions");
   impl_->seed = seed;
   impl_->rng.seed(seed);
+  impl_->services = ServiceLogisticsRuntime(seed);
+  auto &serviceInventory = impl_->services.logistics();
+  const auto seedServiceItem = [&](StorageKind kind, std::string_view item, int quantity) {
+    if (quantity > 0 &&
+        !serviceInventory.addInventory(serviceInventory.firstStorage(kind), item, quantity))
+      throw std::logic_error("failed to seed service inventory");
+  };
+  seedServiceItem(StorageKind::CleanLinen, "clean_linen_set", impl_->inventory.linen);
+  seedServiceItem(StorageKind::FloorCloset, "towel_unit", impl_->inventory.towels);
+  seedServiceItem(StorageKind::FloorCloset, "amenity_kit", impl_->inventory.amenities);
+  seedServiceItem(StorageKind::FloorCloset, "cleaning_chemical", impl_->inventory.chemicals);
+  seedServiceItem(StorageKind::CentralStorage, "maintenance_part", impl_->inventory.parts);
   impl_->width = w;
   impl_->height = h;
   impl_->floors = f;
@@ -795,6 +808,11 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->services.registerRoom(
+      r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
+                                                 : ServiceRoomStatus::Blocked);
+  impl_->services.registerAsset(
+      r.id, std::clamp(static_cast<int>(std::llround(r.condition * 100.0)), 0, 10000));
   impl_->economy.cashCents -= cost;
   impl_->economy.constructionCostCents += cost;
   return {true,
@@ -993,8 +1011,35 @@ void Simulation::step(double seconds) {
   while (impl_->remainderMillis >= 1000) {
     impl_->remainderMillis -= 1000;
     impl_->minute();
+    impl_->services.tickSecond();
   }
 }
+
+LogisticsSnapshot Simulation::logisticsSnapshot() const {
+  return impl_->services.logisticsSnapshot();
+}
+TaskId Simulation::requestRoomTurn(RoomId roomId) {
+  if (!impl_->getRoom(roomId))
+    return 0;
+  return impl_->services.requestRoomTurn(roomId);
+}
+LaundryBatchId Simulation::requestLaundryBatch(int quantity) {
+  return impl_->services.requestLaundryBatch(quantity);
+}
+WorkOrderId Simulation::createWorkOrder(AssetId assetId, WorkOrderType type) {
+  return impl_->services.createWorkOrder(assetId, type);
+}
+RoomServiceOrderId Simulation::placeRoomServiceOrder(
+    GuestId guestId, const RoomServiceOrder &order) {
+  return impl_->services.placeRoomServiceOrder(guestId, order);
+}
+bool Simulation::markRoomServiceProductionReady(RoomServiceOrderId orderId) {
+  return impl_->services.markRoomServiceProductionReady(orderId);
+}
+bool Simulation::requestRoomServiceTrayPickup(RoomServiceOrderId orderId) {
+  return impl_->services.requestRoomServiceTrayPickup(orderId);
+}
+
 bool Simulation::isReachable(Position a, Position b) const {
   return impl_->inside(a) && impl_->inside(b) && impl_->passable(a) &&
          impl_->passable(b) && (same(a, b) || !impl_->path(a, b).empty());
@@ -1034,7 +1079,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 7 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 8 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -1114,6 +1159,10 @@ std::string Simulation::save() const {
     inv(p.items);
     o << ' ' << p.etaDay << ' ' << p.delivered << '\n';
   }
+  const auto serviceState = impl_->services.save();
+  o << "FINAL04 " << serviceState.size() << '\n';
+  o.write(serviceState.data(), static_cast<std::streamsize>(serviceState.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -1123,7 +1172,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 7)
+  if (magic != "HHGS" || version < 2 || version > 8)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -1329,6 +1378,31 @@ Simulation Simulation::load(std::string_view data) {
     if (p.items.linen < 0 || p.items.towels < 0 || p.items.amenities < 0 ||
         p.items.chemicals < 0 || p.items.parts < 0 || p.etaDay < 0)
       throw std::invalid_argument("invalid saved order");
+  }
+  if (version >= 8) {
+    std::string final04Tag;
+    std::size_t serviceBytes{};
+    i >> final04Tag >> serviceBytes;
+    if (!i || final04Tag != "FINAL04" || serviceBytes > 16 * 1024 * 1024)
+      throw std::invalid_argument("invalid FINAL-04 save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-04 save delimiter");
+    std::string serviceState(serviceBytes, '\0');
+    i.read(serviceState.data(), static_cast<std::streamsize>(serviceBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != serviceBytes)
+      throw std::invalid_argument("truncated FINAL-04 save section");
+    d.services = ServiceLogisticsRuntime::load(serviceState);
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-04 save terminator");
+  } else {
+    for (const auto &room : d.rooms) {
+      d.services.registerRoom(
+          room.id, room.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
+                                                          : ServiceRoomStatus::Blocked);
+      d.services.registerAsset(
+          room.id,
+          std::clamp(static_cast<int>(std::llround(room.condition * 100.0)), 0, 10000));
+    }
   }
   if (!i)
     throw std::invalid_argument("corrupt simulation save");
