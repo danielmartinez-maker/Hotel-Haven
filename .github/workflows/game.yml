@@ -14,22 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Export FINAL-03 source snapshot
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: final03-source
-          path: |
-            CMakeLists.txt
-            cmake
-            game
-            renderer
-            frontend
-            Tools
-            GameData
-            docs
-          if-no-files-found: error
-
       - name: Set up Python for production assets
         if: runner.os == 'Windows'
         uses: actions/setup-python@v5

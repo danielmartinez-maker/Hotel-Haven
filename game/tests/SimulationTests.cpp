@@ -282,7 +282,7 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 7 16 32 20 3");
+  auto pos = saved.find("HHGS 8 16 32 20 3");
   require(pos == 0, "unexpected save header");
   saved.replace(10, 2, "99");
   bool rejected = false;

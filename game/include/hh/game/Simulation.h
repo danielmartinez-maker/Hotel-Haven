@@ -1,5 +1,9 @@
 #pragma once
 
+#include "hh/game/Departments.h"
+#include "hh/game/StaffOptimization.h"
+#include "hh/game/Workforce.h"
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -47,7 +51,15 @@ enum class PersonState {
   Sleeping,
   CheckedOut
 };
-enum class TaskKind { CheckIn, Turnover, Restock, Repair, CheckOut };
+enum class TaskKind {
+  CheckIn,
+  Turnover,
+  Restock,
+  Repair,
+  CheckOut,
+  Break,
+  Training
+};
 enum class TaskStatus { Ready, Traveling, Working, Blocked, Completed };
 
 struct TileView {
@@ -94,6 +106,14 @@ struct PersonView {
   int queueWaitSeconds{};
   std::string goal;
   bool onShift{};
+  double reliability{100.0};
+  double morale{100.0};
+  bool absent{};
+  bool onBreak{};
+  bool inTraining{};
+  int breakMinutesTakenToday{};
+  double trainingProgress{};
+  EmployeeContract contract;
 };
 struct ReservationView {
   EntityId id{};
@@ -116,6 +136,7 @@ struct TaskView {
   Position target;
   double workRemainingSeconds{};
   std::string blockedReason;
+  std::int64_t notBeforeSecond{};
 };
 struct ReviewView {
   EntityId reservationId{};
@@ -165,6 +186,7 @@ struct SimulationView {
   InventoryView inventory;
   EconomyView economy;
   std::vector<SupplyOrderView> supplyOrders;
+  std::vector<DepartmentView> departments;
 };
 
 struct RoomBlueprint {
@@ -214,8 +236,21 @@ public:
   CommandResult buildTile(Position, TileKind);
   CommandResult buildFurnishedRoom(const RoomBlueprint &);
   CommandResult hireStaff(const StaffHire &);
+  [[nodiscard]] std::vector<Applicant> applicants() const;
+  HireResult hireApplicant(ApplicantId applicantId);
   CommandResult fireStaff(EntityId employeeId);
   CommandResult setStaffShift(EntityId employeeId, int startHour, int endHour);
+  CommandResult scheduleTraining(EntityId employeeId,
+                                 std::int64_t startSecond,
+                                 int durationMinutes = 60);
+  CommandResult assignDepartmentManager(DepartmentId department,
+                                        EntityId employeeId);
+  [[nodiscard]] std::vector<DepartmentView> departments() const;
+  [[nodiscard]] DepartmentForecast departmentForecast(DepartmentId department,
+                                                      SimDay day) const;
+  [[nodiscard]] OptimizerSnapshot buildOptimizerSnapshot() const;
+  [[nodiscard]] PlanValidation validatePlan(const OptimizerSnapshot &snapshot,
+                                            const AssignmentPlan &plan) const;
   CommandResult setRoomRate(EntityId roomId, double rate);
   CommandResult requestClean(EntityId roomId);
   CommandResult requestRepair(EntityId roomId);
