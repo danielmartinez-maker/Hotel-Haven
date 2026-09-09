@@ -18,6 +18,8 @@ struct AssetMetadata {
     std::vector<std::string> material_slots;
     std::vector<std::string> tags;
     std::vector<std::string> dependencies;
+    std::vector<std::string> interaction_anchors;
+    std::optional<std::string> pivot_profile;
     std::optional<CutawayPolicy> cutaway_policy;
     std::optional<std::string> pivot_exception_reason;
     std::optional<std::int64_t> source_revision;

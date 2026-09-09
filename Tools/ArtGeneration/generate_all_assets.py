@@ -85,6 +85,7 @@ def normalize_gameplay_sidecar_data(sidecar: dict, meta: dict, contract: dict) -
     normalized['units'] = contract['units']
     normalized['lod_policy'] = contract['lod_policy']
     normalized['cutaway_policy'] = contract['cutaway_policy']
+    normalized['pivot_profile'] = contract['pivot_profile']
 
     collision_contract = contract['collision_policy']
     if collision_contract == 'none_or_simple_proxy':

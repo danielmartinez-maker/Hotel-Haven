@@ -40,6 +40,14 @@ std::optional<std::string> optional_string(const JsonValue& root, std::string_vi
     return value->as_string();
 }
 
+std::vector<std::string> optional_string_array(const JsonValue& root, std::string_view key) {
+    const auto* value = root.find(key);
+    if (value == nullptr) return {};
+    std::vector<std::string> result;
+    for (const auto& item : value->as_array()) result.push_back(item.as_string());
+    return result;
+}
+
 std::optional<std::int64_t> optional_integer(const JsonValue& root, std::string_view key) {
     const auto* value = root.find(key);
     if (value == nullptr) return std::nullopt;
@@ -119,6 +127,8 @@ AssetMetadata load_metadata(const std::filesystem::path& sidecar) {
     metadata.material_slots = required_string_array(root, "material_slots");
     metadata.tags = required_string_array(root, "tags");
     metadata.dependencies = required_string_array(root, "dependencies");
+    metadata.interaction_anchors = optional_string_array(root, "interaction_anchors");
+    metadata.pivot_profile = optional_string(root, "pivot_profile");
 
     if (const auto value = optional_string(root, "cutaway_policy")) metadata.cutaway_policy = cutaway_policy_from_string(*value);
     metadata.pivot_exception_reason = optional_string(root, "pivot_exception_reason");
@@ -160,12 +170,14 @@ std::string canonicalize_metadata(const AssetMetadata& m) {
     if (m.cutaway_policy) add_string("cutaway_policy", std::string(to_string(*m.cutaway_policy)));
     fields.emplace_back("dependencies", string_array_json(m.dependencies));
     if (m.dependent_feature_owner) add_string("dependent_feature_owner", *m.dependent_feature_owner);
+    if (!m.interaction_anchors.empty()) fields.emplace_back("interaction_anchors", string_array_json(m.interaction_anchors));
     if (m.lifecycle_state) add_string("lifecycle_state", std::string(to_string(*m.lifecycle_state)));
     add_string("lod_policy", m.lod_policy);
     fields.emplace_back("material_slots", string_array_json(m.material_slots));
     if (m.metadata_revision) add_integer("metadata_revision", *m.metadata_revision);
     if (m.milestone) add_string("milestone", *m.milestone);
     if (m.pivot_exception_reason) add_string("pivot_exception_reason", *m.pivot_exception_reason);
+    if (m.pivot_profile) add_string("pivot_profile", *m.pivot_profile);
     add_integer("schema", m.schema);
     add_string("source", m.source);
     if (m.source_revision) add_integer("source_revision", *m.source_revision);
