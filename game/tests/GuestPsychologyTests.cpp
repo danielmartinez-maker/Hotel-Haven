@@ -1,3 +1,4 @@
+#include "hh/game/GuestGoals.h"
 #include "hh/game/GuestPsychology.h"
 #include <bit>
 #include <cmath>
@@ -16,6 +17,13 @@ void require(bool value, const char *message) {
 bool conflicts(std::uint32_t flags, GuestTrait a, GuestTrait b) {
   return (flags & guestTraitFlag(a)) != 0 &&
          (flags & guestTraitFlag(b)) != 0;
+}
+
+const PersonView &firstGuest(const SimulationView &view) {
+  for (const auto &person : view.people)
+    if (person.kind == PersonKind::Guest)
+      return person;
+  throw std::runtime_error("guest psychology fixture produced no guest");
 }
 
 void same_seed_and_guest_id_produce_identical_profile() {
@@ -161,6 +169,85 @@ void complaint_threshold_respects_magnitude_and_guest_sensitivity() {
   require(psychology.snapshot(id)->complaints.size() == 1,
           "magnitude-50 complaint override was not honored");
 }
+
+void live_simulation_exposes_authoritative_psychology_and_updates_needs() {
+  auto sim = Simulation::tutorial(169);
+  require(sim.loadDefinitions(R"({"baseDemand":100})").ok,
+          "live psychology fixture definitions rejected");
+  sim.step(3600);
+  const auto guest = firstGuest(sim.view());
+  const auto before = sim.guestPsychology(guest.reservationId);
+  require(before.guestId == guest.reservationId && before.profile == guest.profile,
+          "live guest did not expose matching authoritative psychology");
+
+  sim.step(3600);
+  const auto after = sim.guestPsychology(guest.reservationId);
+  require(after.needs.hunger <= before.needs.hunger - 9 &&
+              after.needs.energy <= before.needs.energy - 4,
+          "live one-second simulation did not advance authoritative guest needs");
+}
+
+void severe_live_check_in_wait_creates_retained_memory_and_complaint() {
+  auto sim = Simulation::tutorial(169);
+  require(sim.loadDefinitions(R"({"baseDemand":100})").ok,
+          "wait psychology fixture definitions rejected");
+  EntityId receptionist{};
+  for (const auto &person : sim.view().people)
+    if (person.kind == PersonKind::Receptionist) {
+      receptionist = person.id;
+      break;
+    }
+  require(receptionist && sim.fireStaff(receptionist).ok,
+          "wait psychology fixture could not remove receptionist");
+  sim.step(3600);
+  const auto guestId = firstGuest(sim.view()).reservationId;
+  sim.step(1900);
+  const auto psychology = sim.guestPsychology(guestId);
+  const bool hasWaitMemory = std::any_of(
+      psychology.memories.begin(), psychology.memories.end(),
+      [](const GuestMemory &memory) {
+        return memory.type == ExperienceEventType::LongCheckInQueue;
+      });
+  const bool hasDelayComplaint = std::any_of(
+      psychology.complaints.begin(), psychology.complaints.end(),
+      [](const Complaint &complaint) {
+        return complaint.type == ComplaintType::CheckInDelay;
+      });
+  require(hasWaitMemory && hasDelayComplaint,
+          "severe live check-in wait lacked attributed memory/complaint");
+}
+
+void simulation_exposes_deterministic_goal_selection_interface() {
+  auto sim = Simulation::tutorial(171);
+  GuestOpportunitySnapshot opportunities;
+  GoalOpportunity relax;
+  relax.stableGoalId = 20;
+  relax.goal = GuestGoalClass::Relax;
+  relax.needScore = 30;
+  GoalOpportunity eat = relax;
+  eat.stableGoalId = 10;
+  eat.goal = GuestGoalClass::Eat;
+  opportunities.opportunities = {relax, eat};
+  const auto selected = sim.chooseGuestGoal(55, opportunities);
+  require(selected.valid && selected.stableGoalId == 10,
+          "Simulation guest-goal interface did not preserve stable tie-break");
+}
+
+void live_guest_psychology_survives_save_round_trip() {
+  auto sim = Simulation::tutorial(172);
+  require(sim.loadDefinitions(R"({"baseDemand":100})").ok,
+          "psychology save fixture definitions rejected");
+  sim.step(3600);
+  const auto guestId = firstGuest(sim.view()).reservationId;
+  sim.step(733);
+  const auto before = sim.guestPsychology(guestId);
+  const auto loaded = Simulation::load(sim.save());
+  const auto after = loaded.guestPsychology(guestId);
+  require(before == after,
+          "authoritative guest psychology did not survive save/load exactly");
+  require(loaded.save() == sim.save(),
+          "psychology save was not byte-stable after round trip");
+}
 } // namespace
 
 int main() {
@@ -172,6 +259,10 @@ int main() {
     negative_service_experience_creates_attributed_memory_and_complaint();
     memory_contribution_halves_at_configured_half_life();
     complaint_threshold_respects_magnitude_and_guest_sensitivity();
+    live_simulation_exposes_authoritative_psychology_and_updates_needs();
+    severe_live_check_in_wait_creates_retained_memory_and_complaint();
+    simulation_exposes_deterministic_goal_selection_interface();
+    live_guest_psychology_survives_save_round_trip();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
