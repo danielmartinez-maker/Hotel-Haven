@@ -1,7 +1,13 @@
 #include "hh/game/Simulation.h"
+#include <algorithm>
+#include <array>
+#include <bit>
 #include <climits>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
+#include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -10,11 +16,299 @@ static void require(bool v, const char *m) {
   if (!v)
     throw std::runtime_error(m);
 }
+static std::string with_save_version(std::string save, int version) {
+  const auto end = save.find(' ', 5);
+  if (!save.starts_with("HHGS ") || end == std::string::npos)
+    throw std::runtime_error("save fixture has no version token");
+  save.replace(5, end - 5, std::to_string(version));
+  return save;
+}
 static const RoomView &room(const SimulationView &v, EntityId id) {
   for (auto &r : v.rooms)
     if (r.id == id)
       return r;
   throw std::runtime_error("room missing");
+}
+
+static bool same_profile(const GuestProfileView &a,
+                         const GuestProfileView &b) {
+  return a.archetype == b.archetype &&
+         a.budgetPerNightCents == b.budgetPerNightCents &&
+         a.priceSensitivity == b.priceSensitivity &&
+         a.serviceSensitivity == b.serviceSensitivity &&
+         a.cleanlinessSensitivity == b.cleanlinessSensitivity &&
+         a.noiseSensitivity == b.noiseSensitivity &&
+         a.privacySensitivity == b.privacySensitivity &&
+         a.safetySensitivity == b.safetySensitivity &&
+         a.comfortSensitivity == b.comfortSensitivity &&
+         a.foodSensitivity == b.foodSensitivity && a.patience == b.patience &&
+         a.traitFlags == b.traitFlags;
+}
+
+static void guest_profiles_are_deterministic_and_bounded() {
+  std::array<bool, 13> seen{};
+  for (std::uint64_t seed = 40; seed < 168; ++seed) {
+    auto a = Simulation::tutorial(seed);
+    auto b = Simulation::tutorial(seed);
+    require(a.loadDefinitions(R"({"baseDemand":100})").ok &&
+                b.loadDefinitions(R"({"baseDemand":100})").ok,
+            "profile test definitions rejected");
+    for (const auto &room : a.view().rooms)
+      require(a.setRoomRate(room.id, 50).ok,
+              "profile test could not set inclusive room rate");
+    for (const auto &room : b.view().rooms)
+      require(b.setRoomRate(room.id, 50).ok,
+              "profile test could not set matching room rate");
+    a.step(3600);
+    b.step(3600);
+    const auto av = a.view();
+    const auto bv = b.view();
+    require(av.reservations.size() == bv.reservations.size() &&
+                !av.reservations.empty(),
+            "profile test did not create matching demand");
+    for (std::size_t index = 0; index < av.reservations.size(); ++index) {
+      const auto &profile = av.reservations[index].profile;
+      require(same_profile(profile, bv.reservations[index].profile),
+              "same seed generated a different guest profile");
+      const auto archetype = static_cast<int>(profile.archetype);
+      require(archetype >= 0 && archetype < static_cast<int>(seen.size()),
+              "guest archetype outside the public range");
+      seen[static_cast<std::size_t>(archetype)] = true;
+      require(profile.budgetPerNightCents >= 4000 &&
+                  profile.budgetPerNightCents <= 1'000'000,
+              "guest budget outside the supported range");
+      const std::array<double, 9> factors = {
+          profile.priceSensitivity,       profile.serviceSensitivity,
+          profile.cleanlinessSensitivity, profile.noiseSensitivity,
+          profile.privacySensitivity,     profile.safetySensitivity,
+          profile.comfortSensitivity,     profile.foodSensitivity,
+          profile.patience};
+      for (double factor : factors)
+        require(std::isfinite(factor) && factor >= 0 && factor <= 1,
+                "guest factor outside normalized range");
+      require(std::popcount(profile.traitFlags) <= 3,
+              "guest received more than three traits");
+      const auto has = [&](GuestTrait trait) {
+        return (profile.traitFlags & guestTraitFlag(trait)) != 0;
+      };
+      require(!(has(GuestTrait::Patient) && has(GuestTrait::Impatient)) &&
+                  !(has(GuestTrait::Neat) && has(GuestTrait::Messy)) &&
+                  !(has(GuestTrait::LightSleeper) &&
+                    has(GuestTrait::HeavySleeper)) &&
+                  !(has(GuestTrait::Social) && has(GuestTrait::Private)) &&
+                  !(has(GuestTrait::EarlyRiser) &&
+                    has(GuestTrait::NightOwl)),
+              "guest received contradictory traits");
+    }
+  }
+  require(std::all_of(seen.begin(), seen.end(), [](bool value) { return value; }),
+          "deterministic market did not expose every guest archetype");
+  require(static_cast<int>(GuestArchetype::CriticReviewer) == 12,
+          "public guest archetype catalog is incomplete");
+}
+
+static void guest_profiles_propagate_and_round_trip() {
+  auto s = Simulation::tutorial(169);
+  require(s.loadDefinitions(R"({"baseDemand":100})").ok,
+          "profile propagation definitions rejected");
+  s.step(3600);
+  const auto before = s.view();
+  const PersonView *guest = nullptr;
+  const ReservationView *reservation = nullptr;
+  for (const auto &person : before.people)
+    if (person.kind == PersonKind::Guest) {
+      guest = &person;
+      break;
+    }
+  require(guest && guest->reservationId,
+          "arriving guest lacks a public reservation reference");
+  for (const auto &candidate : before.reservations)
+    if (candidate.id == guest->reservationId)
+      reservation = &candidate;
+  require(reservation && same_profile(guest->profile, reservation->profile),
+          "reservation profile did not propagate to the arriving guest");
+  require(guest->queueToleranceSeconds >= 120 &&
+              guest->queueToleranceSeconds <= 1200,
+          "guest queue tolerance is not a useful personal threshold");
+
+  const auto saved = s.save();
+  require(saved.starts_with("HHGS 10 "),
+          "check-in diagnostics did not bump the save format");
+  const auto loaded = Simulation::load(saved).view();
+  const PersonView *loadedGuest = nullptr;
+  const ReservationView *loadedReservation = nullptr;
+  for (const auto &person : loaded.people)
+    if (person.id == guest->id)
+      loadedGuest = &person;
+  for (const auto &candidate : loaded.reservations)
+    if (candidate.id == reservation->id)
+      loadedReservation = &candidate;
+  require(loadedGuest && loadedReservation &&
+              loadedGuest->queueToleranceSeconds ==
+                  guest->queueToleranceSeconds &&
+              same_profile(loadedGuest->profile, guest->profile) &&
+              same_profile(loadedReservation->profile, reservation->profile),
+          "guest profile did not round-trip exactly");
+  require(Simulation::load(saved).save() == saved,
+          "v10 guest save is not byte-stable after loading");
+
+  auto corrupted = saved;
+  const auto guestMarker = '"' + guest->name + '"';
+  const auto guestPosition = corrupted.find(guestMarker);
+  const auto guestLineEnd = corrupted.find('\n', guestPosition);
+  const auto validBudget = std::to_string(guest->profile.budgetPerNightCents);
+  const auto budgetPosition = corrupted.find(' ' + validBudget + ' ',
+                                             guestPosition);
+  require(guestPosition != std::string::npos &&
+              guestLineEnd != std::string::npos &&
+              budgetPosition != std::string::npos &&
+              budgetPosition < guestLineEnd,
+          "serialized guest profile was not found on the guest record");
+  corrupted.replace(budgetPosition + 1, validBudget.size(), "3999");
+  bool rejected = false;
+  try {
+    (void)Simulation::load(corrupted);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "invalid serialized guest profile was accepted");
+
+  auto legacy = Simulation(170, 4, 4, 1).save();
+  require(legacy.starts_with("HHGS 10 "),
+          "empty v10 migration fixture failed");
+  for (const int version : {9, 8, 7})
+    require(Simulation::load(with_save_version(legacy, version))
+                .save()
+                .starts_with("HHGS 10 "),
+            "legacy save did not migrate to the v10 writer");
+}
+
+static void reviews_follow_segment_probability_rules() {
+  bool foundCritic = false;
+  bool foundOrdinaryReview = false;
+  bool foundOrdinarySkip = false;
+  for (std::uint64_t seed = 250;
+       seed < 270 &&
+       !(foundCritic && foundOrdinaryReview && foundOrdinarySkip);
+       ++seed) {
+    auto s = Simulation::tutorial(seed);
+    require(
+        s.loadDefinitions(
+             R"({"baseDemand":100,"roomConditionLossPerDay":0,"initialLinen":500,"initialTowels":1000,"initialAmenities":500,"initialChemicals":500})")
+            .ok,
+        "review probability definitions rejected");
+    s.step(20 * 86400);
+    const auto view = s.view();
+    std::set<EntityId> reviewed;
+    for (const auto &review : view.reviews) {
+      require(std::isfinite(review.score) && review.score >= 1.0 &&
+                  review.score <= 10.0,
+              "review score is outside the 1.0-10.0 scale");
+      reviewed.insert(review.reservationId);
+    }
+    for (const auto &reservation : view.reservations) {
+      if (!reservation.completed)
+        continue;
+      const bool hasReview = reviewed.contains(reservation.id);
+      if (reservation.profile.archetype == GuestArchetype::CriticReviewer) {
+        foundCritic = true;
+        require(hasReview, "completed critic stay did not force a review");
+      } else if (hasReview) {
+        foundOrdinaryReview = true;
+      } else {
+        foundOrdinarySkip = true;
+      }
+    }
+  }
+  require(foundCritic, "review fixture did not complete a critic stay");
+  require(foundOrdinaryReview && foundOrdinarySkip,
+          "ordinary reviews were not generated probabilistically");
+}
+
+static void populated_v8_review_scores_migrate_to_ten_point_scale() {
+  auto s = Simulation::tutorial(9);
+  s.step(5 * 86400);
+  const auto before = s.view();
+  require(!before.reviews.empty(),
+          "populated v8 migration fixture produced no reviews");
+  auto legacy = s.save();
+  for (const auto &reservation : before.reservations) {
+    std::ostringstream profile;
+    profile << std::setprecision(17)
+            << static_cast<int>(reservation.profile.archetype) << ' '
+            << reservation.profile.budgetPerNightCents << ' '
+            << reservation.profile.priceSensitivity << ' '
+            << reservation.profile.serviceSensitivity << ' '
+            << reservation.profile.cleanlinessSensitivity << ' '
+            << reservation.profile.noiseSensitivity << ' '
+            << reservation.profile.privacySensitivity << ' '
+            << reservation.profile.safetySensitivity << ' '
+            << reservation.profile.comfortSensitivity << ' '
+            << reservation.profile.foodSensitivity << ' '
+            << reservation.profile.patience << ' '
+            << reservation.profile.traitFlags;
+    const auto oldSuffix = ' ' + profile.str() + ' ' +
+                           std::to_string(reservation.walkedRelocated) + ' ' +
+                           std::to_string(reservation.checkInTravelSeconds) +
+                           ' ' +
+                           std::to_string(reservation.checkInWaitSeconds) + '\n';
+    const auto legacySuffix =
+        ' ' + profile.str() + ' ' +
+        std::to_string(reservation.walkedRelocated) + '\n';
+    const auto position = legacy.find(oldSuffix);
+    require(position != std::string::npos,
+            "v10 reservation diagnostics were not found in the save");
+    legacy.replace(position, oldSuffix.size(), legacySuffix);
+  }
+  const auto migratedV9 = Simulation::load(with_save_version(legacy, 9));
+  for (const auto &reservation : migratedV9.view().reservations)
+    require(reservation.checkInTravelSeconds == 0 &&
+                reservation.checkInWaitSeconds == 0,
+            "v9 reservation did not receive default check-in diagnostics");
+  require(migratedV9.save().starts_with("HHGS 10 "),
+          "populated v9 save did not migrate to the v10 writer");
+
+  legacy = with_save_version(legacy, 8);
+  for (const auto &review : before.reviews) {
+    std::ostringstream currentLine;
+    currentLine << std::setprecision(17) << review.reservationId << ' '
+                << review.day << ' ' << review.score << ' '
+                << std::quoted(review.text);
+    std::ostringstream legacyLine;
+    legacyLine << review.reservationId << ' ' << review.day << " 80 "
+               << std::quoted(review.text);
+    const auto position = legacy.find(currentLine.str());
+    require(position != std::string::npos,
+            "v9 review record was not found in the save");
+    legacy.replace(position, currentLine.str().size(), legacyLine.str());
+  }
+  const auto migrated = Simulation::load(legacy);
+  for (const auto &review : migrated.view().reviews)
+    require(std::abs(review.score - 8.2) < 1e-12,
+            "legacy 0-100 review score did not migrate to 1.0-10.0");
+  require(migrated.save().starts_with("HHGS 10 "),
+          "populated v8 save did not migrate to the v10 writer");
+
+  const auto &firstReview = before.reviews.front();
+  std::ostringstream validLegacyReview;
+  validLegacyReview << firstReview.reservationId << ' ' << firstReview.day
+                    << " 80 " << std::quoted(firstReview.text);
+  std::ostringstream invalidLegacyReview;
+  invalidLegacyReview << firstReview.reservationId << ' ' << firstReview.day
+                      << " 101 " << std::quoted(firstReview.text);
+  auto corrupted = legacy;
+  const auto reviewPosition = corrupted.find(validLegacyReview.str());
+  require(reviewPosition != std::string::npos,
+          "legacy review record was not found in the save");
+  corrupted.replace(reviewPosition, validLegacyReview.str().size(),
+                    invalidLegacyReview.str());
+  bool rejected = false;
+  try {
+    (void)Simulation::load(corrupted);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "out-of-range legacy review score was accepted");
 }
 
 static void construction_and_routes() {
@@ -167,6 +461,7 @@ struct LayoutOutcome {
   std::int64_t guestWaitSeconds{};
   double guestSatisfaction{};
   int completedStays{};
+  int walkedRelocations{};
   std::int64_t operatingProfitCents{};
 };
 
@@ -200,33 +495,64 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
           "layout benchmark receptionist hire failed");
   require(s.hireStaff({"Rooms", PersonKind::Housekeeper, 8, 20, 18}).ok,
           "layout benchmark housekeeper hire failed");
+  for (const auto &room : s.view().rooms)
+    require(s.setRoomRate(room.id, 50).ok,
+            "layout benchmark launch rate rejected");
   require(
       s.loadDefinitions(
            R"({"baseDemand":100,"initialLinen":200,"initialTowels":400,"initialAmenities":200,"initialChemicals":200})")
           .ok,
       "layout benchmark definitions rejected");
 
-  s.step(17 * 3600);
+  // Sample every guest ten minutes into the shared arrival rush, before even
+  // the least tolerant profile can abandon, then let the campaign play out.
+  s.step(15 * 3600 + 10 * 60);
   LayoutOutcome outcome;
   int guests = 0;
+  std::set<EntityId> launchReservationIds;
   for (const auto &person : s.view().people)
     if (person.kind == PersonKind::Guest) {
-      outcome.guestTravelSeconds += person.travelSeconds;
-      outcome.guestWaitSeconds += person.queueWaitSeconds;
-      outcome.guestSatisfaction += person.satisfaction;
+      launchReservationIds.insert(person.reservationId);
       ++guests;
     }
   require(guests == 6, "layout benchmark did not fill equivalent hotels");
-  outcome.guestSatisfaction /= guests;
-
+  for (const auto &room : s.view().rooms)
+    require(s.setRoomRate(room.id, 140).ok,
+            "layout benchmark steady rate rejected");
   require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,
           "layout benchmark steady demand rejected");
+  const auto countWalked = [](const SimulationView &view) {
+    int count = 0;
+    for (const auto &reservation : view.reservations)
+      count += reservation.walkedRelocated;
+    return count;
+  };
+  // Flush the deliberately discounted launch cohort before measuring the
+  // steady-state economics of the two layouts.
+  s.step(5 * 86400);
+  const auto baseline = s.view();
   s.step(20 * 86400);
-  const auto economy = s.view().economy;
-  outcome.completedStays = economy.completedStays;
-  outcome.operatingProfitCents = economy.revenueCents - economy.payrollCents -
-                                 economy.supplyCostCents -
-                                 economy.utilityCostCents;
+  const auto final = s.view();
+  const auto economy = final.economy;
+  outcome.completedStays =
+      economy.completedStays - baseline.economy.completedStays;
+  outcome.walkedRelocations = countWalked(final);
+  int servedReservations = 0;
+  for (const auto &reservation : final.reservations)
+    if (launchReservationIds.contains(reservation.id)) {
+      outcome.guestTravelSeconds += reservation.checkInTravelSeconds;
+      outcome.guestWaitSeconds += reservation.checkInWaitSeconds;
+      outcome.guestSatisfaction += reservation.satisfaction;
+      ++servedReservations;
+    }
+  require(servedReservations == 6,
+          "layout benchmark lost a launch reservation from history");
+  outcome.guestSatisfaction /= servedReservations;
+  outcome.operatingProfitCents =
+      (economy.revenueCents - baseline.economy.revenueCents) -
+      (economy.payrollCents - baseline.economy.payrollCents) -
+      (economy.supplyCostCents - baseline.economy.supplyCostCents) -
+      (economy.utilityCostCents - baseline.economy.utilityCostCents);
   return outcome;
 }
 
@@ -239,21 +565,72 @@ static void poor_layout_lowers_service_quality_and_profit() {
             << poor.guestWaitSeconds << " s, satisfaction "
             << efficient.guestSatisfaction << '/' << poor.guestSatisfaction
             << ", stays " << efficient.completedStays << '/'
-            << poor.completedStays << ", operating profit "
+            << poor.completedStays << ", walks " << efficient.walkedRelocations
+            << '/' << poor.walkedRelocations << ", operating profit "
             << efficient.operatingProfitCents << '/'
             << poor.operatingProfitCents << " cents\n";
   require(poor.guestTravelSeconds > efficient.guestTravelSeconds,
           "poor layout did not increase guest travel");
   require(poor.guestWaitSeconds > efficient.guestWaitSeconds,
-          "poor layout did not increase check-in waits");
+          "poor layout did not increase completed check-in waits");
   require(poor.guestSatisfaction < efficient.guestSatisfaction,
           "poor layout did not lower guest satisfaction");
   require(poor.completedStays < efficient.completedStays,
           "poor layout did not reduce hotel throughput");
+  require(poor.walkedRelocations > efficient.walkedRelocations,
+          "poor layout did not cause more physical check-in abandonment");
   require(efficient.operatingProfitCents > 0,
           "efficient benchmark hotel was not operationally viable");
   require(poor.operatingProfitCents < efficient.operatingProfitCents,
           "poor layout did not reduce operating profit");
+}
+
+static void excessive_checkin_delays_release_walked_guests() {
+  auto s = Simulation::tutorial(90);
+  require(s.loadDefinitions(R"({"baseDemand":100})").ok,
+          "walked-guest definitions rejected");
+  EntityId receptionist = 0;
+  for (const auto &person : s.view().people)
+    if (person.kind == PersonKind::Receptionist)
+      receptionist = person.id;
+  require(receptionist && s.fireStaff(receptionist).ok,
+          "walked-guest fixture could not remove reception coverage");
+  // Observe the release before the 16:00 sales pass can reserve the rooms
+  // again for a future arrival.
+  s.step(95 * 60);
+  const auto view = s.view();
+  int walked = 0;
+  std::int64_t checkInTravel = 0;
+  int checkInWait = 0;
+  for (const auto &reservation : view.reservations) {
+    walked += reservation.walkedRelocated;
+    checkInTravel += reservation.checkInTravelSeconds;
+    checkInWait += reservation.checkInWaitSeconds;
+  }
+  require(walked > 0 && view.economy.completedStays == 0,
+          "unserved check-in queue produced no walked guests");
+  for (const auto &room : view.rooms)
+    require(room.reservationId == 0 && room.status == RoomStatus::VacantReady,
+            "walked guest left a room unavailable for resale");
+  for (const auto &task : view.tasks)
+    require(task.kind != TaskKind::CheckIn ||
+                task.status == TaskStatus::Completed,
+            "walked guest left an active check-in task");
+  const auto saved = s.save();
+  const auto restored = Simulation::load(saved).view();
+  int restoredWalked = 0;
+  std::int64_t restoredCheckInTravel = 0;
+  int restoredCheckInWait = 0;
+  for (const auto &reservation : restored.reservations) {
+    restoredWalked += reservation.walkedRelocated;
+    restoredCheckInTravel += reservation.checkInTravelSeconds;
+    restoredCheckInWait += reservation.checkInWaitSeconds;
+  }
+  require(restoredWalked == walked &&
+              restoredCheckInTravel == checkInTravel &&
+              restoredCheckInWait == checkInWait &&
+              Simulation::load(saved).save() == saved,
+          "walked reservation did not round-trip exactly");
 }
 
 static void construction_preserves_property_invariants() {
@@ -282,9 +659,9 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 7 16 32 20 3");
+  auto pos = saved.find("HHGS 10 16 32 20 3");
   require(pos == 0, "unexpected save header");
-  saved.replace(10, 2, "99");
+  saved.replace(std::string("HHGS 10 16 ").size(), 2, "99");
   bool rejected = false;
   try {
     (void)Simulation::load(saved);
@@ -496,8 +873,8 @@ static void room_price_changes_booking_demand() {
   for (const auto &roomView : overpriced.view().rooms)
     require(overpriced.setRoomRate(roomView.id, 500).ok,
             "price-demand test could not set room rate");
-  fair.step(3600);
-  overpriced.step(3600);
+  fair.step(2 * 86400);
+  overpriced.step(2 * 86400);
   require(!fair.view().reservations.empty(),
           "fair rates did not attract high-demand bookings");
   require(overpriced.view().reservations.empty(),
@@ -682,6 +1059,10 @@ static void long_campaign_bounds_transient_history() {
 
 int main() {
   try {
+    guest_profiles_are_deterministic_and_bounded();
+    guest_profiles_propagate_and_round_trip();
+    reviews_follow_segment_probability_rules();
+    populated_v8_review_scores_migrate_to_ten_point_scale();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
@@ -693,6 +1074,7 @@ int main() {
     turnover_resources_and_accounts();
     deterministic_save_continuation();
     layout_has_consequences();
+    excessive_checkin_delays_release_walked_guests();
     poor_layout_lowers_service_quality_and_profit();
     construction_preserves_property_invariants();
     invalid_inputs_are_rejected();

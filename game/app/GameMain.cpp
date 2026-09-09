@@ -30,15 +30,17 @@ std::optional<Position> pick(const Client &c, int x, int y) {
                                c.camera.viewMatrix(), XMMatrixIdentity()));
     return p;
   };
-  const auto near = unproject(0), far = unproject(1);
-  const float dy = far.y - near.y;
+  const auto nearPoint = unproject(0), farPoint = unproject(1);
+  const float dy = farPoint.y - nearPoint.y;
   if (std::abs(dy) < 1e-6f)
     return {};
-  const float t = (static_cast<float>(c.floor) * 3.2f - near.y) / dy;
+  const float t = (static_cast<float>(c.floor) * 3.2f - nearPoint.y) / dy;
   if (t < 0 || t > 1)
     return {};
-  const int tx = static_cast<int>(std::floor(near.x + (far.x - near.x) * t)),
-            ty = static_cast<int>(std::floor(near.z + (far.z - near.z) * t));
+  const int tx = static_cast<int>(
+                std::floor(nearPoint.x + (farPoint.x - nearPoint.x) * t)),
+            ty = static_cast<int>(
+                std::floor(nearPoint.z + (farPoint.z - nearPoint.z) * t));
   if (tx < 0 || ty < 0 || tx >= c.snapshot.width || ty >= c.snapshot.height)
     return {};
   return Position{c.floor, tx, ty};
@@ -219,9 +221,10 @@ Client::Client() : simulation(Simulation::tutorial(20260907)) {
   normal = CreateFontW(-16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                        CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
-  small = CreateFontW(-13, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-                      DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                      CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  smallFont = CreateFontW(-13, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
+                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                          CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH,
+                          L"Segoe UI");
   title = CreateFontW(-23, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
                       DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                       CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Georgia");
@@ -236,7 +239,7 @@ Client::Client() : simulation(Simulation::tutorial(20260907)) {
 }
 Client::~Client() {
   DeleteObject(normal);
-  DeleteObject(small);
+  DeleteObject(smallFont);
   DeleteObject(title);
   DeleteObject(number);
 }

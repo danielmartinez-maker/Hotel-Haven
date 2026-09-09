@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 namespace hh::client {
 using namespace hh::game;
 namespace {
@@ -25,6 +26,11 @@ void text(HDC dc, HFONT font, std::wstring value, int x, int y, int w, int h,
 std::wstring pct(double v) {
   return std::to_wstring(static_cast<int>(std::round(v))) + L"%";
 }
+std::wstring rating(double value) {
+  std::wostringstream output;
+  output << std::fixed << std::setprecision(1) << value;
+  return output.str();
+}
 std::wstring role(PersonKind k) {
   switch (k) {
   case PersonKind::Receptionist:
@@ -36,6 +42,66 @@ std::wstring role(PersonKind k) {
   default:
     return L"Guest";
   }
+}
+std::wstring archetypeName(GuestArchetype archetype) {
+  switch (archetype) {
+  case GuestArchetype::BudgetLeisure:
+    return L"Budget leisure";
+  case GuestArchetype::Backpacker:
+    return L"Backpacker";
+  case GuestArchetype::BusinessTraveler:
+    return L"Business traveler";
+  case GuestArchetype::ExecutiveBusiness:
+    return L"Executive business";
+  case GuestArchetype::CoupleLeisure:
+    return L"Couple leisure";
+  case GuestArchetype::FamilyLeisure:
+    return L"Family leisure";
+  case GuestArchetype::LuxuryLeisure:
+    return L"Luxury leisure";
+  case GuestArchetype::ConferenceDelegate:
+    return L"Conference delegate";
+  case GuestArchetype::GroupTourTraveler:
+    return L"Group / tour";
+  case GuestArchetype::AirportTransitTraveler:
+    return L"Airport / transit";
+  case GuestArchetype::WellnessTraveler:
+    return L"Wellness traveler";
+  case GuestArchetype::VipCelebrity:
+    return L"VIP / celebrity";
+  case GuestArchetype::CriticReviewer:
+    return L"Critic / reviewer";
+  }
+  return L"Guest";
+}
+std::wstring traitNames(const GuestProfileView &profile) {
+  const std::array<std::pair<GuestTrait, const wchar_t *>, 17> names{{
+      {GuestTrait::Patient, L"Patient"},
+      {GuestTrait::Impatient, L"Impatient"},
+      {GuestTrait::Neat, L"Neat"},
+      {GuestTrait::Messy, L"Messy"},
+      {GuestTrait::LightSleeper, L"Light sleeper"},
+      {GuestTrait::HeavySleeper, L"Heavy sleeper"},
+      {GuestTrait::Foodie, L"Foodie"},
+      {GuestTrait::Workaholic, L"Workaholic"},
+      {GuestTrait::Social, L"Social"},
+      {GuestTrait::Private, L"Private"},
+      {GuestTrait::Frugal, L"Frugal"},
+      {GuestTrait::StatusConscious, L"Status conscious"},
+      {GuestTrait::FitnessFocused, L"Fitness focused"},
+      {GuestTrait::EarlyRiser, L"Early riser"},
+      {GuestTrait::NightOwl, L"Night owl"},
+      {GuestTrait::ComplaintProne, L"Complaint prone"},
+      {GuestTrait::Forgiving, L"Forgiving"},
+  }};
+  std::wstring result;
+  for (const auto &[trait, name] : names)
+    if ((profile.traitFlags & guestTraitFlag(trait)) != 0) {
+      if (!result.empty())
+        result += L", ";
+      result += name;
+    }
+  return result.empty() ? L"None" : result;
 }
 std::wstring taskName(TaskKind k) {
   switch (k) {
@@ -115,19 +181,19 @@ void Client::paint(HDC output) {
                     std::function<void()> action, bool active = false) {
     RECT r{x, y, x + w, y + h};
     fill(dc, r, active ? Accent : Panel);
-    text(dc, small, label, x + 5, y + 7, w - 10, h - 8,
+    text(dc, smallFont, label, x + 5, y + 7, w - 10, h - 8,
          active ? RGB(250, 247, 236) : Ink, DT_CENTER | DT_SINGLELINE);
     buttons.push_back({r, std::move(label), std::move(action), active});
   };
   text(dc, title, L"HOTEL HAVEN", 22, 14, 290, 30);
-  text(dc, small, L"PROPERTY MANAGEMENT", 23, 49, 220, 20, Muted);
-  text(dc, small, L"AVAILABLE CASH", 306, 15, 175, 20, Muted);
+  text(dc, smallFont, L"PROPERTY MANAGEMENT", 23, 49, 220, 20, Muted);
+  text(dc, smallFont, L"AVAILABLE CASH", 306, 15, 175, 20, Muted);
   text(dc, number, money(snapshot.economy.cashCents), 306, 36, 185, 31);
-  text(dc, small, L"OCCUPANCY", 505, 15, 120, 20, Muted);
+  text(dc, smallFont, L"OCCUPANCY", 505, 15, 120, 20, Muted);
   text(dc, number, pct(snapshot.economy.occupancy * 100), 505, 36, 120, 31);
-  text(dc, small, L"REPUTATION", 643, 15, 140, 20, Muted);
+  text(dc, smallFont, L"REPUTATION", 643, 15, 140, 20, Muted);
   text(dc, number, pct(snapshot.economy.reputation), 643, 36, 130, 31);
-  text(dc, small, L"DAY " + std::to_wstring(snapshot.day + 1), 795, 15, 100, 20,
+  text(dc, smallFont, L"DAY " + std::to_wstring(snapshot.day + 1), 795, 15, 100, 20,
        Muted);
   const int minute = static_cast<int>((snapshot.elapsedSeconds / 60) % 60);
   std::wostringstream clock;
@@ -163,7 +229,7 @@ void Client::paint(HDC output) {
     y += h + 9;
   };
   auto label = [&](std::wstring key, std::wstring value) {
-    text(dc, small, key, left, y, 190, 24, Muted);
+    text(dc, smallFont, key, left, y, 190, 24, Muted);
     text(dc, normal, value, left + 190, y, pw - 190, 25, Ink,
          DT_RIGHT | DT_SINGLELINE);
     y += 28;
@@ -324,11 +390,17 @@ void Client::paint(HDC output) {
     label(L"Guests on property", std::to_wstring(guests.size()));
     separator();
     for (std::size_t i = static_cast<std::size_t>(tabScroll);
-         i < guests.size() && y + 150 < bottom; ++i) {
+         i < guests.size() && y + 230 < bottom; ++i) {
       const auto &p = guests[i];
-      paragraph(wide(p.name) + L" · " + personState(p.state), 26);
+      paragraph(wide(p.name) + L" · " + archetypeName(p.profile.archetype) +
+                    L" · " + personState(p.state),
+                42);
+      label(L"Nightly budget", money(p.profile.budgetPerNightCents));
+      label(L"Personal queue limit",
+            std::to_wstring(p.queueToleranceSeconds / 60) + L" min");
       label(L"Satisfaction", pct(p.satisfaction));
       label(L"Food need / energy", pct(p.hunger) + L" / " + pct(p.rest));
+      paragraph(L"Traits · " + traitNames(p.profile), 34);
       paragraph(wide(p.goal) + L" · traveled " +
                     std::to_wstring(p.travelSeconds / 60) + L" min · waited " +
                     std::to_wstring(p.queueWaitSeconds / 60) + L" min",
@@ -403,7 +475,7 @@ void Client::paint(HDC output) {
          i < snapshot.reviews.size() && y + 82 < bottom; ++i) {
       const auto &r = snapshot.reviews[snapshot.reviews.size() - 1 - i];
       paragraph(L"Day " + std::to_wstring(r.day + 1) + L" · " +
-                    std::to_wstring(r.score) + L" / 100",
+                    rating(r.score) + L" / 10",
                 23);
       paragraph(wide(r.text), 48);
       separator();
@@ -481,7 +553,7 @@ void Client::paint(HDC output) {
         [this, v] { speed = v; }, speed == v);
   }
   button(291, by, 35, 31, L"−", [this] { changeFloor(floor - 1); });
-  text(dc, small, L"Floor " + std::to_wstring(floor), 333, by + 7, 65, 24);
+  text(dc, smallFont, L"Floor " + std::to_wstring(floor), 333, by + 7, 65, 24);
   button(401, by, 35, 31, L"+", [this] { changeFloor(floor + 1); });
   button(453, by, 102, 31, L"Walls", [this] {
     wallMode = static_cast<hh::renderer::WallRenderMode>(
@@ -493,10 +565,10 @@ void Client::paint(HDC output) {
   const std::array<std::wstring, 4> overlays = {
       L"Natural view", L"Green ready / blue occupied / amber dirty",
       L"Cleanliness: red 0 → green 100", L"Condition: red 0 → green 100"};
-  text(dc, small, overlays[static_cast<std::size_t>(overlay)], 680, by + 7,
+  text(dc, smallFont, overlays[static_cast<std::size_t>(overlay)], 680, by + 7,
        width - 700, 22, Muted);
   // Status strip lies above the world, never over its interactive controls.
-  text(dc, small, notice, 22, HeaderHeight - 19, sx - 40, 19, Accent,
+  text(dc, smallFont, notice, 22, HeaderHeight - 19, sx - 40, 19, Accent,
        DT_LEFT | DT_SINGLELINE | DT_END_ELLIPSIS);
   // Avoid painting over the D3D child surface.
   BitBlt(output, 0, 0, width, HeaderHeight, dc, 0, 0, SRCCOPY);

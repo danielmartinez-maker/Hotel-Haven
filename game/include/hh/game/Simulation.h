@@ -38,6 +38,43 @@ enum class RoomStatus {
   OutOfOrder
 };
 enum class PersonKind { Guest, Receptionist, Housekeeper, Maintenance };
+enum class GuestArchetype {
+  BudgetLeisure,
+  Backpacker,
+  BusinessTraveler,
+  ExecutiveBusiness,
+  CoupleLeisure,
+  FamilyLeisure,
+  LuxuryLeisure,
+  ConferenceDelegate,
+  GroupTourTraveler,
+  AirportTransitTraveler,
+  WellnessTraveler,
+  VipCelebrity,
+  CriticReviewer
+};
+enum class GuestTrait : std::uint8_t {
+  Patient,
+  Impatient,
+  Neat,
+  Messy,
+  LightSleeper,
+  HeavySleeper,
+  Foodie,
+  Workaholic,
+  Social,
+  Private,
+  Frugal,
+  StatusConscious,
+  FitnessFocused,
+  EarlyRiser,
+  NightOwl,
+  ComplaintProne,
+  Forgiving
+};
+constexpr std::uint32_t guestTraitFlag(GuestTrait trait) noexcept {
+  return std::uint32_t{1} << static_cast<std::uint8_t>(trait);
+}
 enum class PersonState {
   OffDuty,
   Idle,
@@ -74,6 +111,20 @@ struct RoomView {
   bool reachable{};
   bool closed{};
 };
+struct GuestProfileView {
+  GuestArchetype archetype{GuestArchetype::BudgetLeisure};
+  std::int64_t budgetPerNightCents{16000};
+  double priceSensitivity{0.5};
+  double serviceSensitivity{0.5};
+  double cleanlinessSensitivity{0.5};
+  double noiseSensitivity{0.5};
+  double privacySensitivity{0.5};
+  double safetySensitivity{0.5};
+  double comfortSensitivity{0.5};
+  double foodSensitivity{0.5};
+  double patience{0.5};
+  std::uint32_t traitFlags{};
+};
 struct PersonView {
   EntityId id{};
   std::string name;
@@ -92,6 +143,9 @@ struct PersonView {
   int shiftEndHour{};
   std::int64_t travelSeconds{};
   int queueWaitSeconds{};
+  int queueToleranceSeconds{};
+  EntityId reservationId{};
+  GuestProfileView profile;
   std::string goal;
   bool onShift{};
 };
@@ -103,9 +157,14 @@ struct ReservationView {
   int departureDay{};
   std::int64_t nightlyRateCents{};
   double nightlyRate{};
+  double satisfaction{70};
+  std::int64_t checkInTravelSeconds{};
+  int checkInWaitSeconds{};
   bool checkedIn{};
   bool checkoutStarted{};
   bool completed{};
+  bool walkedRelocated{};
+  GuestProfileView profile;
 };
 struct TaskView {
   EntityId id{};
@@ -120,7 +179,7 @@ struct TaskView {
 struct ReviewView {
   EntityId reservationId{};
   int day{};
-  int score{};
+  double score{};
   std::string text;
 };
 struct InventoryView {
