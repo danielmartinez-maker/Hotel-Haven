@@ -8,7 +8,8 @@ add_library(hh_game
   src/BuildJobs.cpp
   src/BuildingSystems.cpp
   src/GuestPsychology.cpp
-  src/GuestGoals.cpp)
+  src/GuestGoals.cpp
+  src/GuestLoyalty.cpp)
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets hh_optimization)
 target_compile_features(hh_game PUBLIC cxx_std_20)
