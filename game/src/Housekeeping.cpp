@@ -1,5 +1,4 @@
 #include "hh/game/Housekeeping.h"
-#include <algorithm>
 
 namespace hh::game {
 
@@ -70,11 +69,10 @@ bool HousekeepingSystem::beginStage(Job &job) {
     }
     break;
   case HousekeepingStage::CleanBathroom:
-    if (logistics_->inventoryUsable("cleaning_chemical") < 1) {
+    if (!logistics_->consumeUsable("cleaning_chemical", 1)) {
       job.blockedReason = BlockReason::MissingChemicals;
       return false;
     }
-    logistics_->consumeUsable("cleaning_chemical", 1);
     break;
   case HousekeepingStage::ReplaceLinen:
     if (logistics_->inventoryUsable("clean_linen_set") < 1) {
@@ -85,15 +83,20 @@ bool HousekeepingSystem::beginStage(Job &job) {
       job.blockedReason = BlockReason::MissingTowels;
       return false;
     }
-    logistics_->consumeUsable("clean_linen_set", 1);
-    logistics_->consumeUsable("towel_unit", 2);
+    if (!logistics_->consumeUsable("clean_linen_set", 1)) {
+      job.blockedReason = BlockReason::MissingCleanLinen;
+      return false;
+    }
+    if (!logistics_->consumeUsable("towel_unit", 2)) {
+      job.blockedReason = BlockReason::MissingTowels;
+      return false;
+    }
     break;
   case HousekeepingStage::ReplenishAmenities:
-    if (logistics_->inventoryUsable("amenity_kit") < 1) {
+    if (!logistics_->consumeUsable("amenity_kit", 1)) {
       job.blockedReason = BlockReason::MissingAmenities;
       return false;
     }
-    logistics_->consumeUsable("amenity_kit", 1);
     break;
   default:
     break;
@@ -105,10 +108,17 @@ bool HousekeepingSystem::beginStage(Job &job) {
 }
 
 void HousekeepingSystem::completeStage(Job &job) {
-  if (job.stage == HousekeepingStage::StripLinen)
-    logistics_->addToKind(StorageKind::DirtyLinen, "dirty_linen_set", 1);
-  else if (job.stage == HousekeepingStage::CollectTrash)
+  if (job.stage == HousekeepingStage::StripLinen) {
+    if (!logistics_->addToKind(StorageKind::DirtyLinen, "dirty_linen_set", 1)) {
+      job.blockedReason = BlockReason::MissingDirtyStorage;
+      job.stageStarted = false;
+      if (auto *state = room(job.roomId))
+        state->status = ServiceRoomStatus::Blocked;
+      return;
+    }
+  } else if (job.stage == HousekeepingStage::CollectTrash) {
     logistics_->produceWaste(1);
+  }
 
   if (job.stage == HousekeepingStage::Inspect) {
     job.stage = HousekeepingStage::Completed;
