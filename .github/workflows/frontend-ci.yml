@@ -14,15 +14,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure renderer
-        run: cmake -S renderer -B renderer/build -A x64
-      - name: Build renderer
-        run: cmake --build renderer/build --config Release
-      - name: Test renderer
-        run: ctest --test-dir renderer/build -C Release --output-on-failure
       - name: Configure frontend
         run: cmake -S frontend -B frontend/build -A x64
       - name: Build frontend
         run: cmake --build frontend/build --config Release
       - name: Test frontend
         run: ctest --test-dir frontend/build -C Release --output-on-failure
+      - name: Configure renderer
+        run: cmake -S renderer -B renderer/build -A x64
+      - name: Build renderer
+        run: cmake --build renderer/build --config Release
+      - name: Test renderer
+        run: ctest --test-dir renderer/build -C Release --output-on-failure
