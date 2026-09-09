@@ -178,7 +178,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         }
         POINT click{};
         if (window.consumeLeftClick(click) && hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
-            controller.hover(hovered);
+            (void)controller.hover(hovered);
             transitions.retarget(model.selected(), reducedMotion);
             executeCommand(controller.activate(), window);
         }
