@@ -19,7 +19,7 @@ jobs:
           ref: feature/full-game-nvidia-integration
           fetch-depth: 0
       - name: Apply deterministic integration patch
-        run: python Tools/Integration/apply_full_game_nvidia_bridge.py
+        run: python Tools/Integration/run_existing_bridge.py
       - name: Check patch formatting
         run: git diff --check
       - name: Configure
@@ -31,6 +31,7 @@ jobs:
       - name: Commit tested integration
         shell: bash
         run: |
+          rm -f Tools/Integration/run_existing_bridge.py
           rm -f Tools/Integration/apply_full_game_nvidia_bridge.py
           rm -f Tools/Integration/apply_scheduler_patch.py
           rm -f .github/workflows/apply-full-game-nvidia-bridge.yml
