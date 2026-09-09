@@ -37,8 +37,6 @@ struct RendererStats {
 class D3D11Renderer {
 public:
     D3D11Renderer() = default;
-    explicit D3D11Renderer(const RuntimeAssetRegistry* registry) noexcept
-        : assetRegistry_(registry) {}
     ~D3D11Renderer();
 
     D3D11Renderer(const D3D11Renderer&) = delete;
