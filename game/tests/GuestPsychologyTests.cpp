@@ -249,6 +249,41 @@ void live_guest_psychology_survives_save_round_trip() {
   require(loaded.save() == sim.save(),
           "psychology save was not byte-stable after round trip");
 }
+
+void repeat_intent_responds_to_expectation_adjusted_satisfaction() {
+  GuestPsychologySnapshot high;
+  high.satisfaction.overall = 92;
+  high.satisfaction.expectationFit = 90;
+  high.operational.valuePerception = 85;
+  high.expectations.room = high.expectations.cleanliness =
+      high.expectations.service = high.expectations.food =
+          high.expectations.amenities = high.expectations.quiet =
+              high.expectations.convenience = high.expectations.value = 80;
+  auto low = high;
+  low.satisfaction.overall = 55;
+  low.satisfaction.expectationFit = 45;
+  low.operational.valuePerception = 50;
+  require(calculateRepeatIntent(high, 0) > calculateRepeatIntent(low, 0),
+          "repeat intent ignored expectation-adjusted satisfaction");
+}
+
+void material_memories_influence_repeat_intent() {
+  GuestPsychologySnapshot positive;
+  positive.satisfaction.overall = 80;
+  positive.satisfaction.expectationFit = 80;
+  positive.operational.valuePerception = 80;
+  GuestMemory good;
+  good.valence = 1;
+  good.magnitude = 50;
+  good.salience = 10000;
+  good.halfLifeHours = 48;
+  positive.memories.push_back(good);
+  auto negative = positive;
+  negative.memories.front().valence = -1;
+  require(calculateRepeatIntent(positive, 0) >
+              calculateRepeatIntent(negative, 0),
+          "repeat intent ignored material memory sentiment");
+}
 } // namespace
 
 int main() {
@@ -264,6 +299,8 @@ int main() {
     severe_live_check_in_wait_creates_retained_memory_and_complaint();
     simulation_exposes_deterministic_goal_selection_interface();
     live_guest_psychology_survives_save_round_trip();
+    repeat_intent_responds_to_expectation_adjusted_satisfaction();
+    material_memories_influence_repeat_intent();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
