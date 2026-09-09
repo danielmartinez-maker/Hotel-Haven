@@ -40,8 +40,8 @@ bool has_windows_absolute_prefix(std::string_view value) {
     if (!value.empty() && (value.front() == '/' || value.front() == '\\')) {
         return true;
     }
-    return value.size() >= 3 && std::isalpha(static_cast<unsigned char>(value[0])) != 0 &&
-           value[1] == ':' && (value[2] == '/' || value[2] == '\\');
+    return value.size() >= 2 && std::isalpha(static_cast<unsigned char>(value[0])) != 0 &&
+           value[1] == ':';
 }
 
 bool contains_parent_component(std::string_view value) {
