@@ -8,6 +8,9 @@ namespace hh::optimization {
 
 using EntityId = std::uint64_t;
 
+inline constexpr std::int32_t kLivePlanningBucketMinutes = 5;
+inline constexpr std::int32_t kLivePlanningHorizonBuckets = 12;
+
 enum class TaskState : std::uint8_t {
     Created,
     Blocked,
@@ -107,8 +110,8 @@ struct SchedulerPlan {
     std::int64_t simulationSecond{};
     std::uint64_t snapshotFingerprint{};
     PlanSource source{PlanSource::DeterministicFallback};
-    std::int32_t bucketMinutes{5};
-    std::int32_t horizonBuckets{12};
+    std::int32_t bucketMinutes{kLivePlanningBucketMinutes};
+    std::int32_t horizonBuckets{kLivePlanningHorizonBuckets};
     std::vector<Assignment> assignments;
     std::vector<StationAssignment> stationAssignments;
     std::vector<ObjectiveValue> objectives;
