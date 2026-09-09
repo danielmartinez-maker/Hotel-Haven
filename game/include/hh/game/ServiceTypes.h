@@ -36,4 +36,13 @@ enum class BlockReason : std::uint8_t {
   AwaitingProduction
 };
 
+// One scheduler-supplied unit of service work. Time can continue to pass while a
+// task is blocked; only an explicit execution step advances staff-owned work.
+struct ServiceWorkResult {
+  bool valid{};
+  bool progressed{};
+  bool completed{};
+  BlockReason blockedReason{BlockReason::None};
+};
+
 } // namespace hh::game
