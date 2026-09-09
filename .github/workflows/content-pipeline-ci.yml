@@ -7,6 +7,7 @@ on:
       - 'GameData/AssetDefinitions/**'
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
+      - 'renderer/**'
       - '.github/workflows/content-pipeline-ci.yml'
   pull_request:
     paths:
@@ -14,6 +15,7 @@ on:
       - 'GameData/AssetDefinitions/**'
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
+      - 'renderer/**'
       - '.github/workflows/content-pipeline-ci.yml'
 
 jobs:
@@ -46,10 +48,10 @@ jobs:
       - name: Render asset preview boards
         run: python Tools/ArtGeneration/render_asset_previews.py .
 
-      - name: Configure
+      - name: Configure content pipeline
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
 
-      - name: Build
+      - name: Build content pipeline
         run: cmake --build Tools/ContentPipeline/build --config Release
 
       - name: Test native content pipeline
@@ -58,13 +60,35 @@ jobs:
       - name: Validate generated repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
 
-      - name: Upload generated asset package
+      - name: Cook complete gameplay asset library
+        run: Tools/ContentPipeline/build/Release/asset.exe cook --all
+
+      - name: Verify cooked asset count
+        shell: pwsh
+        run: |
+          $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
+          if ($assets.Count -ne 500) {
+            throw "Expected exactly 500 cooked assets; found $($assets.Count)"
+          }
+          Write-Host "Verified $($assets.Count) cooked .hasset files"
+
+      - name: Configure renderer runtime audit
+        run: cmake -S . -B runtime-audit-build -A x64
+
+      - name: Build renderer runtime audit
+        run: cmake --build runtime-audit-build --config Release --target hh_runtime_asset_library_audit
+
+      - name: Load all 500 cooked assets through renderer runtime
+        run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
+
+      - name: Upload generated and cooked asset package
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: hotel-haven-generated-assets
           path: |
             Art/Exports/**
+            Build/CookedAssets/**
             Art/Validation/full_generation_summary.json
             Art/Validation/generated_geometry_qc.json
             Art/Validation/library_release_audit_v1.md

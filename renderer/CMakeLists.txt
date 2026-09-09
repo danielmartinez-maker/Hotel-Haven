@@ -129,3 +129,18 @@ target_link_libraries(hh_renderer_tests PRIVATE
 hh_enable_strict_warnings(hh_renderer_tests)
 
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
+
+# Dedicated integration executable used after the authoring pipeline cooks the
+# authoritative gameplay library. It loads every .hasset through the same
+# runtime registry/GLB path used by the shipping client.
+add_executable(hh_runtime_asset_library_audit
+    tests/RuntimeAssetLibraryAudit.cpp
+)
+target_include_directories(hh_runtime_asset_library_audit PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(hh_runtime_asset_library_audit PRIVATE
+    hh_renderer_core
+    hh_asset_format
+)
+hh_enable_strict_warnings(hh_runtime_asset_library_audit)

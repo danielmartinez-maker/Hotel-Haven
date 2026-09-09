@@ -12,10 +12,17 @@ WorldAssetSet worldAssetsFromRegistry(
     const bool translucent = std::any_of(
         asset.mesh.materials.begin(), asset.mesh.materials.end(),
         [](const hh::renderer::MeshMaterial& material) {
-          return material.baseColor.a < 0.999f;
+          return material.translucent || material.baseColor.a < 0.999f;
         });
     return WorldAssetVisual{handle, asset.mesh.bounds, translucent};
   });
+}
+
+WorldAssetSet loadWorldAssetsFromDirectory(
+    hh::renderer::RuntimeAssetRegistry& registry,
+    const std::filesystem::path& cookedRoot) {
+  registry.loadDirectory(cookedRoot);
+  return worldAssetsFromRegistry(registry);
 }
 
 } // namespace hh::client

@@ -1,5 +1,5 @@
 #pragma once
-#include "WorldView.h"
+#include "RuntimeWorldAssets.h"
 #include "d3d11/D3D11Renderer.h"
 #include "hh/game/Simulation.h"
 #include "hh/renderer/Camera.h"
@@ -53,6 +53,8 @@ struct Client {
   hh::game::SimulationView snapshot;
   HWND window{}, viewport{};
   hh::renderer::D3D11Renderer renderer;
+  hh::renderer::RuntimeAssetRegistry assetRegistry;
+  WorldAssetSet worldAssets;
   hh::renderer::OrthoCamera camera;
   std::filesystem::path directory, savePath;
   std::vector<Button> buttons;

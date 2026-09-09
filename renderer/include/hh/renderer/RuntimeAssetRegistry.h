@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hh/assets/Types.h"
 #include "hh/renderer/AssetHandle.h"
 #include "hh/renderer/GlbLoader.h"
 
@@ -15,6 +16,7 @@ namespace hh::renderer {
 
 struct RuntimeAsset {
     std::string assetId;
+    hh::assets::AssetType assetType{hh::assets::AssetType::StaticMesh};
     RuntimeMesh mesh;
 };
 

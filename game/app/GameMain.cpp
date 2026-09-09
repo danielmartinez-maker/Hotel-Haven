@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "FramePipeline.h"
 #include "hh/renderer/SceneComposer.h"
 #include <algorithm>
 #include <chrono>
@@ -438,6 +439,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
       if (!result)
         throw std::runtime_error(result.message);
     }
+    c.worldAssets = loadWorldAssetsFromDirectory(
+        c.assetRegistry, c.directory / L"data" / L"assets");
     const DWORD len = GetEnvironmentVariableW(L"LOCALAPPDATA", path.data(),
                                               static_cast<DWORD>(path.size()));
     c.savePath =
@@ -530,12 +533,13 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
       const auto scene =
           worldScene(c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX,
                                   c.hoverY, c.tool == Tool::Bedroom ? 6.f : 1.f,
-                                  c.tool != Tool::Inspect, c.previewValid});
-      const auto frame = composer.compose(
-          scene,
+                                  c.tool != Tool::Inspect, c.previewValid},
+                     &c.worldAssets);
+      const auto frame = composeVisibleFrame(
+          scene, composer,
           c.context ? hh::renderer::FloorContextMode::AdjacentContext
                     : hh::renderer::FloorContextMode::Normal,
-          c.wallMode, c.camera.worldPosition());
+          c.wallMode, c.camera);
       const auto draw = c.renderer.render(frame, c.camera);
       if (!draw)
         throw std::runtime_error(draw.error);

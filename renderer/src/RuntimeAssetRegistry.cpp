@@ -34,12 +34,18 @@ std::vector<std::byte> readBinaryFile(const std::filesystem::path& path) {
     return bytes;
 }
 
+bool isRenderableMeshType(hh::assets::AssetType type) noexcept {
+    return type == hh::assets::AssetType::StaticMesh ||
+           type == hh::assets::AssetType::SkinnedMesh;
+}
+
 }  // namespace
 
 AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     const hh::assets::HassetDocument document = hh::assets::parse_hasset(bytes);
-    if (document.type != hh::assets::AssetType::StaticMesh) {
-        throw std::runtime_error("runtime mesh registry accepts StaticMesh cooked assets only");
+    if (!isRenderableMeshType(document.type)) {
+        throw std::runtime_error(
+            "runtime mesh registry accepts only StaticMesh/SkinnedMesh cooked assets");
     }
     if (document.asset_id.empty()) {
         throw std::runtime_error("cooked runtime asset has an empty asset_id");
@@ -52,9 +58,12 @@ AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     }
 
     // Decode fully before mutating the registry so malformed assets cannot leave
-    // a partially registered ID or consume a handle.
+    // a partially registered ID or consume a handle. Current SkinnedMesh payloads
+    // contain bind-pose geometry only; the GLB decoder therefore uses the same
+    // static mesh path while preserving the asset type for later animation work.
     RuntimeAsset candidate;
     candidate.assetId = document.asset_id;
+    candidate.assetType = document.type;
     candidate.mesh = loadGlbMesh(document.payload);
 
     const AssetHandle handle{static_cast<std::uint32_t>(assets_.size())};
