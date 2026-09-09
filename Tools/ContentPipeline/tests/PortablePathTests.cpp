@@ -25,6 +25,17 @@ void write_text(const fs::path& path, std::string_view text) {
     std::ofstream(path, std::ios::binary) << text;
 }
 
+void add_asset(const fs::path& root) {
+    write_text(root / "Art/Source/a.blend", "source");
+    write_text(root / "Art/Exports/a.glb", "export");
+    write_text(
+        root / "Art/Exports/a.glb.asset.json",
+        "{\"schema\":1,\"asset_id\":\"asset.a\",\"asset_type\":\"StaticMeshAsset\","
+        "\"source\":\"Art/Source/a.blend\",\"units\":\"meters\","
+        "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        "\"material_slots\":[],\"tags\":[],\"dependencies\":[]}");
+}
+
 HassetDocument sample_hasset() {
     HassetDocument document;
     document.type = AssetType::StaticMesh;
@@ -74,4 +85,14 @@ HH_TEST("catalog rejects Windows drive-relative source paths on every platform")
         try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); } catch (const std::exception&) { threw = true; }
         HH_REQUIRE(threw);
     }
+}
+
+HH_TEST("catalog resolves repository-relative asset paths independent of process cwd") {
+    const auto root = make_repo();
+    add_asset(root);
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports");
+
+    HH_REQUIRE(catalog.resolve("Art/Exports/a.glb").metadata.asset_id == "asset.a");
+    HH_REQUIRE(catalog.resolve("Art/Exports/a.glb.asset.json").metadata.asset_id == "asset.a");
+    HH_REQUIRE(catalog.resolve("Art/Source/a.blend").metadata.asset_id == "asset.a");
 }
