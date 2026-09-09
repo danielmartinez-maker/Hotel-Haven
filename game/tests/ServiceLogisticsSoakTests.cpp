@@ -118,22 +118,27 @@ static void validateInvariants(const ServiceLogisticsRuntime &runtime,
 
 int main() {
   ServiceLogisticsRuntime runtime(0x504C534FULL, {2, 2, 2});
-  auto &logistics = runtime.logistics();
-  const auto cleanLinen = logistics.firstStorage(StorageKind::CleanLinen);
-  const auto floorCloset = logistics.firstStorage(StorageKind::FloorCloset);
-  const auto central = logistics.firstStorage(StorageKind::CentralStorage);
-  require(cleanLinen != 0 && floorCloset != 0 && central != 0,
-          "standard hotel storage is incomplete");
-  require(logistics.addInventory(cleanLinen, "clean_linen_set", 30),
-          "failed to seed clean linen");
-  require(logistics.addInventory(floorCloset, "towel_unit", 100),
-          "failed to seed towels");
-  require(logistics.addInventory(floorCloset, "amenity_kit", 50),
-          "failed to seed amenities");
-  require(logistics.addInventory(floorCloset, "cleaning_chemical", 50),
-          "failed to seed cleaning chemicals");
-  require(logistics.addInventory(central, "maintenance_part", 50),
-          "failed to seed maintenance parts");
+  StorageNodeId cleanLinen{};
+  StorageNodeId floorCloset{};
+  StorageNodeId central{};
+  {
+    auto &logistics = runtime.logistics();
+    cleanLinen = logistics.firstStorage(StorageKind::CleanLinen);
+    floorCloset = logistics.firstStorage(StorageKind::FloorCloset);
+    central = logistics.firstStorage(StorageKind::CentralStorage);
+    require(cleanLinen != 0 && floorCloset != 0 && central != 0,
+            "standard hotel storage is incomplete");
+    require(logistics.addInventory(cleanLinen, "clean_linen_set", 30),
+            "failed to seed clean linen");
+    require(logistics.addInventory(floorCloset, "towel_unit", 100),
+            "failed to seed towels");
+    require(logistics.addInventory(floorCloset, "amenity_kit", 50),
+            "failed to seed amenities");
+    require(logistics.addInventory(floorCloset, "cleaning_chemical", 50),
+            "failed to seed cleaning chemicals");
+    require(logistics.addInventory(central, "maintenance_part", 50),
+            "failed to seed maintenance parts");
+  }
 
   std::unordered_set<RoomId> rooms;
   for (RoomId room = 1; room <= 12; ++room) {
@@ -168,8 +173,8 @@ int main() {
               "failed production-ready handoff");
 
       if (day % 20 == 0) {
-        const auto purchase =
-            logistics.placePurchaseOrder("towel_unit", 5, central, 1800);
+        const auto purchase = runtime.logistics().placePurchaseOrder(
+            "towel_unit", 5, central, 1800);
         require(purchase.ok(), "failed to create receiving purchase order");
       }
 
@@ -187,7 +192,7 @@ int main() {
 
       const auto laundryBatch = runtime.requestLaundryBatch(2);
       require(laundryBatch != 0, "failed to create laundry batch");
-      logistics.requestWastePickup();
+      runtime.logistics().requestWastePickup();
       runtime.tickSeconds(5500);
       require(runtime.roomService().stage(roomServiceOrder) ==
                   RoomServiceStage::Completed,
