@@ -282,6 +282,7 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  void setStaffOptimizerEnabled(bool enabled);
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;

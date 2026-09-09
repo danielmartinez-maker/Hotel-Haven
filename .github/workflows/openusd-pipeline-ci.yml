@@ -1,0 +1,24 @@
+name: OpenUSD Pipeline CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test OpenUSD assembly tool
+        working-directory: Tools/OpenUsdPipeline
+        run: python -m unittest -v
+      - name: Compile-check OpenUSD assembly tool
+        working-directory: Tools/OpenUsdPipeline
+        run: python -m py_compile hh_usd.py

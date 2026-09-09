@@ -1,0 +1,35 @@
+name: Optimization CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+
+jobs:
+  portable-optimizer:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure optimizer
+        run: cmake -S optimization -B optimization/build
+      - name: Build optimizer
+        run: cmake --build optimization/build --config Release
+      - name: Test optimizer
+        run: ctest --test-dir optimization/build -C Release --output-on-failure
+      - name: Test cuOpt worker portable boundary
+        working-directory: Tools/CuOptWorker
+        run: python -m unittest -v
+      - name: Compile-check cuOpt worker
+        working-directory: Tools/CuOptWorker
+        run: python -m py_compile hotel_haven_cuopt_worker.py
+
+  nvidia-integration-note:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "cuOpt GPU/WSL2 runtime tests are opt-in and are not part of portable CI."
