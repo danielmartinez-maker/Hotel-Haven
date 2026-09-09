@@ -12,6 +12,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 include(${CMAKE_CURRENT_SOURCE_DIR}/../renderer/cmake/CompilerWarnings.cmake)
 
+add_library(hh_frontend_core STATIC
+    src/MainMenuModel.cpp
+    src/MainMenuController.cpp
+)
+target_include_directories(hh_frontend_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+hh_enable_strict_warnings(hh_frontend_core)
+
 add_executable(hh_frontend_tests
     tests/TestMain.cpp
     tests/MainMenuModelTests.cpp
@@ -19,9 +28,8 @@ add_executable(hh_frontend_tests
 )
 
 target_include_directories(hh_frontend_tests PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
-
+target_link_libraries(hh_frontend_tests PRIVATE hh_frontend_core)
 hh_enable_strict_warnings(hh_frontend_tests)
 add_test(NAME hh_frontend_tests COMMAND hh_frontend_tests)
