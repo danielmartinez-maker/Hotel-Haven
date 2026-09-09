@@ -64,8 +64,17 @@ private:
     struct CameraConstants;
     struct MeshGpuVertex;
     struct MeshConstants;
-    struct GpuPrimitive;
-    struct GpuMesh;
+
+    struct GpuPrimitive {
+        Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
+        Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
+        UINT indexCount{};
+        std::size_t materialIndex{};
+    };
+
+    struct GpuMesh {
+        std::vector<GpuPrimitive> primitives;
+    };
 
     [[nodiscard]] RendererResult createSizeDependentResources(std::uint32_t width, std::uint32_t height);
     [[nodiscard]] RendererResult createGeometryResources();
