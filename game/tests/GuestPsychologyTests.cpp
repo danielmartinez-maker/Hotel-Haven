@@ -1,5 +1,6 @@
 #include "hh/game/GuestGoals.h"
 #include "hh/game/GuestPsychology.h"
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <iostream>
