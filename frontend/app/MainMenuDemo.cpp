@@ -18,6 +18,12 @@
 
 namespace {
 
+enum class QuitModalAction {
+    None,
+    Confirm,
+    Cancel,
+};
+
 bool hasFlag(const wchar_t* flag) {
     const std::wstring commandLine = GetCommandLineW();
     return commandLine.find(flag) != std::wstring::npos;
@@ -38,7 +44,10 @@ hh::frontend::MenuPropertySummary demoProperty() {
     return summary;
 }
 
-bool hitMenuItem(const hh::frontend::LayoutMetrics& layout, POINT point, hh::frontend::MainMenuItem& item) {
+bool hitMenuItem(
+    const hh::frontend::LayoutMetrics& layout,
+    POINT point,
+    hh::frontend::MainMenuItem& item) {
     float y = layout.navigationTop;
     for (const auto candidate : hh::frontend::MainMenuModel::orderedItems()) {
         if (candidate == hh::frontend::MainMenuItem::Settings) {
@@ -55,6 +64,31 @@ bool hitMenuItem(const hh::frontend::LayoutMetrics& layout, POINT point, hh::fro
         y += 55.0F * layout.logicalScale;
     }
     return false;
+}
+
+QuitModalAction hitQuitModalAction(
+    const hh::frontend::LayoutMetrics& layout,
+    float width,
+    float height,
+    POINT point) noexcept {
+    const float scale = layout.logicalScale;
+    const float modalWidth = 470.0F * scale;
+    const float modalHeight = 190.0F * scale;
+    const float left = (width - modalWidth) * 0.5F;
+    const float top = (height - modalHeight) * 0.5F;
+    const float buttonTop = top + 102.0F * scale;
+    const float buttonBottom = top + 170.0F * scale;
+    const float x = static_cast<float>(point.x);
+    const float y = static_cast<float>(point.y);
+
+    if (x < left + 24.0F * scale || x > left + modalWidth - 24.0F * scale ||
+        y < buttonTop || y > buttonBottom) {
+        return QuitModalAction::None;
+    }
+
+    return x < left + modalWidth * 0.5F
+        ? QuitModalAction::Confirm
+        : QuitModalAction::Cancel;
 }
 
 void executeCommand(hh::frontend::MainMenuCommand command, hh::renderer::Win32Window& window) {
@@ -157,8 +191,15 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             controller.navigate(1);
             transitions.retarget(model.selected(), reducedMotion);
         }
-        if (window.consumeKeyPressed(VK_RETURN) || window.consumeKeyPressed(VK_SPACE)) {
-            executeCommand(controller.activate(), window);
+
+        const bool activatePressed =
+            window.consumeKeyPressed(VK_RETURN) || window.consumeKeyPressed(VK_SPACE);
+        if (activatePressed) {
+            if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
+                executeCommand(controller.confirmQuit(), window);
+            } else {
+                executeCommand(controller.activate(), window);
+            }
         }
         if (window.consumeKeyPressed(VK_ESCAPE)) {
             if (!controller.cancel()) {
@@ -171,16 +212,33 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             static_cast<float>(window.clientHeight()), 1.0F);
         POINT pointer{};
         hh::frontend::MainMenuItem hovered{};
-        if (window.mousePosition(pointer) && hitMenuItem(layout, pointer, hovered) && model.isEnabled(hovered)) {
+        if (model.modal() == hh::frontend::MainMenuModal::None &&
+            window.mousePosition(pointer) &&
+            hitMenuItem(layout, pointer, hovered) &&
+            model.isEnabled(hovered)) {
             if (controller.hover(hovered)) {
                 transitions.retarget(model.selected(), reducedMotion);
             }
         }
+
         POINT click{};
-        if (window.consumeLeftClick(click) && hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
-            (void)controller.hover(hovered);
-            transitions.retarget(model.selected(), reducedMotion);
-            executeCommand(controller.activate(), window);
+        if (window.consumeLeftClick(click)) {
+            if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
+                const auto action = hitQuitModalAction(
+                    layout,
+                    static_cast<float>(window.clientWidth()),
+                    static_cast<float>(window.clientHeight()),
+                    click);
+                if (action == QuitModalAction::Confirm) {
+                    executeCommand(controller.confirmQuit(), window);
+                } else if (action == QuitModalAction::Cancel) {
+                    static_cast<void>(controller.cancel());
+                }
+            } else if (hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
+                static_cast<void>(controller.hover(hovered));
+                transitions.retarget(model.selected(), reducedMotion);
+                executeCommand(controller.activate(), window);
+            }
         }
 
         std::uint32_t resizeWidth{};
@@ -204,10 +262,16 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
 
         const auto transition = transitions.update(deltaSeconds);
         const auto pose = sceneController.cameraPose(elapsedSeconds, transition);
-        camera.setAspectRatio(static_cast<float>(window.clientWidth()) / static_cast<float>(window.clientHeight()));
+        camera.setAspectRatio(
+            static_cast<float>(window.clientWidth()) /
+            static_cast<float>(window.clientHeight()));
         camera.setYawDegrees(-25.0F + pose.idleYawDegrees + pose.yawOffsetDegrees);
         camera.setOrthoHeight(42.0F * pose.idleZoomScale * pose.zoomScale);
         camera.setTarget({pose.targetXOffset, 3.5F, pose.targetZOffset});
+
+        if (!reducedMotion) {
+            hh::frontend::ShowcaseHotelScene::updateAmbient(scene, elapsedSeconds);
+        }
 
         const auto composed = composer.compose(
             scene,
@@ -236,11 +300,6 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         rendererResult = renderer.present();
         if (!rendererResult) {
             break;
-        }
-
-        if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm &&
-            window.consumeKeyPressed('Y')) {
-            executeCommand(controller.confirmQuit(), window);
         }
     }
 
