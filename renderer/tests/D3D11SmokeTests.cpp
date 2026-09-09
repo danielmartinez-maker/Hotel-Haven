@@ -181,7 +181,17 @@ TEST_CASE("D3D11 WARP device and production shader compile") {
     EXPECT_TRUE(pixelShader != nullptr);
 }
 
-TEST_CASE("D3D11 WARP renderer caches and submits a cooked mesh") {
+TEST_CASE("renderWorld and present reject use before initialization") {
+    hh::renderer::D3D11Renderer renderer;
+    hh::renderer::ComposedScene scene;
+    hh::renderer::OrthoCamera camera;
+    EXPECT_FALSE(static_cast<bool>(renderer.renderWorld(scene, camera)));
+    EXPECT_FALSE(static_cast<bool>(renderer.present()));
+    EXPECT_TRUE(renderer.device() == nullptr);
+    EXPECT_TRUE(renderer.swapChain() == nullptr);
+}
+
+TEST_CASE("D3D11 WARP overlay path caches and submits a cooked mesh") {
     using namespace hh::renderer;
 
     SmokeWindow window;
@@ -211,11 +221,14 @@ TEST_CASE("D3D11 WARP renderer caches and submits a cooked mesh") {
     };
     scene.opaqueMeshes.push_back(ComposedMesh{item, false});
 
-    const RendererResult renderResult = renderer.render(scene, camera);
-    EXPECT_TRUE(renderResult);
+    const RendererResult worldResult = renderer.renderWorld(scene, camera);
+    EXPECT_TRUE(worldResult);
     const RendererStats stats = renderer.stats();
     EXPECT_EQ(stats.cachedMeshes, 1u);
     EXPECT_EQ(stats.meshDrawCalls, 1u);
+
+    const RendererResult presentResult = renderer.present();
+    EXPECT_TRUE(presentResult);
 
     renderer.shutdown();
 }
