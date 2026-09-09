@@ -170,6 +170,7 @@ def generate_all(repo_root: Path | str):
     from mechanical_animation_generate import generate as generate_mechanical
     from humanoid_animation_generate import generate as generate_humanoid
     from link_animation_dependencies import link
+    from floor_contact_hardening import harden_floor_supports
 
     root = Path(repo_root)
     manifest_dir = root / 'GameData' / 'AssetDefinitions' / 'Manifest'
@@ -184,6 +185,7 @@ def generate_all(repo_root: Path | str):
         paths = run_batch_generator(module, batch, manifest, out)
         batch_counts[f'{batch:02d}'] = len(paths)
 
+    floor_support_assets = harden_floor_supports(exports)
     mech_clips, mech_sets = generate_mechanical(exports / 'Animations')
     hum_skeletons, hum_clips, hum_sets = generate_humanoid(
         root / 'GameData' / 'AssetDefinitions' / 'animation_sets_v1.json',
@@ -199,6 +201,8 @@ def generate_all(repo_root: Path | str):
         'schema': 1,
         'batch_counts': batch_counts,
         'gameplay_asset_count': sum(batch_counts.values()),
+        'floor_support_assets_hardened': len(floor_support_assets),
+        'floor_support_asset_ids': floor_support_assets,
         'mechanical_clips': mech_clips,
         'mechanical_sets': mech_sets,
         'humanoid_skeletons': hum_skeletons,
