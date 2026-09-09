@@ -11,6 +11,19 @@
 #include <vector>
 #include <windows.h>
 
+// Legacy Win32/RPC headers still expose these as macros on current Windows SDKs.
+// They collide with ordinary C++ identifiers used by the client and must not
+// leak beyond the platform include boundary.
+#ifdef small
+#undef small
+#endif
+#ifdef near
+#undef near
+#endif
+#ifdef far
+#undef far
+#endif
+
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
 enum class Page { Build, Rooms, Staff, Guests, Supplies, Finance, Guide };
