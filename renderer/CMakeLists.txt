@@ -17,6 +17,7 @@ add_library(hh_renderer_core STATIC
     src/FloorVisibility.cpp
     src/Occlusion.cpp
     src/SceneComposer.cpp
+    src/Visibility.cpp
 )
 
 target_include_directories(hh_renderer_core PUBLIC
