@@ -37,12 +37,11 @@ std::filesystem::path infer_repository_root(const std::filesystem::path& exports
 }
 
 bool has_windows_absolute_prefix(std::string_view value) {
-    if (value.size() >= 3 && std::isalpha(static_cast<unsigned char>(value[0])) != 0 &&
-        value[1] == ':' && (value[2] == '/' || value[2] == '\\')) {
+    if (!value.empty() && (value.front() == '/' || value.front() == '\\')) {
         return true;
     }
-    return value.size() >= 2 &&
-           ((value[0] == '/' && value[1] == '/') || (value[0] == '\\' && value[1] == '\\'));
+    return value.size() >= 3 && std::isalpha(static_cast<unsigned char>(value[0])) != 0 &&
+           value[1] == ':' && (value[2] == '/' || value[2] == '\\');
 }
 
 bool contains_parent_component(std::string_view value) {
@@ -160,5 +159,4 @@ const AssetRecord& AssetCatalog::resolve(std::string_view id_or_path) const {
         if (record.sidecar_path == candidate || record.export_path == candidate || record.source_path == candidate) return record;
     }
     throw std::out_of_range("cannot resolve asset: " + std::string(id_or_path));
-}
 }
