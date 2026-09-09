@@ -110,3 +110,19 @@ def test_lobby_seating_variants_and_curved_sofa_have_complete_silhouettes():
     for name, marker in variants.items():
         nodes = set(mod.build(name, 'MAT_UPHOLSTERY').graph.nodes_geometry)
         assert marker in nodes, (name, sorted(nodes))
+
+
+def test_floor_contact_profiles_reach_the_placement_plane():
+    floor_profiles = {
+        'P_FURNITURE_STATIC',
+        'P_INTERACTIVE_PREFAB',
+        'P_INTERACTIVE_ANIMATED',
+        'P_SERVICE_PROP_ANIMATED',
+    }
+    for asset_id, name, _subcategory, material, profile, _animset, _anchors in rows():
+        if profile not in floor_profiles:
+            continue
+        scene = mod.build(name, material)
+        assert scene.bounds is not None
+        floor_z = float(scene.bounds[0][2])
+        assert floor_z <= 0.12, f'{asset_id} {name}: floor_z={floor_z:.3f}m'
