@@ -45,6 +45,7 @@ hh_enable_strict_warnings(hh_renderer_d3d11)
 
 add_library(hh_renderer_win32 STATIC
     src/win32/Win32Window.cpp
+    src/win32/Win32WindowPointer.cpp
 )
 target_include_directories(hh_renderer_win32 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
