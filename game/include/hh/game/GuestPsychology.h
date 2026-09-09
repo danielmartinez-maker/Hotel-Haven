@@ -170,6 +170,7 @@ public:
   [[nodiscard]] static bool validProfile(const GuestProfileView &profile) noexcept;
 
   void initializeGuest(GuestId guestId, const GuestProfileView &profile);
+  void restoreGuest(const GuestPsychologySnapshot &snapshot);
   [[nodiscard]] std::optional<GuestPsychologySnapshot>
   snapshot(GuestId guestId) const;
   void updateNeeds(GuestId guestId, std::int64_t seconds, bool sleeping);
