@@ -30,6 +30,7 @@ endif()
 add_library(hh_renderer_core STATIC
     src/Camera.cpp
     src/FloorVisibility.cpp
+    src/GlbLoader.cpp
     src/Occlusion.cpp
     src/SceneComposer.cpp
     src/Visibility.cpp
