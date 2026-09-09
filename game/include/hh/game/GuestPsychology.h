@@ -158,6 +158,10 @@ struct GuestPsychologySnapshot {
   bool operator==(const GuestPsychologySnapshot &) const = default;
 };
 
+[[nodiscard]] int
+calculateRepeatIntent(const GuestPsychologySnapshot &psychology,
+                      std::int64_t nowSeconds) noexcept;
+
 class GuestPsychology {
 public:
   explicit GuestPsychology(std::uint64_t campaignSeed) noexcept;
