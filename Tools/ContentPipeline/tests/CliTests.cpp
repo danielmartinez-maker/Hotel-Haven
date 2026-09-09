@@ -98,6 +98,19 @@ HH_TEST("milestone audit requires ownership reviewers release state and no block
     add_asset(root, "asset.notready", "notready", "[]", ",\"milestone\":\"vertical-slice\",\"lifecycle_state\":\"APPROVED\"");
     HH_REQUIRE(run({"audit", "--milestone", "vertical-slice"}, out, err) != 0);
 }
+HH_TEST("milestone audit rejects missing source and export payload files") {
+    const auto root = make_repo();
+    const std::string ready = ",\"content_owner\":\"art\",\"technical_reviewer\":\"tech\",\"art_reviewer\":\"lead\",\"dependent_feature_owner\":\"rooms\",\"milestone\":\"vertical-slice\",\"lifecycle_state\":\"RELEASE_READY\"";
+    add_asset(root, "asset.ready", "ready", "[]", ready);
+    CurrentPathGuard guard; fs::current_path(root); std::string out, err;
+
+    fs::remove(root / "Art/Source/ready.blend");
+    HH_REQUIRE(run({"audit", "--milestone", "vertical-slice"}, out, err) != 0);
+
+    write_text(root / "Art/Source/ready.blend", "source-asset.ready");
+    fs::remove(root / "Art/Exports/ready.glb");
+    HH_REQUIRE(run({"audit", "--milestone", "vertical-slice"}, out, err) != 0);
+}
 HH_TEST("milestone audit fails closed when no assets match") {
     const auto root = make_repo();
     add_asset(root, "asset.a", "a");
