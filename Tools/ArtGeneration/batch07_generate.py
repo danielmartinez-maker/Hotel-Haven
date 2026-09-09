@@ -15,7 +15,7 @@ def generate_package(manifest_path: Path|str, output_dir: Path|str, source_path=
             glb=output_dir/f'{asset_id}.glb'; glb.write_bytes(scene.export(file_type='glb')); outputs.append(glb)
             tags=['batch_07','architectural_diorama_realism',family,subcategory]
             if animation_set: tags.append(f'animation_binding:{animation_set}')
-            sidecar={'schema':1,'asset_id':asset_id,'asset_type':'StaticMeshAsset','source':source_path,'units':'meters','lod_policy':'lod_furniture','collision_policy':'simple_proxy','cutaway_policy':'normal','material_slots':[mat],'tags':tags,'dependencies':[],'milestone':'batch_07','source_revision':1,'metadata_revision':1}
+            sidecar={'schema':1,'asset_id':asset_id,'asset_type':'StaticMeshAsset','source':source_path,'units':'meters','lod_policy':'lod_furniture','collision_policy':'simple_proxy','cutaway_policy':'normal','material_slots':[mat],'tags':tags,'dependencies':[animation_set] if animation_set else [],'milestone':'batch_07','source_revision':2,'metadata_revision':2}
             glb.with_suffix('.asset.json').write_text(json.dumps(sidecar,indent=2,sort_keys=True)+'\n',encoding='utf-8')
     return outputs
 
