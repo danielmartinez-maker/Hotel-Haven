@@ -126,6 +126,7 @@ int audit_command(std::string_view milestone, const std::filesystem::path& root,
         if (!m.milestone || *m.milestone != milestone) continue;
         ++matched;
         failed = blocking(validate_metadata(m), err, id) || failed;
+        failed = validate_record_files(record, err) || failed;
         auto require_field = [&](const std::optional<std::string>& field, const char* name) {
             if (!field || field->empty()) { err << "MAJOR " << id << " audit.missing." << name << ": required for milestone audit\n"; failed = true; }
         };
