@@ -84,6 +84,15 @@ std::int64_t bidCost(const Candidate& candidate) noexcept {
         - candidate.skillBonusSeconds;
 }
 
+std::int32_t durationBucketsForCandidate(const Candidate& candidate, std::int32_t bucketMinutes) noexcept {
+    const std::int64_t bucketSeconds = static_cast<std::int64_t>(bucketMinutes) * 60;
+    const std::int64_t travelSeconds = std::max<std::int64_t>(0, candidate.travelSeconds);
+    const std::int64_t workSeconds = std::max<std::int64_t>(0, candidate.effectiveWorkSeconds);
+    const std::int64_t totalSeconds = travelSeconds + workSeconds;
+    const std::int64_t buckets = std::max<std::int64_t>(1, (totalSeconds + bucketSeconds - 1) / bucketSeconds);
+    return static_cast<std::int32_t>(buckets);
+}
+
 }  // namespace
 
 std::uint64_t snapshotFingerprint(const OptimizerSnapshot& snapshot) noexcept {
@@ -132,6 +141,8 @@ SchedulerPlan DeterministicFallbackOptimizer::optimize(const OptimizerSnapshot& 
     plan.simulationSecond = snapshot.simulationSecond;
     plan.snapshotFingerprint = snapshotFingerprint(snapshot);
     plan.source = PlanSource::DeterministicFallback;
+    plan.bucketMinutes = 5;
+    plan.horizonBuckets = 12;
 
     std::vector<Task> ready;
     for (const auto& task : snapshot.tasks) {
@@ -162,7 +173,9 @@ SchedulerPlan DeterministicFallbackOptimizer::optimize(const OptimizerSnapshot& 
             }
         }
         if (best != nullptr) {
-            plan.assignments.push_back(Assignment{.taskId = task.id, .employeeId = best->employeeId, .startBucket = 0, .durationBuckets = 1});
+            const auto durationBuckets = durationBucketsForCandidate(*best, plan.bucketMinutes);
+            plan.assignments.push_back(Assignment{.taskId = task.id, .employeeId = best->employeeId, .startBucket = 0, .durationBuckets = durationBuckets});
+            plan.horizonBuckets = std::max(plan.horizonBuckets, durationBuckets);
             usedEmployees.insert(best->employeeId);
         }
     }
