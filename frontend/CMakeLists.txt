@@ -75,6 +75,9 @@ add_custom_command(TARGET hotel_haven_menu_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/../renderer/shaders/InstancedBox.hlsl"
         "$<TARGET_FILE_DIR:hotel_haven_menu_demo>/shaders/InstancedBox.hlsl"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/../renderer/shaders/Mesh.hlsl"
+        "$<TARGET_FILE_DIR:hotel_haven_menu_demo>/shaders/Mesh.hlsl"
 )
 
 add_executable(hh_frontend_tests

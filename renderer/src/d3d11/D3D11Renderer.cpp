@@ -6,6 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
+#include <limits>
 #include <sstream>
 #include <string_view>
 
@@ -72,6 +74,17 @@ struct D3D11Renderer::CameraConstants {
     DirectX::XMFLOAT4X4 viewProjection;
 };
 
+struct D3D11Renderer::MeshGpuVertex {
+    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT3 normal;
+};
+
+struct D3D11Renderer::MeshConstants {
+    DirectX::XMFLOAT4X4 world;
+    DirectX::XMFLOAT4X4 normalWorld;
+    DirectX::XMFLOAT4 color;
+};
+
 D3D11Renderer::~D3D11Renderer() {
     shutdown();
 }
@@ -80,7 +93,8 @@ RendererResult D3D11Renderer::initialize(
     HWND window,
     std::uint32_t width,
     std::uint32_t height,
-    const std::filesystem::path& shaderPath) {
+    const std::filesystem::path& shaderPath,
+    bool softwareDevice) {
     shutdown();
 
     DXGI_SWAP_CHAIN_DESC swapDescription{};
@@ -97,9 +111,9 @@ RendererResult D3D11Renderer::initialize(
     swapDescription.Windowed = TRUE;
     swapDescription.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-    const HRESULT deviceResult = D3D11CreateDeviceAndSwapChain(
+    HRESULT deviceResult = D3D11CreateDeviceAndSwapChain(
         nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
+        softwareDevice ? D3D_DRIVER_TYPE_WARP : D3D_DRIVER_TYPE_HARDWARE,
         nullptr,
         D3D11_CREATE_DEVICE_BGRA_SUPPORT,
         nullptr,
@@ -111,6 +125,26 @@ RendererResult D3D11Renderer::initialize(
         nullptr,
         context_.GetAddressOf());
 
+    if (FAILED(deviceResult) && !softwareDevice) {
+        // Remote desktops and machines without a supported GPU can still run
+        // the same renderer through Windows' software D3D11 implementation.
+        swapChain_.Reset();
+        device_.Reset();
+        context_.Reset();
+        deviceResult = D3D11CreateDeviceAndSwapChain(
+            nullptr,
+            D3D_DRIVER_TYPE_WARP,
+            nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+            nullptr,
+            0,
+            D3D11_SDK_VERSION,
+            &swapDescription,
+            swapChain_.GetAddressOf(),
+            device_.GetAddressOf(),
+            nullptr,
+            context_.GetAddressOf());
+    }
     if (FAILED(deviceResult)) {
         return RendererResult::failure(hresultError("D3D11CreateDeviceAndSwapChain", deviceResult));
     }
@@ -291,6 +325,17 @@ RendererResult D3D11Renderer::createGeometryResources() {
         return RendererResult::failure(hresultError("ID3D11Device::CreateBuffer(camera constants)", cameraResult));
     }
 
+    D3D11_BUFFER_DESC meshConstantDescription{};
+    meshConstantDescription.ByteWidth = static_cast<UINT>(sizeof(MeshConstants));
+    meshConstantDescription.Usage = D3D11_USAGE_DYNAMIC;
+    meshConstantDescription.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    meshConstantDescription.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    const HRESULT meshConstantResult = device_->CreateBuffer(
+        &meshConstantDescription, nullptr, meshConstantBuffer_.GetAddressOf());
+    if (FAILED(meshConstantResult)) {
+        return RendererResult::failure(hresultError("ID3D11Device::CreateBuffer(mesh constants)", meshConstantResult));
+    }
+
     return RendererResult::success();
 }
 
@@ -313,7 +358,7 @@ RendererResult D3D11Renderer::createShaderResources(const std::filesystem::path&
         nullptr,
         vertexShader_.GetAddressOf());
     if (FAILED(createResult)) {
-        return RendererResult::failure(hresultError("ID3D11Device::CreateVertexShader", createResult));
+        return RendererResult::failure(hresultError("ID3D11Device::CreateVertexShader(box)", createResult));
     }
 
     createResult = device_->CreatePixelShader(
@@ -322,7 +367,7 @@ RendererResult D3D11Renderer::createShaderResources(const std::filesystem::path&
         nullptr,
         pixelShader_.GetAddressOf());
     if (FAILED(createResult)) {
-        return RendererResult::failure(hresultError("ID3D11Device::CreatePixelShader", createResult));
+        return RendererResult::failure(hresultError("ID3D11Device::CreatePixelShader(box)", createResult));
     }
 
     const std::array<D3D11_INPUT_ELEMENT_DESC, 6> layout{{
@@ -341,7 +386,52 @@ RendererResult D3D11Renderer::createShaderResources(const std::filesystem::path&
         vertexBytecode->GetBufferSize(),
         inputLayout_.GetAddressOf());
     if (FAILED(createResult)) {
-        return RendererResult::failure(hresultError("ID3D11Device::CreateInputLayout", createResult));
+        return RendererResult::failure(hresultError("ID3D11Device::CreateInputLayout(box)", createResult));
+    }
+
+    const std::filesystem::path meshShaderPath = shaderPath.parent_path() / "Mesh.hlsl";
+    Microsoft::WRL::ComPtr<ID3DBlob> meshVertexBytecode;
+    result = compileShader(meshShaderPath, "VSMain", "vs_5_0", meshVertexBytecode);
+    if (!result) {
+        return result;
+    }
+
+    Microsoft::WRL::ComPtr<ID3DBlob> meshPixelBytecode;
+    result = compileShader(meshShaderPath, "PSMain", "ps_5_0", meshPixelBytecode);
+    if (!result) {
+        return result;
+    }
+
+    createResult = device_->CreateVertexShader(
+        meshVertexBytecode->GetBufferPointer(),
+        meshVertexBytecode->GetBufferSize(),
+        nullptr,
+        meshVertexShader_.GetAddressOf());
+    if (FAILED(createResult)) {
+        return RendererResult::failure(hresultError("ID3D11Device::CreateVertexShader(mesh)", createResult));
+    }
+
+    createResult = device_->CreatePixelShader(
+        meshPixelBytecode->GetBufferPointer(),
+        meshPixelBytecode->GetBufferSize(),
+        nullptr,
+        meshPixelShader_.GetAddressOf());
+    if (FAILED(createResult)) {
+        return RendererResult::failure(hresultError("ID3D11Device::CreatePixelShader(mesh)", createResult));
+    }
+
+    const std::array<D3D11_INPUT_ELEMENT_DESC, 2> meshLayout{{
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, static_cast<UINT>(offsetof(MeshGpuVertex, position)), D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, static_cast<UINT>(offsetof(MeshGpuVertex, normal)), D3D11_INPUT_PER_VERTEX_DATA, 0},
+    }};
+    createResult = device_->CreateInputLayout(
+        meshLayout.data(),
+        static_cast<UINT>(meshLayout.size()),
+        meshVertexBytecode->GetBufferPointer(),
+        meshVertexBytecode->GetBufferSize(),
+        meshInputLayout_.GetAddressOf());
+    if (FAILED(createResult)) {
+        return RendererResult::failure(hresultError("ID3D11Device::CreateInputLayout(mesh)", createResult));
     }
 
     return RendererResult::success();
@@ -422,6 +512,13 @@ RendererResult D3D11Renderer::drawBatch(
         alphaBlend ? alphaBlend_.Get() : opaqueBlend_.Get(), nullptr, 0xFFFFFFFFu);
     context_->OMSetDepthStencilState(
         alphaBlend ? depthReadState_.Get() : depthWriteState_.Get(), 0);
+    context_->IASetInputLayout(inputLayout_.Get());
+    context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context_->IASetIndexBuffer(cubeIndexBuffer_.Get(), DXGI_FORMAT_R16_UINT, 0);
+    context_->VSSetShader(vertexShader_.Get(), nullptr, 0);
+    context_->PSSetShader(pixelShader_.Get(), nullptr, 0);
+    ID3D11Buffer* cameraBuffer = cameraConstantBuffer_.Get();
+    context_->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
     ID3D11Buffer* vertexBuffers[] = {cubeVertexBuffer_.Get(), instanceBuffer_.Get()};
     const UINT strides[] = {
@@ -482,6 +579,181 @@ RendererResult D3D11Renderer::drawBatch(
     return RendererResult::success();
 }
 
+RendererResult D3D11Renderer::ensureMeshCached(
+    AssetHandle handle,
+    const GpuMesh*& output) {
+    const auto cached = meshCache_.find(handle.value);
+    if (cached != meshCache_.end()) {
+        output = &cached->second;
+        return RendererResult::success();
+    }
+    if (assetRegistry_ == nullptr) {
+        return RendererResult::failure("mesh draw requested without a runtime asset registry");
+    }
+
+    const RuntimeAsset* asset = nullptr;
+    try {
+        asset = &assetRegistry_->asset(handle);
+    } catch (const std::exception& exception) {
+        return RendererResult::failure(std::string("runtime mesh lookup failed: ") + exception.what());
+    }
+
+    GpuMesh staged;
+    staged.primitives.reserve(asset->mesh.primitives.size());
+    for (const MeshPrimitive& primitive : asset->mesh.primitives) {
+        if (primitive.vertices.empty() || primitive.indices.empty()) {
+            return RendererResult::failure("runtime mesh contains an empty primitive");
+        }
+        const std::size_t vertexBytes = primitive.vertices.size() * sizeof(MeshGpuVertex);
+        const std::size_t indexBytes = primitive.indices.size() * sizeof(std::uint32_t);
+        if (vertexBytes > static_cast<std::size_t>(std::numeric_limits<UINT>::max()) ||
+            indexBytes > static_cast<std::size_t>(std::numeric_limits<UINT>::max()) ||
+            primitive.indices.size() > static_cast<std::size_t>(std::numeric_limits<UINT>::max())) {
+            return RendererResult::failure("runtime mesh primitive exceeds D3D11 buffer limits");
+        }
+
+        std::vector<MeshGpuVertex> vertices;
+        vertices.reserve(primitive.vertices.size());
+        for (const MeshVertex& vertex : primitive.vertices) {
+            vertices.push_back(MeshGpuVertex{
+                DirectX::XMFLOAT3(vertex.position.x, vertex.position.y, vertex.position.z),
+                DirectX::XMFLOAT3(vertex.normal.x, vertex.normal.y, vertex.normal.z),
+            });
+        }
+
+        GpuPrimitive gpuPrimitive;
+        D3D11_BUFFER_DESC vertexDescription{};
+        vertexDescription.ByteWidth = static_cast<UINT>(vertexBytes);
+        vertexDescription.Usage = D3D11_USAGE_IMMUTABLE;
+        vertexDescription.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        D3D11_SUBRESOURCE_DATA vertexData{};
+        vertexData.pSysMem = vertices.data();
+        const HRESULT vertexResult = device_->CreateBuffer(
+            &vertexDescription, &vertexData, gpuPrimitive.vertexBuffer.GetAddressOf());
+        if (FAILED(vertexResult)) {
+            return RendererResult::failure(hresultError("ID3D11Device::CreateBuffer(mesh vertex)", vertexResult));
+        }
+
+        D3D11_BUFFER_DESC indexDescription{};
+        indexDescription.ByteWidth = static_cast<UINT>(indexBytes);
+        indexDescription.Usage = D3D11_USAGE_IMMUTABLE;
+        indexDescription.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        D3D11_SUBRESOURCE_DATA indexData{};
+        indexData.pSysMem = primitive.indices.data();
+        const HRESULT indexResult = device_->CreateBuffer(
+            &indexDescription, &indexData, gpuPrimitive.indexBuffer.GetAddressOf());
+        if (FAILED(indexResult)) {
+            return RendererResult::failure(hresultError("ID3D11Device::CreateBuffer(mesh index)", indexResult));
+        }
+
+        gpuPrimitive.indexCount = static_cast<UINT>(primitive.indices.size());
+        gpuPrimitive.materialIndex = primitive.materialIndex;
+        staged.primitives.push_back(std::move(gpuPrimitive));
+    }
+
+    const auto [inserted, didInsert] = meshCache_.emplace(handle.value, std::move(staged));
+    static_cast<void>(didInsert);
+    output = &inserted->second;
+    return RendererResult::success();
+}
+
+RendererResult D3D11Renderer::drawMeshBatch(
+    const std::vector<ComposedMesh>& meshes,
+    bool wireframe,
+    bool alphaBlend) {
+    if (meshes.empty()) {
+        return RendererResult::success();
+    }
+    if (assetRegistry_ == nullptr) {
+        return RendererResult::failure("mesh draw requested without a runtime asset registry");
+    }
+
+    context_->RSSetState(wireframe ? wireframeRasterizer_.Get() : solidRasterizer_.Get());
+    context_->OMSetBlendState(
+        alphaBlend ? alphaBlend_.Get() : opaqueBlend_.Get(), nullptr, 0xFFFFFFFFu);
+    context_->OMSetDepthStencilState(
+        alphaBlend ? depthReadState_.Get() : depthWriteState_.Get(), 0);
+    context_->IASetInputLayout(meshInputLayout_.Get());
+    context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context_->VSSetShader(meshVertexShader_.Get(), nullptr, 0);
+    context_->PSSetShader(meshPixelShader_.Get(), nullptr, 0);
+    ID3D11Buffer* cameraBuffer = cameraConstantBuffer_.Get();
+    context_->VSSetConstantBuffers(0, 1, &cameraBuffer);
+    ID3D11Buffer* meshBuffer = meshConstantBuffer_.Get();
+    context_->VSSetConstantBuffers(1, 1, &meshBuffer);
+
+    for (const ComposedMesh& composed : meshes) {
+        const GpuMesh* gpuMesh = nullptr;
+        RendererResult cacheResult = ensureMeshCached(composed.item.asset, gpuMesh);
+        if (!cacheResult) {
+            return cacheResult;
+        }
+
+        const RuntimeAsset* runtimeAsset = nullptr;
+        try {
+            runtimeAsset = &assetRegistry_->asset(composed.item.asset);
+        } catch (const std::exception& exception) {
+            return RendererResult::failure(std::string("runtime mesh lookup failed: ") + exception.what());
+        }
+
+        float scaleY = composed.item.transform.scale.y;
+        float translationY = composed.item.transform.translation.y;
+        if (composed.cutaway) {
+            const float localBase = runtimeAsset->mesh.bounds.min.y;
+            const float worldBase = translationY + localBase * scaleY;
+            scaleY *= kCutawayHeightFactor;
+            translationY = worldBase - localBase * scaleY;
+        }
+
+        const DirectX::XMMATRIX world =
+            DirectX::XMMatrixScaling(
+                composed.item.transform.scale.x,
+                scaleY,
+                composed.item.transform.scale.z) *
+            DirectX::XMMatrixRotationY(composed.item.transform.yawRadians) *
+            DirectX::XMMatrixTranslation(
+                composed.item.transform.translation.x,
+                translationY,
+                composed.item.transform.translation.z);
+        const DirectX::XMMATRIX normalWorld =
+            DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, world));
+
+        for (const GpuPrimitive& primitive : gpuMesh->primitives) {
+            MeshMaterial material;
+            if (primitive.materialIndex < runtimeAsset->mesh.materials.size()) {
+                material = runtimeAsset->mesh.materials[primitive.materialIndex];
+            }
+
+            D3D11_MAPPED_SUBRESOURCE mapped{};
+            const HRESULT mapResult = context_->Map(
+                meshConstantBuffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+            if (FAILED(mapResult)) {
+                return RendererResult::failure(hresultError("ID3D11DeviceContext::Map(mesh constants)", mapResult));
+            }
+
+            auto* constants = static_cast<MeshConstants*>(mapped.pData);
+            DirectX::XMStoreFloat4x4(&constants->world, world);
+            DirectX::XMStoreFloat4x4(&constants->normalWorld, normalWorld);
+            constants->color = DirectX::XMFLOAT4(
+                material.baseColor.r * composed.item.tint.r,
+                material.baseColor.g * composed.item.tint.g,
+                material.baseColor.b * composed.item.tint.b,
+                material.baseColor.a * composed.item.tint.a);
+            context_->Unmap(meshConstantBuffer_.Get(), 0);
+
+            ID3D11Buffer* vertexBuffer = primitive.vertexBuffer.Get();
+            const UINT stride = static_cast<UINT>(sizeof(MeshGpuVertex));
+            const UINT offset = 0;
+            context_->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+            context_->IASetIndexBuffer(primitive.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+            context_->DrawIndexed(primitive.indexCount, 0, 0);
+            ++meshDrawCalls_;
+        }
+    }
+
+    return RendererResult::success();
+}
+
 RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCamera& camera) {
     if (device_ == nullptr || context_ == nullptr || swapChain_ == nullptr) {
         return RendererResult::failure("render called before renderer initialization");
@@ -489,6 +761,8 @@ RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCame
     if (width_ == 0 || height_ == 0) {
         return RendererResult::success();
     }
+
+    meshDrawCalls_ = 0;
 
     D3D11_MAPPED_SUBRESOURCE mapped{};
     const HRESULT mapResult = context_->Map(
@@ -508,15 +782,12 @@ RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCame
     ID3D11RenderTargetView* renderTarget = renderTargetView_.Get();
     context_->OMSetRenderTargets(1, &renderTarget, depthStencilView_.Get());
     context_->RSSetViewports(1, &viewport_);
-    context_->IASetInputLayout(inputLayout_.Get());
-    context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context_->IASetIndexBuffer(cubeIndexBuffer_.Get(), DXGI_FORMAT_R16_UINT, 0);
-    context_->VSSetShader(vertexShader_.Get(), nullptr, 0);
-    context_->PSSetShader(pixelShader_.Get(), nullptr, 0);
-    ID3D11Buffer* cameraBuffer = cameraConstantBuffer_.Get();
-    context_->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
     RendererResult result = drawBatch(scene.opaque, false, false);
+    if (!result) {
+        return result;
+    }
+    result = drawMeshBatch(scene.opaqueMeshes, false, false);
     if (!result) {
         return result;
     }
@@ -524,7 +795,15 @@ RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCame
     if (!result) {
         return result;
     }
+    result = drawMeshBatch(scene.translucentMeshes, false, true);
+    if (!result) {
+        return result;
+    }
     result = drawBatch(scene.wireframe, true, true);
+    if (!result) {
+        return result;
+    }
+    result = drawMeshBatch(scene.wireframeMeshes, true, true);
     if (!result) {
         return result;
     }
@@ -542,21 +821,39 @@ RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCame
     return RendererResult::success();
 }
 
+void D3D11Renderer::setAssetRegistry(const RuntimeAssetRegistry* registry) noexcept {
+    if (assetRegistry_ != registry) {
+        meshCache_.clear();
+    }
+    assetRegistry_ = registry;
+}
+
+RendererStats D3D11Renderer::stats() const noexcept {
+    return RendererStats{meshCache_.size(), meshDrawCalls_};
+}
+
 void D3D11Renderer::shutdown() noexcept {
     if (context_ != nullptr) {
         context_->ClearState();
         context_->Flush();
     }
 
+    meshCache_.clear();
+    assetRegistry_ = nullptr;
+    meshDrawCalls_ = 0;
     depthReadState_.Reset();
     depthWriteState_.Reset();
     alphaBlend_.Reset();
     opaqueBlend_.Reset();
     wireframeRasterizer_.Reset();
     solidRasterizer_.Reset();
+    meshInputLayout_.Reset();
+    meshPixelShader_.Reset();
+    meshVertexShader_.Reset();
     inputLayout_.Reset();
     pixelShader_.Reset();
     vertexShader_.Reset();
+    meshConstantBuffer_.Reset();
     cameraConstantBuffer_.Reset();
     instanceBuffer_.Reset();
     cubeIndexBuffer_.Reset();

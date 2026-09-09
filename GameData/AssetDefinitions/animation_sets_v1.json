@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "animation_library_id": "HH_ANIMATION_SETS_V1",
+  "skeletons": [
+    {"skeleton_id":"SK_HumanoidAdult","purpose":"Adult guests and staff","forward_axis":"+Y","up_axis":"+Z"},
+    {"skeleton_id":"SK_HumanoidSmall","purpose":"Children and small humanoids","forward_axis":"+Y","up_axis":"+Z"},
+    {"skeleton_id":"SK_ServiceProp","purpose":"Pushable or articulated service props","forward_axis":"+Y","up_axis":"+Z"},
+    {"skeleton_id":"SK_MechanicalSimple","purpose":"Doors, lifts, curtains, and simple articulated fixtures","forward_axis":"+Y","up_axis":"+Z"}
+  ],
+  "sets": [
+    {"animation_set_id":"ANSET_GUEST_LOCOMOTION","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_TURN_90","AN_WAIT","AN_TALK"]},
+    {"animation_set_id":"ANSET_GUEST_ROOM","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_SIT","AN_STAND","AN_SLEEP_ENTER","AN_SLEEP_LOOP","AN_SLEEP_EXIT","AN_USE_PHONE"]},
+    {"animation_set_id":"ANSET_FRONT_DESK","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_CHECKIN","AN_CHECKOUT","AN_TYPE_DESK","AN_TALK_DESK"]},
+    {"animation_set_id":"ANSET_HOUSEKEEPING","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_PUSH_CART","AN_CLEAN_SURFACE","AN_MAKE_BED","AN_VACUUM","AN_PICKUP_LINEN","AN_DROP_LINEN"]},
+    {"animation_set_id":"ANSET_RESTAURANT_SERVICE","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_CARRY_TRAY","AN_SERVE_TRAY","AN_CLEAR_TABLE","AN_TAKE_ORDER"]},
+    {"animation_set_id":"ANSET_KITCHEN","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_COOK_PREP","AN_STIR","AN_PLATE","AN_WASH_DISH"]},
+    {"animation_set_id":"ANSET_MAINTENANCE","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_INSPECT","AN_REPAIR","AN_CARRY_TOOLBOX","AN_KNEEL_WORK"]},
+    {"animation_set_id":"ANSET_SECURITY","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_MONITOR","AN_RADIO","AN_DIRECT_GUEST"]},
+    {"animation_set_id":"ANSET_BELL_SERVICE","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_CARRY_LUGGAGE","AN_PUSH_BELL_CART","AN_LOAD_LUGGAGE","AN_UNLOAD_LUGGAGE"]},
+    {"animation_set_id":"ANSET_MANAGER","skeleton_id":"SK_HumanoidAdult","clips":["AN_IDLE","AN_WALK","AN_TABLET","AN_CLIPBOARD","AN_TALK","AN_INSPECT"]},
+    {"animation_set_id":"ANSET_CHILD_GUEST","skeleton_id":"SK_HumanoidSmall","clips":["AN_IDLE","AN_WALK","AN_TURN_90","AN_CHILD_PLAY","AN_SIT"]},
+    {"animation_set_id":"ANSET_MECH_DOOR","skeleton_id":"SK_MechanicalSimple","clips":["AN_DOOR_CLOSED","AN_DOOR_OPEN","AN_DOOR_OPEN_HOLD","AN_DOOR_CLOSE"]},
+    {"animation_set_id":"ANSET_MECH_SLIDING_DOOR","skeleton_id":"SK_MechanicalSimple","clips":["AN_SLIDE_CLOSED","AN_SLIDE_OPEN","AN_SLIDE_OPEN_HOLD","AN_SLIDE_CLOSE"]},
+    {"animation_set_id":"ANSET_MECH_REVOLVING_DOOR","skeleton_id":"SK_MechanicalSimple","clips":["AN_REVOLVE_IDLE","AN_REVOLVE"]},
+    {"animation_set_id":"ANSET_MECH_ELEVATOR","skeleton_id":"SK_MechanicalSimple","clips":["AN_ELEVATOR_CLOSED","AN_ELEVATOR_OPEN","AN_ELEVATOR_HOLD","AN_ELEVATOR_CLOSE"]},
+    {"animation_set_id":"ANSET_MECH_OVERHEAD_DOOR","skeleton_id":"SK_MechanicalSimple","clips":["AN_OVERHEAD_CLOSED","AN_OVERHEAD_OPEN","AN_OVERHEAD_OPEN_HOLD","AN_OVERHEAD_CLOSE"]},
+    {"animation_set_id":"ANSET_MECH_CURTAIN","skeleton_id":"SK_MechanicalSimple","clips":["AN_CURTAIN_CLOSED","AN_CURTAIN_OPEN","AN_CURTAIN_OPEN_HOLD","AN_CURTAIN_CLOSE"]},
+    {"animation_set_id":"ANSET_SERVICE_CART","skeleton_id":"SK_ServiceProp","clips":["AN_CART_IDLE","AN_CART_ROLL"]}
+  ],
+  "clip_semantics": {
+    "root_motion_clips":["AN_WALK","AN_PUSH_CART","AN_CARRY_TRAY","AN_CARRY_TOOLBOX","AN_CARRY_LUGGAGE","AN_PUSH_BELL_CART","AN_CART_ROLL"],
+    "looping_clips":["AN_IDLE","AN_WALK","AN_WAIT","AN_TALK","AN_SLEEP_LOOP","AN_TYPE_DESK","AN_TALK_DESK","AN_PUSH_CART","AN_CLEAN_SURFACE","AN_MAKE_BED","AN_VACUUM","AN_CARRY_TRAY","AN_COOK_PREP","AN_STIR","AN_WASH_DISH","AN_INSPECT","AN_REPAIR","AN_MONITOR","AN_TABLET","AN_CLIPBOARD","AN_CHILD_PLAY","AN_REVOLVE","AN_CART_IDLE","AN_CART_ROLL"],
+    "event_examples":{"AN_CHECKIN":["present_document","receive_key"],"AN_CHECKOUT":["present_key","receive_receipt"],"AN_SERVE_TRAY":["place_item"],"AN_REPAIR":["tool_contact"],"AN_DOOR_OPEN":["open_complete"],"AN_ELEVATOR_OPEN":["open_complete"],"AN_OVERHEAD_OPEN":["open_complete"]}
+  }
+}

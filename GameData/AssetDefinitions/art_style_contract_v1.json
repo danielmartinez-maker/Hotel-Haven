@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "style_contract_id": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
+  "name": "Architectural Diorama Realism",
+  "camera_profile": {
+    "projection": "orthographic",
+    "presentation": "2.5D isometric cutaway",
+    "default_yaw_degrees": 45,
+    "default_pitch_degrees": 35.264,
+    "camera_variation_policy": "Production previews may orbit only in 90-degree yaw increments; gameplay readability must remain valid from the canonical view."
+  },
+  "scale_profile": {
+    "units": "meters",
+    "human_reference_height_m": 1.75,
+    "rule": "Real-world-derived scale with modest silhouette exaggeration only where gameplay readability requires it.",
+    "gameplay_authority_note": "Dimensions in art metadata are visual-production hints and do not override simulation or room-rule authority."
+  },
+  "geometry_language": {
+    "silhouette": "Clean, readable, slightly simplified forms with recognizable hospitality-specific proportions.",
+    "edge_treatment": "Small consistent bevels on exposed manufactured edges; avoid razor-sharp CG edges.",
+    "detail_density": "Medium. Large forms read first, functional secondary detail second, microdetail last.",
+    "ornament": "Controlled and context-specific; premium assets may use restrained classical or Art Deco cues without becoming fantasy.",
+    "forbidden": [
+      "photoreal scan noise",
+      "toy-like chibi proportions",
+      "heavy cartoon outlines",
+      "high-frequency grunge",
+      "neon cyberpunk palette",
+      "generic medieval fantasy ornament",
+      "unmotivated asymmetry"
+    ]
+  },
+  "material_response": {
+    "model": "soft simplified PBR",
+    "roughness": "Material identity must read primarily through roughness and value separation rather than texture noise.",
+    "metallic": "Only physically plausible metal surfaces use metallic response.",
+    "normal_detail": "Subtle; never strong enough to break readability at management-camera distance.",
+    "glass": "Tinted lightly, readable edges, restrained reflections."
+  },
+  "palette": {
+    "core": ["warm ivory", "charcoal", "walnut brown", "muted navy", "stone grey", "brass"],
+    "secondary": ["burgundy", "olive", "terracotta", "deep green", "cream", "desaturated blue"],
+    "rule": "Use warm hospitality neutrals as the base. Saturated color is reserved for wayfinding, upholstery accents, uniforms, art, and focal décor."
+  },
+  "lighting_profile": {
+    "key": "soft neutral daylight",
+    "practical_lights": "warm 2700K-3200K look",
+    "shadow": "soft directional shadows with readable contact darkening",
+    "ambient_occlusion": "subtle but present",
+    "rule": "Do not bake dramatic cinematic contrast into assets; lighting must remain compatible with simulation-wide day/night variation."
+  },
+  "character_profile": {
+    "proportions": "slightly stylized realistic adults, approximately 6.5-7 heads tall",
+    "hands_and_head": "subtly enlarged for management-camera readability",
+    "face": "simple readable planes, low-frequency features, no uncanny photoreal skin",
+    "uniforms": "functional silhouettes with role recognition through cut, accessories, and restrained color coding"
+  },
+  "pivot_profile": {
+    "default_static": "floor_contact_center",
+    "wall_module": "bottom_center_on_wall_plane",
+    "door_window": "bottom_center_in_opening_plane",
+    "hanging": "mount_surface_center",
+    "character": "feet_midpoint",
+    "rule": "Pivots must support snapping, placement preview, and deterministic rotation."
+  },
+  "interaction_anchor_profile": {
+    "naming": "INT_<verb>_<index>",
+    "forward_axis": "+Y",
+    "examples": ["INT_USE_01", "INT_SIT_01", "INT_SERVE_01", "INT_REPAIR_01", "INT_PUSH_01"],
+    "rule": "Anchors describe presentation/animation approach points only; gameplay reachability remains simulation authority."
+  },
+  "cutaway_profile": {
+    "allowed": ["normal", "fade_when_foreground", "hide_upper_section", "never_cut"],
+    "default": "normal",
+    "wall_default": "hide_upper_section",
+    "tall_decor_default": "fade_when_foreground"
+  },
+  "lod_profile": {
+    "small_prop": "lod_small_prop",
+    "furniture": "lod_furniture",
+    "architecture": "lod_architecture",
+    "character": "lod_character"
+  },
+  "review_gates": {
+    "A_style": ["silhouette", "palette", "material response", "detail density", "camera readability"],
+    "B_technical": ["scale", "pivot", "naming", "material slots", "cutaway metadata"],
+    "C_simulation_usability": ["clear interaction affordance", "cutaway compatibility", "role readability"],
+    "D_completion": ["manifest entry", "reference preview", "validation record", "no unresolved blocker"]
+  }
+}

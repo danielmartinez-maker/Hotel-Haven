@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - feature/renderer-foundation-c
+      - feature/renderer-cooked-asset-runtime
     paths:
       - 'renderer/**'
+      - 'Tools/ContentPipeline/**'
       - '.github/workflows/renderer-ci.yml'
   pull_request:
     paths:
       - 'renderer/**'
+      - 'Tools/ContentPipeline/**'
       - '.github/workflows/renderer-ci.yml'
 
 jobs:

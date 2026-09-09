@@ -1,0 +1,101 @@
+name: Integrated Game
+on:
+  push:
+    branches: [main, feature/full-game-integration]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  game:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python for production assets
+        if: runner.os == 'Windows'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install production asset dependencies
+        if: runner.os == 'Windows'
+        run: python -m pip install -r Tools/ArtGeneration/requirements.txt
+
+      - name: Validate production asset manifest
+        if: runner.os == 'Windows'
+        run: python Tools/ContentPipeline/scripts/validate_asset_library.py
+
+      - name: Generate production asset library
+        if: runner.os == 'Windows'
+        run: python Tools/ArtGeneration/generate_all_assets.py .
+
+      - name: Validate production asset geometry
+        if: runner.os == 'Windows'
+        run: python Tools/ArtGeneration/validate_generated_geometry.py .
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Cook renderer-safe runtime asset library
+        if: runner.os == 'Windows'
+        run: build/Tools/ContentPipeline/Release/asset.exe cook --runtime
+
+      - name: Audit all cooked renderer assets
+        if: runner.os == 'Windows'
+        run: build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
+
+      - name: Stage runtime assets beside client
+        if: runner.os == 'Windows'
+        run: cmake --build build --config Release --target hotel_haven_stage_runtime_assets
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Windows client smoke test
+        if: runner.os == 'Windows'
+        run: |
+          $p = Start-Process build/Release/hotel_haven.exe -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($p.ExitCode -ne 0) { throw "Client smoke test failed: $($p.ExitCode)" }
+
+      - uses: actions/upload-artifact@v4
+        if: always() && runner.os == 'Windows'
+        with:
+          name: Hotel-Haven-Visual-QA
+          path: build/Release/smoke-*.bmp
+          if-no-files-found: ignore
+
+      - name: Package
+        if: runner.os == 'Windows'
+        run: cpack --config build/CPackConfig.cmake -C Release -B build/package
+
+      - name: Verify packaged cooked assets
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = Get-ChildItem build/package/*.zip | Select-Object -First 1
+          if (-not $zip) { throw "Packaged Hotel Haven zip not found" }
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+          try {
+            $assets = @($archive.Entries | Where-Object {
+              $_.FullName -match '(^|/)data/assets/HH_A\d{3}\.hasset$'
+            })
+            if ($assets.Count -ne 500) {
+              throw "Expected 500 packaged cooked assets; found $($assets.Count)"
+            }
+            Write-Host "Verified 500 cooked runtime assets in $($zip.Name)"
+          } finally {
+            $archive.Dispose()
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: Hotel-Haven-Windows
+          path: build/package/*.zip

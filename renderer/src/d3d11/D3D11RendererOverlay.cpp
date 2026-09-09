@@ -27,6 +27,8 @@ RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const Orth
         return RendererResult::success();
     }
 
+    meshDrawCalls_ = 0;
+
     D3D11_MAPPED_SUBRESOURCE mapped{};
     const HRESULT mapResult = context_->Map(
         cameraConstantBuffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -45,15 +47,12 @@ RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const Orth
     ID3D11RenderTargetView* renderTarget = renderTargetView_.Get();
     context_->OMSetRenderTargets(1, &renderTarget, depthStencilView_.Get());
     context_->RSSetViewports(1, &viewport_);
-    context_->IASetInputLayout(inputLayout_.Get());
-    context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context_->IASetIndexBuffer(cubeIndexBuffer_.Get(), DXGI_FORMAT_R16_UINT, 0);
-    context_->VSSetShader(vertexShader_.Get(), nullptr, 0);
-    context_->PSSetShader(pixelShader_.Get(), nullptr, 0);
-    ID3D11Buffer* cameraBuffer = cameraConstantBuffer_.Get();
-    context_->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
     RendererResult result = drawBatch(scene.opaque, false, false);
+    if (!result) {
+        return result;
+    }
+    result = drawMeshBatch(scene.opaqueMeshes, false, false);
     if (!result) {
         return result;
     }
@@ -61,7 +60,15 @@ RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const Orth
     if (!result) {
         return result;
     }
+    result = drawMeshBatch(scene.translucentMeshes, false, true);
+    if (!result) {
+        return result;
+    }
     result = drawBatch(scene.wireframe, true, true);
+    if (!result) {
+        return result;
+    }
+    result = drawMeshBatch(scene.wireframeMeshes, true, true);
     if (!result) {
         return result;
     }

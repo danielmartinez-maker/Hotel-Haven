@@ -120,6 +120,10 @@ void validate_cookable(const AssetRecord& record) {
     }
 }
 
+bool is_runtime_mesh(AssetType type) noexcept {
+    return type == AssetType::StaticMesh || type == AssetType::SkinnedMesh;
+}
+
 CookResult cook_internal(
     const AssetCatalog& catalog,
     const DependencyGraph& graph,
@@ -168,6 +172,23 @@ std::vector<CookResult> cook_changed(const AssetCatalog& catalog, const Dependen
     auto state = load_state(options.cooked_root / ".cook-state.json");
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, false));
+    return results;
+}
+
+std::vector<CookResult> cook_runtime_meshes(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
+    // This command produces a shipping directory, not an incremental authoring
+    // cache. Clear it first so stale animation/skeleton/material envelopes from
+    // a previous full cook cannot leak into the runtime package.
+    std::filesystem::remove_all(options.cooked_root);
+    std::filesystem::create_directories(options.cooked_root);
+
+    CookState state;
+    std::vector<CookResult> results;
+    for (const auto& id : graph.topological_order()) {
+        const auto& record = catalog.by_id(id);
+        if (!is_runtime_mesh(record.metadata.asset_type)) continue;
+        results.push_back(cook_internal(catalog, graph, id, options, state, true));
+    }
     return results;
 }
 }

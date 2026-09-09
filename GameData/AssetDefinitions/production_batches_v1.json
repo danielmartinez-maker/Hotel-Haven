@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "production_plan_id": "HH_500_ASSET_PRODUCTION_BATCHES_V1",
+  "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
+  "batch_size": 50,
+  "gates": {
+    "style_gate": ["silhouette", "palette", "material_response", "detail_density", "gameplay_camera_readability"],
+    "technical_gate": ["scale", "pivot", "profile", "material_family", "cutaway_policy", "animation_mapping_if_required"],
+    "simulation_gate": ["clear_interaction_affordance", "role_readability", "cutaway_compatibility"],
+    "completion_gate": ["canonical_manifest_entry", "approved_visual_reference", "validation_record", "zero_unresolved_blockers"]
+  },
+  "batches": [
+    {"batch":1,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_01.json","purpose":"Architecture and construction core; establishes scale, bevel, material and cutaway grammar.","catalog_status":"LOCKED","visual_reference_status":"PENDING_CANONICAL_REFERENCE","production_status":"NOT_STARTED"},
+    {"batch":2,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_02.json","purpose":"Architecture variants and finish systems; expands the modular building vocabulary.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":3,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_03.json","purpose":"Guest-room core furniture and primary room furnishings.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":4,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_04.json","purpose":"Remaining finishes, guest-room fixtures/bathroom set, and initial front-of-house assets.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":5,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_05.json","purpose":"Lobby/front-of-house completion and initial restaurant furniture.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":6,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_06.json","purpose":"Restaurant, bar, kitchen and initial housekeeping/logistics set.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":7,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_07.json","purpose":"Housekeeping, maintenance, logistics and initial amenities.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":8,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_08.json","purpose":"Amenities/events completion and first decor/clutter set.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":9,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_09.json","purpose":"Decor/signage completion plus exterior and landscaping set.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"},
+    {"batch":10,"asset_count":50,"catalog":"GameData/AssetDefinitions/Manifest/asset_batch_10.json","purpose":"Thirty guest archetypes and twenty staff characters with complete animation-set mappings.","catalog_status":"LOCKED","visual_reference_status":"PENDING","production_status":"NOT_STARTED"}
+  ]
+}
