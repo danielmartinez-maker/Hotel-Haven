@@ -1,5 +1,6 @@
 #include "hh/game/GuestPsychology.h"
 #include <bit>
+#include <cmath>
 #include <iostream>
 #include <set>
 #include <stdexcept>
@@ -61,6 +62,105 @@ void profile_generation_is_keyed_by_stable_guest_identity() {
   require(first == again,
           "guest profile changed after unrelated profile generation");
 }
+
+void awake_and_sleeping_need_updates_use_hmg_rates() {
+  GuestPsychology psychology(88);
+  const GuestId id = 2001;
+  psychology.initializeGuest(id, psychology.generateGuestProfile(id));
+  const auto initial = psychology.snapshot(id);
+  require(initial.has_value(), "guest psychology state was not initialized");
+
+  psychology.updateNeeds(id, 3600, false);
+  auto awake = psychology.snapshot(id);
+  require(awake.has_value() &&
+              awake->needs.hunger == initial->needs.hunger - 10 &&
+              awake->needs.energy == initial->needs.energy - 5,
+          "awake need decay did not use HMG-010 hourly rates");
+
+  psychology.updateNeeds(id, 3600, true);
+  auto sleeping = psychology.snapshot(id);
+  require(sleeping.has_value() &&
+              sleeping->needs.energy ==
+                  std::min(100, awake->needs.energy + 22) &&
+              sleeping->needs.hunger == awake->needs.hunger,
+          "sleeping need recovery did not use HMG-010 energy rate");
+}
+
+void negative_service_experience_creates_attributed_memory_and_complaint() {
+  GuestPsychology psychology(89);
+  const GuestId id = 2002;
+  auto profile = psychology.generateGuestProfile(id);
+  profile.serviceSensitivity = 1.0;
+  psychology.initializeGuest(id, profile);
+
+  ExperienceEvent event;
+  event.type = ExperienceEventType::LongCheckInQueue;
+  event.timestampSeconds = 3600;
+  event.category = ExperienceCategory::ArrivalDeparture;
+  event.observedValue = 45 * 60;
+  event.expectedValue = 8 * 60;
+  event.rawImpact = -30;
+  event.memorySalience = 10000;
+  event.memoryHalfLifeHours = 24;
+  event.complaintEligible = true;
+  psychology.recordExperience(id, event);
+
+  const auto state = psychology.snapshot(id);
+  require(state.has_value(), "guest psychology state disappeared");
+  require(state->satisfaction.checkIn < 50 &&
+              state->satisfaction.arrivalDeparture < 50,
+          "long check-in wait was not attributed to arrival satisfaction");
+  require(state->memories.size() == 1 &&
+              state->memories.front().type ==
+                  ExperienceEventType::LongCheckInQueue &&
+              state->memories.front().magnitude == 30 &&
+              !state->memories.front().resolved,
+          "negative service event did not create an attributable memory");
+  require(state->complaints.size() == 1 &&
+              state->complaints.front().type == ComplaintType::CheckInDelay &&
+              state->complaints.front().urgency == ComplaintUrgency::Low,
+          "complaint-eligible check-in delay did not create the required complaint");
+}
+
+void memory_contribution_halves_at_configured_half_life() {
+  GuestMemory memory;
+  memory.valence = -1;
+  memory.magnitude = 60;
+  memory.salience = 10000;
+  memory.timestampSeconds = 10 * 3600;
+  memory.halfLifeHours = 12;
+  const double now = GuestPsychology::memoryContribution(memory, 10 * 3600);
+  const double later = GuestPsychology::memoryContribution(memory, 22 * 3600);
+  require(std::abs(later - now * .5) < 1e-9,
+          "guest memory did not halve after one configured half-life");
+}
+
+void complaint_threshold_respects_magnitude_and_guest_sensitivity() {
+  GuestPsychology psychology(90);
+  const GuestId id = 2003;
+  auto profile = psychology.generateGuestProfile(id);
+  profile.serviceSensitivity = .20;
+  profile.traitFlags &= ~guestTraitFlag(GuestTrait::ComplaintProne);
+  psychology.initializeGuest(id, profile);
+
+  ExperienceEvent event;
+  event.type = ExperienceEventType::LongCheckInQueue;
+  event.timestampSeconds = 100;
+  event.category = ExperienceCategory::ArrivalDeparture;
+  event.rawImpact = -30;
+  event.memorySalience = 10000;
+  event.memoryHalfLifeHours = 24;
+  event.complaintEligible = true;
+  psychology.recordExperience(id, event);
+  require(psychology.snapshot(id)->complaints.empty(),
+          "low-sensitivity guest complained below HMG-010 magnitude override");
+
+  event.timestampSeconds = 200;
+  event.rawImpact = -50;
+  psychology.recordExperience(id, event);
+  require(psychology.snapshot(id)->complaints.size() == 1,
+          "magnitude-50 complaint override was not honored");
+}
 } // namespace
 
 int main() {
@@ -68,10 +168,14 @@ int main() {
     same_seed_and_guest_id_produce_identical_profile();
     all_thirteen_archetypes_are_reachable_and_profiles_are_bounded();
     profile_generation_is_keyed_by_stable_guest_identity();
+    awake_and_sleeping_need_updates_use_hmg_rates();
+    negative_service_experience_creates_attributed_memory_and_complaint();
+    memory_contribution_halves_at_configured_half_life();
+    complaint_threshold_respects_magnitude_and_guest_sensitivity();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
   }
-  std::cout << "All guest psychology profile tests passed\n";
+  std::cout << "All guest psychology tests passed\n";
   return 0;
 }
