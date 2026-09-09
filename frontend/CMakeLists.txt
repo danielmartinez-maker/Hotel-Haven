@@ -17,6 +17,7 @@ add_library(hh_frontend_core STATIC
     src/MainMenuModel.cpp
     src/MainMenuController.cpp
     src/MainMenuView.cpp
+    src/MenuInput.cpp
     src/MenuTransitionDirector.cpp
     src/MenuSceneController.cpp
 )
@@ -47,6 +48,7 @@ hh_enable_strict_warnings(hh_frontend_d2d)
 add_executable(hotel_haven_menu_demo WIN32
     app/MainMenuDemo.cpp
     src/ShowcaseHotelScene.cpp
+    src/win32/XInputMenuGamepad.cpp
 )
 target_include_directories(hotel_haven_menu_demo PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -63,6 +65,7 @@ target_link_libraries(hotel_haven_menu_demo PRIVATE
     hh_renderer_core
     hh_renderer_d3d11
     hh_renderer_win32
+    xinput9_1_0
 )
 hh_enable_strict_warnings(hotel_haven_menu_demo)
 
