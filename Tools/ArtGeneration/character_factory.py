@@ -98,6 +98,14 @@ def add_archetype_details(scene,name,index,scale,cloth,pants):
 def add_staff_details(scene,name,scale):
  if 'Receptionist' in name or 'Concierge' in name:
   add_lapels(scene,scale,COLORS['gold']);add(scene,box((.08*scale,.02*scale,.04*scale),(.12*scale,-.145*scale,1.36*scale),COLORS['gold'],'badge'),'Accessory_NameBadge','Chest')
+ if 'Receptionist' in name:
+  # A broad folder/tablet silhouette is readable from the management camera and distinguishes desk staff from concierge staff.
+  add(scene,box((.23*scale,.055*scale,.31*scale),(.20*scale,-.20*scale,1.08*scale),COLORS['slate'],'folder'),'Accessory_ReceptionFolder','Chest')
+ if 'Concierge' in name:
+  # The diagonal hospitality sash is intentionally large enough to read at orthographic gameplay distance.
+  sash=box((.075*scale,.022*scale,.52*scale),(0,-.16*scale,1.20*scale),COLORS['gold'],'sash')
+  sash.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(25.0),(0,1,0),point=(0,-.16*scale,1.20*scale)))
+  add(scene,sash,'Accessory_ConciergeSash','Chest')
  if 'Bellhop' in name:
   add(scene,cyl(.15*scale,.08*scale,(0,0,1.77*scale),COLORS['burgundy'],'hat',18),'Accessory_BellHat','Head');add_buttons(scene,scale,COLORS['gold'],4)
  if 'Housekeeper' in name:
