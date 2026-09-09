@@ -20,6 +20,23 @@ hh::renderer::BoxRenderItem makeBox(int floorId,
     };
 }
 
+hh::renderer::MeshRenderItem makeMesh(int floorId,
+                                      hh::renderer::RenderCategory category,
+                                      hh::renderer::Vec3 center,
+                                      bool translucent = false) {
+    using namespace hh::renderer;
+    return MeshRenderItem{
+        AssetHandle{7u},
+        MeshTransform{center, Vec3{1.0f, 1.0f, 1.0f}, 0.0f},
+        Color{1.0f, 1.0f, 1.0f, 1.0f},
+        floorId,
+        category,
+        Aabb{{center.x - 0.5f, center.y - 0.5f, center.z - 0.5f},
+             {center.x + 0.5f, center.y + 0.5f, center.z + 0.5f}},
+        translucent
+    };
+}
+
 }  // namespace
 
 TEST_CASE("scene composer excludes hidden floors") {
@@ -68,4 +85,33 @@ TEST_CASE("focus protection cuts only an occluding full-height wall") {
     EXPECT_EQ(result.opaque.size(), static_cast<std::size_t>(2));
     EXPECT_TRUE(result.opaque[0].cutaway);
     EXPECT_FALSE(result.opaque[1].cutaway);
+}
+
+TEST_CASE("scene composer filters and classifies mesh instances without registry lookup") {
+    using namespace hh::renderer;
+    RenderScene scene;
+    scene.activeFloor = 1;
+    scene.meshes.push_back(makeMesh(1, RenderCategory::Object, {0.0f, 1.0f, 0.0f}));
+    scene.meshes.push_back(makeMesh(1, RenderCategory::Object, {2.0f, 1.0f, 0.0f}, true));
+    scene.meshes.push_back(makeMesh(0, RenderCategory::Object, {4.0f, 0.0f, 0.0f}));
+
+    const auto result = SceneComposer{}.compose(
+        scene, FloorContextMode::Normal, WallRenderMode::FullHeight, {0, 5, -10});
+
+    EXPECT_EQ(result.opaqueMeshes.size(), 1u);
+    EXPECT_EQ(result.translucentMeshes.size(), 1u);
+    EXPECT_EQ(result.opaqueMeshes.front().item.asset.value, 7u);
+}
+
+TEST_CASE("scene composer fades mesh instances on adjacent context floors") {
+    using namespace hh::renderer;
+    RenderScene scene;
+    scene.activeFloor = 1;
+    scene.meshes.push_back(makeMesh(0, RenderCategory::Object, {0.0f, 0.0f, 0.0f}));
+
+    const auto result = SceneComposer{}.compose(
+        scene, FloorContextMode::AdjacentContext, WallRenderMode::FullHeight, {0, 5, -10});
+
+    EXPECT_EQ(result.translucentMeshes.size(), 1u);
+    EXPECT_NEAR(result.translucentMeshes.front().item.tint.a, 0.25f, 0.0001f);
 }
