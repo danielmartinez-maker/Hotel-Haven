@@ -10,20 +10,6 @@
 #include <string>
 #include <vector>
 #include <windows.h>
-#include <windowsx.h>
-
-// Some Windows SDK headers still expose legacy `small`, `near`, and `far`
-// macros. Hotel Haven uses those identifiers as ordinary C++ names, so keep
-// the SDK macros from rewriting declarations and local variables.
-#ifdef small
-#undef small
-#endif
-#ifdef near
-#undef near
-#endif
-#ifdef far
-#undef far
-#endif
 
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
