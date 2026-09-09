@@ -52,8 +52,8 @@ struct Client {
   hh::game::Simulation simulation;
   hh::game::SimulationView snapshot;
   HWND window{}, viewport{};
-  hh::renderer::D3D11Renderer renderer;
   hh::renderer::RuntimeAssetRegistry assetRegistry;
+  hh::renderer::D3D11Renderer renderer{&assetRegistry};
   WorldAssetSet worldAssets;
   hh::renderer::OrthoCamera camera;
   std::filesystem::path directory, savePath;
