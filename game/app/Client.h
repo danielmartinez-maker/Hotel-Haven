@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <windowsx.h>
 
 // Some Windows SDK headers still expose legacy `small`, `near`, and `far`
 // macros. Hotel Haven uses those identifiers as ordinary C++ names, so keep
