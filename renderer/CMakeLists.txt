@@ -32,6 +32,7 @@ add_library(hh_renderer_core STATIC
     src/FloorVisibility.cpp
     src/GlbLoader.cpp
     src/Occlusion.cpp
+    src/RuntimeAssetRegistry.cpp
     src/SceneComposer.cpp
     src/Visibility.cpp
 )
