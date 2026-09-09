@@ -107,6 +107,8 @@ struct SchedulerPlan {
     std::int64_t simulationSecond{};
     std::uint64_t snapshotFingerprint{};
     PlanSource source{PlanSource::DeterministicFallback};
+    std::int32_t bucketMinutes{5};
+    std::int32_t horizonBuckets{12};
     std::vector<Assignment> assignments;
     std::vector<StationAssignment> stationAssignments;
     std::vector<ObjectiveValue> objectives;
