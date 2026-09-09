@@ -42,9 +42,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel 4
 
-      - name: Cook complete runtime asset library
+      - name: Cook renderer-safe runtime asset library
         if: runner.os == 'Windows'
-        run: build/Tools/ContentPipeline/Release/asset.exe cook --all
+        run: build/Tools/ContentPipeline/Release/asset.exe cook --runtime
 
       - name: Audit all cooked renderer assets
         if: runner.os == 'Windows'

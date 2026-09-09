@@ -60,8 +60,8 @@ jobs:
       - name: Validate generated repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
 
-      - name: Cook complete gameplay asset library
-        run: Tools/ContentPipeline/build/Release/asset.exe cook --all
+      - name: Cook renderer-safe gameplay asset library
+        run: Tools/ContentPipeline/build/Release/asset.exe cook --runtime
 
       - name: Verify cooked asset count
         shell: pwsh

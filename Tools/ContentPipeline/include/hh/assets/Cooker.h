@@ -23,4 +23,5 @@ struct CookResult {
 CookResult cook_one(const AssetCatalog& catalog, const DependencyGraph& graph, std::string_view asset_id, const CookOptions& options);
 std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options);
 std::vector<CookResult> cook_changed(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options);
+std::vector<CookResult> cook_runtime_meshes(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options);
 }
