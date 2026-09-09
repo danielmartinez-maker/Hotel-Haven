@@ -172,6 +172,7 @@ def generate_all(repo_root: Path | str):
     from humanoid_animation_generate import generate as generate_humanoid
     from link_animation_dependencies import link
     from floor_contact_hardening import harden_floor_supports
+    from quality_enrichment import enrich_gameplay_library
 
     root = Path(repo_root).resolve()
     manifest = load_active_manifest(root)
@@ -197,6 +198,7 @@ def generate_all(repo_root: Path | str):
     linked, deferred = link(manifest_dir, exports)
     normalized = normalize_sidecars(exports)
     normalized_gameplay, interaction_anchor_bindings = normalize_gameplay_sidecars(root, exports, manifest)
+    quality = enrich_gameplay_library(root, exports, manifest)
     tree = validate_generated_tree(root, exports)
     expected_links = expected_animation_bindings(manifest)
 
@@ -220,6 +222,7 @@ def generate_all(repo_root: Path | str):
         'normalized_sidecars': normalized,
         'normalized_gameplay_sidecars': normalized_gameplay,
         'interaction_anchor_bindings': interaction_anchor_bindings,
+        **quality,
         **tree,
     }
     expected_records = manifest.asset_count + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
@@ -230,6 +233,10 @@ def generate_all(repo_root: Path | str):
     if normalized_gameplay != manifest.asset_count:
         raise RuntimeError(
             f'expected {manifest.asset_count} normalized gameplay sidecars, got {normalized_gameplay}'
+        )
+    if quality['quality_enriched_assets'] != manifest.asset_count:
+        raise RuntimeError(
+            f"expected {manifest.asset_count} V2 quality-enriched assets, got {quality['quality_enriched_assets']}"
         )
     if tree['generated_asset_records'] != expected_records:
         raise RuntimeError(
