@@ -52,6 +52,11 @@ public:
         bool softwareDevice = false);
     [[nodiscard]] RendererResult resize(std::uint32_t width, std::uint32_t height);
     [[nodiscard]] RendererResult render(const ComposedScene& scene, const OrthoCamera& camera);
+    [[nodiscard]] RendererResult renderWorld(const ComposedScene& scene, const OrthoCamera& camera);
+    [[nodiscard]] RendererResult present();
+
+    [[nodiscard]] ID3D11Device* device() const noexcept { return device_.Get(); }
+    [[nodiscard]] IDXGISwapChain* swapChain() const noexcept { return swapChain_.Get(); }
 
     // The registry is owned by the caller and must outlive rendering. Changing
     // registries invalidates the device-local mesh cache.
