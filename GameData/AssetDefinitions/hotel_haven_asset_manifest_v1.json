@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "manifest_id": "HH_GAMEPLAY_ASSET_MANIFEST_V1",
+  "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
+  "asset_count": 500,
+  "storage": "sharded_by_production_batch",
+  "entry_columns": ["asset_id","display_name","subcategory","material_family","profile","animation_set","interaction_anchors"],
+  "profiles": {
+    "P_ARCH_STATIC": {"asset_type":"StaticMeshAsset","units":"meters","lod_policy":"lod_architecture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"contextual_architecture","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_ARCH_ANIMATED": {"asset_type":"SkinnedMeshAsset","units":"meters","lod_policy":"lod_architecture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"contextual_architecture","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_FURNITURE_STATIC": {"asset_type":"StaticMeshAsset","units":"meters","lod_policy":"lod_furniture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"floor_contact_center","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_SERVICE_PROP_ANIMATED": {"asset_type":"SkinnedMeshAsset","units":"meters","lod_policy":"lod_furniture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"floor_contact_center","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_INTERACTIVE_PREFAB": {"asset_type":"PrefabAsset","units":"meters","lod_policy":"lod_furniture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"floor_contact_center","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_INTERACTIVE_ANIMATED": {"asset_type":"SkinnedMeshAsset","units":"meters","lod_policy":"lod_furniture","collision_policy":"simple_proxy","cutaway_policy":"normal","pivot_profile":"floor_contact_center","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_SMALL_PROP": {"asset_type":"StaticMeshAsset","units":"meters","lod_policy":"lod_small_prop","collision_policy":"none_or_simple_proxy","cutaway_policy":"normal","pivot_profile":"contextual","footprint":"contextual","dependencies":[],"review_status":"REQUESTED"},
+    "P_CHARACTER": {"asset_type":"SkinnedMeshAsset","units":"meters","lod_policy":"lod_character","collision_policy":"capsule_runtime","cutaway_policy":"normal","pivot_profile":"feet_midpoint","footprint":"FP_CHARACTER","dependencies":[],"review_status":"REQUESTED"}
+  },
+  "family_targets": {
+    "architecture_construction": 70,
+    "finish_systems": 40,
+    "guest_room_furniture_fixtures": 75,
+    "front_of_house_public": 60,
+    "restaurant_bar_food_service": 45,
+    "housekeeping_maintenance_logistics": 55,
+    "amenities_events": 35,
+    "decor_clutter_signage": 45,
+    "exterior_landscaping": 25,
+    "guests_staff": 50
+  },
+  "batches": [
+    {"batch":1,"path":"GameData/AssetDefinitions/Manifest/asset_batch_01.json","asset_count":50},
+    {"batch":2,"path":"GameData/AssetDefinitions/Manifest/asset_batch_02.json","asset_count":50},
+    {"batch":3,"path":"GameData/AssetDefinitions/Manifest/asset_batch_03.json","asset_count":50},
+    {"batch":4,"path":"GameData/AssetDefinitions/Manifest/asset_batch_04.json","asset_count":50},
+    {"batch":5,"path":"GameData/AssetDefinitions/Manifest/asset_batch_05.json","asset_count":50},
+    {"batch":6,"path":"GameData/AssetDefinitions/Manifest/asset_batch_06.json","asset_count":50},
+    {"batch":7,"path":"GameData/AssetDefinitions/Manifest/asset_batch_07.json","asset_count":50},
+    {"batch":8,"path":"GameData/AssetDefinitions/Manifest/asset_batch_08.json","asset_count":50},
+    {"batch":9,"path":"GameData/AssetDefinitions/Manifest/asset_batch_09.json","asset_count":50},
+    {"batch":10,"path":"GameData/AssetDefinitions/Manifest/asset_batch_10.json","asset_count":50}
+  ],
+  "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, and reachability authority remain in their owning game-data systems."
+}

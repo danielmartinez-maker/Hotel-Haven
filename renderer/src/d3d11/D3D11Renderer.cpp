@@ -80,7 +80,8 @@ RendererResult D3D11Renderer::initialize(
     HWND window,
     std::uint32_t width,
     std::uint32_t height,
-    const std::filesystem::path& shaderPath) {
+    const std::filesystem::path& shaderPath,
+    bool softwareDevice) {
     shutdown();
 
     DXGI_SWAP_CHAIN_DESC swapDescription{};
@@ -97,9 +98,9 @@ RendererResult D3D11Renderer::initialize(
     swapDescription.Windowed = TRUE;
     swapDescription.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-    const HRESULT deviceResult = D3D11CreateDeviceAndSwapChain(
+    HRESULT deviceResult = D3D11CreateDeviceAndSwapChain(
         nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
+        softwareDevice ? D3D_DRIVER_TYPE_WARP : D3D_DRIVER_TYPE_HARDWARE,
         nullptr,
         D3D11_CREATE_DEVICE_BGRA_SUPPORT,
         nullptr,
@@ -111,6 +112,18 @@ RendererResult D3D11Renderer::initialize(
         nullptr,
         context_.GetAddressOf());
 
+    if (FAILED(deviceResult) && !softwareDevice) {
+        // Remote desktops and machines without a supported GPU can still run
+        // the same renderer through Windows' software D3D11 implementation.
+        swapChain_.Reset();
+        device_.Reset();
+        context_.Reset();
+        deviceResult = D3D11CreateDeviceAndSwapChain(
+            nullptr, D3D_DRIVER_TYPE_WARP, nullptr,
+            D3D11_CREATE_DEVICE_BGRA_SUPPORT, nullptr, 0, D3D11_SDK_VERSION,
+            &swapDescription, swapChain_.GetAddressOf(), device_.GetAddressOf(),
+            nullptr, context_.GetAddressOf());
+    }
     if (FAILED(deviceResult)) {
         return RendererResult::failure(hresultError("D3D11CreateDeviceAndSwapChain", deviceResult));
     }

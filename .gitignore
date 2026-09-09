@@ -1,2 +1,7 @@
 /Build/CookedAssets/
 /Tools/ContentPipeline/build/
+/build/
+/build-*/
+/out/
+*.hhsave
+*.hhsave.tmp

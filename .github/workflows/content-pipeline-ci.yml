@@ -5,12 +5,14 @@ on:
     paths:
       - 'Art/**'
       - 'GameData/AssetDefinitions/**'
+      - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
       - '.github/workflows/content-pipeline-ci.yml'
   pull_request:
     paths:
       - 'Art/**'
       - 'GameData/AssetDefinitions/**'
+      - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
       - '.github/workflows/content-pipeline-ci.yml'
 
@@ -21,14 +23,52 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install art-generation dependencies
+        run: python -m pip install -r Tools/ArtGeneration/requirements.txt
+
+      - name: Test art generators
+        run: python -m pytest Tools/ArtGeneration/tests -q
+
+      - name: Validate 500 asset library manifest
+        run: python Tools/ContentPipeline/scripts/validate_asset_library.py
+
+      - name: Generate full asset library
+        run: python Tools/ArtGeneration/generate_all_assets.py .
+
+      - name: Validate generated geometry and palette
+        run: python Tools/ArtGeneration/validate_generated_geometry.py .
+
+      - name: Render asset preview boards
+        run: python Tools/ArtGeneration/render_asset_previews.py .
+
       - name: Configure
         run: cmake -S Tools/ContentPipeline -B Tools/ContentPipeline/build -A x64
 
       - name: Build
         run: cmake --build Tools/ContentPipeline/build --config Release
 
-      - name: Test
+      - name: Test native content pipeline
         run: ctest --test-dir Tools/ContentPipeline/build -C Release --output-on-failure
 
-      - name: Validate repository assets
+      - name: Validate generated repository assets
         run: Tools/ContentPipeline/build/Release/asset.exe validate Art/Exports
+
+      - name: Upload generated asset package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel-haven-generated-assets
+          path: |
+            Art/Exports/**
+            Art/Validation/full_generation_summary.json
+            Art/Validation/generated_geometry_qc.json
+            Art/Validation/library_release_audit_v1.md
+            Art/Validation/Previews/**
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 14

@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "batch": 7,
+  "asset_count": 50,
+  "range": "HH_A301-HH_A350",
+  "generator": "Tools/ArtGeneration/batch07_generate.py",
+  "shared_factory": "Tools/ArtGeneration/service_asset_factory.py",
+  "art_style": "Architectural Diorama Realism v1",
+  "completion": {
+    "pbr_encoding": "fractional RGBA encoded through uint8 without white clamping",
+    "animation_dependencies": "all animated carts, trolleys, dollies and hand trucks declare ANSET_SERVICE_CART directly",
+    "role_specific_geometry": [
+      "washer/dryer differentiation",
+      "maintenance and storage props",
+      "security equipment",
+      "treadmill",
+      "elliptical trainer",
+      "stationary bike",
+      "rowing machine",
+      "weight bench"
+    ]
+  },
+  "ci_validation": {
+    "implementation_commit": "5ed45fbbb3640b03a6a2f885508806142c1ae4bb",
+    "python_tests": "64/64 PASS",
+    "gameplay_assets": "500/500 PASS",
+    "batch_count": "10 x 50",
+    "animation_links": "87/87",
+    "animation_links_deferred": 0,
+    "geometry": "PASS",
+    "contracts": "PASS",
+    "placement": "PASS",
+    "palette_colors": 86,
+    "nonwhite_ratio": 1.0,
+    "interaction_anchors": "184/184",
+    "max_faces": 3104,
+    "preview_sheets": "10/10",
+    "native_build": "PASS",
+    "native_tests": "1/1 PASS",
+    "generated_asset_records_validated": 591
+  },
+  "animation_binding": "Service carts, hand trucks and dollies expose MOV_Wheel_* nodes and bind ANSET_SERVICE_CART.",
+  "status": "PRODUCTION_GENERATOR_COMPLETE_CI_VALIDATED"
+}
