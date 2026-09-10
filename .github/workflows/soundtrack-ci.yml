@@ -1,0 +1,32 @@
+name: Soundtrack CI
+
+on:
+  push:
+    branches: [feature/hotel-soundtrack-v1]
+  pull_request:
+    paths:
+      - 'game/audio/**'
+      - 'game/data/audio/**'
+      - 'game/app/Client.h'
+      - 'CMakeLists.txt'
+      - '.github/workflows/soundtrack-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  soundtrack:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build soundtrack catalog tests
+        run: cmake --build build --config Release --target hh_soundtrack_catalog_tests --parallel 4
+      - name: Build Windows soundtrack player
+        if: runner.os == 'Windows'
+        run: cmake --build build --config Release --target hh_soundtrack_player --parallel 4
+      - name: Run soundtrack tests
+        run: ctest --test-dir build -C Release -R '^hh_soundtrack_' --output-on-failure
