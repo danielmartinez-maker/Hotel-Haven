@@ -43,6 +43,23 @@ void review_score_is_deterministic_and_uses_modeled_satisfaction() {
           "review score ignored modeled overall satisfaction");
 }
 
+void review_noise_uses_documented_three_tenths_envelope() {
+  GuestPsychologySnapshot psychology;
+  psychology.guestId = 9010;
+  psychology.satisfaction.overall = 50;
+  constexpr double baseScore = 1.0 + 50.0 * 0.09;
+  double maximumDeviation = 0.0;
+  for (std::uint64_t seed = 1; seed <= 512; ++seed) {
+    const auto review = buildGuestReview(psychology, seed, 0);
+    const double deviation = std::abs(review.score - baseScore);
+    maximumDeviation = std::max(maximumDeviation, deviation);
+    require(deviation <= 0.300001,
+            "review noise exceeded the documented +/-0.3 range");
+  }
+  require(maximumDeviation > 0.20,
+          "review noise never exercised the documented +/-0.3 envelope");
+}
+
 void review_text_uses_only_strongest_actual_memories() {
   GuestPsychologySnapshot psychology;
   psychology.guestId = 9002;
@@ -134,6 +151,7 @@ void completed_critic_review_uses_archived_memory() {
 int main() {
   try {
     review_score_is_deterministic_and_uses_modeled_satisfaction();
+    review_noise_uses_documented_three_tenths_envelope();
     review_text_uses_only_strongest_actual_memories();
     empty_memory_review_does_not_invent_an_incident();
     completed_critic_review_uses_archived_memory();
