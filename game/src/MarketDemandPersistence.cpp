@@ -68,8 +68,8 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
     int segment{};
     in >> r.id >> segment >> r.arrivalDay >> r.departureDay >> r.budgetCents >> r.partySize >>
         r.amenityPreference >> r.locationPreference >> r.brandPreference;
-    if (!in || segment < static_cast<int>(MarketSegment::Leisure) ||
-        segment > static_cast<int>(MarketSegment::Budget))
+    if (!in || segment < static_cast<int>(MarketSegment::CoupleLeisure) ||
+        segment > static_cast<int>(MarketSegment::Wellness))
       throw std::invalid_argument("invalid saved booking request");
     r.segment = static_cast<MarketSegment>(segment);
     result.snapshot_.requests.push_back(std::move(r));
