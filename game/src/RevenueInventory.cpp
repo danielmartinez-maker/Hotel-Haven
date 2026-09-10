@@ -239,6 +239,7 @@ void RevenueInventory::processDay(int day) {
 RevenueInventorySnapshot RevenueInventory::snapshot() const {
   RevenueInventorySnapshot out;
   out.bookings = bookings_;
+  out.physicalCapacity = physicalCapacity_;
   out.minimumAvailableUnits = std::numeric_limits<int>::max();
   std::size_t active = 0;
   for (const auto &booking : bookings_) {
