@@ -129,6 +129,50 @@ void group_proposal_uses_documented_thirty_percent_acceptance_band() {
           "proposal outside 30 percent acceptance band was accepted");
 }
 
+void group_follower_accepts_shared_itinerary_within_band() {
+  GuestGroup group;
+  group.id = 88;
+  group.leader = 1001;
+  group.members = {1001, 1002};
+  group.cohesion = 9000;
+  group.cohesionRadiusTiles = 6;
+  group.sharedItinerary = {GuestGoalClass::Socialize};
+
+  auto relax = opportunity(10, GuestGoalClass::Relax, 40);
+  auto socialize = opportunity(20, GuestGoalClass::Socialize, 40);
+  socialize.preference = 8000;
+  GuestOpportunitySnapshot snapshot;
+  snapshot.opportunities = {relax, socialize};
+
+  const auto individual = chooseGuestGoal(1002, snapshot);
+  require(individual.valid && individual.goal == GuestGoalClass::Relax,
+          "group acceptance fixture did not start with an individual alternative");
+  const auto follower = chooseGuestGroupMemberGoal(1002, group, snapshot);
+  require(follower.valid && follower.goal == GuestGoalClass::Socialize,
+          "group follower rejected a shared itinerary within the 30 percent band");
+  const auto leader = chooseGuestGroupMemberGoal(1001, group, snapshot);
+  require(leader == individual,
+          "group leader did not retain authority to propose its own best action");
+}
+
+void urgent_need_temporarily_splits_group_follower() {
+  GuestGroup group;
+  group.id = 89;
+  group.leader = 2001;
+  group.members = {2001, 2002};
+  group.cohesion = 9000;
+  group.cohesionRadiusTiles = 6;
+  group.sharedItinerary = {GuestGoalClass::Socialize};
+
+  auto socialize = opportunity(10, GuestGoalClass::Socialize, 60);
+  auto urgent = opportunity(20, GuestGoalClass::Bathe, 14);
+  GuestOpportunitySnapshot snapshot;
+  snapshot.opportunities = {socialize, urgent};
+  const auto selected = chooseGuestGroupMemberGoal(2002, group, snapshot);
+  require(selected.valid && selected.goal == GuestGoalClass::Bathe,
+          "critical need did not temporarily split a group follower");
+}
+
 void critical_need_can_override_group_incompatibility() {
   GuestOpportunitySnapshot snapshot;
   auto groupPlan = opportunity(1, GuestGoalClass::Socialize, 60);
@@ -210,6 +254,8 @@ int main() {
     preferences_do_not_weaken_mandatory_lifecycle_goals();
     live_business_guest_uses_authoritative_preferences();
     group_proposal_uses_documented_thirty_percent_acceptance_band();
+    group_follower_accepts_shared_itinerary_within_band();
+    urgent_need_temporarily_splits_group_follower();
     critical_need_can_override_group_incompatibility();
     group_state_is_value_stable_and_tracks_shared_itinerary();
     simulation_owns_and_persists_guest_groups();
