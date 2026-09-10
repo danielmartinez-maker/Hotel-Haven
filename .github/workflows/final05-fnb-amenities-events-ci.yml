@@ -35,10 +35,13 @@ jobs:
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           g++ $CXXFLAGS -c game/src/FoodService.cpp -o build/final05/FoodService.o
           g++ $CXXFLAGS -c game/src/RoomService.cpp -o build/final05/RoomService.o
-      - name: Run FINAL-05 F&B behavior tests
+          g++ $CXXFLAGS -c game/src/Events.cpp -o build/final05/Events.o
+      - name: Run FINAL-05 behavior tests
         run: |
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           g++ $CXXFLAGS game/tests/FoodServiceTests.cpp build/final05/FoodService.o -o build/final05/FoodServiceTests
           build/final05/FoodServiceTests
           g++ $CXXFLAGS game/tests/FoodRoomServiceIntegrationTests.cpp build/final05/FoodService.o build/final05/RoomService.o -o build/final05/FoodRoomServiceIntegrationTests
           build/final05/FoodRoomServiceIntegrationTests
+          g++ $CXXFLAGS game/tests/EventTests.cpp build/final05/Events.o -o build/final05/EventTests
+          build/final05/EventTests

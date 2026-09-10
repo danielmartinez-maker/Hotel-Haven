@@ -9,6 +9,7 @@ add_library(hh_game
   src/RoomService.cpp
   src/ServiceLogistics.cpp
   src/FoodService.cpp
+  src/Events.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
@@ -25,7 +26,7 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
 
-  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics SimulationServiceLogistics FoodService)
+  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics SimulationServiceLogistics FoodService Event)
     add_executable(hh_${service_test}_tests tests/${service_test}Tests.cpp)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
