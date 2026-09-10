@@ -38,10 +38,12 @@ class EngineeringSystem {
 public:
   EngineeringSystem(LogisticsSystem &logistics, std::uint64_t seed = 1);
   void registerAsset(AssetId asset, int condition = 10000);
-  [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type);
+  [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type,
+                                             int workSeconds = 0);
   [[nodiscard]] WorkOrderId latestWorkOrder(AssetId asset,
                                              WorkOrderType type) const;
   [[nodiscard]] ServiceWorkResult workSecond(WorkOrderId workOrder);
+  void setConditionLossPerDayHundredths(int units);
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
   [[nodiscard]] EngineeringSnapshot snapshot() const;
@@ -74,6 +76,7 @@ private:
   ServiceId nextId_{1};
   std::int64_t elapsedSeconds_{};
   int failures_{};
+  int conditionLossPerDayHundredths_{240};
   std::vector<Asset> assets_;
   std::vector<WorkOrder> workOrders_;
 };
