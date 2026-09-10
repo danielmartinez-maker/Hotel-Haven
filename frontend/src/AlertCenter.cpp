@@ -3,19 +3,41 @@
 #include <unordered_set>
 namespace hh::frontend {
 void AlertCenter::ingest(const std::vector<AlertSnapshot>& alerts) {
-    for (const auto& alert : alerts) {
+    const auto pruneResolvedHistory = [this] {
+        while (resolved_.size() > resolvedHistoryLimit_) {
+            const auto evictedId = resolved_.front().id;
+            resolved_.erase(resolved_.begin());
+            const auto stillActive = std::any_of(active_.begin(), active_.end(), [evictedId](const AlertSnapshot& row) { return row.id == evictedId; });
+            if (!stillActive) known_.erase(evictedId);
+        }
+    };
+    const auto storeResolved = [this, &pruneResolvedHistory](AlertSnapshot alert) {
+        alert.resolved = true;
         known_[alert.id] = alert;
+        const auto existing = std::find_if(resolved_.begin(), resolved_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; });
+        if (existing == resolved_.end()) resolved_.push_back(std::move(alert)); else *existing = std::move(alert);
+        pruneResolvedHistory();
+    };
+
+    std::unordered_set<std::uint64_t> incomingIds;
+    incomingIds.reserve(alerts.size());
+    for (const auto& alert : alerts) incomingIds.insert(alert.id);
+
+    std::vector<AlertSnapshot> disappeared;
+    for (const auto& active : active_) {
+        if (!incomingIds.contains(active.id)) disappeared.push_back(active);
+    }
+    if (!disappeared.empty()) {
+        active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return !incomingIds.contains(row.id); }), active_.end());
+        for (auto& alert : disappeared) storeResolved(std::move(alert));
+    }
+
+    for (const auto& alert : alerts) {
         if (alert.resolved) {
             active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; }), active_.end());
-            const auto existing = std::find_if(resolved_.begin(), resolved_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; });
-            if (existing == resolved_.end()) resolved_.push_back(alert); else *existing = alert;
-            while (resolved_.size() > resolvedHistoryLimit_) {
-                const auto evictedId = resolved_.front().id;
-                resolved_.erase(resolved_.begin());
-                const auto stillActive = std::any_of(active_.begin(), active_.end(), [evictedId](const AlertSnapshot& row) { return row.id == evictedId; });
-                if (!stillActive) known_.erase(evictedId);
-            }
+            storeResolved(alert);
         } else {
+            known_[alert.id] = alert;
             const auto existing = std::find_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; });
             if (existing == active_.end()) active_.push_back(alert); else *existing = alert;
         }
