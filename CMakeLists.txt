@@ -55,6 +55,10 @@ if(WIN32)
     add_executable(hh_game_ui_command_router_tests game/app/GameUiCommandRouterTests.cpp)
     target_link_libraries(hh_game_ui_command_router_tests PRIVATE hh_game_ui_bridge)
     add_test(NAME hh_game_ui_command_router_tests COMMAND hh_game_ui_command_router_tests)
+    add_executable(hh_game_ui_command_router_stress_tests game/app/GameUiCommandRouterStressTests.cpp)
+    target_link_libraries(hh_game_ui_command_router_stress_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME StressUiCommandRouter COMMAND hh_game_ui_command_router_stress_tests)
+    set_tests_properties(StressUiCommandRouter PROPERTIES TIMEOUT 180)
 
     add_executable(hotel_haven WIN32
         game/app/GameMain.cpp
