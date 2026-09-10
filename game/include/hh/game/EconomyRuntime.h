@@ -55,6 +55,7 @@ public:
   void setPhysicalRoomCapacity(std::string category, int units);
   void setPlayerHotelOffer(const MarketHotelOffer &offer);
   void setCompetitors(std::vector<CompetitorOffer> competitors);
+  void setDemandModifiers(const MarketDemandModifiers &modifiers);
 
   [[nodiscard]] PricingRuleResult setPricingRule(const PricingRuleCommand &command);
   [[nodiscard]] OverbookingResult setOverbookingPolicy(const OverbookingPolicy &policy);
@@ -99,6 +100,7 @@ private:
   std::int64_t cumulativeOccupiedRoomNights_{};
   std::map<std::string, int> physicalCapacity_;
   MarketHotelOffer basePlayerOffer_{};
+  MarketDemandModifiers demandModifiers_{};
 
   MarketDemandSystem market_;
   RevenueInventory inventory_;
