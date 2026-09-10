@@ -12,9 +12,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 include(cmake/CompilerWarnings.cmake)
 
-# The renderer consumes only the runtime-safe asset envelope/parser target.
-# In the integrated root build it is already defined; standalone renderer
-# builds request the format-only content-pipeline mode.
 if(NOT TARGET hh_asset_format)
     set(HH_CONTENT_PIPELINE_FORMAT_ONLY ON CACHE BOOL
         "Build only the runtime-safe hh_asset_format target" FORCE)
@@ -132,12 +129,85 @@ target_link_libraries(hh_renderer_tests PRIVATE
     user32
 )
 hh_enable_strict_warnings(hh_renderer_tests)
-
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
 
-# Dedicated integration executable used after the authoring pipeline cooks the
-# authoritative gameplay library. It loads every .hasset through the same
-# runtime registry/GLB path used by the shipping client.
+add_executable(hh_renderer_stress_tests
+    tests/TestMain.cpp
+    tests/RendererStressTests.cpp
+)
+target_include_directories(hh_renderer_stress_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_renderer_stress_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_link_libraries(hh_renderer_stress_tests PRIVATE
+    hh_renderer_core
+    hh_renderer_d3d11
+    hh_asset_format
+    d3d11
+    d3dcompiler
+    user32
+)
+hh_enable_strict_warnings(hh_renderer_stress_tests)
+add_test(NAME StressRendererCore COMMAND hh_renderer_stress_tests)
+set_tests_properties(StressRendererCore PROPERTIES TIMEOUT 180)
+
+add_executable(hh_glb_loader_stress_tests
+    tests/TestMain.cpp
+    tests/GlbLoaderStressTests.cpp
+)
+target_include_directories(hh_glb_loader_stress_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_glb_loader_stress_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_link_libraries(hh_glb_loader_stress_tests PRIVATE
+    hh_renderer_core
+    hh_asset_format
+)
+hh_enable_strict_warnings(hh_glb_loader_stress_tests)
+add_test(NAME StressGlbLoader COMMAND hh_glb_loader_stress_tests)
+set_tests_properties(StressGlbLoader PROPERTIES TIMEOUT 180)
+
+add_executable(hh_runtime_asset_registry_stress_tests
+    tests/TestMain.cpp
+    tests/RuntimeAssetRegistryStressTests.cpp
+)
+target_include_directories(hh_runtime_asset_registry_stress_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_runtime_asset_registry_stress_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_link_libraries(hh_runtime_asset_registry_stress_tests PRIVATE
+    hh_renderer_core
+    hh_asset_format
+)
+hh_enable_strict_warnings(hh_runtime_asset_registry_stress_tests)
+add_test(NAME StressRuntimeAssetRegistry COMMAND hh_runtime_asset_registry_stress_tests)
+set_tests_properties(StressRuntimeAssetRegistry PROPERTIES TIMEOUT 180)
+
+add_executable(hh_d3d11_lifecycle_stress_tests
+    tests/TestMain.cpp
+    tests/D3D11LifecycleStressTests.cpp
+)
+target_include_directories(hh_d3d11_lifecycle_stress_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_d3d11_lifecycle_stress_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
+target_link_libraries(hh_d3d11_lifecycle_stress_tests PRIVATE
+    hh_renderer_core
+    hh_renderer_d3d11
+    hh_asset_format
+    d3d11
+    dxgi
+    d3dcompiler
+    user32
+)
+hh_enable_strict_warnings(hh_d3d11_lifecycle_stress_tests)
+add_test(NAME StressD3D11Lifecycle COMMAND hh_d3d11_lifecycle_stress_tests)
+set_tests_properties(StressD3D11Lifecycle PROPERTIES TIMEOUT 300)
+
 add_executable(hh_runtime_asset_library_audit
     tests/RuntimeAssetLibraryAudit.cpp
 )

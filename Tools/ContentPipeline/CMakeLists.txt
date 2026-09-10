@@ -51,8 +51,18 @@ target_include_directories(hh_asset_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/te
 target_link_libraries(hh_asset_tests PRIVATE hh_assets)
 hh_enable_strict_warnings(hh_asset_tests)
 
+add_executable(hh_asset_stress_tests
+    tests/TestMain.cpp
+    tests/ContentPipelineStressTests.cpp
+)
+target_include_directories(hh_asset_stress_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+target_link_libraries(hh_asset_stress_tests PRIVATE hh_assets)
+hh_enable_strict_warnings(hh_asset_stress_tests)
+
 add_executable(asset app/AssetMain.cpp)
 target_link_libraries(asset PRIVATE hh_assets)
 hh_enable_strict_warnings(asset)
 
 add_test(NAME hh_asset_tests COMMAND hh_asset_tests)
+add_test(NAME StressContentPipeline COMMAND hh_asset_stress_tests)
+set_tests_properties(StressContentPipeline PROPERTIES TIMEOUT 180)
