@@ -23,6 +23,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p = Path('tools/final04_patch_simulation_authority.py')
           source = p.read_text(encoding='utf-8')
           marker = "''', \"load-inventory-migration\")"
@@ -31,8 +32,11 @@ jobs:
           if start < 0:
               raise SystemExit('load migration replace_once block missing')
           block = source[start:end]
-          if "r'''" not in block:
-              block = block.replace("'''", "r'''")
+          delimiters = [m.start() for m in re.finditer("'''", block)]
+          if len(delimiters) != 4:
+              raise SystemExit(f'expected four triple-quote delimiters, found {len(delimiters)}')
+          for position in reversed((delimiters[0], delimiters[2])):
+              block = block[:position] + 'r' + block[position:]
           source = source[:start] + block + source[end:]
           p.write_text(source, encoding='utf-8')
           PY
