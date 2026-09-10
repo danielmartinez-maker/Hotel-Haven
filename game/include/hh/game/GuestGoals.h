@@ -81,6 +81,9 @@ applyGuestPreferences(const GuestPreferenceState &preferences,
                                             const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
                                         std::int64_t proposedGroupUtility) noexcept;
+[[nodiscard]] GoalSelection
+chooseGuestGroupMemberGoal(EntityId guestId, const GuestGroup &group,
+                           const GuestOpportunitySnapshot &snapshot) noexcept;
 
 namespace detail {
 [[nodiscard]] bool validGuestGroup(const GuestGroup &group) noexcept;
