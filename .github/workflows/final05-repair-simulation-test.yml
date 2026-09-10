@@ -16,11 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
-      - name: Restore parent test and update only schema assertion
+          fetch-depth: 4
+      - name: Restore known-good test and update only schema assertion
         shell: bash
         run: |
-          git show HEAD~2:game/tests/SimulationTests.cpp > game/tests/SimulationTests.cpp
+          git show 96989890ccd0790610a2b579b0152bd8fa513b54:game/tests/SimulationTests.cpp > game/tests/SimulationTests.cpp
           python - <<'PY'
           from pathlib import Path
           path = Path('game/tests/SimulationTests.cpp')
@@ -32,13 +32,14 @@ jobs:
           path.write_text(text.replace(old, new, 1))
           PY
           rm .github/workflows/final05-repair-simulation-test.yml
-      - name: Verify repair diff is header-only
+      - name: Verify repair diff is header-only versus known-good test
         shell: bash
         run: |
-          git diff -- game/tests/SimulationTests.cpp | tee /tmp/test.diff
+          git show 96989890ccd0790610a2b579b0152bd8fa513b54:game/tests/SimulationTests.cpp > /tmp/before.cpp
+          diff -u /tmp/before.cpp game/tests/SimulationTests.cpp | tee /tmp/test.diff || true
           grep -q 'HHGS 8 16 32 20 3' /tmp/test.diff
           grep -q 'HHGS 9 16 32 20 3' /tmp/test.diff
-          test "$(git diff --numstat -- game/tests/SimulationTests.cpp | awk '{print $1+$2}')" -eq 2
+          test "$(diff -u /tmp/before.cpp game/tests/SimulationTests.cpp | grep -E '^[+-][^+-]' | wc -l)" -eq 2
       - name: Commit exact repair
         shell: bash
         run: |
