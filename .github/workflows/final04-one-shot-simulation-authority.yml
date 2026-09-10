@@ -1,4 +1,4 @@
-name: FINAL-04 FINAL-03 Reconciliation Audit
+name: FINAL-04 FINAL-03 Replay Audit
 
 on:
   push:
@@ -11,30 +11,31 @@ permissions:
   contents: read
 
 jobs:
-  inspect-merge:
+  replay-audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
-      - name: Merge latest main without committing
+      - name: Replay FINAL-04 Simulation delta onto FINAL-03 baseline
         shell: bash
         run: |
           git fetch origin main
-          git config user.name "hotel-haven-final04-bot"
-          git config user.email "actions@users.noreply.github.com"
+          git diff d6e895822a80a22d8428cc3657d09dec4f591187..HEAD -- game/src/Simulation.cpp > /tmp/final04-simulation.patch
+          git merge --no-commit --no-ff origin/main || true
+          git checkout --theirs game/src/Simulation.cpp
+          git add game/src/Simulation.cpp
           set +e
-          git merge --no-commit --no-ff origin/main
-          status=$?
-          echo "MERGE_STATUS=$status"
-          echo "=== CONFLICT FILES ==="
-          git diff --name-only --diff-filter=U || true
-          echo "=== STATUS ==="
-          git status --short
-          echo "=== CONFLICT MARKERS ==="
-          for f in $(git diff --name-only --diff-filter=U); do
+          git apply --reject --whitespace=nowarn /tmp/final04-simulation.patch
+          apply_status=$?
+          set -e
+          echo "APPLY_STATUS=$apply_status"
+          echo "=== REJECT FILES ==="
+          find game/src -name '*.rej' -print
+          for f in $(find game/src -name '*.rej' -print); do
             echo "--- $f ---"
-            grep -n -C 8 -E '^(<<<<<<<|=======|>>>>>>>)' "$f" || true
+            cat "$f"
           done
-          exit 0
+          echo "=== FINAL04 SYMBOLS AFTER REPLAY ==="
+          grep -n -E 'ServiceLogisticsRuntime|serviceInventoryView|workRoomTurnSecond|workEngineeringSecond|FINAL04|Preventive maintenance' game/src/Simulation.cpp || true
