@@ -9,7 +9,7 @@ namespace hh::game {
 std::string MarketDemandSystem::save() const {
   std::ostringstream out;
   out << std::setprecision(17);
-  out << "HHMARKET 2 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
+  out << "HHMARKET 3 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
       << player_.hotelId << ' ' << player_.nightlyRateCents << ' ' << player_.reputation << ' '
       << player_.stars << ' ' << player_.amenityScore << ' ' << player_.locationScore << ' '
       << player_.brandScore << ' ' << player_.sellable << ' ' << competitors_.size();
@@ -26,6 +26,10 @@ std::string MarketDemandSystem::save() const {
     out << ' ' << profile.medianLeadTimeDays << ' ' << profile.medianStayNights << ' '
         << profile.baseBudgetCents;
   }
+
+  out << ' ' << playerConsiderationBasisPoints_.size();
+  for (const auto &[segment, basisPoints] : playerConsiderationBasisPoints_)
+    out << ' ' << static_cast<int>(segment) << ' ' << basisPoints;
 
   out << ' ' << snapshot_.generatedRequests << ' ' << snapshot_.playerWins << ' '
       << snapshot_.competitorWins << ' ' << snapshot_.unallocatedRequests << ' '
@@ -48,8 +52,8 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   int version{};
   std::uint64_t seed{}, rngState{}, nextRequest{};
   in >> magic >> version >> seed >> rngState >> nextRequest;
-  if (!in || magic != "HHMARKET" || (version != 1 && version != 2) || seed == 0 ||
-      nextRequest == 0)
+  if (!in || magic != "HHMARKET" ||
+      (version != 1 && version != 2 && version != 3) || seed == 0 || nextRequest == 0)
     throw std::invalid_argument("invalid market save");
   MarketDemandSystem result(seed);
   result.rngState_ = rngState;
@@ -89,6 +93,21 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
       if (!in)
         throw std::invalid_argument("invalid saved demand profile");
       result.setSegmentDemandProfile(profile);
+    }
+  }
+
+  if (version >= 3) {
+    in >> count;
+    if (!in || count > 9)
+      throw std::invalid_argument("invalid consideration policy count");
+    for (std::size_t i = 0; i < count; ++i) {
+      int segment{}, basisPoints{};
+      in >> segment >> basisPoints;
+      if (!in || segment < static_cast<int>(MarketSegment::CoupleLeisure) ||
+          segment > static_cast<int>(MarketSegment::Wellness))
+        throw std::invalid_argument("invalid saved consideration segment");
+      result.setPlayerConsiderationBasisPoints(static_cast<MarketSegment>(segment),
+                                               basisPoints);
     }
   }
 
