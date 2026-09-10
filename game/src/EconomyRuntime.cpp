@@ -226,6 +226,14 @@ void EconomyRuntime::post(EconomicCategory category, std::int64_t amountCents,
 
 void EconomyRuntime::runOneDay() {
   const int capacity = physicalCapacityTotal();
+
+  const auto commercialAtStart = commercial_.snapshot();
+  for (const auto &campaign : commercialAtStart.campaigns)
+    if (campaign.dailyCostCents > 0 && currentDay_ >= campaign.startDay &&
+        currentDay_ <= campaign.endDay)
+      post(EconomicCategory::MarketingCost, -campaign.dailyCostCents, campaign.id,
+           "daily marketing campaign");
+
   if (basePlayerOffer_.hotelId != 0) {
     auto offer = basePlayerOffer_;
     const auto commercial = commercial_.snapshot();
