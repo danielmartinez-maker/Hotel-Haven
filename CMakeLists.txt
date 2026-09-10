@@ -46,7 +46,9 @@ if(WIN32)
 
     add_library(hh_game_ui_bridge STATIC
         game/app/GameUiBridge.cpp
-        game/app/GameUiCommandRouter.cpp)
+        game/app/GameUiEconomyBridge.cpp
+        game/app/GameUiCommandRouter.cpp
+        game/app/Final06UiCommandAdapter.cpp)
     target_include_directories(hh_game_ui_bridge PUBLIC game/app)
     target_link_libraries(hh_game_ui_bridge PUBLIC hh_game hh_frontend_core)
     add_executable(hh_game_ui_bridge_tests game/app/GameUiBridgeTests.cpp)

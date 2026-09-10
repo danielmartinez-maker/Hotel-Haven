@@ -81,9 +81,6 @@ public:
       bool acceptRisk = false);
   void applyReviewOutcome(const ReviewSignal &review);
 
-  // Integration hooks for an owning campaign runtime. These do not generate
-  // market requests or reservations; they only mirror authoritative external
-  // economic events and absolute KPI counters into the FINAL-06 ledger.
   void postExternalTransaction(int day, EconomicCategory category,
                                std::int64_t amountCents,
                                std::uint64_t sourceId, std::string memo);
@@ -102,6 +99,8 @@ public:
   [[nodiscard]] FinancialSnapshot financialSnapshot() const;
   [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
   [[nodiscard]] EconomyDiagnostics diagnostics() const;
+  [[nodiscard]] const std::map<std::string, OverbookingPolicy> &
+  overbookingPolicies() const noexcept { return overbooking_.policies(); }
   [[nodiscard]] int currentDay() const noexcept;
 
   [[nodiscard]] std::string save() const;

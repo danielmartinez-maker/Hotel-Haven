@@ -5,11 +5,12 @@
 #include "RuntimeWorldAssets.h"
 #include "d3d11/D3D11Renderer.h"
 #include "hh/frontend/AlertCenter.h"
+#include "hh/frontend/EconomyDashboard.h"
 #include "hh/frontend/GameHudController.h"
 #include "hh/frontend/GameUiRuntime.h"
 #include "hh/frontend/ObjectiveUi.h"
 #include "hh/frontend/UiSettings.h"
-#include "hh/game/Simulation.h"
+#include "hh/game/SimulationEconomyBridge.h"
 #include "hh/renderer/Camera.h"
 #include "hh/renderer/RenderScene.h"
 #include <array>
@@ -30,6 +31,8 @@
 #endif
 
 namespace hh::client {
+using Simulation = hh::game::SimulationEconomyBridge;
+
 inline int HeaderHeight = 88;
 inline int FooterHeight = 58;
 inline int SidebarWidth = 356;
@@ -78,13 +81,14 @@ private:
   hh::renderer::RuntimeAssetRegistry *registry_{};
 };
 struct Client {
-  hh::game::Simulation simulation;
+  Simulation simulation;
   hh::game::SimulationView snapshot;
   hh::frontend::GameHudModel hudModel;
   hh::frontend::GameHudController hudController;
   hh::frontend::GameUiRuntime ui;
   hh::frontend::AlertCenter alertCenter{200};
   hh::frontend::ObjectiveUi objectiveUi;
+  hh::frontend::EconomyDashboard economyDashboard;
   hh::frontend::UiSettings uiSettings;
   hh::frontend::BuildPlacementPreview buildPreview;
   bool uiConfigured{};
@@ -136,7 +140,7 @@ struct Client {
 };
 [[nodiscard]] std::string toolName(Tool tool);
 [[nodiscard]] hh::game::CommandResult
-applyBuildTool(hh::game::Simulation &simulation, Tool tool,
+applyBuildTool(Simulation &simulation, Tool tool,
                hh::game::Position position, std::size_t roomCount);
 std::wstring wide(const std::string &);
 std::wstring money(std::int64_t);

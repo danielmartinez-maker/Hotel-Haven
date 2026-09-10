@@ -2,6 +2,7 @@
 
 #include "hh/frontend/GameUiTypes.h"
 #include "hh/game/Simulation.h"
+#include "hh/game/SimulationEconomyBridge.h"
 #include <string>
 
 namespace hh::game {
@@ -21,6 +22,10 @@ struct GameUiBridgeContext {
 
 [[nodiscard]] hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
+                         const GameUiBridgeContext& context);
+
+[[nodiscard]] hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge& simulation,
                          const GameUiBridgeContext& context);
 
 } // namespace hh::client

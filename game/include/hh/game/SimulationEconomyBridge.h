@@ -3,6 +3,7 @@
 #include "hh/game/EconomyRuntime.h"
 #include "hh/game/Simulation.h"
 #include <cstdint>
+#include <map>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -48,6 +49,21 @@ public:
   [[nodiscard]] RevenueManagementSnapshot revenueManagementSnapshot() const;
   [[nodiscard]] FinancialSnapshot financialSnapshot() const;
   [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
+  [[nodiscard]] EconomyDiagnostics economyDiagnostics() const {
+    return economy_.diagnostics();
+  }
+  [[nodiscard]] const std::map<std::string, OverbookingPolicy> &
+  overbookingPolicies() const noexcept { return economy_.overbookingPolicies(); }
+
+  // Read-only application seams used by presentation adapters. Mutations still
+  // flow through this bridge so the physical simulation and FINAL-06 ledger
+  // cannot diverge.
+  [[nodiscard]] const Simulation &physicalSimulation() const noexcept {
+    return simulation_;
+  }
+  [[nodiscard]] const EconomyRuntime &economyRuntime() const noexcept {
+    return economy_;
+  }
 
   [[nodiscard]] std::string save() const;
   static SimulationEconomyBridge load(std::string_view data);

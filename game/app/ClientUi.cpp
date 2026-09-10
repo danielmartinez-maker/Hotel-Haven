@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "Final06UiCommandAdapter.h"
 
 #include <algorithm>
 #include <array>
@@ -24,7 +25,7 @@ std::string toolName(Tool tool) {
   return "Inspect";
 }
 
-hh::game::CommandResult applyBuildTool(hh::game::Simulation &simulation,
+hh::game::CommandResult applyBuildTool(Simulation &simulation,
                                        Tool tool,
                                        hh::game::Position position,
                                        std::size_t roomCount) {
@@ -69,6 +70,7 @@ void Client::refreshUi() {
   hudModel.update(ui.snapshot().hud);
   alertCenter.ingest(ui.snapshot().alerts);
   objectiveUi.update(ui.snapshot().objectives);
+  economyDashboard.update(ui.snapshot().economy);
 }
 
 hh::frontend::UiCommandResult
@@ -216,9 +218,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
       return UiCommandResult{out.ok, out.ok ? std::string{} : "BUILD_REJECTED",
                              out.message};
     }
-    return UiCommandResult{
-        false, "FINAL06_COMMAND_DISCONNECTED",
-        "This FINAL-06 command is not attached to the authoritative Simulation object on the current integration branch"};
+    return dispatchFinal06UiCommand(simulation, authority);
   };
 
   return routeGameUiCommand(command, hooks);
