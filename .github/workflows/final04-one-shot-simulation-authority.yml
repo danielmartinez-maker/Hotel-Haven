@@ -37,9 +37,13 @@ jobs:
 
           cmake = Path('game/CMakeLists.txt')
           text = cmake.read_text()
-          for src in ('src/Workforce.cpp', 'src/Departments.cpp', 'src/StaffOptimization.cpp'):
-              if src not in text:
-                  text = text.replace('  src/ServiceLogistics.cpp\n)', f'  src/ServiceLogistics.cpp\n  {src}\n)')
+          missing_sources = [src for src in (
+              'src/Workforce.cpp', 'src/Departments.cpp', 'src/StaffOptimization.cpp')
+              if src not in text]
+          if missing_sources:
+              insertion = ''.join(f'  {src}\n' for src in missing_sources)
+              text = text.replace('  src/ServiceLogistics.cpp\n)',
+                                  '  src/ServiceLogistics.cpp\n' + insertion + ')')
           if 'hh_workforce_tests' not in text:
               text = text.replace('endif()\n', '''  add_executable(hh_workforce_tests tests/WorkforceTests.cpp)\n  target_link_libraries(hh_workforce_tests PRIVATE hh_game)\n  add_test(NAME Workforce COMMAND hh_workforce_tests)\n\n  add_executable(hh_department_tests tests/DepartmentTests.cpp)\n  target_link_libraries(hh_department_tests PRIVATE hh_game)\n  add_test(NAME Department COMMAND hh_department_tests)\n\n  add_executable(hh_optimizer_tests tests/OptimizerIntegrationTests.cpp)\n  target_link_libraries(hh_optimizer_tests PRIVATE hh_game)\n  add_test(NAME Optimizer COMMAND hh_optimizer_tests)\nendif()\n''', 1)
           cmake.write_text(text)
