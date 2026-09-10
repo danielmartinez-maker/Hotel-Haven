@@ -14,6 +14,7 @@ enum class BookingChannel : std::uint8_t {
   Gds,
   Corporate,
   Group,
+  WalkIn,
   TravelAgent = Gds
 };
 enum class BookingState : std::uint8_t { Confirmed, Cancelled, NoShow, Completed };
@@ -27,6 +28,10 @@ struct BookingRequestInput {
   BookingChannel channel{BookingChannel::Direct};
   std::uint64_t sourceContractId{};
   int paymentDelayDays{};
+  int cancellationBasisPoints{-1};
+  int noShowBasisPoints{-1};
+  int cancellationDeadlineDaysBeforeArrival{1};
+  std::int64_t cancellationPenaltyCents{-1};
 };
 
 struct InventoryCommandResult {
@@ -48,6 +53,10 @@ struct BookingView {
   std::uint64_t sourceContractId{};
   int paymentDay{};
   bool revenuePosted{};
+  int cancellationBasisPoints{};
+  int noShowBasisPoints{};
+  int cancellationDeadlineDay{};
+  std::int64_t cancellationPenaltyCents{};
   bool operator==(const BookingView &) const = default;
 };
 
