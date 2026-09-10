@@ -42,6 +42,11 @@ jobs:
             fi
           fi
 
+          # FINAL-04 owns its workflow files already. Keep the reconciliation
+          # branch workflow tree unchanged so the Actions token only publishes
+          # source/test reconciliation and does not attempt workflow writes.
+          git checkout ORIG_HEAD -- .github/workflows
+
           cat > game/CMakeLists.txt <<'CMAKE'
           cmake_minimum_required(VERSION 3.20)
           project(HotelHavenSimulation LANGUAGES CXX)
@@ -93,7 +98,7 @@ jobs:
           python Tools/reconcile_final04_authority.py
           python Tools/reconcile_physical_restock_test.py
           python Tools/reconcile_engineering_authority_test.py
-          git add game/CMakeLists.txt game/src/Simulation.cpp game/tests/SimulationTests.cpp
+          git add game/CMakeLists.txt game/src/Simulation.cpp game/tests/SimulationTests.cpp .github/workflows
 
           if git diff --name-only --diff-filter=U | grep -q .; then
             echo "Unresolved conflicts remain"
@@ -111,7 +116,7 @@ jobs:
       - name: Commit verified reconciliation
         shell: bash
         run: |
-          rm Tools/reconcile_final04_final05.py Tools/reconcile_final04_authority.py Tools/reconcile_physical_restock_test.py Tools/reconcile_engineering_authority_test.py .github/workflows/reconcile-final04-final05.yml
+          rm Tools/reconcile_final04_final05.py Tools/reconcile_final04_authority.py Tools/reconcile_physical_restock_test.py Tools/reconcile_engineering_authority_test.py
           git add -A
           git commit -m "merge(game): reconcile FINAL-04 service/logistics into FINAL-05"
           git push origin HEAD:reconcile/final04-final05-20260909
