@@ -336,8 +336,10 @@ void EconomyRuntime::runOneDay() {
   if (debt.debtServiceCents > 0)
     post(EconomicCategory::DebtService, -debt.debtServiceCents, 0, "scheduled debt service");
   const auto averageDailyCost = static_cast<std::int64_t>(capacity) * 350 + 5000;
+  const auto ledgerSnapshot = economics_.snapshot(
+      currentDay_, cumulativeSellableRoomNights_, cumulativeOccupiedRoomNights_);
   financing_.observeDay(currentDay_, currentCashCents(), averageDailyCost,
-                        debt.missedObligationCents > 0);
+                        debt.missedObligationCents > 0, ledgerSnapshot.gopCents);
 
   ++currentDay_;
 }
