@@ -64,6 +64,8 @@ struct ContractAcceptanceResult {
 struct AcceptedCommercialContract {
   CommercialContract contract;
   bool acceptedRisk{};
+  int reservedRoomNights{};
+  int unfulfilledRoomNights{};
 };
 
 struct CommercialDemandSnapshot {
@@ -86,6 +88,8 @@ public:
   [[nodiscard]] ContractAcceptanceResult acceptContract(
       const CommercialContract &contract, const ContractFeasibility &feasibility,
       bool acceptRisk);
+  void setContractCommitment(std::uint64_t contractId, int reservedRoomNights,
+                             int unfulfilledRoomNights);
   [[nodiscard]] CommercialDemandSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static CommercialDemand load(std::string_view data);
