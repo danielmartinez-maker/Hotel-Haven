@@ -1,13 +1,19 @@
 #include "hh/game/Overbooking.h"
 
+#include <algorithm>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
 namespace hh::game {
 
 OverbookingResult OverbookingSystem::setPolicy(const OverbookingPolicy &policy) {
-  if (policy.roomCategory.empty() || policy.allowance < 0 ||
+  const bool invalidAllowance =
+      policy.allowanceMode == OverbookingAllowanceMode::Rooms
+          ? policy.allowance < 0
+          : (policy.allowanceBasisPoints < 0 || policy.allowanceBasisPoints > 10000);
+  if (policy.roomCategory.empty() || invalidAllowance ||
       policy.relocationCompensationCents < 0 || policy.startDay < 0 ||
       policy.endDay < policy.startDay)
     return {false, "INVALID_OVERBOOKING_POLICY"};
@@ -17,14 +23,34 @@ OverbookingResult OverbookingSystem::setPolicy(const OverbookingPolicy &policy) 
 
 int OverbookingSystem::allowance(std::string_view category) const {
   const auto it = policies_.find(std::string(category));
-  return it == policies_.end() ? 0 : it->second.allowance;
+  if (it == policies_.end() ||
+      it->second.allowanceMode != OverbookingAllowanceMode::Rooms)
+    return 0;
+  return it->second.allowance;
 }
 
 int OverbookingSystem::allowance(std::string_view category, int day) const {
   const auto it = policies_.find(std::string(category));
-  if (it == policies_.end() || day < it->second.startDay || day > it->second.endDay)
+  if (it == policies_.end() || day < it->second.startDay || day > it->second.endDay ||
+      it->second.allowanceMode != OverbookingAllowanceMode::Rooms)
     return 0;
   return it->second.allowance;
+}
+
+int OverbookingSystem::allowance(std::string_view category, int day,
+                                 int physicalRooms) const {
+  if (physicalRooms < 0)
+    return 0;
+  const auto it = policies_.find(std::string(category));
+  if (it == policies_.end() || day < it->second.startDay || day > it->second.endDay)
+    return 0;
+  const auto &policy = it->second;
+  if (policy.allowanceMode == OverbookingAllowanceMode::Rooms)
+    return policy.allowance;
+  const auto resolved =
+      static_cast<std::int64_t>(physicalRooms) * policy.allowanceBasisPoints / 10000;
+  return static_cast<int>(std::min<std::int64_t>(
+      resolved, static_cast<std::int64_t>(std::numeric_limits<int>::max())));
 }
 
 RecoveryDecision OverbookingSystem::chooseRecovery(const RecoveryContext &context) const {
@@ -53,11 +79,12 @@ const std::map<std::string, OverbookingPolicy> &OverbookingSystem::policies() co
 
 std::string OverbookingSystem::save() const {
   std::ostringstream out;
-  out << "HHOVER 2 " << policies_.size();
+  out << "HHOVER 3 " << policies_.size();
   for (const auto &[category, policy] : policies_)
     out << ' ' << std::quoted(category) << ' ' << policy.allowance << ' '
         << policy.relocationCompensationCents << ' ' << policy.startDay << ' '
-        << policy.endDay;
+        << policy.endDay << ' ' << static_cast<int>(policy.allowanceMode) << ' '
+        << policy.allowanceBasisPoints;
   return out.str();
 }
 
@@ -67,7 +94,8 @@ OverbookingSystem OverbookingSystem::load(std::string_view data) {
   int version{};
   std::size_t count{};
   in >> magic >> version >> count;
-  if (!in || magic != "HHOVER" || (version != 1 && version != 2) || count > 10000)
+  if (!in || magic != "HHOVER" ||
+      (version != 1 && version != 2 && version != 3) || count > 10000)
     throw std::invalid_argument("invalid overbooking save");
   OverbookingSystem result;
   for (std::size_t i = 0; i < count; ++i) {
@@ -76,6 +104,14 @@ OverbookingSystem OverbookingSystem::load(std::string_view data) {
         policy.relocationCompensationCents;
     if (version >= 2)
       in >> policy.startDay >> policy.endDay;
+    if (version >= 3) {
+      int mode{};
+      in >> mode >> policy.allowanceBasisPoints;
+      if (!in || mode < static_cast<int>(OverbookingAllowanceMode::Rooms) ||
+          mode > static_cast<int>(OverbookingAllowanceMode::Percentage))
+        throw std::invalid_argument("invalid saved overbooking mode");
+      policy.allowanceMode = static_cast<OverbookingAllowanceMode>(mode);
+    }
     if (!in || !result.setPolicy(policy).ok)
       throw std::invalid_argument("invalid saved overbooking policy");
   }
