@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <cmath>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -60,6 +61,14 @@ static const WorkOrderView &workOrder(const EngineeringSnapshot &snapshot,
     if (entry.id == id)
       return entry;
   throw std::runtime_error("engineering work order missing");
+}
+
+static const EngineeringAssetView &engineeringAsset(
+    const EngineeringSnapshot &snapshot, AssetId id) {
+  for (const auto &entry : snapshot.assets)
+    if (entry.id == id)
+      return entry;
+  throw std::runtime_error("engineering asset missing");
 }
 
 static void stable_commands_and_save_boundary() {
@@ -151,6 +160,29 @@ static void preventive_maintenance_requires_technician_execution() {
           "on-shift maintenance staff never completed preventive work");
 }
 
+static void engineering_condition_is_main_room_authority() {
+  Simulation sim(326, 24, 14, 1);
+  for (int x = 0; x <= 10; ++x)
+    require(sim.buildTile({0, x, 5},
+                          x == 0 ? TileKind::Entrance : TileKind::Floor)
+                .ok,
+            "engineering authority corridor build failed");
+  const auto built = sim.buildFurnishedRoom(
+      {"301", 0, 5, 6, 5, 5, {0, 5, 6}, 1, 1, 120});
+  require(built.ok, "engineering authority room build failed");
+
+  const auto before = serviceRuntime(sim).engineering().snapshot();
+  const auto initialCondition = engineeringAsset(before, built.id).condition;
+  sim.step(3600);
+  const auto after = serviceRuntime(sim).engineering().snapshot();
+  const auto authoritative = engineeringAsset(after, built.id).condition;
+  require(authoritative < initialCondition,
+          "FINAL-04 engineering did not age the registered room asset");
+  require(std::abs(room(sim.view(), built.id).condition -
+                   authoritative / 100.0) < 1.0e-9,
+          "main room condition diverged from FINAL-04 engineering authority");
+}
+
 static void definition_inventory_is_physical_authority() {
   auto sim = Simulation::tutorial(323);
   require(sim.loadDefinitions(
@@ -199,6 +231,7 @@ int main() {
   stable_commands_and_save_boundary();
   room_turn_uses_staff_execution_and_main_room_state();
   preventive_maintenance_requires_technician_execution();
+  engineering_condition_is_main_room_authority();
   definition_inventory_is_physical_authority();
   simulation_supply_orders_enter_receiving();
 }
