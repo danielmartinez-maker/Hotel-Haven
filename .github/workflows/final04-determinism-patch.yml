@@ -1,0 +1,98 @@
+name: FINAL-04 Determinism Patch
+
+on:
+  push:
+    branches:
+      - feature/final-04-service-logistics
+    paths:
+      - .github/workflows/final04-determinism-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/final-04-service-logistics
+          fetch-depth: 0
+      - name: Apply deterministic booking RNG adapters
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("game/src/Simulation.cpp")
+          text = path.read_text(encoding="utf-8")
+
+          anchor = "template <class E> int ei(E e) { return static_cast<int>(e); }\n"
+          helpers = r'''template <class Engine>
+double deterministicUnitDouble(Engine &rng) {
+  // mt19937_64 is specified; map one draw to [0, 1) with a fixed 53-bit
+  // conversion so standard-library distribution implementations cannot alter
+  // the authoritative simulation stream across platforms.
+  constexpr double inverseTwoTo53 = 1.0 / 9007199254740992.0;
+  return static_cast<double>(rng() >> 11) * inverseTwoTo53;
+}
+
+template <class T, class Engine>
+void deterministicShuffle(std::vector<T> &values, Engine &rng) {
+  // Explicit Fisher-Yates. Index selection and engine consumption are fixed by
+  // this code rather than by std::shuffle's implementation.
+  for (std::size_t remaining = values.size(); remaining > 1; --remaining) {
+    const auto index = static_cast<std::size_t>(
+        rng() % static_cast<typename Engine::result_type>(remaining));
+    std::swap(values[remaining - 1], values[index]);
+  }
+}
+'''
+
+          if "double deterministicUnitDouble" not in text:
+              if anchor not in text:
+                  raise SystemExit("helper insertion anchor not found")
+              text = text.replace(anchor, anchor + helpers, 1)
+
+          old_shuffle = "    std::shuffle(free.begin(), free.end(), rng);"
+          new_shuffle = "    deterministicShuffle(free, rng);"
+          if old_shuffle in text:
+              text = text.replace(old_shuffle, new_shuffle, 1)
+          elif new_shuffle not in text:
+              raise SystemExit("booking shuffle call not found")
+
+          old_draw = "std::generate_canonical<double, 32>(rng)"
+          new_draw = "deterministicUnitDouble(rng)"
+          if old_draw in text:
+              text = text.replace(old_draw, new_draw, 1)
+          elif new_draw not in text:
+              raise SystemExit("booking probability draw not found")
+
+          if "std::shuffle(free.begin(), free.end(), rng)" in text:
+              raise SystemExit("implementation-dependent booking shuffle remains")
+          if "std::generate_canonical<double, 32>(rng)" in text:
+              raise SystemExit("implementation-dependent booking draw remains")
+
+          path.write_text(text, encoding="utf-8")
+      - name: Verify real profit assertion remains intact
+        shell: bash
+        run: |
+          grep -F 'require(efficient.operatingProfitCents > 0,' game/tests/SimulationTests.cpp
+          grep -F 'require(poor.operatingProfitCents < efficient.operatingProfitCents,' game/tests/SimulationTests.cpp
+      - name: Targeted Linux build and test
+        shell: bash
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target hh_game_tests --parallel 4
+          ./build/game/hh_game_tests
+      - name: Commit production patch
+        shell: bash
+        run: |
+          git config user.name "hotel-haven-ci"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add game/src/Simulation.cpp
+          if git diff --cached --quiet; then
+            echo "Patch already present"
+            exit 0
+          fi
+          git commit -m "fix: make booking RNG cross-platform deterministic"
+          git push origin HEAD:feature/final-04-service-logistics
