@@ -113,6 +113,7 @@ public:
   void setPlayerOffer(const MarketHotelOffer &offer);
   void setCompetitors(std::vector<CompetitorOffer> competitors);
   void setSegmentDemandProfile(const SegmentDemandProfile &profile);
+  [[nodiscard]] const SegmentDemandProfile &segmentDemandProfile(MarketSegment segment) const;
   [[nodiscard]] double potentialDemand(MarketSegment segment, int stayDay,
                                        const MarketDemandModifiers &modifiers) const;
   [[nodiscard]] int generatePotentialRequests(
