@@ -15,4 +15,12 @@ void GuestPsychology::restoreGuest(const GuestPsychologySnapshot &snapshot) {
   guests_[snapshot.guestId] = std::move(record);
 }
 
+void GuestPsychology::updateExpectations(
+    GuestId guestId, const GuestExpectationInputs &inputs) {
+  const auto found = guests_.find(guestId);
+  if (found == guests_.end())
+    throw std::invalid_argument("guest psychology state not found");
+  found->second.snapshot.expectations = calculateGuestExpectations(inputs);
+}
+
 } // namespace hh::game
