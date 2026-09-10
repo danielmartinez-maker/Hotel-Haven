@@ -72,6 +72,46 @@ void profile_generation_is_keyed_by_stable_guest_identity() {
           "guest profile changed after unrelated profile generation");
 }
 
+void business_preferences_follow_documented_archetype_priors() {
+  GuestPsychology psychology(7801);
+  GuestProfileView profile;
+  profile.archetype = GuestArchetype::BusinessTraveler;
+  psychology.initializeGuest(3001, profile);
+  const auto state = psychology.snapshot(3001);
+  require(state.has_value(), "business preference state was not initialized");
+  require(state->preferences.wifi >= 8500 && state->preferences.desk >= 7000 &&
+              state->preferences.breakfast >= 6000,
+          "business guest missed documented high work/breakfast preferences");
+  require(state->preferences.spa <= 2500 && state->preferences.pool <= 3000,
+          "business guest missed documented low leisure preferences");
+}
+
+void traits_materially_modify_guest_preferences() {
+  constexpr GuestId id = 3002;
+  GuestProfileView baselineProfile;
+  baselineProfile.archetype = GuestArchetype::BusinessTraveler;
+
+  GuestPsychology baseline(7802);
+  baseline.initializeGuest(id, baselineProfile);
+  const auto before = *baseline.snapshot(id);
+
+  auto traitProfile = baselineProfile;
+  traitProfile.traitFlags = guestTraitFlag(GuestTrait::Workaholic) |
+                            guestTraitFlag(GuestTrait::Foodie) |
+                            guestTraitFlag(GuestTrait::FitnessFocused);
+  GuestPsychology modified(7802);
+  modified.initializeGuest(id, traitProfile);
+  const auto after = *modified.snapshot(id);
+
+  require(after.preferences.desk > before.preferences.desk &&
+              after.preferences.wifi > before.preferences.wifi,
+          "Workaholic trait did not numerically raise work preferences");
+  require(after.preferences.breakfast > before.preferences.breakfast,
+          "Foodie trait did not numerically raise food preference");
+  require(after.preferences.fitness > before.preferences.fitness,
+          "FitnessFocused trait did not numerically raise fitness preference");
+}
+
 void awake_and_sleeping_need_updates_use_hmg_rates() {
   GuestPsychology psychology(88);
   const GuestId id = 2001;
@@ -324,6 +364,8 @@ int main() {
     same_seed_and_guest_id_produce_identical_profile();
     all_thirteen_archetypes_are_reachable_and_profiles_are_bounded();
     profile_generation_is_keyed_by_stable_guest_identity();
+    business_preferences_follow_documented_archetype_priors();
+    traits_materially_modify_guest_preferences();
     awake_and_sleeping_need_updates_use_hmg_rates();
     negative_service_experience_creates_attributed_memory_and_complaint();
     memory_contribution_halves_at_configured_half_life();
