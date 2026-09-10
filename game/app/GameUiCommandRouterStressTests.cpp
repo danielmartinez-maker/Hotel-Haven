@@ -23,7 +23,7 @@ struct AuthoritativeFixture {
 
 std::uint64_t hashFixture(const AuthoritativeFixture &fixture) {
   std::uint64_t hash = 1469598103934665603ULL;
-  const auto mix = [&](std::uint64_t value) mutable {
+  auto mix = [&](std::uint64_t value) {
     hash ^= value;
     hash *= 1099511628211ULL;
   };
