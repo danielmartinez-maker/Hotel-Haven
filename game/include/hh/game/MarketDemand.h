@@ -114,6 +114,7 @@ public:
   void setCompetitors(std::vector<CompetitorOffer> competitors);
   void setSegmentDemandProfile(const SegmentDemandProfile &profile);
   [[nodiscard]] const SegmentDemandProfile &segmentDemandProfile(MarketSegment segment) const;
+  void setPlayerConsiderationBasisPoints(MarketSegment segment, int basisPoints);
   [[nodiscard]] double potentialDemand(MarketSegment segment, int stayDay,
                                        const MarketDemandModifiers &modifiers) const;
   [[nodiscard]] int generatePotentialRequests(
@@ -137,11 +138,13 @@ private:
   MarketHotelOffer player_{};
   std::vector<CompetitorOffer> competitors_;
   std::map<MarketSegment, SegmentDemandProfile> demandProfiles_;
+  std::map<MarketSegment, int> playerConsiderationBasisPoints_;
   MarketSnapshot snapshot_{};
 
   [[nodiscard]] std::uint64_t nextRandom();
   [[nodiscard]] double unitRandom();
   [[nodiscard]] const SegmentDemandProfile *profileFor(MarketSegment segment) const;
+  [[nodiscard]] bool playerConsidered(const BookingRequest &request) const;
   void allocate(const BookingRequest &request);
   void refreshComparableMedian();
 };
