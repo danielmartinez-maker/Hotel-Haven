@@ -16,6 +16,7 @@ constexpr MarketSegment kSegments[] = {
     MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
     MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
     MarketSegment::Wellness};
+constexpr int kBasePlayerConsiderationBasisPoints = 7000;
 
 BookingChannel channelFor(std::uint64_t requestId) {
   switch (requestId % 5) {
@@ -187,6 +188,12 @@ void EconomyRuntime::runOneDay() {
   const std::size_t oldRequestCount = beforeMarket.requests.size();
   const std::size_t oldChoiceCount = beforeMarket.choices.size();
   for (const auto segment : kSegments) {
+    const int visibility = commercial_.visibilityBasisPoints(segment, currentDay_);
+    const auto consideration = static_cast<int>(std::clamp<std::int64_t>(
+        static_cast<std::int64_t>(kBasePlayerConsiderationBasisPoints) * visibility /
+            10000,
+        0, 10000));
+    market_.setPlayerConsiderationBasisPoints(segment, consideration);
     const auto &profile = market_.segmentDemandProfile(segment);
     const int stayDay = currentDay_ + profile.medianLeadTimeDays;
     (void)market_.generatePotentialRequests(segment, stayDay, demandModifiers_);
