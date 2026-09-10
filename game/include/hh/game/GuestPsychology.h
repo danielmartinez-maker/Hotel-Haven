@@ -67,6 +67,19 @@ struct GuestNeedState {
   bool operator==(const GuestNeedState &) const = default;
 };
 
+struct GuestPreferenceState {
+  int wifi{5000};
+  int desk{5000};
+  int breakfast{5000};
+  int spa{5000};
+  int pool{5000};
+  int fitness{5000};
+  int social{5000};
+  int quietRoom{5000};
+  int roomQuality{5000};
+  bool operator==(const GuestPreferenceState &) const = default;
+};
+
 struct GuestOperationalPerception {
   int serviceConfidence{70};
   int cleanlinessConfidence{70};
@@ -150,6 +163,7 @@ struct GuestPsychologySnapshot {
   GuestId guestId{};
   GuestProfileView profile;
   GuestNeedState needs;
+  GuestPreferenceState preferences;
   GuestOperationalPerception operational;
   GuestExpectationState expectations;
   SatisfactionBreakdown satisfaction;
