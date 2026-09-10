@@ -1,0 +1,30 @@
+name: FINAL-04 One-Shot Simulation Authority Patch
+
+on:
+  push:
+    branches:
+      - feature/final-04-service-logistics
+    paths:
+      - tools/final04_patch_simulation_authority.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply-simulation-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/final-04-service-logistics
+          fetch-depth: 0
+      - name: Apply anchored Simulation authority patch
+        run: python tools/final04_patch_simulation_authority.py
+      - name: Commit Simulation bridge
+        run: |
+          git config user.name "hotel-haven-final04-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add game/src/Simulation.cpp
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "feat(game): make FINAL-04 authoritative in Simulation"
+          git push origin HEAD:feature/final-04-service-logistics
