@@ -11,13 +11,18 @@ namespace hh::game {
 namespace {
 
 bool validOffer(const LoanOffer &offer) {
-  return offer.id != 0 && offer.principalCents > 0 &&
-         offer.annualInterestBasisPoints >= 0 &&
-         offer.annualInterestBasisPoints <= 100000 && offer.termMonths > 0 &&
-         offer.termMonths <= 1200 && offer.paymentFrequencyDays > 0 &&
-         offer.paymentFrequencyDays <= 3650 && offer.originationFeeCents >= 0 &&
-         offer.originationFeeCents < offer.principalCents &&
-         offer.minimumCashCents >= 0;
+  if (offer.id == 0 || offer.principalCents <= 0 ||
+      offer.annualInterestBasisPoints < 0 ||
+      offer.annualInterestBasisPoints > 100000 || offer.termMonths <= 0 ||
+      offer.termMonths > 1200 || offer.paymentFrequencyDays <= 0 ||
+      offer.paymentFrequencyDays > 3650 || offer.originationFeeCents < 0 ||
+      offer.originationFeeCents >= offer.principalCents || offer.minimumCashCents < 0)
+    return false;
+  return std::all_of(offer.covenants.begin(), offer.covenants.end(),
+                     [](const auto &covenant) {
+                       return covenant.minimumCashCents >= 0 &&
+                              covenant.maximumDebtToGopBasisPoints >= 0;
+                     });
 }
 
 } // namespace
@@ -107,7 +112,11 @@ LoanResult FinancingSystem::acceptLoan(const LoanOffer &offer,
         return loan.offer.id == offer.id;
       }))
     return {false, "LOAN_ALREADY_ACCEPTED", 0, 0};
-  if (currentCashCents < offer.minimumCashCents)
+  if (currentCashCents < offer.minimumCashCents ||
+      std::any_of(offer.covenants.begin(), offer.covenants.end(),
+                  [&](const auto &covenant) {
+                    return currentCashCents < covenant.minimumCashCents;
+                  }))
     return {false, "MINIMUM_CASH_COVENANT_NOT_MET", 0, 0};
 
   ActiveLoan loan;
@@ -179,7 +188,8 @@ void FinancingSystem::setCurePeriodDays(int days) {
 
 void FinancingSystem::observeDay(int day, std::int64_t cashCents,
                                  std::int64_t averageDailyOperatingCostCents,
-                                 bool missedObligation) {
+                                 bool missedObligation,
+                                 std::int64_t gopCents) {
   if (missedObligation) {
     if (defaultStartDay_ < 0)
       defaultStartDay_ = day;
@@ -196,13 +206,34 @@ void FinancingSystem::observeDay(int day, std::int64_t cashCents,
     return;
   }
 
+  std::int64_t totalOutstandingPrincipal = 0;
+  for (const auto &loan : loans_)
+    totalOutstandingPrincipal += loan.remainingPrincipalCents;
+  if (totalOutstandingPrincipal <= 0) {
+    debtToGopBasisPoints_ = 0;
+  } else if (gopCents <= 0) {
+    debtToGopBasisPoints_ = std::numeric_limits<int>::max();
+  } else {
+    const long double rawRatio =
+        static_cast<long double>(totalOutstandingPrincipal) * 10000.0L /
+        static_cast<long double>(gopCents);
+    debtToGopBasisPoints_ = rawRatio >= static_cast<long double>(std::numeric_limits<int>::max())
+                                ? std::numeric_limits<int>::max()
+                                : static_cast<int>(std::llround(rawRatio));
+  }
+
   covenantBreach_ = false;
   for (const auto &loan : loans_) {
     if (cashCents < loan.offer.minimumCashCents)
       covenantBreach_ = true;
-    for (const auto &covenant : loan.offer.covenants)
+    for (const auto &covenant : loan.offer.covenants) {
       if (cashCents < covenant.minimumCashCents)
         covenantBreach_ = true;
+      if (covenant.maximumDebtToGopBasisPoints > 0 &&
+          totalOutstandingPrincipal > 0 &&
+          debtToGopBasisPoints_ > covenant.maximumDebtToGopBasisPoints)
+        covenantBreach_ = true;
+    }
   }
 
   if (cashCents < 0) {
@@ -229,6 +260,7 @@ FinancingSnapshot FinancingSystem::snapshot() const {
   out.defaultStartDay = defaultStartDay_;
   out.missedObligationCents = missedObligationCents_;
   out.covenantBreach = covenantBreach_;
+  out.debtToGopBasisPoints = debtToGopBasisPoints_;
   int nextPayment = 0;
   for (const auto &loan : loans_) {
     if (loan.remainingPrincipalCents <= 0)
@@ -244,9 +276,9 @@ FinancingSnapshot FinancingSystem::snapshot() const {
 
 std::string FinancingSystem::save() const {
   std::ostringstream out;
-  out << "HHFIN 2 " << static_cast<int>(distressStage_) << ' ' << defaultStartDay_ << ' '
+  out << "HHFIN 3 " << static_cast<int>(distressStage_) << ' ' << defaultStartDay_ << ' '
       << curePeriodDays_ << ' ' << missedObligationCents_ << ' ' << covenantBreach_ << ' '
-      << loans_.size();
+      << debtToGopBasisPoints_ << ' ' << loans_.size();
   for (const auto &loan : loans_) {
     const auto &o = loan.offer;
     out << ' ' << o.id << ' ' << o.principalCents << ' ' << o.annualInterestBasisPoints << ' '
@@ -270,10 +302,14 @@ FinancingSystem FinancingSystem::load(std::string_view data) {
   FinancingSystem result;
   std::size_t count{};
   in >> magic >> version >> stage >> result.defaultStartDay_ >> result.curePeriodDays_ >>
-      result.missedObligationCents_ >> result.covenantBreach_ >> count;
-  if (!in || magic != "HHFIN" || (version != 1 && version != 2) || stage < 0 ||
+      result.missedObligationCents_ >> result.covenantBreach_;
+  if (version >= 3)
+    in >> result.debtToGopBasisPoints_;
+  in >> count;
+  if (!in || magic != "HHFIN" ||
+      (version != 1 && version != 2 && version != 3) || stage < 0 ||
       stage > static_cast<int>(DistressStage::Receivership) || count > 10000 ||
-      result.curePeriodDays_ <= 0)
+      result.curePeriodDays_ <= 0 || result.debtToGopBasisPoints_ < 0)
     throw std::invalid_argument("invalid financing save");
   result.distressStage_ = static_cast<DistressStage>(stage);
   for (std::size_t i = 0; i < count; ++i) {
@@ -299,7 +335,8 @@ FinancingSystem FinancingSystem::load(std::string_view data) {
       LoanCovenant covenant;
       in >> std::quoted(covenant.name) >> covenant.minimumCashCents >>
           covenant.maximumDebtToGopBasisPoints;
-      if (!in)
+      if (!in || covenant.minimumCashCents < 0 ||
+          covenant.maximumDebtToGopBasisPoints < 0)
         throw std::invalid_argument("invalid saved covenant");
       loan.offer.covenants.push_back(std::move(covenant));
     }
