@@ -3,6 +3,7 @@
 #include "hh/frontend/EconomyDashboard.h"
 #include "hh/game/SimulationEconomyBridge.h"
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
@@ -22,8 +23,11 @@ int main() {
   });
   require(authority.setOverbookingPolicy({"standard", 0, 25000, 2, 20}).ok,
           "test fixture could not install authoritative overbooking policy");
+  require(authority.orderSupplies({1, 0, 0, 0, 0}).ok,
+          "test fixture could not post an operating supply cost");
 
   const auto beforeSnapshot = authority.save();
+  const auto diagnostics = authority.economyDiagnostics();
   hh::client::GameUiBridgeContext context;
   context.simulationSpeed = 0;
   context.activeFloor = 0;
@@ -36,6 +40,21 @@ int main() {
           "finance cash did not bind to integrated FINAL-06 authority");
   require(source.economy.competitors.size() == 2,
           "competitor comparison was not exposed by the UI snapshot");
+  require(source.economy.kpis.sevenDayOccupancyPermille ==
+              diagnostics.occupancy7DayBasisPoints / 10,
+          "7-day occupancy did not bind to FINAL-06 diagnostics");
+  require(source.economy.kpis.thirtyDayOccupancyPermille ==
+              diagnostics.occupancy30DayBasisPoints / 10,
+          "30-day occupancy did not bind to FINAL-06 diagnostics");
+  require(source.economy.kpis.foodCostCents == diagnostics.foodBeverageCostCents,
+          "F&B cost did not bind to FINAL-06 diagnostics");
+  require(source.economy.kpis.cashRunwayDays ==
+              static_cast<std::int64_t>(std::llround(diagnostics.cashRunwayDays)),
+          "cash runway did not bind to FINAL-06 diagnostics");
+  require(source.economy.cancellationAndNoShow.size() == 2,
+          "cancellation/no-show diagnostics were omitted from finance UI");
+  require(!source.economy.departmentContribution.empty(),
+          "department contribution diagnostics were omitted from finance UI");
   require(authority.save() == beforeSnapshot,
           "building the FINAL-07 snapshot mutated integrated authority");
 
