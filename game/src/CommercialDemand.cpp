@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 
@@ -55,6 +56,10 @@ int effectiveCampaignBoost(const MarketingCampaign &campaign, int day) {
   return campaign.visibilityBoostBasisPoints *
          (campaign.attributionDecayDays - elapsedDecayDays) /
          campaign.attributionDecayDays;
+}
+
+bool hasAmbiguousBilling(const MarketingCampaign &campaign) {
+  return campaign.costCents > 0 && campaign.dailyCostCents > 0;
 }
 
 } // namespace
@@ -119,6 +124,7 @@ CommercialCommandResult CommercialDemand::startCampaign(const MarketingCampaign 
                                                          int currentDay) {
   if (campaign.id == 0 || campaign.startDay < currentDay ||
       campaign.endDay < campaign.startDay || campaign.costCents < 0 ||
+      campaign.dailyCostCents < 0 || hasAmbiguousBilling(campaign) ||
       campaign.visibilityBoostBasisPoints < 0 || campaign.targetSegments.empty() ||
       campaign.rampUpDays < 0 || campaign.attributionDecayDays < 0 ||
       campaign.rampUpDays > 3650 || campaign.attributionDecayDays > 3650)
@@ -196,7 +202,7 @@ CommercialDemandSnapshot CommercialDemand::snapshot() const { return snapshot_; 
 
 std::string CommercialDemand::save() const {
   std::ostringstream out;
-  out << "HHCOMM 5 " << snapshot_.overallReputationBasisPoints << ' '
+  out << "HHCOMM 6 " << snapshot_.overallReputationBasisPoints << ' '
       << snapshot_.serviceReputationBasisPoints << ' '
       << snapshot_.cleanlinessReputationBasisPoints << ' '
       << snapshot_.valueReputationBasisPoints << ' '
@@ -211,7 +217,8 @@ std::string CommercialDemand::save() const {
         << campaign.targetSegments.size();
     for (const auto segment : campaign.targetSegments)
       out << ' ' << static_cast<int>(segment);
-    out << ' ' << campaign.rampUpDays << ' ' << campaign.attributionDecayDays;
+    out << ' ' << campaign.rampUpDays << ' ' << campaign.attributionDecayDays << ' '
+        << campaign.dailyCostCents;
   }
   out << ' ' << snapshot_.contracts.size();
   for (const auto &accepted : snapshot_.contracts) {
@@ -238,7 +245,7 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
       result.snapshot_.valueReputationBasisPoints;
   if (!in || magic != "HHCOMM" ||
       (version != 1 && version != 2 && version != 3 && version != 4 &&
-       version != 5))
+       version != 5 && version != 6))
     throw std::invalid_argument("invalid commercial demand save");
   if (version >= 5) {
     in >> result.snapshot_.roomReputationBasisPoints >>
@@ -287,7 +294,10 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
     }
     if (version >= 3)
       in >> campaign.rampUpDays >> campaign.attributionDecayDays;
-    if (!in || campaign.rampUpDays < 0 || campaign.attributionDecayDays < 0)
+    if (version >= 6)
+      in >> campaign.dailyCostCents;
+    if (!in || campaign.rampUpDays < 0 || campaign.attributionDecayDays < 0 ||
+        campaign.dailyCostCents < 0 || hasAmbiguousBilling(campaign))
       throw std::invalid_argument("invalid saved campaign schedule");
     result.snapshot_.campaigns.push_back(std::move(campaign));
   }
