@@ -25,6 +25,7 @@ struct ElevatorSpec;
 struct GuestPsychologySnapshot;
 struct GuestOpportunitySnapshot;
 struct GoalSelection;
+struct GuestGroup;
 struct SatisfactionBreakdown;
 struct ExperienceEvent;
 
@@ -186,6 +187,7 @@ struct ReservationView {
   bool walkedRelocated{};
   GuestProfileView profile;
   std::string psychologyArchive;
+  std::string guestGroupArchive;
 };
 struct TaskView {
   EntityId id{};
@@ -327,6 +329,8 @@ public:
   [[nodiscard]] GoalSelection
   chooseGuestGoal(EntityId guestId,
                   const GuestOpportunitySnapshot &opportunities) const;
+  CommandResult createGuestGroup(const GuestGroup &specification);
+  [[nodiscard]] std::vector<GuestGroup> guestGroupsSnapshot() const;
   [[nodiscard]] SatisfactionBreakdown
   finalizeStaySatisfaction(EntityId guestId) const;
   CommandResult recordGuestExperience(EntityId guestId,
