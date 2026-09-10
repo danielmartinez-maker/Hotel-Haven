@@ -37,12 +37,9 @@ std::string Simulation::save() const {
   const auto snapshot = view();
   std::ostringstream appendix;
   appendix << "FINAL02\n" << snapshot.reservations.size() << '\n';
-  for (const auto &reservation : snapshot.reservations) {
-    const auto psychology = guestPsychology(reservation.id);
-    appendix << reservation.id << ' '
-             << std::quoted(detail::serializeGuestPsychology(psychology))
+  for (const auto &reservation : snapshot.reservations)
+    appendix << reservation.id << ' ' << std::quoted(reservation.psychologyArchive)
              << '\n';
-  }
   base += appendix.str();
   return base;
 }
@@ -80,9 +77,6 @@ Simulation Simulation::load(std::string_view data) {
     appendix >> guestId >> std::quoted(archive);
     if (!appendix || guestId == 0 || !restoredIds.insert(guestId).second)
       throw std::invalid_argument("invalid FINAL-02 guest identity");
-    const auto psychology = detail::deserializeGuestPsychology(archive);
-    if (psychology.guestId != guestId)
-      throw std::invalid_argument("FINAL-02 psychology identity mismatch");
 
     Reservation *reservation = nullptr;
     for (auto &candidate : simulation.impl_->reservations)
@@ -96,7 +90,18 @@ Simulation Simulation::load(std::string_view data) {
           reservation = &candidate;
           break;
         }
-    if (!reservation || reservation->profile != psychology.profile)
+    if (!reservation)
+      throw std::invalid_argument("FINAL-02 psychology references missing guest");
+
+    if (archive.empty()) {
+      reservation->psychologyArchive.clear();
+      continue;
+    }
+
+    const auto psychology = detail::deserializeGuestPsychology(archive);
+    if (psychology.guestId != guestId)
+      throw std::invalid_argument("FINAL-02 psychology identity mismatch");
+    if (reservation->profile != psychology.profile)
       throw std::invalid_argument("FINAL-02 psychology references missing guest");
     reservation->psychologyArchive = std::move(archive);
   }
