@@ -1,0 +1,10 @@
+{
+  "schema": "hotel-haven.competitor-presets.v1",
+  "presets": [
+    {"id":1001,"name":"Comparable Select","nightly_rate_cents":15500,"reputation":72,"stars":4,"amenity_score":70,"location_score":75,"brand_score":70},
+    {"id":1002,"name":"Metropolitan Grand","nightly_rate_cents":20500,"reputation":84,"stars":5,"amenity_score":88,"location_score":82,"brand_score":86},
+    {"id":1003,"name":"Value Lodge","nightly_rate_cents":11500,"reputation":62,"stars":3,"amenity_score":58,"location_score":66,"brand_score":60}
+  ],
+  "simulation_mode": "aggregate_market_actor",
+  "instantiate_physical_guests": false
+}
