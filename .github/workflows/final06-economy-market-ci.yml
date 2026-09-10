@@ -34,6 +34,7 @@ on:
       - 'game/tests/ContractBookingIntegrationTests.cpp'
       - 'game/tests/FinancingCovenantTests.cpp'
       - 'game/tests/RevenueInventoryTests.cpp'
+      - 'game/tests/ReservationPolicySpecTests.cpp'
       - 'game/tests/RevenueManagementTests.cpp'
       - 'game/tests/HotelEconomicsTests.cpp'
       - 'game/tests/FinancingTests.cpp'
@@ -70,6 +71,8 @@ jobs:
           build/final06/MarketPotentialDemandTests
           g++ $CXXFLAGS game/tests/RevenueInventoryTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryTests
           build/final06/RevenueInventoryTests
+          g++ $CXXFLAGS game/tests/ReservationPolicySpecTests.cpp build/final06/RevenueInventory.o -o build/final06/ReservationPolicySpecTests
+          build/final06/ReservationPolicySpecTests
           g++ $CXXFLAGS game/tests/RevenueManagementTests.cpp build/final06/RevenueManagement.o -o build/final06/RevenueManagementTests
           build/final06/RevenueManagementTests
           g++ $CXXFLAGS game/tests/HotelEconomicsTests.cpp build/final06/HotelEconomics.o -o build/final06/HotelEconomicsTests
@@ -99,6 +102,8 @@ jobs:
           SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
           g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp $SRCS -o build/final06-sanitize/MarketPotentialDemandTests
           build/final06-sanitize/MarketPotentialDemandTests
+          g++ $CXXFLAGS game/tests/ReservationPolicySpecTests.cpp $SRCS -o build/final06-sanitize/ReservationPolicySpecTests
+          build/final06-sanitize/ReservationPolicySpecTests
           for test in FinancingCovenant MarketingAttributionIntegration ContractBookingIntegration EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
             build/final06-sanitize/${test}Tests
