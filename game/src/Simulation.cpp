@@ -71,6 +71,15 @@ struct Simulation::Impl {
       roomConditionLossPerDay{2.5};
   int utilityPerRoomDayCents{350};
 
+  InventoryView serviceInventoryView() const {
+    const auto &logistics = services.logistics();
+    return {logistics.inventoryUsable("clean_linen_set"),
+            logistics.inventoryUsable("towel_unit"),
+            logistics.inventoryUsable("amenity_kit"),
+            logistics.inventoryUsable("cleaning_chemical"),
+            logistics.inventoryUsable("maintenance_part")};
+  }
+
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
   bool inside(Position p) const {
     return p.floor >= 0 && p.floor < floors && p.x >= 0 && p.x < width &&
@@ -172,6 +181,11 @@ struct Simulation::Impl {
       if (t.targetId == target && t.kind == kind &&
           t.status != TaskStatus::Completed)
         return;
+    if (kind == TaskKind::Turnover && services.requestRoomTurn(target) == 0)
+      return;
+    if (kind == TaskKind::Repair &&
+        services.createWorkOrder(target, WorkOrderType::Corrective) == 0)
+      return;
     Task t;
     t.id = nextId++;
     t.kind = kind;
@@ -336,13 +350,18 @@ struct Simulation::Impl {
     for (auto &t : tasks)
       if (t.status == TaskStatus::Ready || t.status == TaskStatus::Blocked) {
         bool resources = true;
-        if (t.kind == TaskKind::Turnover)
+        if (t.kind == TaskKind::Turnover) {
+          const auto &logistics = services.logistics();
           resources = t.resourcesClaimed ||
-                      (has(TileKind::SupplyCloset) && inventory.linen >= 1 &&
-                       inventory.towels >= 2 && inventory.amenities >= 1 &&
-                       inventory.chemicals >= 1);
+                      (has(TileKind::SupplyCloset) &&
+                       logistics.inventoryUsable("clean_linen_set") >= 1 &&
+                       logistics.inventoryUsable("towel_unit") >= 2 &&
+                       logistics.inventoryUsable("amenity_kit") >= 1 &&
+                       logistics.inventoryUsable("cleaning_chemical") >= 1);
+        }
         if (t.kind == TaskKind::Repair)
-          resources = t.resourcesClaimed || inventory.parts >= 1;
+          resources = t.resourcesClaimed ||
+                      services.logistics().inventoryUsable("maintenance_part") >= 1;
         if (t.kind == TaskKind::CheckIn || t.kind == TaskKind::CheckOut)
           resources = has(TileKind::FrontDesk);
         if (!resources) {
@@ -370,10 +389,8 @@ struct Simulation::Impl {
                                                                     : t.target;
           best->state = PersonState::Traveling;
           t.status = TaskStatus::Traveling;
-          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
-            inventory.parts--;
+          if (t.kind == TaskKind::Repair && !t.resourcesClaimed)
             t.resourcesClaimed = true;
-          }
           if (t.kind == TaskKind::Turnover)
             if (auto *r = getRoom(t.targetId))
               r->status = RoomStatus::Cleaning;
@@ -404,19 +421,18 @@ struct Simulation::Impl {
           if (same(p->position, p->destination)) {
             if (t.kind == TaskKind::Turnover &&
                 same(p->destination, supply()) && !t.resourcesClaimed) {
-              if (inventory.linen < 1 || inventory.towels < 2 ||
-                  inventory.amenities < 1 || inventory.chemicals < 1) {
+              const auto &logistics = services.logistics();
+              if (logistics.inventoryUsable("clean_linen_set") < 1 ||
+                  logistics.inventoryUsable("towel_unit") < 2 ||
+                  logistics.inventoryUsable("amenity_kit") < 1 ||
+                  logistics.inventoryUsable("cleaning_chemical") < 1) {
                 t.status = TaskStatus::Blocked;
-                t.blockedReason = "Required local supplies unavailable";
+                t.blockedReason = "Required physical supplies unavailable";
                 t.employeeId = 0;
                 p->task = 0;
                 p->state = PersonState::Idle;
                 continue;
               }
-              inventory.linen--;
-              inventory.towels -= 2;
-              inventory.amenities--;
-              inventory.chemicals--;
               t.resourcesClaimed = true;
               p->destination = t.target;
               p->state = PersonState::Traveling;
@@ -426,6 +442,32 @@ struct Simulation::Impl {
             }
           }
         } else if (p->state == PersonState::Working) {
+          if (t.kind == TaskKind::Turnover) {
+            const auto serviceWork = services.workRoomTurnSecond(t.targetId);
+            if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {
+              t.status = TaskStatus::Blocked;
+              t.blockedReason = !serviceWork.valid
+                                    ? "FINAL-04 room-turn job missing"
+                                    : "FINAL-04 room-turn resources blocked";
+              t.employeeId = 0;
+              p->task = 0;
+              p->state = PersonState::Idle;
+              continue;
+            }
+          } else if (t.kind == TaskKind::Repair) {
+            const auto serviceWork = services.workEngineeringSecond(
+                t.targetId, WorkOrderType::Corrective);
+            if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {
+              t.status = TaskStatus::Blocked;
+              t.blockedReason = !serviceWork.valid
+                                    ? "FINAL-04 engineering work order missing"
+                                    : "FINAL-04 engineering resources blocked";
+              t.employeeId = 0;
+              p->task = 0;
+              p->state = PersonState::Idle;
+              continue;
+            }
+          }
           const double fatiguePerHour =
               t.kind == TaskKind::Turnover
                   ? 10.0
@@ -439,7 +481,21 @@ struct Simulation::Impl {
           else if (p->fatigue > 60)
             efficiency /= 1.10;
           t.workRemainingSeconds -= efficiency;
-          if (t.workRemainingSeconds <= 0) {
+          const bool serviceTurnComplete =
+              t.kind != TaskKind::Turnover ||
+              services.housekeeping().roomStatus(t.targetId) ==
+                  ServiceRoomStatus::Ready;
+          bool serviceRepairComplete = t.kind != TaskKind::Repair;
+          if (t.kind == TaskKind::Repair) {
+            const auto engineering = services.engineering().snapshot();
+            for (const auto &order : engineering.workOrders)
+              if (order.assetId == t.targetId &&
+                  order.type == WorkOrderType::Corrective &&
+                  order.stage == WorkOrderStage::Completed)
+                serviceRepairComplete = true;
+          }
+          if (t.workRemainingSeconds <= 0 && serviceTurnComplete &&
+              serviceRepairComplete) {
             t.status = TaskStatus::Completed;
             p->task = 0;
             p->state = PersonState::Idle;
@@ -472,7 +528,10 @@ struct Simulation::Impl {
                 }
               }
               if (t.kind == TaskKind::Repair) {
-                r->condition = 100;
+                const auto engineering = services.engineering().snapshot();
+                for (const auto &asset : engineering.assets)
+                  if (asset.id == r->id)
+                    r->condition = asset.condition / 100.0;
                 if (!r->closed) {
                   r->status = RoomStatus::VacantDirty;
                   repairedRooms.push_back(r->id);
@@ -592,17 +651,17 @@ struct Simulation::Impl {
       arrivals(day);
     if (hourBoundary) {
       for (auto &o : orders)
-        if (!o.delivered && o.etaDay <= day) {
-          inventory.linen += o.items.linen;
-          inventory.towels += o.items.towels;
-          inventory.amenities += o.items.amenities;
-          inventory.chemicals += o.items.chemicals;
-          inventory.parts += o.items.parts;
+        if (!o.delivered && o.etaDay <= day)
           o.delivered = true;
-        }
     }
     staffAndTasks();
     guests();
+    const int dirtyLinen = services.logistics().totalInventory("dirty_linen_set");
+    bool laundryActive = false;
+    for (const auto &batch : services.laundry().snapshot().batches)
+      laundryActive |= batch.stage != LaundryStage::Completed;
+    if (dirtyLinen > 0 && !laundryActive)
+      (void)services.requestLaundryBatch(std::min(dirtyLinen, 8));
     compactTransientState();
     if (hour == 0 && minute == 0 && hourBoundary) {
       for (auto &p : people)
@@ -648,17 +707,11 @@ Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
   impl_->seed = seed;
   impl_->rng.seed(seed);
   impl_->services = ServiceLogisticsRuntime(seed);
-  auto &serviceInventory = impl_->services.logistics();
-  const auto seedServiceItem = [&](StorageKind kind, std::string_view item, int quantity) {
-    if (quantity > 0 &&
-        !serviceInventory.addInventory(serviceInventory.firstStorage(kind), item, quantity))
-      throw std::logic_error("failed to seed service inventory");
-  };
-  seedServiceItem(StorageKind::CleanLinen, "clean_linen_set", impl_->inventory.linen);
-  seedServiceItem(StorageKind::FloorCloset, "towel_unit", impl_->inventory.towels);
-  seedServiceItem(StorageKind::FloorCloset, "amenity_kit", impl_->inventory.amenities);
-  seedServiceItem(StorageKind::FloorCloset, "cleaning_chemical", impl_->inventory.chemicals);
-  seedServiceItem(StorageKind::CentralStorage, "maintenance_part", impl_->inventory.parts);
+  if (!impl_->services.setScenarioInventory(
+          impl_->inventory.linen, impl_->inventory.towels,
+          impl_->inventory.amenities, impl_->inventory.chemicals,
+          impl_->inventory.parts))
+    throw std::logic_error("failed to seed FINAL-04 physical inventory");
   impl_->width = w;
   impl_->height = h;
   impl_->floors = f;
@@ -943,6 +996,31 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   if (!valid(o.linen) || !valid(o.towels) || !valid(o.amenities) ||
       !valid(o.chemicals) || !valid(o.parts) || total == 0)
     return {false, "Order quantities invalid"};
+
+  const auto snapshot = impl_->services.logisticsSnapshot();
+  StorageNodeId receiving{};
+  StorageNodeId cleanLinen{};
+  StorageNodeId central{};
+  int cleanCapacity{};
+  int centralCapacity{};
+  for (const auto &node : snapshot.storage) {
+    const int available = node.capacityUnits - node.usedUnits - node.reservedUnits;
+    if (node.kind == StorageKind::Receiving && node.operational)
+      receiving = node.id;
+    else if (node.kind == StorageKind::CleanLinen && node.operational) {
+      cleanLinen = node.id;
+      cleanCapacity = available;
+    } else if (node.kind == StorageKind::CentralStorage && node.operational) {
+      central = node.id;
+      centralCapacity = available;
+    }
+  }
+  if (receiving == 0 || cleanLinen == 0 || central == 0)
+    return {false, "Required receiving or storage is unavailable"};
+  const int centralNeed = o.towels + o.amenities + o.chemicals + o.parts;
+  if (o.linen > cleanCapacity || centralNeed > centralCapacity)
+    return {false, "Insufficient physical storage capacity"};
+
   std::int64_t cost = static_cast<std::int64_t>(o.linen) * 1200 +
                       static_cast<std::int64_t>(o.towels) * 500 +
                       static_cast<std::int64_t>(o.amenities) * 250 +
@@ -950,6 +1028,22 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
                       static_cast<std::int64_t>(o.parts) * 3500;
   if (impl_->economy.cashCents < cost)
     return {false, "Insufficient cash"};
+
+  auto &logistics = impl_->services.logistics();
+  constexpr int leadSeconds = 2 * 24 * 60 * 60;
+  const auto place = [&](std::string_view item, int quantity,
+                         StorageNodeId destination) {
+    if (quantity == 0)
+      return true;
+    return logistics.placePurchaseOrder(item, quantity, destination, leadSeconds).ok();
+  };
+  if (!place("clean_linen_set", o.linen, cleanLinen) ||
+      !place("towel_unit", o.towels, central) ||
+      !place("amenity_kit", o.amenities, central) ||
+      !place("cleaning_chemical", o.chemicals, central) ||
+      !place("maintenance_part", o.parts, central))
+    throw std::logic_error("preflighted FINAL-04 purchase order failed");
+
   PendingOrder p;
   p.id = impl_->nextId++;
   p.items = {o.linen, o.towels, o.amenities, o.chemicals, o.parts};
@@ -957,7 +1051,7 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   impl_->orders.push_back(p);
   impl_->economy.cashCents -= cost;
   impl_->economy.supplyCostCents += cost;
-  return {true, "Order submitted", p.id};
+  return {true, "Order submitted to receiving", p.id};
 }
 CommandResult Simulation::loadDefinitions(std::string_view j) {
   auto d = *impl_;
@@ -969,6 +1063,10 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
   }
   if (!root.is_object())
     return {false, "Definitions must be a JSON object"};
+  const bool inventoryDefinition =
+      root.find("initialLinen") || root.find("initialTowels") ||
+      root.find("initialAmenities") || root.find("initialChemicals") ||
+      root.find("initialParts");
   auto number = [&](std::string_view key, double &out) {
     const auto *value = root.find(key);
     if (!value)
@@ -1001,6 +1099,13 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
       d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100)
     return {false, "Definition values are invalid"};
+  if (inventoryDefinition &&
+      !d.services.setScenarioInventory(d.inventory.linen, d.inventory.towels,
+                                       d.inventory.amenities,
+                                       d.inventory.chemicals,
+                                       d.inventory.parts))
+    return {false, "Inventory definitions require idle FINAL-04 services and physical capacity"};
+  d.inventory = d.serviceInventoryView();
   *impl_ = std::move(d);
   return {true, "Definitions loaded"};
 }
@@ -1019,9 +1124,17 @@ LogisticsSnapshot Simulation::logisticsSnapshot() const {
   return impl_->services.logisticsSnapshot();
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
-  if (!impl_->getRoom(roomId))
+  auto *room = impl_->getRoom(roomId);
+  if (!room || room->reservationId != 0 || room->status == RoomStatus::Occupied ||
+      room->status == RoomStatus::OutOfOrder || room->condition < 40)
     return 0;
-  return impl_->services.requestRoomTurn(roomId);
+  const auto serviceTask = impl_->services.requestRoomTurn(roomId);
+  if (serviceTask == 0)
+    return 0;
+  room->status = RoomStatus::VacantDirty;
+  impl_->createTask(TaskKind::Turnover, roomId, room->door,
+                    impl_->turnoverWork);
+  return serviceTask;
 }
 LaundryBatchId Simulation::requestLaundryBatch(int quantity) {
   return impl_->services.requestLaundryBatch(quantity);
@@ -1070,7 +1183,7 @@ SimulationView Simulation::view() const {
   for (auto &t : impl_->completedTaskHistory)
     v.tasks.push_back(t);
   v.reviews = impl_->reviews;
-  v.inventory = impl_->inventory;
+  v.inventory = impl_->serviceInventoryView();
   v.economy = impl_->economy;
   for (auto &o : impl_->orders)
     v.supplyOrders.push_back(o);
@@ -1095,7 +1208,7 @@ std::string Simulation::save() const {
     o << x.linen << ' ' << x.towels << ' ' << x.amenities << ' ' << x.chemicals
       << ' ' << x.parts;
   };
-  inv(impl_->inventory);
+  inv(impl_->serviceInventoryView());
   o << '\n';
   auto &e = impl_->economy;
   o << e.cashCents << ' ' << e.revenueCents << ' ' << e.payrollCents << ' '
@@ -1392,9 +1505,14 @@ Simulation Simulation::load(std::string_view data) {
     if (!i || static_cast<std::size_t>(i.gcount()) != serviceBytes)
       throw std::invalid_argument("truncated FINAL-04 save section");
     d.services = ServiceLogisticsRuntime::load(serviceState);
+    d.inventory = d.serviceInventoryView();
     if (i.get() != '\n')
       throw std::invalid_argument("invalid FINAL-04 save terminator");
   } else {
+    if (!d.services.setScenarioInventory(
+            d.inventory.linen, d.inventory.towels, d.inventory.amenities,
+            d.inventory.chemicals, d.inventory.parts))
+      throw std::invalid_argument("legacy inventory exceeds FINAL-04 capacity");
     for (const auto &room : d.rooms) {
       d.services.registerRoom(
           room.id, room.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
