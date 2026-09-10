@@ -5,7 +5,7 @@ using namespace hh::frontend;
 
 TEST_CASE("All required overlays expose exact legends and non-color semantics") {
     const auto descriptors = OverlayModel::requiredDescriptors();
-    EXPECT_EQ(descriptors.size(), static_cast<std::size_t>(17));
+    EXPECT_EQ(descriptors.size(), static_cast<std::size_t>(18));
     for (const auto& descriptor : descriptors) {
         EXPECT_FALSE(descriptor.label.empty());
         EXPECT_FALSE(descriptor.unit.empty());
