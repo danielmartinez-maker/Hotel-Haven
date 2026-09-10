@@ -1,4 +1,5 @@
 #include "hh/game/GuestReviews.h"
+#include "hh/game/Simulation.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -81,6 +82,53 @@ void empty_memory_review_does_not_invent_an_incident() {
   require(review.text == "The stay matched my overall experience.",
           "empty-memory review invented an unexperienced service incident");
 }
+
+void completed_critic_review_uses_archived_memory() {
+  bool exercised = false;
+  for (std::uint64_t seed = 40; seed < 168 && !exercised; ++seed) {
+    auto sim = Simulation::tutorial(seed);
+    require(sim.loadDefinitions(
+                    R"({"baseDemand":100,"roomConditionLossPerDay":0,"initialLinen":500,"initialTowels":1000,"initialAmenities":500,"initialChemicals":500})")
+                .ok,
+            "critic review integration definitions rejected");
+    for (const auto &room : sim.view().rooms)
+      require(sim.setRoomRate(room.id, 50).ok,
+              "critic review integration rate change failed");
+    sim.step(3600);
+
+    EntityId criticId{};
+    for (const auto &reservation : sim.view().reservations)
+      if (!reservation.completed &&
+          reservation.profile.archetype == GuestArchetype::CriticReviewer) {
+        criticId = reservation.id;
+        break;
+      }
+    if (!criticId)
+      continue;
+
+    ExperienceEvent meal;
+    meal.type = ExperienceEventType::GreatMeal;
+    meal.timestampSeconds = sim.view().elapsedSeconds;
+    meal.category = ExperienceCategory::Food;
+    meal.rawImpact = 70;
+    meal.memorySalience = 10000;
+    meal.memoryHalfLifeHours = 120;
+    require(sim.recordGuestExperience(criticId, meal).ok,
+            "critic meal experience could not be recorded");
+
+    sim.step(5 * 86400);
+    const auto view = sim.view();
+    const auto review = std::find_if(
+        view.reviews.begin(), view.reviews.end(),
+        [&](const ReviewView &candidate) { return candidate.reservationId == criticId; });
+    require(review != view.reviews.end(),
+            "completed critic stay did not emit its forced review");
+    require(review->text.find("meal") != std::string::npos,
+            "completed critic review ignored an authoritative meal memory");
+    exercised = true;
+  }
+  require(exercised, "critic integration fixture did not find a critic guest");
+}
 } // namespace
 
 int main() {
@@ -88,6 +136,7 @@ int main() {
     review_score_is_deterministic_and_uses_modeled_satisfaction();
     review_text_uses_only_strongest_actual_memories();
     empty_memory_review_does_not_invent_an_incident();
+    completed_critic_review_uses_archived_memory();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
