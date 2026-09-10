@@ -50,7 +50,6 @@ struct MarketDemandModifiers {
 struct BookingRequest {
   std::uint64_t id{};
   MarketSegment segment{MarketSegment::CoupleLeisure};
-  int bookingDay{};
   int arrivalDay{};
   int departureDay{};
   std::int64_t budgetCents{};
@@ -58,6 +57,8 @@ struct BookingRequest {
   int amenityPreference{};
   int locationPreference{};
   int brandPreference{};
+  // Appended to preserve aggregate initialization used by earlier FINAL-06 callers.
+  int bookingDay{};
   bool operator==(const BookingRequest &) const = default;
 };
 
