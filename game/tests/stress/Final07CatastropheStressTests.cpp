@@ -47,6 +47,19 @@ Recipe crisisRecipe() {
   return recipe;
 }
 
+void seedServiceInventory(ServiceLogisticsRuntime &service, int stock,
+                          hh::stress::RunContext &ctx) {
+  auto &logistics = service.logistics();
+  const bool seeded =
+      logistics.addToKind(StorageKind::CleanLinen, "clean_linen_set", stock) &&
+      logistics.addToKind(StorageKind::CentralStorage, "towel_unit", stock * 2) &&
+      logistics.addToKind(StorageKind::CentralStorage, "amenity_kit", stock) &&
+      logistics.addToKind(StorageKind::CentralStorage, "cleaning_chemical", stock) &&
+      logistics.addToKind(StorageKind::CentralStorage, "maintenance_part", stock);
+  if (!seeded)
+    ctx.fail("service: public inventory initialization failed", 0);
+}
+
 void assertService(ServiceLogisticsRuntime &service,
                    hh::stress::RunContext &ctx,
                    std::uint64_t checkpoint) {
@@ -213,10 +226,7 @@ void runScenario(std::string_view scenario,
       scenario == "save_in_crisis";
 
   ServiceLogisticsRuntime service(config.seed ^ 0x0404ULL, {2, 2, 2});
-  const int serviceStock = inventoryCrunch ? 2 : 100;
-  if (!service.setScenarioInventory(serviceStock, serviceStock * 2,
-                                    serviceStock, serviceStock, serviceStock))
-    ctx.fail("service: scenario inventory initialization failed", 0);
+  seedServiceInventory(service, inventoryCrunch ? 2 : 100, ctx);
   for (int room = 0; room < 200; ++room)
     service.registerRoom(static_cast<RoomId>(10'000 + room), ServiceRoomStatus::Ready);
   for (int asset = 0; asset < 50; ++asset)
@@ -254,9 +264,8 @@ void runScenario(std::string_view scenario,
       ctx.trace.push("service:turn=" + std::to_string(room));
       break;
     case 1:
-      (void)service.workRoomTurnSecond(room);
       service.tickSecond();
-      ctx.trace.push("service:work");
+      ctx.trace.push("service:tick");
       break;
     case 2:
       (void)service.createWorkOrder(asset, WorkOrderType::Corrective);
