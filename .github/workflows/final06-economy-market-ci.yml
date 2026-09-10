@@ -36,7 +36,7 @@ on:
       - 'game/tests/RevenueManagementTests.cpp'
       - 'game/tests/HotelEconomicsTests.cpp'
       - 'game/tests/Financing*Tests.cpp'
-      - 'game/tests/OverbookingTests.cpp'
+      - 'game/tests/Overbooking*Tests.cpp'
       - 'game/data/market_segments.json'
       - 'game/data/competitor_presets.json'
       - 'game/data/rate_plan_defaults.json'
@@ -96,7 +96,7 @@ jobs:
           g++ $CXXFLAGS game/tests/CommercialReputationCategoryTests.cpp build/final06/CommercialDemand.o build/final06/CommercialDemandProfile.o -o build/final06/CommercialReputationCategoryTests
           build/final06/CommercialReputationCategoryTests
           OBJS='build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o build/final06/RevenueInventory.o build/final06/RevenueManagement.o build/final06/HotelEconomics.o build/final06/Financing.o build/final06/Overbooking.o build/final06/CommercialDemand.o build/final06/CommercialDemandProfile.o build/final06/EconomyRuntime.o build/final06/EconomyRuntimeBridge.o build/final06/EconomyDiagnostics.o'
-          for test in MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+          for test in OverbookingPercentage MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $OBJS -o build/final06/${test}Tests
             build/final06/${test}Tests
           done
@@ -110,7 +110,7 @@ jobs:
           mkdir -p build/final06-sanitize
           CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
           SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/CommercialDemandProfile.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
-          for test in MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+          for test in MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant OverbookingPercentage MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
             build/final06-sanitize/${test}Tests
           done
