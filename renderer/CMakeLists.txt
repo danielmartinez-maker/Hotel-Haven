@@ -129,7 +129,6 @@ target_link_libraries(hh_renderer_tests PRIVATE
     user32
 )
 hh_enable_strict_warnings(hh_renderer_tests)
-
 add_test(NAME hh_renderer_tests COMMAND hh_renderer_tests)
 
 add_executable(hh_renderer_stress_tests
@@ -151,6 +150,24 @@ target_link_libraries(hh_renderer_stress_tests PRIVATE
 )
 hh_enable_strict_warnings(hh_renderer_stress_tests)
 add_test(NAME StressRendererCore COMMAND hh_renderer_stress_tests)
+set_tests_properties(StressRendererCore PROPERTIES TIMEOUT 180)
+
+add_executable(hh_glb_loader_stress_tests
+    tests/TestMain.cpp
+    tests/GlbLoaderStressTests.cpp
+)
+target_include_directories(hh_glb_loader_stress_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_compile_definitions(hh_glb_loader_stress_tests PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_link_libraries(hh_glb_loader_stress_tests PRIVATE
+    hh_renderer_core
+    hh_asset_format
+)
+hh_enable_strict_warnings(hh_glb_loader_stress_tests)
+add_test(NAME StressGlbLoader COMMAND hh_glb_loader_stress_tests)
+set_tests_properties(StressGlbLoader PROPERTIES TIMEOUT 180)
 
 add_executable(hh_runtime_asset_library_audit
     tests/RuntimeAssetLibraryAudit.cpp
