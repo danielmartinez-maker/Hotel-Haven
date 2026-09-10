@@ -178,7 +178,19 @@ int main() {
         require(purchase.ok(), "failed to create receiving purchase order");
       }
 
-      runtime.tickSeconds(1600);
+      for (int second = 0; second < 1600; ++second) {
+        const auto firstWork = runtime.workRoomTurnSecond(firstRoom);
+        const auto secondWork = runtime.workRoomTurnSecond(secondRoom);
+        const auto engineeringWork = runtime.workEngineeringSecond(
+            firstRoom, WorkOrderType::Preventive);
+        require(firstWork.valid && secondWork.valid && engineeringWork.valid,
+                "scheduled service work lost its authoritative job");
+        require(firstWork.blockedReason == BlockReason::None &&
+                    secondWork.blockedReason == BlockReason::None &&
+                    engineeringWork.blockedReason == BlockReason::None,
+                "scheduled service work unexpectedly blocked");
+        runtime.tickSecond();
+      }
       require(runtime.housekeeping().roomStatus(firstRoom) ==
                   ServiceRoomStatus::Ready &&
                   runtime.housekeeping().roomStatus(secondRoom) ==
