@@ -1,7 +1,7 @@
-// FINAL-01 bumps the authoritative save writer from v10 to v11. Keep the
+// FINAL-02 bumps the authoritative save writer from v11 to v12. Keep the
 // existing broad simulation regression corpus intact while replacing only the
-// three version-bound routines with current-format equivalents. The included
-// file remains the source of all non-version-specific behavior tests.
+// version-bound routines with current-format equivalents. The included file
+// remains the source of all non-version-specific behavior tests.
 #define guest_profiles_propagate_and_round_trip guest_profiles_propagate_and_round_trip_v10
 #define populated_v8_review_scores_migrate_to_ten_point_scale populated_v8_review_scores_migrate_to_ten_point_scale_v10
 #define invalid_inputs_are_rejected invalid_inputs_are_rejected_v10
@@ -37,8 +37,8 @@ static void guest_profiles_propagate_and_round_trip() {
           "guest queue tolerance is not a useful personal threshold");
 
   const auto saved = s.save();
-  require(saved.starts_with("HHGS 11 "),
-          "FINAL-01 did not bump the save writer to v11");
+  require(saved.starts_with("HHGS 12 "),
+          "FINAL-02 did not bump the save writer to v12");
   const auto loaded = Simulation::load(saved).view();
   const PersonView *loadedGuest = nullptr;
   const ReservationView *loadedReservation = nullptr;
@@ -55,7 +55,7 @@ static void guest_profiles_propagate_and_round_trip() {
               same_profile(loadedReservation->profile, reservation->profile),
           "guest profile did not round-trip exactly");
   require(Simulation::load(saved).save() == saved,
-          "v11 guest save is not byte-stable after loading");
+          "v12 guest save is not byte-stable after loading");
 
   auto corrupted = saved;
   const auto guestMarker = '"' + guest->name + '"';
@@ -79,13 +79,13 @@ static void guest_profiles_propagate_and_round_trip() {
   require(rejected, "invalid serialized guest profile was accepted");
 
   auto legacy = Simulation(170, 4, 4, 1).save();
-  require(legacy.starts_with("HHGS 11 "),
-          "empty v11 migration fixture failed");
-  for (const int version : {10, 9, 8, 7})
+  require(legacy.starts_with("HHGS 12 "),
+          "empty v12 migration fixture failed");
+  for (const int version : {11, 10, 9, 8, 7})
     require(Simulation::load(with_save_version(legacy, version))
                 .save()
-                .starts_with("HHGS 11 "),
-            "legacy save did not migrate to the v11 writer");
+                .starts_with("HHGS 12 "),
+            "legacy save did not migrate to the v12 writer");
 }
 
 static void populated_v8_review_scores_migrate_to_ten_point_scale() {
@@ -128,8 +128,8 @@ static void populated_v8_review_scores_migrate_to_ten_point_scale() {
     require(reservation.checkInTravelSeconds == 0 &&
                 reservation.checkInWaitSeconds == 0,
             "v9 reservation did not receive default check-in diagnostics");
-  require(migratedV9.save().starts_with("HHGS 11 "),
-          "populated v9 save did not migrate to the v11 writer");
+  require(migratedV9.save().starts_with("HHGS 12 "),
+          "populated v9 save did not migrate to the v12 writer");
 
   legacy = with_save_version(legacy, 8);
   for (const auto &review : before.reviews) {
@@ -149,8 +149,8 @@ static void populated_v8_review_scores_migrate_to_ten_point_scale() {
   for (const auto &review : migrated.view().reviews)
     require(std::abs(review.score - 8.2) < 1e-12,
             "legacy 0-100 review score did not migrate to 1.0-10.0");
-  require(migrated.save().starts_with("HHGS 11 "),
-          "populated v8 save did not migrate to the v11 writer");
+  require(migrated.save().starts_with("HHGS 12 "),
+          "populated v8 save did not migrate to the v12 writer");
 
   const auto &firstReview = before.reviews.front();
   std::ostringstream validLegacyReview;
@@ -187,9 +187,9 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 11 16 32 20 3");
+  auto pos = saved.find("HHGS 12 16 32 20 3");
   require(pos == 0, "unexpected save header");
-  saved.replace(std::string("HHGS 11 16 ").size(), 2, "99");
+  saved.replace(std::string("HHGS 12 16 ").size(), 2, "99");
   bool rejected = false;
   try {
     (void)Simulation::load(saved);
