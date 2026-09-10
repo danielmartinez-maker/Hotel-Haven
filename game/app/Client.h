@@ -30,7 +30,15 @@
 #endif
 
 namespace hh::client {
-constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
+inline int HeaderHeight = 88;
+inline int FooterHeight = 58;
+inline int SidebarWidth = 356;
+inline void applyClientUiScale(int scalePercent) noexcept {
+  HeaderHeight = final07ScalePixel(88, scalePercent);
+  FooterHeight = final07ScalePixel(58, scalePercent);
+  SidebarWidth = final07ScalePixel(356, scalePercent);
+}
+
 enum class Tool {
   Inspect,
   Bedroom,
@@ -56,7 +64,6 @@ class ClientRenderer final : public hh::renderer::D3D11Renderer {
 public:
   explicit ClientRenderer(hh::renderer::RuntimeAssetRegistry &registry) noexcept
       : registry_(&registry) {}
-
   [[nodiscard]] hh::renderer::RendererResult
   initialize(HWND window, std::uint32_t width, std::uint32_t height,
              const std::filesystem::path &shaderPath,
@@ -67,7 +74,6 @@ public:
       setAssetRegistry(registry_);
     return result;
   }
-
 private:
   hh::renderer::RuntimeAssetRegistry *registry_{};
 };
@@ -93,6 +99,7 @@ struct Client {
   std::filesystem::path directory, savePath;
   std::vector<Button> buttons;
   std::array<bool, 256> keys{};
+  unsigned short gamepadButtons{};
   int width = 1500, height = 960, floor = 0, speed = 0, priorSpeed = 1,
       tabScroll = 0;
   int hoverX = -1, hoverY = -1;

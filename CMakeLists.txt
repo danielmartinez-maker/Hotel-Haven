@@ -72,7 +72,8 @@ if(WIN32)
         hh_renderer_d3d11
         user32
         gdi32
-        shell32)
+        shell32
+        xinput9_1_0)
     target_include_directories(hotel_haven PRIVATE game/app)
     if(MSVC)
         target_compile_options(hotel_haven PRIVATE /W4 /permissive- /utf-8)
