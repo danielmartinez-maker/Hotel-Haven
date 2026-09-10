@@ -124,7 +124,7 @@ void EngineeringSystem::tickSecond() {
 
   for (auto &entry : assets_) {
     entry.condition = std::max(0, entry.condition - hourlyLoss);
-    const int pressureGain = std::max(1, (7000 - entry.condition) / 8);
+    const int pressureGain = std::max(0, (7000 - entry.condition) / 8);
     entry.failurePressure =
         std::clamp(entry.failurePressure + pressureGain, 0, 9500);
     if (entry.failed)
