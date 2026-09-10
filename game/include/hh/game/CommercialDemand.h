@@ -69,6 +69,7 @@ struct CommercialDemandSnapshot {
   int serviceReputationBasisPoints{7000};
   int cleanlinessReputationBasisPoints{7000};
   int valueReputationBasisPoints{7000};
+  std::uint64_t reviewCount{};
   std::vector<MarketingCampaign> campaigns;
   std::vector<AcceptedCommercialContract> contracts;
 };
