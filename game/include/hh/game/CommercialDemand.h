@@ -90,6 +90,8 @@ struct CommercialDemandSnapshot {
 class CommercialDemand {
 public:
   void setReputation(int basisPoints);
+  void setReputationProfile(int overallBasisPoints,
+                            const ReputationCategoryScores &categories);
   void applyReview(const ReviewSignal &review);
   [[nodiscard]] CommercialCommandResult startCampaign(const MarketingCampaign &campaign,
                                                        int currentDay);
