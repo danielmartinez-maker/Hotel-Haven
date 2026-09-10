@@ -75,6 +75,7 @@ struct RevenueInventorySnapshot {
   std::vector<BookingView> bookings;
   int minimumAvailableUnits{};
   std::size_t hotPathBookingCount{};
+  std::size_t indexedRoomNightCount{};
   std::int64_t bookedRoomRevenueCents{};
   std::int64_t channelCommissionCents{};
   std::map<std::string, int> physicalCapacity;
@@ -125,11 +126,16 @@ private:
   std::map<BookingChannel, int> cancellationBasisPoints_;
   std::map<BookingChannel, int> noShowBasisPoints_;
   std::vector<BookingView> bookings_;
+  std::map<std::string, std::map<int, int>> bookedUnitsByCategoryDay_;
+  std::size_t indexedRoomNightCount_{};
 
   [[nodiscard]] static int defaultCommissionBasisPoints(BookingChannel channel);
   [[nodiscard]] std::uint32_t deterministicRoll(std::uint64_t bookingId, int day,
                                                 std::uint64_t salt) const;
   [[nodiscard]] BookingView *find(std::uint64_t bookingId);
+  void addToOccupancyIndex(const BookingView &booking);
+  void removeFromOccupancyIndex(const BookingView &booking);
+  void rebuildOccupancyIndex();
 };
 
 } // namespace hh::game
