@@ -1,13 +1,17 @@
 #include "hh/game/Simulation.h"
 #include "hh/game/GuestPsychology.h"
 #include "hh/game/GuestPsychologyArchive.h"
+#include "hh/game/GuestReviews.h"
 
 #define save saveV11
 #define load loadV11
+#define step stepV11
 #include "Simulation.cpp"
+#undef step
 #undef load
 #undef save
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -27,6 +31,29 @@ int saveVersion(std::string_view data) {
   return version;
 }
 } // namespace
+
+void Simulation::step(double seconds) {
+  stepV11(seconds);
+
+  for (auto &review : impl_->reviews) {
+    const auto reservation = std::find_if(
+        impl_->completedReservationHistory.begin(),
+        impl_->completedReservationHistory.end(),
+        [&](const Reservation &candidate) {
+          return candidate.id == review.reservationId;
+        });
+    if (reservation == impl_->completedReservationHistory.end())
+      continue;
+
+    const auto psychology = guestPsychology(reservation->id);
+    const auto stableReviewTime =
+        static_cast<std::int64_t>(review.day) * 86400 + 12 * 3600;
+    const auto draft =
+        buildGuestReview(psychology, impl_->seed, stableReviewTime);
+    review.score = draft.score;
+    review.text = draft.text;
+  }
+}
 
 std::string Simulation::save() const {
   std::string base = saveV11();
