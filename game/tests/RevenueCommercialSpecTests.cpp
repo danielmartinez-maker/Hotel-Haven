@@ -29,6 +29,10 @@ int main() {
   const auto inventorySave = inventory.save();
   require(RevenueInventory::load(inventorySave).save() == inventorySave,
           "dated inventory allowance did not round-trip");
+  inventory.clearOverbookingAllowances("standard");
+  require(inventory.sellableUnits(10, "standard") == 1 &&
+              inventory.sellableUnits(13, "standard") == 1,
+          "clearing overbooking retained stale dated capacity");
 
   CommercialDemand lowVolume;
   CommercialDemand highVolume;
