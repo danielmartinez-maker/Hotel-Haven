@@ -19,11 +19,24 @@ def _semantic_hamper(mat: str) -> trimesh.Scene:
     return scene
 
 
+def _semantic_caddy(mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    legacy_add(scene, legacy_box((0.48, 0.26, 0.26), (0, 0, 0.13), mat), 'PrimaryBox')
+    legacy_add(
+        scene,
+        legacy_box((0.25, 0.04, 0.20), (0, 0, 0.36), 'MAT_BLACKENED_STEEL'),
+        'Handle',
+    )
+    return scene
+
+
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
     if any(k in name for k in ('Cart', 'Trolley', 'Hand Truck')):
         return cart(name, mat)
     if 'Hamper' in name:
         return _semantic_hamper(mat)
+    if 'Caddy' in name or 'Toolbox' in name:
+        return _semantic_caddy(mat)
     scene = build_legacy_service(name, mat)
     names = set(scene.graph.nodes_geometry)
     if len(scene.geometry) < 2 or names == {'Body'}:
