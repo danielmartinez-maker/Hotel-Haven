@@ -83,6 +83,7 @@ add_executable(hh_frontend_tests
     tests/ObjectiveUiTests.cpp
     tests/AccessibilityTests.cpp
     tests/GameUiRuntimeTests.cpp
+    tests/GameUiStressTests.cpp
     src/ShowcaseHotelScene.cpp
 )
 target_include_directories(hh_frontend_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests ${CMAKE_CURRENT_SOURCE_DIR}/src)
