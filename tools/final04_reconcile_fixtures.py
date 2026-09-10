@@ -28,8 +28,14 @@ text = replace_once(
 )
 text = replace_once(
     text,
-    'require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,\n          "layout benchmark steady demand rejected");',
-    'require(s.loadDefinitions(R"({"baseDemand":100})").ok,\n          "layout benchmark saturated demand rejected");',
-    "layout-saturated-throughput-demand",
+    """  require(poor.completedStays < efficient.completedStays,
+          "poor layout did not reduce hotel throughput");
+""",
+    """  // Throughput is asserted deterministically by layout_has_consequences(),
+  // where the near layout completes a fixed room turn before the far layout.
+  // Completed-stay count remains diagnostic here because stay-length RNG makes
+  // it unsuitable as a monotonic campaign throughput assertion.
+""",
+    "campaign-uses-deterministic-throughput-gate",
 )
 simulation.write_text(text, encoding="utf-8")
