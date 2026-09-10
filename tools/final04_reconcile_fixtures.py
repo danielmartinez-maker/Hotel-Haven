@@ -38,4 +38,20 @@ text = replace_once(
 """,
     "campaign-uses-deterministic-throughput-gate",
 )
+text = replace_once(
+    text,
+    """  require(economy.completedStays >= 30,
+          "tutorial did not sustain meaningful guest throughput");
+""",
+    """  std::cout << "Tutorial economics: stays " << economy.completedStays
+            << ", revenue " << economy.revenueCents
+            << ", payroll " << economy.payrollCents
+            << ", supplies " << economy.supplyCostCents
+            << ", utilities " << economy.utilityCostCents
+            << ", cash " << economy.cashCents << " cents\\n";
+  require(economy.completedStays >= 30,
+          "tutorial did not sustain meaningful guest throughput");
+""",
+    "tutorial-economics-diagnostic",
+)
 simulation.write_text(text, encoding="utf-8")
