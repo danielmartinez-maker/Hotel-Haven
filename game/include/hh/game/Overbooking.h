@@ -46,6 +46,8 @@ struct RecoveryDecision {
   RecoveryAction action{RecoveryAction::Unresolved};
   std::int64_t compensationCents{};
   std::string reason;
+  bool severeExperienceEvent{};
+  std::string experienceEventCode;
 };
 
 class OverbookingSystem {
