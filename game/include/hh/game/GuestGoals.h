@@ -2,6 +2,8 @@
 
 #include "hh/game/Simulation.h"
 #include <cstdint>
+#include <string>
+#include <string_view>
 #include <vector>
 
 namespace hh::game {
@@ -79,5 +81,11 @@ applyGuestPreferences(const GuestPreferenceState &preferences,
                                             const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
                                         std::int64_t proposedGroupUtility) noexcept;
+
+namespace detail {
+[[nodiscard]] bool validGuestGroup(const GuestGroup &group) noexcept;
+[[nodiscard]] std::string serializeGuestGroup(const GuestGroup &group);
+[[nodiscard]] GuestGroup deserializeGuestGroup(std::string_view archive);
+} // namespace detail
 
 } // namespace hh::game
