@@ -5,11 +5,11 @@
 #include <array>
 #include <chrono>
 #include <cwchar>
-#include <mmsystem.h>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <windows.h>
+#include <mmsystem.h>
 
 namespace hh::audio {
 namespace {
