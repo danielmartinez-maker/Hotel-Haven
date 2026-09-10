@@ -9,6 +9,7 @@ on:
       - 'game/include/hh/game/FoodService.h'
       - 'game/include/hh/game/Events.h'
       - 'game/include/hh/game/Amenities.h'
+      - 'game/include/hh/game/Simulation.h'
       - 'game/src/FoodService.cpp'
       - 'game/src/Events.cpp'
       - 'game/src/Amenities.cpp'
@@ -49,3 +50,14 @@ jobs:
           build/final05/EventTests
           g++ $CXXFLAGS game/tests/AmenityTests.cpp build/final05/Amenities.o -o build/final05/AmenityTests
           build/final05/AmenityTests
+
+  integrated-game-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure integrated game
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build integrated game
+        run: cmake --build build --config Release --parallel 4
+      - name: Run integrated game tests
+        run: ctest --test-dir build -C Release --output-on-failure
