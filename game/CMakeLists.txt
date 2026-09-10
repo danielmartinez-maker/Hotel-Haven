@@ -36,4 +36,8 @@ if(HH_GAME_BUILD_TESTS)
   add_executable(hh_FoodRoomServiceIntegration_tests tests/FoodRoomServiceIntegrationTests.cpp)
   target_link_libraries(hh_FoodRoomServiceIntegration_tests PRIVATE hh_game)
   add_test(NAME FoodRoomServiceIntegration COMMAND hh_FoodRoomServiceIntegration_tests)
+
+  add_executable(hh_SimulationFinal05_tests tests/SimulationFinal05Tests.cpp)
+  target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
+  add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
 endif()
