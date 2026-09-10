@@ -1,52 +1,26 @@
-name: FINAL-04 One-Shot Simulation Authority Patch
+name: FINAL-04 Preventive Maintenance RED Gate
 
 on:
   push:
     branches:
       - feature/final-04-service-logistics
     paths:
-      - tools/final04_patch_simulation_authority.py
+      - game/tests/SimulationServiceLogisticsTests.cpp
       - .github/workflows/final04-one-shot-simulation-authority.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply-simulation-authority:
+  preventive-maintenance-red:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feature/final-04-service-logistics
-          fetch-depth: 0
-      - name: Correct final load-migration anchor
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p = Path('tools/final04_patch_simulation_authority.py')
-          source = p.read_text(encoding='utf-8')
-          marker = "''', \"load-inventory-migration\")"
-          end = source.index(marker) + len(marker)
-          start = source.rfind('replace_once(', 0, end)
-          if start < 0:
-              raise SystemExit('load migration replace_once block missing')
-          block = source[start:end]
-          delimiters = [m.start() for m in re.finditer("'''", block)]
-          if len(delimiters) != 4:
-              raise SystemExit(f'expected four triple-quote delimiters, found {len(delimiters)}')
-          for position in reversed((delimiters[0], delimiters[2])):
-              block = block[:position] + 'r' + block[position:]
-          source = source[:start] + block + source[end:]
-          p.write_text(source, encoding='utf-8')
-          PY
-      - name: Apply anchored Simulation authority patch
-        run: python tools/final04_patch_simulation_authority.py
-      - name: Commit Simulation bridge
-        run: |
-          git config user.name "hotel-haven-final04-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add game/src/Simulation.cpp
-          git diff --cached --exit-code && exit 1 || true
-          git commit -m "feat(game): make FINAL-04 authoritative in Simulation"
-          git push origin HEAD:feature/final-04-service-logistics
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build integration test
+        run: cmake --build build --config Release --target hh_SimulationServiceLogistics_tests --parallel 4
+      - name: Run integration test
+        run: build/game/hh_SimulationServiceLogistics_tests
