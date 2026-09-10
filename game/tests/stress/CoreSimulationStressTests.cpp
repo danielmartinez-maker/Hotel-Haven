@@ -189,10 +189,16 @@ ScenarioResult runScenario(std::uint64_t seed, std::size_t operations,
     }
     if (operation != 0 && (operation % 4096U) == 0U) {
       const auto serialized = sim.save();
-      const auto restored = Simulation::load(serialized);
-      if (restored.save() != serialized)
-        ctx.fail("save/load round-trip changed authoritative state", operation,
-                 fnv1a64(serialized));
+      try {
+        const auto restored = Simulation::load(serialized);
+        if (restored.save() != serialized)
+          ctx.fail("save/load round-trip changed authoritative state", operation,
+                   fnv1a64(serialized));
+      } catch (const std::invalid_argument &error) {
+        ctx.fail(std::string("save/load rejected authoritative checkpoint: ") +
+                     error.what(),
+                 operation, fnv1a64(serialized));
+      }
       ctx.trace.push("roundtrip");
     }
   }
