@@ -9,6 +9,7 @@ on:
       - .github/workflows/final04-one-shot-simulation-authority.yml
       - tools/final04_reconcile_scheduler.py
       - tools/final04_reconcile_main.py
+      - tools/final04_reconcile_fixtures.py
       - game/include/hh/game/Engineering.h
       - game/src/Engineering.cpp
 
@@ -33,6 +34,7 @@ jobs:
         run: |
           python tools/final04_reconcile_scheduler.py
           python tools/final04_reconcile_main.py
+          python tools/final04_reconcile_fixtures.py
           grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
       - name: Configure combined build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
