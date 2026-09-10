@@ -679,10 +679,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         if (!c.uiSettings.visibleFocusRequired())
           throw std::runtime_error("Controller modality lost required visible focus");
         captureClient(c.window, c.directory / L"smoke-hotel.bmp");
-        auto state = c.simulation.save();
-        auto restored = hh::game::Simulation::load(state);
+        const auto state = c.simulation.save();
+        const auto restored = Simulation::load(state);
         if (restored.save() != state)
-          throw std::runtime_error("Client save roundtrip mismatch");
+          throw std::runtime_error("Integrated client save roundtrip mismatch");
         c.running = false;
       }
     }
