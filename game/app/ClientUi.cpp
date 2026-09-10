@@ -62,13 +62,13 @@ void Client::refreshUi() {
   GameUiBridgeContext contextView;
   contextView.simulationSpeed = speed;
   contextView.activeFloor = floor;
-  contextView.cutaway =
-      wallMode == hh::renderer::WallRenderMode::Cutaway;
+  contextView.cutaway = wallMode == hh::renderer::WallRenderMode::Cutaway;
   contextView.currentTool = toolName(tool);
   contextView.buildPreview = buildPreview;
   ui.update(makeGameUiSnapshotSource(simulation, contextView));
   hudModel.update(ui.snapshot().hud);
   alertCenter.ingest(ui.snapshot().alerts);
+  objectiveUi.update(ui.snapshot().objectives);
 }
 
 hh::frontend::UiCommandResult
@@ -150,22 +150,21 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
       }
     }
 
-    managementOverlay = requested;
-    ui.setOverlay(requested);
+    Overlay rendererOverlay = Overlay::Natural;
     switch (requested) {
     case OverlayId::None:
-      overlay = Overlay::Natural;
-      return UiCommandResult{true, {}, "Natural view"};
+      rendererOverlay = Overlay::Natural;
+      break;
     case OverlayId::Cleanliness:
-      overlay = Overlay::Cleanliness;
-      return UiCommandResult{true, {}, "Cleanliness overlay"};
+      rendererOverlay = Overlay::Cleanliness;
+      break;
     case OverlayId::RoomStatus:
-      overlay = Overlay::Status;
-      return UiCommandResult{true, {}, "Room status overlay"};
+      rendererOverlay = Overlay::Status;
+      break;
     case OverlayId::RoomQuality:
     case OverlayId::MaintenanceCondition:
-      overlay = Overlay::Condition;
-      return UiCommandResult{true, {}, "Condition overlay"};
+      rendererOverlay = Overlay::Condition;
+      break;
     case OverlayId::GuestSatisfaction:
     case OverlayId::GuestTraffic:
     case OverlayId::StaffTraffic:
@@ -183,7 +182,13 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
       return UiCommandResult{false, "OVERLAY_RENDERER_UNAVAILABLE",
                              "Authoritative values exist only where exposed; this world renderer has no binding for the selected overlay yet"};
     }
-    return UiCommandResult{false, "OVERLAY_UNKNOWN", "Unknown overlay"};
+
+    managementOverlay = requested;
+    ui.setOverlay(requested);
+    overlay = rendererOverlay;
+    return UiCommandResult{true, {},
+                           requested == OverlayId::None ? "Natural view"
+                                                        : "Overlay selected"};
   };
   hooks.authorityCommand = [this](const UiCommand &authority) {
     if (authority.type == UiCommandType::BuildCancel) {
