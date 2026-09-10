@@ -12,7 +12,7 @@ using namespace hh::frontend;
 namespace {
 std::uint64_t authorityFingerprint(const SimulationSnapshot &snapshot) {
     std::uint64_t hash = 1469598103934665603ULL;
-    const auto mix = [&](std::uint64_t value) mutable {
+    auto mix = [&](std::uint64_t value) {
         hash ^= value;
         hash *= 1099511628211ULL;
     };
@@ -103,7 +103,7 @@ SimulationSnapshot richSnapshot() {
     for (std::uint64_t id = 1; id <= 16; ++id)
         snapshot.objectives.items.push_back({id, "Objective " + std::to_string(id),
                                              static_cast<std::int64_t>(id), 20,
-                                             id >= 20, "", "", true});
+                                             false, "", "", true});
     return snapshot;
 }
 } // namespace
