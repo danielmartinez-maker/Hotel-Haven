@@ -21,6 +21,7 @@ target_link_libraries(hh_world_view_tests PRIVATE hh_world_view)
 add_test(NAME hh_world_view_tests COMMAND hh_world_view_tests)
 if(WIN32)
     add_subdirectory(renderer)
+    add_subdirectory(frontend)
 
     add_library(hh_runtime_world_assets STATIC game/app/RuntimeWorldAssets.cpp)
     target_include_directories(hh_runtime_world_assets PUBLIC game/app renderer/include)
@@ -38,6 +39,13 @@ if(WIN32)
     target_link_libraries(hh_frame_pipeline_tests PRIVATE hh_frame_pipeline)
     add_test(NAME hh_frame_pipeline_tests COMMAND hh_frame_pipeline_tests)
 
+    add_library(hh_game_ui_bridge STATIC game/app/GameUiBridge.cpp)
+    target_include_directories(hh_game_ui_bridge PUBLIC game/app)
+    target_link_libraries(hh_game_ui_bridge PUBLIC hh_game hh_frontend_core)
+    add_executable(hh_game_ui_bridge_tests game/app/GameUiBridgeTests.cpp)
+    target_link_libraries(hh_game_ui_bridge_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_bridge_tests COMMAND hh_game_ui_bridge_tests)
+
     add_executable(hotel_haven WIN32 game/app/GameMain.cpp game/app/Panels.cpp)
     target_compile_definitions(hotel_haven PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
     target_link_libraries(hotel_haven PRIVATE
@@ -45,6 +53,8 @@ if(WIN32)
         hh_world_view
         hh_runtime_world_assets
         hh_frame_pipeline
+        hh_game_ui_bridge
+        hh_frontend_core
         hh_renderer_core
         hh_renderer_d3d11
         user32
