@@ -1,0 +1,82 @@
+name: FINAL-07 Stress Campaign
+
+on:
+  push:
+    branches:
+      - stress/final07-hospitality-economy-ui
+    paths:
+      - 'game/**'
+      - 'frontend/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/final07-stress.yml'
+  pull_request:
+    paths:
+      - 'game/**'
+      - 'frontend/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/final07-stress.yml'
+  workflow_dispatch:
+
+jobs:
+  ubuntu-release-pr-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HH_STRESS_SCALE: pr
+      HH_STRESS_SEED: '0xC0FFEE1234ABCDEF'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build portable stress targets
+        run: cmake --build build --config Release --parallel 4 --target hh_stress_harness_tests hh_hospitality_stress_tests hh_economy_market_stress_tests hh_final07_catastrophe_stress_tests
+      - name: Run FINAL-05 and FINAL-06 baselines plus Tier A stress
+        run: >-
+          ctest --test-dir build -C Release --output-on-failure
+          -R '(StressHarness|StressHospitality|StressEconomyMarket|StressFinal07Catastrophe|FoodService|FoodRoomServiceIntegration|Event|Amenity|SimulationFinal05|MarketDemand|RevenueInventory|RevenueManagement|HotelEconomics|Financing|Overbooking|CommercialDemand|EconomyIntegration|EconomySoak|EconomySpecReconciliation)'
+
+  ubuntu-asan-ubsan-extended:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HH_STRESS_SCALE: extended
+      HH_STRESS_SEED: '0x5EED5EED5EED5EED'
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure ASan and UBSan
+        run: >-
+          cmake -S . -B build-sanitize -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer'
+          -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address,undefined'
+      - name: Build portable stress targets
+        run: cmake --build build-sanitize --config RelWithDebInfo --parallel 4 --target hh_stress_harness_tests hh_hospitality_stress_tests hh_economy_market_stress_tests hh_final07_catastrophe_stress_tests
+      - name: Run extended portable stress
+        run: >-
+          ctest --test-dir build-sanitize -C RelWithDebInfo --output-on-failure
+          -R '(StressHarness|StressHospitality|StressEconomyMarket|StressFinal07Catastrophe)'
+
+  windows-release-pr-stress:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      HH_STRESS_SCALE: pr
+      HH_STRESS_SEED: '0xC0FFEE1234ABCDEF'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Release
+        run: cmake -S . -B build -A x64
+      - name: Build FINAL-07 stress and UI targets
+        run: cmake --build build --config Release --parallel 4 --target hh_stress_harness_tests hh_hospitality_stress_tests hh_economy_market_stress_tests hh_final07_catastrophe_stress_tests hh_frontend_tests hh_game_ui_command_router_tests hh_game_ui_command_router_stress_tests
+      - name: Run portable and Windows UI stress
+        run: >-
+          ctest --test-dir build -C Release --output-on-failure
+          -R '(StressHarness|StressHospitality|StressEconomyMarket|StressFinal07Catastrophe|hh_frontend_tests|hh_game_ui_command_router_tests|StressUiCommandRouter)'
+      - name: Repeat frontend suite 10 times
+        shell: pwsh
+        run: |
+          1..10 | ForEach-Object {
+            ctest --test-dir build -C Release -R '^hh_frontend_tests$' --output-on-failure
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
