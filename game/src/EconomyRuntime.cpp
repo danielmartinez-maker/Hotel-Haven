@@ -310,9 +310,10 @@ void EconomyRuntime::runOneDay() {
     if (previous == stateBefore.end() || previous->second != BookingState::Confirmed)
       continue;
     if (booking.state == BookingState::Cancelled) {
-      const auto fee = std::max<std::int64_t>(1, booking.rateCents / 5);
-      post(EconomicCategory::CancellationFeeRevenue, fee, booking.bookingId,
-           "cancellation fee");
+      if (booking.cancellationPenaltyCents > 0)
+        post(EconomicCategory::CancellationFeeRevenue,
+             booking.cancellationPenaltyCents, booking.bookingId,
+             "cancellation fee");
     } else if (booking.state == BookingState::NoShow) {
       post(EconomicCategory::NoShowFeeRevenue, booking.rateCents, booking.bookingId,
            "no-show fee");
