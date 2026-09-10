@@ -40,6 +40,41 @@ text = replace_once(
 )
 text = replace_once(
     text,
+    """    const auto inventory = s.view().inventory;
+    if (inventory.linen < 12 || inventory.towels < 24 ||
+        inventory.amenities < 12 || inventory.chemicals < 12 ||
+        inventory.parts < 2) {
+      const auto order = s.orderSupplies({30, 60, 30, 30, 5});
+      require(order.ok, "viable tutorial could not fund routine supplies");
+    }
+""",
+    """    const auto view = s.view();
+    auto projected = view.inventory;
+    for (const auto &pending : view.supplyOrders) {
+      if (pending.delivered)
+        continue;
+      projected.linen += pending.items.linen;
+      projected.towels += pending.items.towels;
+      projected.amenities += pending.items.amenities;
+      projected.chemicals += pending.items.chemicals;
+      projected.parts += pending.items.parts;
+    }
+    const SupplyOrder replenish{
+        projected.linen < 12 ? 30 : 0,
+        projected.towels < 24 ? 60 : 0,
+        projected.amenities < 12 ? 30 : 0,
+        projected.chemicals < 12 ? 30 : 0,
+        projected.parts < 2 ? 5 : 0};
+    if (replenish.linen || replenish.towels || replenish.amenities ||
+        replenish.chemicals || replenish.parts) {
+      const auto order = s.orderSupplies(replenish);
+      require(order.ok, "viable tutorial could not fund routine supplies");
+    }
+""",
+    "campaign-orders-only-net-replenishment",
+)
+text = replace_once(
+    text,
     """  require(economy.completedStays >= 30,
           "tutorial did not sustain meaningful guest throughput");
 """,
