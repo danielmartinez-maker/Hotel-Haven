@@ -67,6 +67,17 @@ bool validGoalValue(GuestGoalClass goal) noexcept {
   return value >= static_cast<int>(GuestGoalClass::ReachHotel) &&
          value <= static_cast<int>(GuestGoalClass::LeaveHotel);
 }
+
+const GoalOpportunity *selectedOpportunity(
+    const GoalSelection &selection,
+    const GuestOpportunitySnapshot &snapshot) noexcept {
+  const auto found = std::find_if(
+      snapshot.opportunities.begin(), snapshot.opportunities.end(),
+      [&](const GoalOpportunity &opportunity) {
+        return opportunity.stableGoalId == selection.stableGoalId;
+      });
+  return found == snapshot.opportunities.end() ? nullptr : &*found;
+}
 } // namespace
 
 std::int64_t scoreGuestGoal(const GoalOpportunity &opportunity) noexcept {
@@ -131,6 +142,41 @@ bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
   const auto remainder = bestIndividualUtility % 10;
   const auto threshold = quotient * 7 + (remainder * 7 + 9) / 10;
   return proposedGroupUtility >= threshold;
+}
+
+GoalSelection
+chooseGuestGroupMemberGoal(EntityId guestId, const GuestGroup &group,
+                           const GuestOpportunitySnapshot &snapshot) noexcept {
+  const auto individual = chooseGuestGoal(guestId, snapshot);
+  if (!individual.valid || guestId == group.leader || group.sharedItinerary.empty() ||
+      std::find(group.members.begin(), group.members.end(), guestId) ==
+          group.members.end())
+    return individual;
+
+  const auto *individualOpportunity = selectedOpportunity(individual, snapshot);
+  if (!individualOpportunity || individualOpportunity->mandatory ||
+      individualOpportunity->needScore < 15)
+    return individual;
+
+  const auto proposedGoal = group.sharedItinerary.front();
+  GoalSelection proposed;
+  for (const auto &opportunity : snapshot.opportunities) {
+    if (opportunity.mandatory || opportunity.goal != proposedGoal)
+      continue;
+    const auto utility = scoreGuestGoal(opportunity);
+    if (!proposed.valid || utility > proposed.utility ||
+        (utility == proposed.utility &&
+         opportunity.stableGoalId < proposed.stableGoalId)) {
+      proposed.valid = true;
+      proposed.stableGoalId = opportunity.stableGoalId;
+      proposed.goal = opportunity.goal;
+      proposed.utility = utility;
+    }
+  }
+  if (proposed.valid &&
+      acceptsGroupProposal(individual.utility, proposed.utility))
+    return proposed;
+  return individual;
 }
 
 namespace detail {
