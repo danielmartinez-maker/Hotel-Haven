@@ -73,6 +73,8 @@ jobs:
           build/final06/ReservationPolicySpecTests
           g++ $CXXFLAGS game/tests/RevenueInventoryBlocksTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryBlocksTests
           build/final06/RevenueInventoryBlocksTests
+          g++ $CXXFLAGS game/tests/RevenueInventoryIndexTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryIndexTests
+          build/final06/RevenueInventoryIndexTests
           g++ $CXXFLAGS game/tests/RevenueManagementTests.cpp build/final06/RevenueManagement.o -o build/final06/RevenueManagementTests
           build/final06/RevenueManagementTests
           g++ $CXXFLAGS game/tests/HotelEconomicsTests.cpp build/final06/HotelEconomics.o -o build/final06/HotelEconomicsTests
@@ -102,7 +104,7 @@ jobs:
           mkdir -p build/final06-sanitize
           CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
           SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/CommercialDemandProfile.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
-          for test in MarketPotentialDemand MarketReputationCategory ReservationPolicySpec RevenueInventoryBlocks CommercialReputationCategory FinancingCovenant MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+          for test in MarketPotentialDemand MarketReputationCategory ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
             build/final06-sanitize/${test}Tests
           done

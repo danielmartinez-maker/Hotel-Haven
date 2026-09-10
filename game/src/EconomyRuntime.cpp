@@ -72,7 +72,8 @@ void EconomyRuntime::setPlayerHotelOffer(const MarketHotelOffer &offer) {
     throw std::invalid_argument("invalid player hotel offer");
   basePlayerOffer_ = offer;
   market_.setPlayerOffer(offer);
-  commercial_.setReputation(std::clamp(offer.reputation, 0, 100) * 100);
+  commercial_.setReputationProfile(std::clamp(offer.reputation, 0, 100) * 100,
+                                   offer.reputationCategories);
 }
 
 void EconomyRuntime::setCompetitors(std::vector<CompetitorOffer> competitors) {

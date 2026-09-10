@@ -88,6 +88,43 @@ void RevenueInventory::setNoShowBasisPoints(BookingChannel channel,
   noShowBasisPoints_[channel] = basisPoints;
 }
 
+void RevenueInventory::addToOccupancyIndex(const BookingView &booking) {
+  if (booking.state != BookingState::Confirmed)
+    return;
+  auto &byDay = bookedUnitsByCategoryDay_[booking.roomCategory];
+  for (int day = booking.arrivalDay; day < booking.departureDay; ++day) {
+    ++byDay[day];
+    ++indexedRoomNightCount_;
+  }
+}
+
+void RevenueInventory::removeFromOccupancyIndex(const BookingView &booking) {
+  if (booking.state != BookingState::Confirmed)
+    return;
+  auto categoryIt = bookedUnitsByCategoryDay_.find(booking.roomCategory);
+  if (categoryIt == bookedUnitsByCategoryDay_.end())
+    throw std::logic_error("missing booking category in occupancy index");
+  for (int day = booking.arrivalDay; day < booking.departureDay; ++day) {
+    auto dayIt = categoryIt->second.find(day);
+    if (dayIt == categoryIt->second.end() || dayIt->second <= 0 ||
+        indexedRoomNightCount_ == 0)
+      throw std::logic_error("missing booking day in occupancy index");
+    --dayIt->second;
+    --indexedRoomNightCount_;
+    if (dayIt->second == 0)
+      categoryIt->second.erase(dayIt);
+  }
+  if (categoryIt->second.empty())
+    bookedUnitsByCategoryDay_.erase(categoryIt);
+}
+
+void RevenueInventory::rebuildOccupancyIndex() {
+  bookedUnitsByCategoryDay_.clear();
+  indexedRoomNightCount_ = 0;
+  for (const auto &booking : bookings_)
+    addToOccupancyIndex(booking);
+}
+
 int RevenueInventory::sellableUnits(int day, std::string_view category) const {
   const std::string key(category);
   const auto physical = physicalCapacity_.find(key);
@@ -118,13 +155,11 @@ int RevenueInventory::sellableUnits(int day, std::string_view category) const {
 }
 
 int RevenueInventory::bookedUnits(int day, std::string_view category) const {
-  int units = 0;
-  for (const auto &booking : bookings_)
-    if (booking.state == BookingState::Confirmed &&
-        booking.roomCategory == category && booking.arrivalDay <= day &&
-        day < booking.departureDay)
-      ++units;
-  return units;
+  const auto categoryIt = bookedUnitsByCategoryDay_.find(std::string(category));
+  if (categoryIt == bookedUnitsByCategoryDay_.end())
+    return 0;
+  const auto dayIt = categoryIt->second.find(day);
+  return dayIt == categoryIt->second.end() ? 0 : dayIt->second;
 }
 
 int RevenueInventory::availableUnits(int day, std::string_view category) const {
@@ -198,7 +233,8 @@ InventoryCommandResult RevenueInventory::book(const BookingRequestInput &request
       request.cancellationPenaltyCents >= 0
           ? request.cancellationPenaltyCents
           : std::max<std::int64_t>(1, request.rateCents / 5);
-  bookings_.push_back(std::move(booking));
+  bookings_.push_back(booking);
+  addToOccupancyIndex(bookings_.back());
   std::sort(bookings_.begin(), bookings_.end(), [](const auto &a, const auto &b) {
     return a.bookingId < b.bookingId;
   });
@@ -218,14 +254,17 @@ InventoryCommandResult RevenueInventory::cancel(std::uint64_t bookingId) {
     return {false, "BOOKING_NOT_FOUND"};
   if (booking->state != BookingState::Confirmed)
     return {false, "BOOKING_NOT_ACTIVE"};
+  removeFromOccupancyIndex(*booking);
   booking->state = BookingState::Cancelled;
   return {true, "OK"};
 }
 
 void RevenueInventory::complete(std::uint64_t bookingId) {
   if (auto *booking = find(bookingId);
-      booking && booking->state == BookingState::Confirmed)
+      booking && booking->state == BookingState::Confirmed) {
+    removeFromOccupancyIndex(*booking);
     booking->state = BookingState::Completed;
+  }
 }
 
 void RevenueInventory::markRevenuePosted(std::uint64_t bookingId) {
@@ -256,13 +295,18 @@ void RevenueInventory::processDay(int day) {
     if (day < booking.arrivalDay) {
       if (day == booking.cancellationDeadlineDay &&
           deterministicRoll(booking.bookingId, day, 0xCACE11A7ULL) <
-              static_cast<std::uint32_t>(booking.cancellationBasisPoints))
+              static_cast<std::uint32_t>(booking.cancellationBasisPoints)) {
+        removeFromOccupancyIndex(booking);
         booking.state = BookingState::Cancelled;
+      }
     } else if (day == booking.arrivalDay) {
       if (deterministicRoll(booking.bookingId, day, 0xA05A0ULL) <
-          static_cast<std::uint32_t>(booking.noShowBasisPoints))
+          static_cast<std::uint32_t>(booking.noShowBasisPoints)) {
+        removeFromOccupancyIndex(booking);
         booking.state = BookingState::NoShow;
+      }
     } else if (day >= booking.departureDay) {
+      removeFromOccupancyIndex(booking);
       booking.state = BookingState::Completed;
     }
   }
@@ -272,6 +316,7 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
   RevenueInventorySnapshot out;
   out.bookings = bookings_;
   out.physicalCapacity = physicalCapacity_;
+  out.indexedRoomNightCount = indexedRoomNightCount_;
   for (const auto &[id, block] : inventoryBlocks_) {
     (void)id;
     out.inventoryBlocks.push_back(block);
@@ -450,6 +495,7 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
       throw std::invalid_argument("invalid saved reservation policy");
     result.bookings_.push_back(std::move(b));
   }
+  result.rebuildOccupancyIndex();
   in >> std::ws;
   if (!in.eof())
     throw std::invalid_argument("unexpected revenue inventory trailing data");
