@@ -5,10 +5,12 @@ using namespace hh::frontend;
 
 TEST_CASE("Alert center deduplicates stable alerts and preserves causal navigation") {
     AlertCenter center(4);
-    center.ingest({{100, AlertSeverity::Warning, 1, "ARRIVAL_WAIT", "Arrival waiting", 0, false},
-                   {101, AlertSeverity::Warning, 2, "ROOM_NOT_READY", "Room not ready", 100, false},
-                   {102, AlertSeverity::Critical, 3, "HK_BLOCKED", "Housekeeping blocked", 101, false}});
-    center.ingest({{102, AlertSeverity::Critical, 3, "HK_BLOCKED", "Housekeeping blocked", 101, false}});
+    const std::vector<AlertSnapshot> snapshot{
+        {100, AlertSeverity::Warning, 1, "ARRIVAL_WAIT", "Arrival waiting", 0, false},
+        {101, AlertSeverity::Warning, 2, "ROOM_NOT_READY", "Room not ready", 100, false},
+        {102, AlertSeverity::Critical, 3, "HK_BLOCKED", "Housekeeping blocked", 101, false}};
+    center.ingest(snapshot);
+    center.ingest(snapshot);
     EXPECT_EQ(center.active().size(), static_cast<std::size_t>(3));
     const auto chain = center.causalChain(102);
     EXPECT_EQ(chain.size(), static_cast<std::size_t>(3));
@@ -17,6 +19,21 @@ TEST_CASE("Alert center deduplicates stable alerts and preserves causal navigati
     EXPECT_TRUE(nav.has_value());
     EXPECT_EQ(nav->type, UiCommandType::OpenInspector);
     EXPECT_EQ(nav->entityId, static_cast<EntityId>(3));
+}
+
+TEST_CASE("Alerts missing from the next authoritative snapshot resolve") {
+    AlertCenter center(4);
+    center.ingest({{200, AlertSeverity::Warning, 9, "ROOM_DIRTY", "Room needs cleaning", 0, false}});
+    EXPECT_EQ(center.active().size(), static_cast<std::size_t>(1));
+
+    center.ingest({});
+
+    EXPECT_TRUE(center.active().empty());
+    EXPECT_EQ(center.resolvedHistory().size(), static_cast<std::size_t>(1));
+    EXPECT_TRUE(center.resolvedHistory().front().resolved);
+    const auto nav = center.navigationFor(200);
+    EXPECT_TRUE(nav.has_value());
+    EXPECT_EQ(nav->entityId, static_cast<EntityId>(9));
 }
 
 TEST_CASE("Resolved alert history remains bounded") {
