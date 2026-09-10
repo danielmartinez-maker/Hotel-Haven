@@ -340,6 +340,7 @@ public:
   static Simulation load(std::string_view data);
 
 private:
+  void stepV11(double seconds);
   [[nodiscard]] std::string saveV11() const;
   static Simulation loadV11(std::string_view data);
 
