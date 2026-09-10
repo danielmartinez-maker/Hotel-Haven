@@ -20,6 +20,7 @@ add_library(hh_game
   src/Financing.cpp
   src/Overbooking.cpp
   src/CommercialDemand.cpp
+  src/CommercialDemandProfile.cpp
   src/EconomyRuntime.cpp
   src/EconomyRuntimeBridge.cpp
   src/EconomyDiagnostics.cpp
