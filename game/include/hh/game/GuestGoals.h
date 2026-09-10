@@ -6,6 +6,8 @@
 
 namespace hh::game {
 
+struct GuestPreferenceState;
+
 enum class GuestGoalClass : std::uint8_t {
   ReachHotel,
   CheckIn,
@@ -70,6 +72,9 @@ struct GuestGroup {
 };
 
 [[nodiscard]] std::int64_t scoreGuestGoal(const GoalOpportunity &opportunity) noexcept;
+[[nodiscard]] GuestOpportunitySnapshot
+applyGuestPreferences(const GuestPreferenceState &preferences,
+                      const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] GoalSelection chooseGuestGoal(EntityId guestId,
                                             const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
