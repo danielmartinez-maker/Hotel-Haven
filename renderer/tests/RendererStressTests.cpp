@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "StressScale.h"
 #include "hh/renderer/Camera.h"
 #include "hh/renderer/FloorVisibility.h"
 #include "hh/renderer/SceneComposer.h"
@@ -6,15 +7,13 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
-#include <string_view>
+#include <stdexcept>
 
 namespace {
 using namespace hh::renderer;
 
 std::size_t cumulativeInstances() {
-    const char* scale = std::getenv("HH_STRESS_SCALE");
-    const std::string_view value = scale ? std::string_view{scale} : std::string_view{"pr"};
+    const auto value = stress_test::scaleFromEnvironment();
     if (value == "pr") return 250'000;
     if (value == "extended") return 2'500'000;
     if (value == "exhaustive") return 10'000'000;
