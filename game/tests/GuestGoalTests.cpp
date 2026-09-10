@@ -154,6 +154,51 @@ void group_state_is_value_stable_and_tracks_shared_itinerary() {
               copy.sharedItinerary.size() == 2,
           "guest group state did not retain authoritative itinerary/cohesion data");
 }
+
+void simulation_owns_and_persists_guest_groups() {
+  auto simulation = Simulation::tutorial(702);
+  require(simulation.loadDefinitions(R"({"baseDemand":100})").ok,
+          "group persistence fixture definitions rejected");
+  for (const auto &room : simulation.view().rooms)
+    require(simulation.setRoomRate(room.id, 50).ok,
+            "group persistence fixture rate update failed");
+  simulation.step(3600);
+
+  std::vector<EntityId> guests;
+  for (const auto &reservation : simulation.view().reservations)
+    if (!reservation.completed && !reservation.walkedRelocated) {
+      guests.push_back(reservation.id);
+      if (guests.size() == 2)
+        break;
+    }
+  require(guests.size() == 2,
+          "group persistence fixture did not produce two active guests");
+
+  GuestGroup spec;
+  spec.leader = guests.front();
+  spec.members = guests;
+  spec.cohesion = 8500;
+  spec.cohesionRadiusTiles = 6;
+  spec.sharedItinerary = {GuestGoalClass::Eat, GuestGoalClass::AttendEvent};
+  const auto created = simulation.createGuestGroup(spec);
+  require(created.ok && created.id != 0,
+          "simulation rejected a valid authoritative guest group");
+
+  const auto before = simulation.guestGroupsSnapshot();
+  require(before.size() == 1 && before.front().id == created.id &&
+              before.front().leader == guests.front() &&
+              before.front().members == guests &&
+              before.front().cohesion == 8500 &&
+              before.front().cohesionRadiusTiles == 6 &&
+              before.front().sharedItinerary == spec.sharedItinerary,
+          "simulation group snapshot lost authoritative group state");
+
+  const auto loaded = Simulation::load(simulation.save());
+  require(loaded.guestGroupsSnapshot() == before,
+          "authoritative guest group state changed across save/load");
+  require(loaded.save() == simulation.save(),
+          "guest group save was not byte-stable after round trip");
+}
 } // namespace
 
 int main() {
@@ -167,6 +212,7 @@ int main() {
     group_proposal_uses_documented_thirty_percent_acceptance_band();
     critical_need_can_override_group_incompatibility();
     group_state_is_value_stable_and_tracks_shared_itinerary();
+    simulation_owns_and_persists_guest_groups();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
