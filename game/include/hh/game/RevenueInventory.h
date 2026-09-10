@@ -66,6 +66,7 @@ struct RevenueInventorySnapshot {
   std::size_t hotPathBookingCount{};
   std::int64_t bookedRoomRevenueCents{};
   std::int64_t channelCommissionCents{};
+  std::map<std::string, int> physicalCapacity;
   bool operator==(const RevenueInventorySnapshot &) const = default;
 };
 
