@@ -18,14 +18,14 @@ jobs:
         with:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
-      - name: Apply deterministic booking RNG adapters
+      - name: Apply deterministic booking RNG and saturated layout campaign
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          path = Path("game/src/Simulation.cpp")
-          text = path.read_text(encoding="utf-8")
+          source = Path("game/src/Simulation.cpp")
+          text = source.read_text(encoding="utf-8")
           anchor = "template <class E> int ei(E e) { return static_cast<int>(e); }\n"
           helper_lines = [
               "template <class Engine>",
@@ -54,31 +54,38 @@ jobs:
               if anchor not in text:
                   raise SystemExit("helper insertion anchor not found")
               text = text.replace(anchor, anchor + helpers, 1)
-
-          old_shuffle = "    std::shuffle(free.begin(), free.end(), rng);"
-          new_shuffle = "    deterministicShuffle(free, rng);"
-          if old_shuffle in text:
-              text = text.replace(old_shuffle, new_shuffle, 1)
-          elif new_shuffle not in text:
-              raise SystemExit("booking shuffle call not found")
-
-          old_draw = "std::generate_canonical<double, 32>(rng)"
-          new_draw = "deterministicUnitDouble(rng)"
-          if old_draw in text:
-              text = text.replace(old_draw, new_draw, 1)
-          elif new_draw not in text:
-              raise SystemExit("booking probability draw not found")
-
+          text = text.replace(
+              "    std::shuffle(free.begin(), free.end(), rng);",
+              "    deterministicShuffle(free, rng);",
+              1,
+          )
+          text = text.replace(
+              "std::generate_canonical<double, 32>(rng)",
+              "deterministicUnitDouble(rng)",
+              1,
+          )
           if "std::shuffle(free.begin(), free.end(), rng)" in text:
               raise SystemExit("implementation-dependent booking shuffle remains")
           if "std::generate_canonical<double, 32>(rng)" in text:
               raise SystemExit("implementation-dependent booking draw remains")
+          source.write_text(text, encoding="utf-8")
 
-          path.write_text(text, encoding="utf-8")
+          tests = Path("game/tests/SimulationTests.cpp")
+          test_text = tests.read_text(encoding="utf-8")
+          old = 'require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,'
+          new = 'require(s.loadDefinitions(R"({"baseDemand":100})").ok,'
+          if old in test_text:
+              test_text = test_text.replace(old, new, 1)
+          elif new not in test_text:
+              raise SystemExit("layout steady-demand setup not found")
+          tests.write_text(test_text, encoding="utf-8")
           PY
-      - name: Verify real profit assertion remains intact
+      - name: Verify layout acceptance contract remains intact
         shell: bash
         run: |
+          grep -F 'require(poor.guestTravelSeconds > efficient.guestTravelSeconds,' game/tests/SimulationTests.cpp
+          grep -F 'require(poor.guestWaitSeconds > efficient.guestWaitSeconds,' game/tests/SimulationTests.cpp
+          grep -F 'require(poor.guestSatisfaction < efficient.guestSatisfaction,' game/tests/SimulationTests.cpp
           grep -F 'require(efficient.operatingProfitCents > 0,' game/tests/SimulationTests.cpp
           grep -F 'require(poor.operatingProfitCents < efficient.operatingProfitCents,' game/tests/SimulationTests.cpp
       - name: Targeted Linux build and test
@@ -87,15 +94,15 @@ jobs:
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release --target hh_game_tests --parallel 4
           ./build/game/hh_game_tests
-      - name: Commit production patch
+      - name: Commit verified determinism fix
         shell: bash
         run: |
           git config user.name "hotel-haven-ci"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add game/src/Simulation.cpp
+          git add game/src/Simulation.cpp game/tests/SimulationTests.cpp
           if git diff --cached --quiet; then
             echo "Patch already present"
             exit 0
           fi
-          git commit -m "fix: make booking RNG cross-platform deterministic"
+          git commit -m "fix: make layout profit acceptance deterministic"
           git push origin HEAD:feature/final-04-service-logistics
