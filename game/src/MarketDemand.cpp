@@ -127,9 +127,25 @@ bool validBasisPoints(int value) {
   return value >= 0 && value <= 100000;
 }
 
+bool validCategoryScore(int value) {
+  return value == -1 || (value >= 0 && value <= 100);
+}
+
+bool validReputationCategories(const ReputationCategoryScores &scores) {
+  return validCategoryScore(scores.service) && validCategoryScore(scores.room) &&
+         validCategoryScore(scores.cleanliness) && validCategoryScore(scores.quiet) &&
+         validCategoryScore(scores.business) && validCategoryScore(scores.food);
+}
+
+int categoryOrOverall(int category, int overall) {
+  return category < 0 ? std::clamp(overall, 0, 100) : category;
+}
+
 MarketHotelOffer asHotel(const CompetitorOffer &c) {
-  return {c.hotelId, c.nightlyRateCents, c.reputation, c.stars,
-          c.amenityScore, c.locationScore, c.brandScore, true};
+  MarketHotelOffer offer{c.hotelId, c.nightlyRateCents, c.reputation, c.stars,
+                         c.amenityScore, c.locationScore, c.brandScore, true};
+  offer.reputationCategories = c.reputationCategories;
+  return offer;
 }
 
 std::uint64_t mix64(std::uint64_t value) {
@@ -149,11 +165,17 @@ MarketDemandSystem::MarketDemandSystem(std::uint64_t seed)
 }
 
 void MarketDemandSystem::setPlayerOffer(const MarketHotelOffer &offer) {
+  if (!validReputationCategories(offer.reputationCategories))
+    throw std::invalid_argument("invalid player reputation categories");
   player_ = offer;
   refreshComparableMedian();
 }
 
 void MarketDemandSystem::setCompetitors(std::vector<CompetitorOffer> competitors) {
+  if (std::any_of(competitors.begin(), competitors.end(), [](const auto &competitor) {
+        return !validReputationCategories(competitor.reputationCategories);
+      }))
+    throw std::invalid_argument("invalid competitor reputation categories");
   std::sort(competitors.begin(), competitors.end(), [](const auto &a, const auto &b) {
     return a.hotelId < b.hotelId;
   });
@@ -297,6 +319,23 @@ double MarketDemandSystem::priceUtility(const BookingRequest &request,
   return 0.0;
 }
 
+double MarketDemandSystem::reputationUtility(
+    const BookingRequest &request, const MarketHotelOffer &hotel) const {
+  const int overall = std::clamp(hotel.reputation, 0, 100);
+  if (request.segment != MarketSegment::Business)
+    return static_cast<double>(overall) / 100.0;
+
+  const auto &c = hotel.reputationCategories;
+  const int weighted =
+      categoryOrOverall(c.service, overall) * 25 +
+      categoryOrOverall(c.room, overall) * 20 +
+      categoryOrOverall(c.cleanliness, overall) * 20 +
+      categoryOrOverall(c.quiet, overall) * 15 +
+      categoryOrOverall(c.business, overall) * 15 +
+      categoryOrOverall(c.food, overall) * 5;
+  return static_cast<double>(weighted) / 10000.0;
+}
+
 double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
                                                const MarketHotelOffer &hotel) const {
   if (!isEligible(request, hotel))
@@ -305,7 +344,7 @@ double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
   if (basePriceUtility <= 0.0)
     return 0.0;
   const double price = std::pow(basePriceUtility, segmentPriceElasticity(request.segment));
-  const double reputation = std::clamp(hotel.reputation, 0, 100) / 100.0;
+  const double reputation = reputationUtility(request, hotel);
   const double amenities = (std::clamp(hotel.amenityScore, 0, 100) / 100.0) *
                            segmentAmenitySensitivity(request.segment);
   const double location = std::clamp(hotel.locationScore, 0, 100) / 100.0;

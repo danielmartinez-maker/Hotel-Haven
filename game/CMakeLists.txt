@@ -20,6 +20,7 @@ add_library(hh_game
   src/Financing.cpp
   src/Overbooking.cpp
   src/CommercialDemand.cpp
+  src/CommercialDemandProfile.cpp
   src/EconomyRuntime.cpp
   src/EconomyRuntimeBridge.cpp
   src/EconomyDiagnostics.cpp
@@ -53,7 +54,7 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
   add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
 
-  foreach(economy_test MarketDemand MarketPotentialDemand RevenueInventory RevenueManagement HotelEconomics Financing FinancingCovenant Overbooking CommercialDemand MarketingAttributionIntegration ContractBookingIntegration EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec SimulationEconomyBridge EconomyDiagnostics)
+  foreach(economy_test MarketDemand MarketPotentialDemand MarketReputationCategory RevenueInventory ReservationPolicySpec RevenueInventoryBlocks RevenueManagement HotelEconomics Financing FinancingCovenant Overbooking CommercialDemand CommercialReputationCategory MarketingAttributionIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec SimulationEconomyBridge SimulationEconomyCapacity EconomyDiagnostics EconomyDepartmentDebtDiagnostics)
     add_executable(hh_${economy_test}_tests tests/${economy_test}Tests.cpp)
     target_link_libraries(hh_${economy_test}_tests PRIVATE hh_game)
     add_test(NAME ${economy_test} COMMAND hh_${economy_test}_tests)

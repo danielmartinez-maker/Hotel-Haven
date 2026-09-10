@@ -27,10 +27,56 @@ bool validSign(EconomicCategory category, std::int64_t amount) {
   return amount < 0;
 }
 
+bool validDepartment(EconomicDepartment department) {
+  return department >= EconomicDepartment::Rooms &&
+         department <= EconomicDepartment::NonOperating;
+}
+
 } // namespace
 
 HotelEconomics::HotelEconomics(std::int64_t openingCashCents)
     : openingCashCents_(openingCashCents) {}
+
+EconomicDepartment HotelEconomics::defaultDepartment(
+    EconomicCategory category) noexcept {
+  switch (category) {
+  case EconomicCategory::RoomRevenue:
+  case EconomicCategory::CancellationFeeRevenue:
+  case EconomicCategory::NoShowFeeRevenue:
+  case EconomicCategory::ChannelCommissionCost:
+  case EconomicCategory::ConsumablesCost:
+    return EconomicDepartment::Rooms;
+  case EconomicCategory::RestaurantFoodRevenue:
+  case EconomicCategory::RestaurantBeverageRevenue:
+  case EconomicCategory::BarRevenue:
+  case EconomicCategory::RoomServiceRevenue:
+  case EconomicCategory::MinibarRevenue:
+  case EconomicCategory::FoodBeverageCost:
+    return EconomicDepartment::FoodBeverage;
+  case EconomicCategory::EventRevenue:
+    return EconomicDepartment::Events;
+  case EconomicCategory::SpaRevenue:
+    return EconomicDepartment::Spa;
+  case EconomicCategory::ParkingRevenue:
+    return EconomicDepartment::Parking;
+  case EconomicCategory::PremiumServiceRevenue:
+    return EconomicDepartment::Amenities;
+  case EconomicCategory::LaborCost:
+  case EconomicCategory::UtilityCost:
+  case EconomicCategory::FixedPeriodicExpense:
+  case EconomicCategory::SupplyCost:
+  case EconomicCategory::MaintenanceCost:
+  case EconomicCategory::MarketingCost:
+  case EconomicCategory::CompensationCost:
+    return EconomicDepartment::Undistributed;
+  case EconomicCategory::DebtService:
+  case EconomicCategory::CapitalExpense:
+  case EconomicCategory::LoanProceeds:
+  case EconomicCategory::LoanOriginationFee:
+    return EconomicDepartment::NonOperating;
+  }
+  return EconomicDepartment::Undistributed;
+}
 
 void HotelEconomics::post(const EconomicTransaction &transaction) {
   if (transaction.id == 0 || transaction.day < 0 ||
@@ -40,7 +86,14 @@ void HotelEconomics::post(const EconomicTransaction &transaction) {
         return existing.id == transaction.id;
       }))
     throw std::invalid_argument("duplicate economic transaction id");
-  transactions_.push_back(transaction);
+
+  EconomicTransaction normalized = transaction;
+  if (normalized.department == EconomicDepartment::Unassigned)
+    normalized.department = defaultDepartment(normalized.category);
+  if (!validDepartment(normalized.department))
+    throw std::invalid_argument("invalid economic department");
+
+  transactions_.push_back(std::move(normalized));
   std::sort(transactions_.begin(), transactions_.end(), [](const auto &a, const auto &b) {
     if (a.day != b.day) return a.day < b.day;
     return a.id < b.id;
@@ -74,7 +127,8 @@ HotelEconomicsSnapshot HotelEconomics::snapshot(int throughDay,
   }
   out.gopCents = out.totalRevenueCents - out.operatingCostCents;
   if (sellableRoomNights > 0) {
-    const auto boundedOccupied = std::clamp<std::int64_t>(occupiedRoomNights, 0, sellableRoomNights);
+    const auto boundedOccupied =
+        std::clamp<std::int64_t>(occupiedRoomNights, 0, sellableRoomNights);
     out.occupancy = static_cast<double>(boundedOccupied) /
                     static_cast<double>(sellableRoomNights);
     out.revParCents = out.roomRevenueCents / sellableRoomNights;
@@ -91,6 +145,7 @@ bool HotelEconomics::reconciles() const {
   for (const auto &transaction : transactions_) {
     if (transaction.id == 0 || transaction.day < 0 ||
         !validSign(transaction.category, transaction.amountCents) ||
+        !validDepartment(transaction.department) ||
         !ids.insert(transaction.id).second)
       return false;
   }
@@ -107,11 +162,12 @@ std::int64_t HotelEconomics::openingCashCents() const noexcept {
 
 std::string HotelEconomics::save() const {
   std::ostringstream out;
-  out << "HHECON 1 " << openingCashCents_ << ' ' << transactions_.size();
+  out << "HHECON 2 " << openingCashCents_ << ' ' << transactions_.size();
   for (const auto &transaction : transactions_)
     out << ' ' << transaction.id << ' ' << transaction.day << ' '
         << static_cast<int>(transaction.category) << ' ' << transaction.amountCents << ' '
-        << transaction.sourceId << ' ' << std::quoted(transaction.memo);
+        << transaction.sourceId << ' ' << std::quoted(transaction.memo) << ' '
+        << static_cast<int>(transaction.department);
   return out.str();
 }
 
@@ -122,18 +178,25 @@ HotelEconomics HotelEconomics::load(std::string_view data) {
   std::int64_t openingCash{};
   std::size_t count{};
   in >> magic >> version >> openingCash >> count;
-  if (!in || magic != "HHECON" || version != 1 || count > 2'000'000)
+  if (!in || magic != "HHECON" || (version != 1 && version != 2) ||
+      count > 2'000'000)
     throw std::invalid_argument("invalid hotel economics save");
   HotelEconomics result(openingCash);
   for (std::size_t i = 0; i < count; ++i) {
     EconomicTransaction transaction;
     int category{};
+    int department = static_cast<int>(EconomicDepartment::Unassigned);
     in >> transaction.id >> transaction.day >> category >> transaction.amountCents >>
         transaction.sourceId >> std::quoted(transaction.memo);
+    if (version >= 2)
+      in >> department;
     if (!in || category < static_cast<int>(EconomicCategory::RoomRevenue) ||
-        category > static_cast<int>(EconomicCategory::LoanOriginationFee))
+        category > static_cast<int>(EconomicCategory::LoanOriginationFee) ||
+        department < static_cast<int>(EconomicDepartment::Unassigned) ||
+        department > static_cast<int>(EconomicDepartment::NonOperating))
       throw std::invalid_argument("invalid saved economic transaction");
     transaction.category = static_cast<EconomicCategory>(category);
+    transaction.department = static_cast<EconomicDepartment>(department);
     result.post(transaction);
   }
   in >> std::ws;

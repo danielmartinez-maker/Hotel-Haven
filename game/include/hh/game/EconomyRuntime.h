@@ -21,6 +21,13 @@ struct FinancialSnapshot {
   FinancingSnapshot financing;
 };
 
+struct DepartmentContributionDiagnostic {
+  std::int64_t revenueCents{};
+  std::int64_t expenseCents{};
+  std::int64_t contributionCents{};
+  bool operator==(const DepartmentContributionDiagnostic &) const = default;
+};
+
 struct EconomyDiagnostics {
   int occupancyTodayBasisPoints{};
   int occupancy7DayBasisPoints{};
@@ -41,10 +48,13 @@ struct EconomyDiagnostics {
   std::map<int, int> bookingPaceByArrivalDay;
   std::map<BookingChannel, std::uint64_t> channelBookings;
   std::map<MarketSegment, std::uint64_t> demandBySegment;
+  std::map<EconomicDepartment, DepartmentContributionDiagnostic>
+      departmentContribution;
   double cashRunwayDays{};
   std::int64_t outstandingPrincipalCents{};
   std::int64_t nextDebtServiceCents{};
   int nextDebtPaymentDay{};
+  std::vector<DebtPaymentScheduleEntry> debtPaymentSchedule;
 };
 
 class EconomyRuntime {
@@ -59,6 +69,8 @@ public:
 
   [[nodiscard]] PricingRuleResult setPricingRule(const PricingRuleCommand &command);
   [[nodiscard]] OverbookingResult setOverbookingPolicy(const OverbookingPolicy &policy);
+  [[nodiscard]] InventoryCommandResult setInventoryBlock(const InventoryBlock &block);
+  [[nodiscard]] InventoryCommandResult removeInventoryBlock(std::uint64_t blockId);
   [[nodiscard]] RecoveryDecision resolveOverbooking(const RecoveryContext &context,
                                                     std::uint64_t sourceId = 0);
   [[nodiscard]] LoanResult acceptLoan(const LoanOffer &offer);
@@ -73,6 +85,10 @@ public:
   // market requests or reservations; they only mirror authoritative external
   // economic events and absolute KPI counters into the FINAL-06 ledger.
   void postExternalTransaction(int day, EconomicCategory category,
+                               std::int64_t amountCents,
+                               std::uint64_t sourceId, std::string memo);
+  void postExternalTransaction(int day, EconomicCategory category,
+                               EconomicDepartment department,
                                std::int64_t amountCents,
                                std::uint64_t sourceId, std::string memo);
   void synchronizeExternalMetrics(int currentDay,

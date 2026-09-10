@@ -221,7 +221,15 @@ void EconomyRuntime::runOneDay() {
   const int capacity = physicalCapacityTotal();
   if (basePlayerOffer_.hotelId != 0) {
     auto offer = basePlayerOffer_;
-    offer.reputation = commercial_.snapshot().overallReputationBasisPoints / 100;
+    const auto commercial = commercial_.snapshot();
+    offer.reputation = commercial.overallReputationBasisPoints / 100;
+    offer.reputationCategories = {
+        commercial.serviceReputationBasisPoints / 100,
+        commercial.roomReputationBasisPoints / 100,
+        commercial.cleanlinessReputationBasisPoints / 100,
+        commercial.quietReputationBasisPoints / 100,
+        commercial.businessReputationBasisPoints / 100,
+        commercial.foodReputationBasisPoints / 100};
     const std::string pricingCategory =
         physicalCapacity_.contains("standard")
             ? std::string("standard")
@@ -281,8 +289,6 @@ void EconomyRuntime::runOneDay() {
     }
   }
 
-  // Room revenue posts exactly once at each booking's contractual payment day.
-  // Standard reservations use departure day; commercial contracts may delay cash.
   const auto paymentInventory = inventory_.snapshot();
   for (const auto &booking : paymentInventory.bookings) {
     const bool payableState = booking.state == BookingState::Confirmed ||
@@ -310,9 +316,10 @@ void EconomyRuntime::runOneDay() {
     if (previous == stateBefore.end() || previous->second != BookingState::Confirmed)
       continue;
     if (booking.state == BookingState::Cancelled) {
-      const auto fee = std::max<std::int64_t>(1, booking.rateCents / 5);
-      post(EconomicCategory::CancellationFeeRevenue, fee, booking.bookingId,
-           "cancellation fee");
+      if (booking.cancellationPenaltyCents > 0)
+        post(EconomicCategory::CancellationFeeRevenue,
+             booking.cancellationPenaltyCents, booking.bookingId,
+             "cancellation fee");
     } else if (booking.state == BookingState::NoShow) {
       post(EconomicCategory::NoShowFeeRevenue, booking.rateCents, booking.bookingId,
            "no-show fee");

@@ -36,6 +36,18 @@ enum class EconomicCategory : std::uint8_t {
   LoanOriginationFee
 };
 
+enum class EconomicDepartment : std::uint8_t {
+  Unassigned,
+  Rooms,
+  FoodBeverage,
+  Events,
+  Spa,
+  Parking,
+  Amenities,
+  Undistributed,
+  NonOperating
+};
+
 struct EconomicTransaction {
   std::uint64_t id{};
   int day{};
@@ -43,6 +55,7 @@ struct EconomicTransaction {
   std::int64_t amountCents{};
   std::uint64_t sourceId{};
   std::string memo;
+  EconomicDepartment department{EconomicDepartment::Unassigned};
   bool operator==(const EconomicTransaction &) const = default;
 };
 
@@ -76,6 +89,9 @@ public:
   [[nodiscard]] std::int64_t openingCashCents() const noexcept;
   [[nodiscard]] std::string save() const;
   static HotelEconomics load(std::string_view data);
+
+  [[nodiscard]] static EconomicDepartment defaultDepartment(
+      EconomicCategory category) noexcept;
 
 private:
   std::int64_t openingCashCents_{};

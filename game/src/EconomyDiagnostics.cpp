@@ -7,6 +7,11 @@
 namespace hh::game {
 namespace {
 
+bool isRevenueCategory(EconomicCategory category) {
+  return category >= EconomicCategory::RoomRevenue &&
+         category <= EconomicCategory::NoShowFeeRevenue;
+}
+
 bool isOperatingCostCategory(EconomicCategory category) {
   return category >= EconomicCategory::LaborCost &&
          category <= EconomicCategory::CompensationCost;
@@ -37,6 +42,7 @@ EconomyDiagnostics EconomyRuntime::diagnostics() const {
   out.outstandingPrincipalCents = financial.financing.outstandingPrincipalCents;
   out.nextDebtServiceCents = financial.financing.nextDebtServiceCents;
   out.nextDebtPaymentDay = financial.financing.nextPaymentDay;
+  out.debtPaymentSchedule = financial.financing.paymentSchedule;
 
   const int capacity = physicalCapacityTotal();
   const auto occupancyBasisPoints = [&](int requestedDays) {
@@ -85,6 +91,8 @@ EconomyDiagnostics EconomyRuntime::diagnostics() const {
   std::int64_t recentOperatingCostCents = 0;
   const int recentStartDay = std::max(0, currentDay_ - 30);
   for (const auto &transaction : economics_.transactions()) {
+    if (transaction.day > currentDay_)
+      continue;
     if (transaction.category == EconomicCategory::LaborCost)
       out.laborCostCents -= transaction.amountCents;
     if (transaction.category == EconomicCategory::UtilityCost)
@@ -94,9 +102,22 @@ EconomyDiagnostics EconomyRuntime::diagnostics() const {
     if (isFoodRevenueCategory(transaction.category))
       foodRevenueCents += transaction.amountCents;
     if (transaction.day >= recentStartDay &&
-        transaction.day <= currentDay_ &&
         isOperatingCostCategory(transaction.category))
       recentOperatingCostCents -= transaction.amountCents;
+
+    if (isRevenueCategory(transaction.category)) {
+      auto &department = out.departmentContribution[transaction.department];
+      department.revenueCents += transaction.amountCents;
+    } else if (isOperatingCostCategory(transaction.category)) {
+      auto &department = out.departmentContribution[transaction.department];
+      department.expenseCents -= transaction.amountCents;
+    }
+  }
+
+  for (auto &[department, contribution] : out.departmentContribution) {
+    (void)department;
+    contribution.contributionCents =
+        contribution.revenueCents - contribution.expenseCents;
   }
 
   if (out.totalRevenueCents > 0)

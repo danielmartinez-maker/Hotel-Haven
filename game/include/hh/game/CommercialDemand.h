@@ -15,6 +15,10 @@ struct ReviewSignal {
   int serviceBasisPoints{};
   int cleanlinessBasisPoints{};
   int valueBasisPoints{};
+  int roomBasisPoints{-1};
+  int quietBasisPoints{-1};
+  int businessBasisPoints{-1};
+  int foodBasisPoints{-1};
 };
 
 struct MarketingCampaign {
@@ -74,6 +78,10 @@ struct CommercialDemandSnapshot {
   int serviceReputationBasisPoints{7000};
   int cleanlinessReputationBasisPoints{7000};
   int valueReputationBasisPoints{7000};
+  int roomReputationBasisPoints{7000};
+  int quietReputationBasisPoints{7000};
+  int businessReputationBasisPoints{7000};
+  int foodReputationBasisPoints{7000};
   std::uint64_t reviewCount{};
   std::vector<MarketingCampaign> campaigns;
   std::vector<AcceptedCommercialContract> contracts;
@@ -82,6 +90,8 @@ struct CommercialDemandSnapshot {
 class CommercialDemand {
 public:
   void setReputation(int basisPoints);
+  void setReputationProfile(int overallBasisPoints,
+                            const ReputationCategoryScores &categories);
   void applyReview(const ReviewSignal &review);
   [[nodiscard]] CommercialCommandResult startCampaign(const MarketingCampaign &campaign,
                                                        int currentDay);

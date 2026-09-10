@@ -19,6 +19,11 @@ std::uint64_t fnv1a(std::string_view text) {
   return hash;
 }
 
+bool roomIsSellable(const RoomView &room) {
+  return !room.closed && room.status != RoomStatus::Incomplete &&
+         room.status != RoomStatus::OutOfOrder;
+}
+
 } // namespace
 
 SimulationEconomyBridge::SimulationEconomyBridge(std::uint64_t seed)
@@ -51,8 +56,9 @@ void SimulationEconomyBridge::resetBaseline() {
 
 void SimulationEconomyBridge::synchronizeCapacity() {
   const auto current = simulation_.view();
-  economy_.setPhysicalRoomCapacity("standard",
-                                   static_cast<int>(current.rooms.size()));
+  const auto sellable = static_cast<int>(std::count_if(
+      current.rooms.begin(), current.rooms.end(), roomIsSellable));
+  economy_.setPhysicalRoomCapacity("standard", sellable);
 }
 
 void SimulationEconomyBridge::reconcile(std::uint64_t sourceId,
@@ -129,8 +135,7 @@ void SimulationEconomyBridge::recordDayBoundary(const SimulationView &current) {
   std::int64_t sellable = 0;
   std::int64_t occupied = 0;
   for (const auto &room : current.rooms) {
-    if (room.closed || room.status == RoomStatus::Incomplete ||
-        room.status == RoomStatus::OutOfOrder)
+    if (!roomIsSellable(room))
       continue;
     ++sellable;
     if (room.status == RoomStatus::Occupied)
@@ -190,12 +195,16 @@ CommandResult SimulationEconomyBridge::requestClean(EntityId roomId) {
 CommandResult SimulationEconomyBridge::requestRepair(EntityId roomId) {
   const auto result = simulation_.requestRepair(roomId);
   reconcile(roomId, "request repair");
+  if (result.ok)
+    synchronizeCapacity();
   return result;
 }
 
 CommandResult SimulationEconomyBridge::closeRoom(EntityId roomId, bool closed) {
   const auto result = simulation_.closeRoom(roomId, closed);
   reconcile(roomId, closed ? "close room" : "reopen room");
+  if (result.ok)
+    synchronizeCapacity();
   return result;
 }
 
@@ -226,16 +235,14 @@ void SimulationEconomyBridge::step(double seconds) {
   while (remaining > 0.0) {
     const auto before = simulation_.view();
     const auto secondsIntoDay = before.elapsedSeconds % 86400;
-    const double toBoundary =
-        static_cast<double>(86400 - secondsIntoDay);
+    const double toBoundary = static_cast<double>(86400 - secondsIntoDay);
     const double chunk = std::min(remaining, toBoundary);
     simulation_.step(chunk);
     reconcile(0, "simulation step");
     const auto after = simulation_.view();
-    if (after.day > before.day) {
+    if (after.day > before.day)
       recordDayBoundary(after);
-      synchronizeCapacity();
-    }
+    synchronizeCapacity();
     economy_.synchronizeExternalMetrics(after.day, cumulativeSellableRoomNights_,
                                         cumulativeOccupiedRoomNights_);
     remaining -= chunk;
@@ -326,6 +333,7 @@ SimulationEconomyBridge SimulationEconomyBridge::load(std::string_view data) {
   result.cumulativeSellableRoomNights_ = sellable;
   result.cumulativeOccupiedRoomNights_ = occupied;
   result.resetBaseline();
+  result.synchronizeCapacity();
 
   const auto simulationCash = result.simulation_.view().economy.cashCents;
   const auto financial = result.economy_.financialSnapshot().economics;
