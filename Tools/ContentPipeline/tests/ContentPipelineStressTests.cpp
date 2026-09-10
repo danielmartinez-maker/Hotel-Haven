@@ -21,9 +21,23 @@ using namespace hh::assets;
 namespace fs = std::filesystem;
 
 namespace {
+std::string stressScale() {
+#ifdef _WIN32
+    char* value = nullptr;
+    std::size_t length = 0;
+    if (_dupenv_s(&value, &length, "HH_STRESS_SCALE") != 0)
+        throw std::runtime_error("failed to read HH_STRESS_SCALE");
+    const std::string scale = value && *value ? value : "pr";
+    std::free(value);
+    return scale;
+#else
+    const char* value = std::getenv("HH_STRESS_SCALE");
+    return value && *value ? std::string(value) : std::string("pr");
+#endif
+}
+
 std::size_t operationBudget() {
-    const char* scale = std::getenv("HH_STRESS_SCALE");
-    const std::string_view value = scale ? std::string_view{scale} : std::string_view{"pr"};
+    const auto value = stressScale();
     if (value == "pr") return 10'000;
     if (value == "extended") return 100'000;
     if (value == "exhaustive") return 500'000;
