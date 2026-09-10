@@ -221,7 +221,15 @@ void EconomyRuntime::runOneDay() {
   const int capacity = physicalCapacityTotal();
   if (basePlayerOffer_.hotelId != 0) {
     auto offer = basePlayerOffer_;
-    offer.reputation = commercial_.snapshot().overallReputationBasisPoints / 100;
+    const auto commercial = commercial_.snapshot();
+    offer.reputation = commercial.overallReputationBasisPoints / 100;
+    offer.reputationCategories = {
+        commercial.serviceReputationBasisPoints / 100,
+        commercial.roomReputationBasisPoints / 100,
+        commercial.cleanlinessReputationBasisPoints / 100,
+        commercial.quietReputationBasisPoints / 100,
+        commercial.businessReputationBasisPoints / 100,
+        commercial.foodReputationBasisPoints / 100};
     const std::string pricingCategory =
         physicalCapacity_.contains("standard")
             ? std::string("standard")
@@ -281,8 +289,6 @@ void EconomyRuntime::runOneDay() {
     }
   }
 
-  // Room revenue posts exactly once at each booking's contractual payment day.
-  // Standard reservations use departure day; commercial contracts may delay cash.
   const auto paymentInventory = inventory_.snapshot();
   for (const auto &booking : paymentInventory.bookings) {
     const bool payableState = booking.state == BookingState::Confirmed ||
