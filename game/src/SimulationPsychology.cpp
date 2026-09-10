@@ -128,15 +128,19 @@ GuestPsychologySnapshot Simulation::guestPsychology(EntityId guestId) const {
 GoalSelection
 Simulation::chooseGuestGoal(EntityId guestId,
                             const GuestOpportunitySnapshot &opportunities) const {
-  try {
-    const auto psychology = guestPsychology(guestId);
-    return hh::game::chooseGuestGoal(
-        guestId, applyGuestPreferences(psychology.preferences, opportunities));
-  } catch (const std::invalid_argument &) {
-    // Keep the stable selection helper usable for prospective/non-resident IDs
-    // while applying authoritative preferences whenever guest state exists.
+  const auto current = view();
+  const auto *reservation = findReservation(current, guestId);
+  if (!reservation)
     return hh::game::chooseGuestGoal(guestId, opportunities);
-  }
+
+  const auto psychology = guestPsychology(guestId);
+  const auto personalized =
+      applyGuestPreferences(psychology.preferences, opportunities);
+  if (reservation->guestGroupArchive.empty())
+    return hh::game::chooseGuestGoal(guestId, personalized);
+
+  const auto group = detail::deserializeGuestGroup(reservation->guestGroupArchive);
+  return chooseGuestGroupMemberGoal(guestId, group, personalized);
 }
 
 SatisfactionBreakdown
