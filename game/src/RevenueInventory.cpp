@@ -110,7 +110,8 @@ int RevenueInventory::defaultCommissionBasisPoints(BookingChannel channel) {
 InventoryCommandResult RevenueInventory::book(const BookingRequestInput &request) {
   if (request.bookingId == 0 || request.arrivalDay < 0 ||
       request.departureDay <= request.arrivalDay || request.roomCategory.empty() ||
-      request.rateCents <= 0)
+      request.rateCents <= 0 || request.paymentDelayDays < 0 ||
+      request.departureDay > std::numeric_limits<int>::max() - request.paymentDelayDays)
     return {false, "INVALID_BOOKING"};
   if (find(request.bookingId))
     return {false, "DUPLICATE_BOOKING_ID"};
@@ -132,6 +133,9 @@ InventoryCommandResult RevenueInventory::book(const BookingRequestInput &request
   const auto roomNights = static_cast<std::int64_t>(request.departureDay - request.arrivalDay);
   booking.commissionCents =
       (request.rateCents * roomNights * booking.commissionBasisPoints + 5000) / 10000;
+  booking.sourceContractId = request.sourceContractId;
+  booking.paymentDay = request.departureDay + request.paymentDelayDays;
+  booking.revenuePosted = false;
   bookings_.push_back(std::move(booking));
   std::sort(bookings_.begin(), bookings_.end(), [](const auto &a, const auto &b) {
     return a.bookingId < b.bookingId;
@@ -160,6 +164,15 @@ void RevenueInventory::complete(std::uint64_t bookingId) {
   if (auto *booking = find(bookingId);
       booking && booking->state == BookingState::Confirmed)
     booking->state = BookingState::Completed;
+}
+
+void RevenueInventory::markRevenuePosted(std::uint64_t bookingId) {
+  auto *booking = find(bookingId);
+  if (!booking)
+    throw std::invalid_argument("booking not found for revenue posting");
+  if (booking->revenuePosted)
+    throw std::invalid_argument("booking revenue already posted");
+  booking->revenuePosted = true;
 }
 
 std::uint32_t RevenueInventory::deterministicRoll(std::uint64_t bookingId, int day,
@@ -219,7 +232,7 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
 
 std::string RevenueInventory::save() const {
   std::ostringstream out;
-  out << "HHRINV 2 " << seed_ << ' ' << physicalCapacity_.size();
+  out << "HHRINV 3 " << seed_ << ' ' << physicalCapacity_.size();
   for (const auto &[category, units] : physicalCapacity_)
     out << ' ' << std::quoted(category) << ' ' << units << ' '
         << overbookingAllowance_.contains(category) << ' '
@@ -245,7 +258,8 @@ std::string RevenueInventory::save() const {
     out << ' ' << b.bookingId << ' ' << b.arrivalDay << ' ' << b.departureDay << ' '
         << std::quoted(b.roomCategory) << ' ' << b.rateCents << ' '
         << static_cast<int>(b.channel) << ' ' << static_cast<int>(b.state) << ' '
-        << b.commissionBasisPoints << ' ' << b.commissionCents;
+        << b.commissionBasisPoints << ' ' << b.commissionCents << ' '
+        << b.sourceContractId << ' ' << b.paymentDay << ' ' << b.revenuePosted;
   return out.str();
 }
 
@@ -256,7 +270,8 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
   std::uint64_t seed{};
   std::size_t count{};
   in >> magic >> version >> seed >> count;
-  if (!in || magic != "HHRINV" || (version != 1 && version != 2) || count > 10000)
+  if (!in || magic != "HHRINV" ||
+      (version != 1 && version != 2 && version != 3) || count > 10000)
     throw std::invalid_argument("invalid revenue inventory save");
   RevenueInventory result(seed);
   for (std::size_t i = 0; i < count; ++i) {
@@ -304,8 +319,16 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
     in >> b.bookingId >> b.arrivalDay >> b.departureDay >>
         std::quoted(b.roomCategory) >> b.rateCents >> channel >> state >>
         b.commissionBasisPoints >> b.commissionCents;
+    if (version >= 3)
+      in >> b.sourceContractId >> b.paymentDay >> b.revenuePosted;
+    else {
+      b.sourceContractId = 0;
+      b.paymentDay = b.departureDay;
+      b.revenuePosted = state == static_cast<int>(BookingState::Completed);
+    }
     if (!in || channel < 0 || channel > static_cast<int>(BookingChannel::Group) ||
-        state < 0 || state > static_cast<int>(BookingState::Completed))
+        state < 0 || state > static_cast<int>(BookingState::Completed) ||
+        b.paymentDay < b.departureDay)
       throw std::invalid_argument("invalid saved booking");
     b.channel = static_cast<BookingChannel>(channel);
     b.state = static_cast<BookingState>(state);
