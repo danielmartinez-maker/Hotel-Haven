@@ -94,6 +94,34 @@ void preferences_do_not_weaken_mandatory_lifecycle_goals() {
           "preference weighting altered a mandatory lifecycle goal");
 }
 
+void live_business_guest_uses_authoritative_preferences() {
+  bool exercised = false;
+  for (std::uint64_t seed = 40; seed < 96 && !exercised; ++seed) {
+    auto simulation = Simulation::tutorial(seed);
+    require(simulation.loadDefinitions(R"({"baseDemand":100})").ok,
+            "live business goal fixture definitions rejected");
+    for (const auto &room : simulation.view().rooms)
+      require(simulation.setRoomRate(room.id, 50).ok,
+              "live business goal fixture rate update failed");
+    simulation.step(3600);
+
+    for (const auto &reservation : simulation.view().reservations) {
+      if (reservation.completed ||
+          reservation.profile.archetype != GuestArchetype::BusinessTraveler)
+        continue;
+      GuestOpportunitySnapshot snapshot;
+      snapshot.opportunities = {opportunity(10, GuestGoalClass::Swim),
+                                opportunity(20, GuestGoalClass::Work)};
+      const auto selected = simulation.chooseGuestGoal(reservation.id, snapshot);
+      require(selected.valid && selected.goal == GuestGoalClass::Work,
+              "live Simulation goal choice ignored authoritative guest preferences");
+      exercised = true;
+      break;
+    }
+  }
+  require(exercised, "live business goal fixture did not find a business guest");
+}
+
 void group_proposal_uses_documented_thirty_percent_acceptance_band() {
   require(acceptsGroupProposal(10000, 7000),
           "proposal exactly 30 percent below best alternative was rejected");
@@ -135,6 +163,7 @@ int main() {
     distance_and_wait_reduce_discretionary_utility();
     business_preferences_materially_reorder_discretionary_goals();
     preferences_do_not_weaken_mandatory_lifecycle_goals();
+    live_business_guest_uses_authoritative_preferences();
     group_proposal_uses_documented_thirty_percent_acceptance_band();
     critical_need_can_override_group_incompatibility();
     group_state_is_value_stable_and_tracks_shared_itinerary();
