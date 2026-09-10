@@ -66,6 +66,36 @@ int main() {
             "already-failed asset was counted as repeated new failures");
   }
   {
+    auto logistics = LogisticsSystem::standardHotel();
+    require(logistics.addInventory(
+                logistics.firstStorage(StorageKind::CentralStorage),
+                "maintenance_part", 1),
+            "seed corrective maintenance part");
+    EngineeringSystem engineering(logistics, 31);
+    engineering.setConditionLossPerDayHundredths(0);
+    constexpr AssetId asset = 5003;
+    engineering.registerAsset(asset, 0);
+
+    engineering.tickSeconds(24 * 3600);
+    const auto failed = engineering.snapshot().assets.front();
+    require(failed.failed, "corrective pressure fixture did not fail");
+    require(failed.failurePressure > 0,
+            "corrective pressure fixture did not accumulate pressure");
+
+    const auto corrective =
+        engineering.createWorkOrder(asset, WorkOrderType::Corrective, 1);
+    require(corrective != 0, "corrective work order not created");
+    const auto result = engineering.workSecond(corrective);
+    require(result.valid && result.completed,
+            "corrective maintenance did not complete");
+
+    const auto repaired = engineering.snapshot().assets.front();
+    require(!repaired.failed && repaired.condition >= 8000,
+            "corrective maintenance did not restore the asset");
+    require(repaired.failurePressure == 0,
+            "corrective maintenance retained stale failure pressure");
+  }
+  {
     RoomServiceSystem roomService;
     RoomServiceOrder order;
     order.itemCount = 2;
