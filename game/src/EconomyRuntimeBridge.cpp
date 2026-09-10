@@ -5,6 +5,16 @@
 
 namespace hh::game {
 
+RecoveryDecision EconomyRuntime::resolveOverbooking(const RecoveryContext &context,
+                                                    std::uint64_t sourceId) {
+  const auto decision = overbooking_.chooseRecovery(context);
+  if (decision.action == RecoveryAction::CompetitorRelocation &&
+      decision.compensationCents > 0)
+    post(EconomicCategory::CompensationCost, -decision.compensationCents, sourceId,
+         "overbooking relocation compensation");
+  return decision;
+}
+
 void EconomyRuntime::postExternalTransaction(int day, EconomicCategory category,
                                              std::int64_t amountCents,
                                              std::uint64_t sourceId,
