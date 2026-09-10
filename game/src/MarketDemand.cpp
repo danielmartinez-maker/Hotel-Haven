@@ -8,6 +8,13 @@
 namespace hh::game {
 namespace {
 
+constexpr MarketSegment kSegments[] = {
+    MarketSegment::BudgetLeisure, MarketSegment::Business,
+    MarketSegment::ExecutiveBusiness, MarketSegment::CoupleLeisure,
+    MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
+    MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
+    MarketSegment::Wellness};
+
 constexpr double segmentPriceElasticity(MarketSegment segment) {
   switch (segment) {
   case MarketSegment::BudgetLeisure: return 1.60;
@@ -53,6 +60,60 @@ std::int64_t baseBudget(MarketSegment segment) {
   return 17'000;
 }
 
+SegmentDemandProfile baselineProfile(MarketSegment segment) {
+  SegmentDemandProfile profile;
+  profile.segment = segment;
+  profile.baseBudgetCents = baseBudget(segment);
+  switch (segment) {
+  case MarketSegment::BudgetLeisure:
+    profile.baseDailyDemand = 18.0;
+    profile.medianLeadTimeDays = 14;
+    profile.medianStayNights = 2;
+    break;
+  case MarketSegment::Business:
+    profile.baseDailyDemand = 22.0;
+    profile.medianLeadTimeDays = 10;
+    profile.medianStayNights = 2;
+    break;
+  case MarketSegment::ExecutiveBusiness:
+    profile.baseDailyDemand = 8.0;
+    profile.medianLeadTimeDays = 14;
+    profile.medianStayNights = 2;
+    break;
+  case MarketSegment::CoupleLeisure:
+    profile.baseDailyDemand = 20.0;
+    profile.medianLeadTimeDays = 21;
+    profile.medianStayNights = 3;
+    break;
+  case MarketSegment::FamilyLeisure:
+    profile.baseDailyDemand = 14.0;
+    profile.medianLeadTimeDays = 35;
+    profile.medianStayNights = 4;
+    break;
+  case MarketSegment::LuxuryLeisure:
+    profile.baseDailyDemand = 7.0;
+    profile.medianLeadTimeDays = 28;
+    profile.medianStayNights = 3;
+    break;
+  case MarketSegment::ConferenceGroup:
+    profile.baseDailyDemand = 9.0;
+    profile.medianLeadTimeDays = 120;
+    profile.medianStayNights = 3;
+    break;
+  case MarketSegment::AirportTransit:
+    profile.baseDailyDemand = 15.0;
+    profile.medianLeadTimeDays = 2;
+    profile.medianStayNights = 1;
+    break;
+  case MarketSegment::Wellness:
+    profile.baseDailyDemand = 6.0;
+    profile.medianLeadTimeDays = 24;
+    profile.medianStayNights = 3;
+    break;
+  }
+  return profile;
+}
+
 int defaultPartySize(MarketSegment segment) {
   if (segment == MarketSegment::ConferenceGroup)
     return 6;
@@ -73,7 +134,10 @@ MarketHotelOffer asHotel(const CompetitorOffer &c) {
 } // namespace
 
 MarketDemandSystem::MarketDemandSystem(std::uint64_t seed)
-    : seed_(seed ? seed : 1), rngState_(seed_ ^ 0x9E3779B97F4A7C15ULL) {}
+    : seed_(seed ? seed : 1), rngState_(seed_ ^ 0x9E3779B97F4A7C15ULL) {
+  for (const auto segment : kSegments)
+    demandProfiles_[segment] = baselineProfile(segment);
+}
 
 void MarketDemandSystem::setPlayerOffer(const MarketHotelOffer &offer) {
   player_ = offer;
@@ -104,6 +168,14 @@ void MarketDemandSystem::setSegmentDemandProfile(const SegmentDemandProfile &pro
 const SegmentDemandProfile *MarketDemandSystem::profileFor(MarketSegment segment) const {
   const auto it = demandProfiles_.find(segment);
   return it == demandProfiles_.end() ? nullptr : &it->second;
+}
+
+const SegmentDemandProfile &MarketDemandSystem::segmentDemandProfile(
+    MarketSegment segment) const {
+  const auto *profile = profileFor(segment);
+  if (!profile)
+    throw std::invalid_argument("market segment demand profile missing");
+  return *profile;
 }
 
 double MarketDemandSystem::potentialDemand(
@@ -262,17 +334,11 @@ void MarketDemandSystem::allocate(const BookingRequest &request) {
 void MarketDemandSystem::generateRequests(int firstArrivalDay, int lastArrivalDay, int count) {
   if (count <= 0 || lastArrivalDay < firstArrivalDay)
     return;
-  static constexpr MarketSegment segments[] = {
-      MarketSegment::BudgetLeisure, MarketSegment::Business,
-      MarketSegment::ExecutiveBusiness, MarketSegment::CoupleLeisure,
-      MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
-      MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
-      MarketSegment::Wellness};
   const int daySpan = lastArrivalDay - firstArrivalDay + 1;
   for (int i = 0; i < count; ++i) {
     BookingRequest request;
     request.id = nextRequestId_++;
-    request.segment = segments[nextRandom() % 9];
+    request.segment = kSegments[nextRandom() % 9];
     request.arrivalDay = firstArrivalDay +
                          static_cast<int>(nextRandom() % static_cast<std::uint64_t>(daySpan));
     request.departureDay = request.arrivalDay + 1 + static_cast<int>(nextRandom() % 4);
