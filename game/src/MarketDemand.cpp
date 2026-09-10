@@ -66,6 +66,10 @@ SegmentDemandProfile baselineProfile(MarketSegment segment) {
   SegmentDemandProfile profile;
   profile.segment = segment;
   profile.baseBudgetCents = baseBudget(segment);
+  profile.priceElasticityBasisPoints =
+      static_cast<int>(std::llround(segmentPriceElasticity(segment) * 10000.0));
+  profile.amenitySensitivityBasisPoints =
+      static_cast<int>(std::llround(segmentAmenitySensitivity(segment) * 10000.0));
   switch (segment) {
   case MarketSegment::BudgetLeisure:
     profile.baseDailyDemand = 18.0;
@@ -136,6 +140,13 @@ bool validReputationCategories(const ReputationCategoryScores &scores) {
   return validCategoryScore(scores.service) && validCategoryScore(scores.room) &&
          validCategoryScore(scores.cleanliness) && validCategoryScore(scores.quiet) &&
          validCategoryScore(scores.business) && validCategoryScore(scores.food);
+}
+
+bool validChoiceWeights(const SegmentChoiceWeights &weights) {
+  return weights.priceBasisPoints >= 0 && weights.reputationBasisPoints >= 0 &&
+         weights.amenityBasisPoints >= 0 && weights.locationBasisPoints >= 0 &&
+         weights.starBasisPoints >= 0 && weights.roomBasisPoints >= 0 &&
+         weights.brandBasisPoints >= 0 && weights.totalBasisPoints() == 10000;
 }
 
 int categoryOrOverall(int category, int overall) {
@@ -229,7 +240,13 @@ void MarketDemandSystem::setCompetitors(std::vector<CompetitorOffer> competitors
 void MarketDemandSystem::setSegmentDemandProfile(const SegmentDemandProfile &profile) {
   if (!std::isfinite(profile.baseDailyDemand) || profile.baseDailyDemand < 0.0 ||
       profile.medianLeadTimeDays < 0 || profile.medianStayNights <= 0 ||
-      profile.baseBudgetCents <= 0 ||
+      profile.baseBudgetCents <= 0 || profile.priceElasticityBasisPoints < 0 ||
+      profile.priceElasticityBasisPoints > 100000 ||
+      profile.amenitySensitivityBasisPoints < 0 ||
+      profile.amenitySensitivityBasisPoints > 100000 ||
+      profile.cancellationBasisPoints < 0 || profile.cancellationBasisPoints > 10000 ||
+      profile.noShowBasisPoints < 0 || profile.noShowBasisPoints > 10000 ||
+      !validChoiceWeights(profile.choiceWeights) ||
       std::any_of(profile.weekdayMultiplierBasisPoints.begin(),
                   profile.weekdayMultiplierBasisPoints.end(),
                   [](int value) { return !validBasisPoints(value); }))
@@ -384,19 +401,35 @@ double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
   const double basePriceUtility = priceUtility(request, hotel);
   if (basePriceUtility <= 0.0)
     return 0.0;
-  const double price = std::pow(basePriceUtility, segmentPriceElasticity(request.segment));
+  const auto *profile = profileFor(request.segment);
+  const double elasticity = profile
+                                ? static_cast<double>(profile->priceElasticityBasisPoints) /
+                                      10000.0
+                                : segmentPriceElasticity(request.segment);
+  const double amenitySensitivity =
+      profile ? static_cast<double>(profile->amenitySensitivityBasisPoints) / 10000.0
+              : segmentAmenitySensitivity(request.segment);
+  const SegmentChoiceWeights weights =
+      profile ? profile->choiceWeights : SegmentChoiceWeights{};
+  const double price = std::pow(basePriceUtility, elasticity);
   const double reputation = reputationUtility(request, hotel);
-  const double amenities = (std::clamp(hotel.amenityScore, 0, 100) / 100.0) *
-                           segmentAmenitySensitivity(request.segment);
+  const double amenities =
+      (std::clamp(hotel.amenityScore, 0, 100) / 100.0) * amenitySensitivity;
   const double location = std::clamp(hotel.locationScore, 0, 100) / 100.0;
   const double stars = std::clamp(hotel.stars, 1, 5) / 5.0;
   const double brand = std::clamp(hotel.brandScore, 0, 100) / 100.0;
   const double roomFit = request.partySize <= 4 ? 1.0 : 0.85;
 
-  const double score = 0.30 * price + 0.20 * reputation + 0.15 * amenities +
-                       0.10 * location + 0.10 * stars + 0.10 * brand +
-                       0.05 * roomFit;
-  constexpr double temperature = 0.35;
+  const double score =
+      static_cast<double>(weights.priceBasisPoints) / 10000.0 * price +
+      static_cast<double>(weights.reputationBasisPoints) / 10000.0 * reputation +
+      static_cast<double>(weights.amenityBasisPoints) / 10000.0 * amenities +
+      static_cast<double>(weights.locationBasisPoints) / 10000.0 * location +
+      static_cast<double>(weights.starBasisPoints) / 10000.0 * stars +
+      static_cast<double>(weights.brandBasisPoints) / 10000.0 * brand +
+      static_cast<double>(weights.roomBasisPoints) / 10000.0 * roomFit;
+  const double temperature =
+      static_cast<double>(std::max(1, choiceTemperatureBasisPoints_)) / 10000.0;
   return std::exp(std::clamp(score / temperature, -20.0, 20.0));
 }
 
