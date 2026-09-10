@@ -25,7 +25,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git fetch origin feature/final-04-service-logistics
           set +e
-          git merge --no-commit --no-ff d3e5d1e2943faf6ef8a8ea3f6d3929bbbd3db2cc
+          git merge --no-commit --no-ff a3297fa1141278739514328eeabb92681fd53ba8
           rc=$?
           set -e
           if [ "$rc" -ne 0 ]; then
@@ -95,6 +95,28 @@ jobs:
           fi
           grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
 
+      - name: Add temporary profitability diagnostics
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('game/tests/SimulationTests.cpp')
+          text = path.read_text()
+          anchor = '  require(operatingProfit > 0, "fully occupied tutorial loses money by design");'
+          diag = '''  std::cerr << "Tutorial economics: revenue=" << economy.revenueCents
+                    << " payroll=" << economy.payrollCents
+                    << " supplies=" << economy.supplyCostCents
+                    << " utilities=" << economy.utilityCostCents
+                    << " operatingProfit=" << operatingProfit
+                    << " cash=" << economy.cashCents
+                    << " openingCash=" << openingCash
+                    << " stays=" << economy.completedStays << '\\n';
+          '''
+          if text.count(anchor) != 1:
+              raise SystemExit(f'profitability diagnostic anchor count={text.count(anchor)}')
+          path.write_text(text.replace(anchor, diag + anchor, 1))
+          PY
+
       - name: Configure reconciled game
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build reconciled game
@@ -105,6 +127,7 @@ jobs:
         shell: bash
         run: |
           rm Tools/reconcile_final04_final05.py .github/workflows/reconcile-final04-final05.yml
+          git checkout -- game/tests/SimulationTests.cpp
           git add -A
           git commit -m "merge(game): reconcile FINAL-04 service/logistics into FINAL-05"
           git push origin HEAD:reconcile/final04-final05-20260909
