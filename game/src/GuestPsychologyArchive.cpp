@@ -11,6 +11,7 @@ template <class E> int enumValue(E value) noexcept {
 }
 
 bool bounded100(int value) noexcept { return value >= 0 && value <= 100; }
+bool bounded10000(int value) noexcept { return value >= 0 && value <= 10000; }
 
 void writeProfile(std::ostream &output, const GuestProfileView &profile) {
   output << enumValue(profile.archetype) << ' ' << profile.budgetPerNightCents
@@ -66,6 +67,13 @@ void validateSnapshot(const GuestPsychologySnapshot &snapshot) {
                     snapshot.satisfaction.overall})
     if (!bounded100(value))
       throw std::invalid_argument("archived guest psychology value out of range");
+  for (int value : {snapshot.preferences.wifi, snapshot.preferences.desk,
+                    snapshot.preferences.breakfast, snapshot.preferences.spa,
+                    snapshot.preferences.pool, snapshot.preferences.fitness,
+                    snapshot.preferences.social, snapshot.preferences.quietRoom,
+                    snapshot.preferences.roomQuality})
+    if (!bounded10000(value))
+      throw std::invalid_argument("archived guest preference out of range");
   if (snapshot.memories.size() > 10000 || snapshot.complaints.size() > 10000)
     throw std::invalid_argument("archived guest psychology history too large");
   for (const auto &memory : snapshot.memories)
@@ -104,6 +112,12 @@ std::string serializeGuestPsychology(const GuestPsychologySnapshot &snapshot) {
          << snapshot.needs.hygiene << ' ' << snapshot.needs.comfort << ' '
          << snapshot.needs.entertainment << ' ' << snapshot.needs.social << ' '
          << snapshot.needs.privacy << ' ' << snapshot.needs.safety << ' '
+         << snapshot.preferences.wifi << ' ' << snapshot.preferences.desk << ' '
+         << snapshot.preferences.breakfast << ' ' << snapshot.preferences.spa
+         << ' ' << snapshot.preferences.pool << ' '
+         << snapshot.preferences.fitness << ' ' << snapshot.preferences.social
+         << ' ' << snapshot.preferences.quietRoom << ' '
+         << snapshot.preferences.roomQuality << ' '
          << snapshot.operational.serviceConfidence << ' '
          << snapshot.operational.cleanlinessConfidence << ' '
          << snapshot.operational.environmentComfort << ' '
@@ -150,6 +164,11 @@ GuestPsychologySnapshot deserializeGuestPsychology(std::string_view serialized) 
       snapshot.needs.hygiene >> snapshot.needs.comfort >>
       snapshot.needs.entertainment >> snapshot.needs.social >>
       snapshot.needs.privacy >> snapshot.needs.safety >>
+      snapshot.preferences.wifi >> snapshot.preferences.desk >>
+      snapshot.preferences.breakfast >> snapshot.preferences.spa >>
+      snapshot.preferences.pool >> snapshot.preferences.fitness >>
+      snapshot.preferences.social >> snapshot.preferences.quietRoom >>
+      snapshot.preferences.roomQuality >>
       snapshot.operational.serviceConfidence >>
       snapshot.operational.cleanlinessConfidence >>
       snapshot.operational.environmentComfort >>
