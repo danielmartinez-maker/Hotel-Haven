@@ -1,0 +1,9 @@
+{
+  "schema": "hotel-haven.marketing-campaigns.v1",
+  "campaigns": [
+    {"id":1,"name":"Weekend Leisure Push","cost_cents":150000,"visibility_boost_bp":1500,"segments":["leisure"]},
+    {"id":2,"name":"Corporate Sales Outreach","cost_cents":250000,"visibility_boost_bp":1200,"segments":["business","group"]},
+    {"id":3,"name":"Premium Brand Campaign","cost_cents":400000,"visibility_boost_bp":1800,"segments":["luxury","leisure"]}
+  ],
+  "booking_guarantee": false
+}
