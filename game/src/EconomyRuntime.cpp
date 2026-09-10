@@ -133,7 +133,61 @@ CommercialCommandResult EconomyRuntime::startMarketingCampaign(
 ContractAcceptanceResult EconomyRuntime::acceptCommercialContract(
     const CommercialContract &contract, const ContractFeasibility &feasibility,
     bool acceptRisk) {
-  return commercial_.acceptContract(contract, feasibility, acceptRisk);
+  const std::string category = physicalCapacity_.contains("standard")
+                                   ? std::string("standard")
+                                   : (physicalCapacity_.empty()
+                                          ? std::string()
+                                          : physicalCapacity_.begin()->first);
+  std::int64_t actualAvailableRoomNights = 0;
+  if (!category.empty() && contract.startDay >= 0 && contract.endDay >= contract.startDay) {
+    for (int day = contract.startDay; day <= contract.endDay; ++day) {
+      actualAvailableRoomNights += inventory_.availableUnits(day, category);
+      if (day == std::numeric_limits<int>::max())
+        break;
+    }
+  }
+  const int boundedActual = static_cast<int>(std::min<std::int64_t>(
+      actualAvailableRoomNights, std::numeric_limits<int>::max()));
+  ContractFeasibility authoritative = feasibility;
+  authoritative.availableRoomNights =
+      std::min(feasibility.availableRoomNights, boundedActual);
+  const auto accepted = commercial_.acceptContract(contract, authoritative, acceptRisk);
+  if (!accepted.ok)
+    return accepted;
+
+  int reserved = 0;
+  if (!category.empty()) {
+    for (int day = contract.startDay;
+         day <= contract.endDay && reserved < contract.minimumRoomNights; ++day) {
+      int units = inventory_.availableUnits(day, category);
+      while (units-- > 0 && reserved < contract.minimumRoomNights) {
+        BookingRequestInput booking;
+        booking.bookingId = nextBookingId_++;
+        booking.arrivalDay = day;
+        booking.departureDay = day + 1;
+        booking.roomCategory = category;
+        booking.rateCents = contract.negotiatedRateCents;
+        booking.channel = BookingChannel::Group;
+        booking.sourceContractId = contract.id;
+        booking.paymentDelayDays = contract.paymentDelayDays;
+        const auto booked = inventory_.book(booking);
+        if (!booked.ok) {
+          if (!acceptRisk)
+            throw std::logic_error("prevalidated commercial contract booking failed");
+          break;
+        }
+        ++reserved;
+      }
+      if (day == std::numeric_limits<int>::max())
+        break;
+    }
+  }
+  const int unfulfilled = std::max(0, contract.minimumRoomNights - reserved);
+  if (unfulfilled > 0 && !acceptRisk)
+    throw std::logic_error("feasible commercial contract did not reserve minimum room nights");
+  commercial_.setContractCommitment(contract.id, reserved, unfulfilled);
+  return {true, unfulfilled > 0 ? "ACCEPTED_WITH_EXPLICIT_RISK" : "OK",
+          contract.id, unfulfilled > 0};
 }
 
 void EconomyRuntime::applyReviewOutcome(const ReviewSignal &review) {
@@ -227,21 +281,25 @@ void EconomyRuntime::runOneDay() {
     }
   }
 
-  // Realized room revenue and commissions are posted at contractual departure.
-  auto beforeInventory = inventory_.snapshot();
-  for (const auto &booking : beforeInventory.bookings) {
-    if (booking.state != BookingState::Confirmed || booking.departureDay != currentDay_)
+  // Room revenue posts exactly once at each booking's contractual payment day.
+  // Standard reservations use departure day; commercial contracts may delay cash.
+  const auto paymentInventory = inventory_.snapshot();
+  for (const auto &booking : paymentInventory.bookings) {
+    const bool payableState = booking.state == BookingState::Confirmed ||
+                              booking.state == BookingState::Completed;
+    if (!payableState || booking.revenuePosted || booking.paymentDay != currentDay_)
       continue;
     const auto nights = static_cast<std::int64_t>(booking.departureDay - booking.arrivalDay);
     post(EconomicCategory::RoomRevenue, booking.rateCents * nights, booking.bookingId,
-         "completed room stay");
+         booking.sourceContractId == 0 ? "completed room stay"
+                                       : "commercial contract room revenue");
     if (booking.commissionCents > 0)
       post(EconomicCategory::ChannelCommissionCost, -booking.commissionCents,
            booking.bookingId, "booking channel commission");
-    inventory_.complete(booking.bookingId);
+    inventory_.markRevenuePosted(booking.bookingId);
   }
 
-  beforeInventory = inventory_.snapshot();
+  const auto beforeInventory = inventory_.snapshot();
   std::map<std::uint64_t, BookingState> stateBefore;
   for (const auto &booking : beforeInventory.bookings)
     stateBefore[booking.bookingId] = booking.state;
