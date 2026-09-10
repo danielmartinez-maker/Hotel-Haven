@@ -20,8 +20,6 @@ enum class MarketSegment : std::uint8_t {
   AirportTransit = 7,
   Wellness = 8,
 
-  // Source compatibility aliases retained for FINAL-06 callers/saves created
-  // before the HMG-030 nine-segment reconciliation.
   Leisure = CoupleLeisure,
   Group = ConferenceGroup,
   Luxury = LuxuryLeisure,
@@ -47,6 +45,16 @@ struct MarketDemandModifiers {
   bool operator==(const MarketDemandModifiers &) const = default;
 };
 
+struct ReputationCategoryScores {
+  int service{-1};
+  int room{-1};
+  int cleanliness{-1};
+  int quiet{-1};
+  int business{-1};
+  int food{-1};
+  bool operator==(const ReputationCategoryScores &) const = default;
+};
+
 struct BookingRequest {
   std::uint64_t id{};
   MarketSegment segment{MarketSegment::CoupleLeisure};
@@ -57,7 +65,6 @@ struct BookingRequest {
   int amenityPreference{};
   int locationPreference{};
   int brandPreference{};
-  // Appended to preserve aggregate initialization used by earlier FINAL-06 callers.
   int bookingDay{};
   bool operator==(const BookingRequest &) const = default;
 };
@@ -71,6 +78,7 @@ struct MarketHotelOffer {
   int locationScore{};
   int brandScore{};
   bool sellable{};
+  ReputationCategoryScores reputationCategories{};
   bool operator==(const MarketHotelOffer &) const = default;
 };
 
@@ -83,6 +91,7 @@ struct CompetitorOffer {
   int amenityScore{};
   int locationScore{};
   int brandScore{};
+  ReputationCategoryScores reputationCategories{};
   bool operator==(const CompetitorOffer &) const = default;
 };
 
@@ -125,6 +134,8 @@ public:
                                 const MarketHotelOffer &hotel) const;
   [[nodiscard]] double priceUtility(const BookingRequest &request,
                                     const MarketHotelOffer &hotel) const;
+  [[nodiscard]] double reputationUtility(const BookingRequest &request,
+                                         const MarketHotelOffer &hotel) const;
   [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
                                           const MarketHotelOffer &hotel) const;
   [[nodiscard]] MarketSnapshot snapshot() const;
