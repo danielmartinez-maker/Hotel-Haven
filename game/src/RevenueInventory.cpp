@@ -54,6 +54,26 @@ void RevenueInventory::clearOverbookingAllowances(std::string_view category) {
   overbookingWindows_.erase(key);
 }
 
+InventoryCommandResult RevenueInventory::setInventoryBlock(
+    const InventoryBlock &block) {
+  if (block.id == 0 || block.roomCategory.empty() || block.startDay < 0 ||
+      block.endDay < block.startDay || block.units <= 0)
+    return {false, "INVALID_INVENTORY_BLOCK"};
+  if (!physicalCapacity_.contains(block.roomCategory))
+    return {false, "UNKNOWN_ROOM_CATEGORY"};
+  if (inventoryBlocks_.contains(block.id))
+    return {false, "DUPLICATE_INVENTORY_BLOCK_ID"};
+  inventoryBlocks_.emplace(block.id, block);
+  return {true, "OK"};
+}
+
+InventoryCommandResult RevenueInventory::removeInventoryBlock(
+    std::uint64_t blockId) {
+  if (blockId == 0 || inventoryBlocks_.erase(blockId) == 0)
+    return {false, "INVENTORY_BLOCK_NOT_FOUND"};
+  return {true, "OK"};
+}
+
 void RevenueInventory::setCancellationBasisPoints(BookingChannel channel,
                                                    int basisPoints) {
   if (basisPoints < 0 || basisPoints > 10000)
@@ -73,6 +93,16 @@ int RevenueInventory::sellableUnits(int day, std::string_view category) const {
   const auto physical = physicalCapacity_.find(key);
   if (physical == physicalCapacity_.end())
     return 0;
+
+  std::int64_t blocked = 0;
+  for (const auto &[id, block] : inventoryBlocks_) {
+    (void)id;
+    if (block.roomCategory == key && day >= block.startDay && day <= block.endDay)
+      blocked += block.units;
+  }
+  const std::int64_t unblocked =
+      std::max<std::int64_t>(0, static_cast<std::int64_t>(physical->second) - blocked);
+
   int allowance = 0;
   if (const auto broad = overbookingAllowance_.find(key);
       broad != overbookingAllowance_.end())
@@ -82,7 +112,9 @@ int RevenueInventory::sellableUnits(int day, std::string_view category) const {
     for (const auto &window : dated->second)
       if (day >= window.startDay && day <= window.endDay)
         allowance = window.units;
-  return physical->second + allowance;
+
+  return static_cast<int>(std::min<std::int64_t>(
+      std::numeric_limits<int>::max(), unblocked + allowance));
 }
 
 int RevenueInventory::bookedUnits(int day, std::string_view category) const {
@@ -240,6 +272,10 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
   RevenueInventorySnapshot out;
   out.bookings = bookings_;
   out.physicalCapacity = physicalCapacity_;
+  for (const auto &[id, block] : inventoryBlocks_) {
+    (void)id;
+    out.inventoryBlocks.push_back(block);
+  }
   out.minimumAvailableUnits = std::numeric_limits<int>::max();
   std::size_t active = 0;
   for (const auto &booking : bookings_) {
@@ -262,7 +298,7 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
 
 std::string RevenueInventory::save() const {
   std::ostringstream out;
-  out << "HHRINV 4 " << seed_ << ' ' << physicalCapacity_.size();
+  out << "HHRINV 5 " << seed_ << ' ' << physicalCapacity_.size();
   for (const auto &[category, units] : physicalCapacity_)
     out << ' ' << std::quoted(category) << ' ' << units << ' '
         << overbookingAllowance_.contains(category) << ' '
@@ -280,6 +316,12 @@ std::string RevenueInventory::save() const {
     for (const auto &window : windows)
       out << ' ' << std::quoted(category) << ' ' << window.startDay << ' '
           << window.endDay << ' ' << window.units;
+
+  out << ' ' << inventoryBlocks_.size();
+  for (const auto &[id, block] : inventoryBlocks_)
+    out << ' ' << id << ' ' << std::quoted(block.roomCategory) << ' '
+        << block.startDay << ' ' << block.endDay << ' ' << block.units << ' '
+        << static_cast<int>(block.kind);
 
   out << ' ' << cancellationBasisPoints_.size();
   for (const auto &[channel, bp] : cancellationBasisPoints_)
@@ -305,7 +347,8 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
   std::size_t count{};
   in >> magic >> version >> seed >> count;
   if (!in || magic != "HHRINV" ||
-      (version != 1 && version != 2 && version != 3 && version != 4) ||
+      (version != 1 && version != 2 && version != 3 && version != 4 &&
+       version != 5) ||
       count > 10000)
     throw std::invalid_argument("invalid revenue inventory save");
   RevenueInventory result(seed);
@@ -329,6 +372,24 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
       if (!in)
         throw std::invalid_argument("invalid saved dated allowance");
       result.setOverbookingAllowance(category, units, startDay, endDay);
+    }
+  }
+
+  if (version >= 5) {
+    in >> count;
+    if (!in || count > 100000)
+      throw std::invalid_argument("invalid inventory block count");
+    for (std::size_t i = 0; i < count; ++i) {
+      InventoryBlock block;
+      int kind{};
+      in >> block.id >> std::quoted(block.roomCategory) >> block.startDay >>
+          block.endDay >> block.units >> kind;
+      if (!in || kind < static_cast<int>(InventoryBlockKind::Owner) ||
+          kind > static_cast<int>(InventoryBlockKind::Scenario))
+        throw std::invalid_argument("invalid saved inventory block");
+      block.kind = static_cast<InventoryBlockKind>(kind);
+      if (!result.setInventoryBlock(block).ok)
+        throw std::invalid_argument("invalid saved inventory block");
     }
   }
 
