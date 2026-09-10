@@ -2,6 +2,7 @@
 
 #include "hh/game/MarketDemand.h"
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -23,6 +24,8 @@ struct MarketingCampaign {
   std::int64_t costCents{};
   int visibilityBoostBasisPoints{};
   std::vector<MarketSegment> targetSegments;
+  int rampUpDays{};
+  int attributionDecayDays{};
 };
 
 struct CommercialCommandResult {
@@ -62,6 +65,8 @@ struct ContractAcceptanceResult {
 struct AcceptedCommercialContract {
   CommercialContract contract;
   bool acceptedRisk{};
+  int reservedRoomNights{};
+  int unfulfilledRoomNights{};
 };
 
 struct CommercialDemandSnapshot {
@@ -69,6 +74,7 @@ struct CommercialDemandSnapshot {
   int serviceReputationBasisPoints{7000};
   int cleanlinessReputationBasisPoints{7000};
   int valueReputationBasisPoints{7000};
+  std::uint64_t reviewCount{};
   std::vector<MarketingCampaign> campaigns;
   std::vector<AcceptedCommercialContract> contracts;
 };
@@ -83,6 +89,8 @@ public:
   [[nodiscard]] ContractAcceptanceResult acceptContract(
       const CommercialContract &contract, const ContractFeasibility &feasibility,
       bool acceptRisk);
+  void setContractCommitment(std::uint64_t contractId, int reservedRoomNights,
+                             int unfulfilledRoomNights);
   [[nodiscard]] CommercialDemandSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static CommercialDemand load(std::string_view data);

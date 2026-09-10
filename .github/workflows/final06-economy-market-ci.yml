@@ -14,6 +14,7 @@ on:
       - 'game/include/hh/game/Overbooking.h'
       - 'game/include/hh/game/CommercialDemand.h'
       - 'game/include/hh/game/EconomyRuntime.h'
+      - 'game/include/hh/game/SimulationEconomyBridge.h'
       - 'game/src/MarketDemand.cpp'
       - 'game/src/MarketDemandPersistence.cpp'
       - 'game/src/RevenueInventory.cpp'
@@ -23,14 +24,22 @@ on:
       - 'game/src/Overbooking.cpp'
       - 'game/src/CommercialDemand.cpp'
       - 'game/src/EconomyRuntime.cpp'
+      - 'game/src/EconomyRuntimeBridge.cpp'
+      - 'game/src/EconomyDiagnostics.cpp'
+      - 'game/src/SimulationEconomyBridge.cpp'
       - 'game/tests/*Economy*Tests.cpp'
       - 'game/tests/MarketDemandTests.cpp'
+      - 'game/tests/MarketPotentialDemandTests.cpp'
+      - 'game/tests/MarketingAttributionIntegrationTests.cpp'
+      - 'game/tests/ContractBookingIntegrationTests.cpp'
+      - 'game/tests/FinancingCovenantTests.cpp'
       - 'game/tests/RevenueInventoryTests.cpp'
       - 'game/tests/RevenueManagementTests.cpp'
       - 'game/tests/HotelEconomicsTests.cpp'
       - 'game/tests/FinancingTests.cpp'
       - 'game/tests/OverbookingTests.cpp'
       - 'game/tests/CommercialDemandTests.cpp'
+      - 'game/tests/RevenueCommercialSpecTests.cpp'
       - 'game/data/market_segments.json'
       - 'game/data/competitor_presets.json'
       - 'game/data/rate_plan_defaults.json'
@@ -49,7 +58,7 @@ jobs:
         run: |
           mkdir -p build/final06
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
-          for src in MarketDemand MarketDemandPersistence RevenueInventory RevenueManagement HotelEconomics Financing Overbooking CommercialDemand EconomyRuntime; do
+          for src in MarketDemand MarketDemandPersistence RevenueInventory RevenueManagement HotelEconomics Financing Overbooking CommercialDemand EconomyRuntime EconomyRuntimeBridge EconomyDiagnostics SimulationEconomyBridge; do
             g++ $CXXFLAGS -c game/src/${src}.cpp -o build/final06/${src}.o
           done
       - name: Run FINAL-06 behavior tests
@@ -57,6 +66,8 @@ jobs:
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           g++ $CXXFLAGS game/tests/MarketDemandTests.cpp build/final06/MarketDemand.o -o build/final06/MarketDemandTests
           build/final06/MarketDemandTests
+          g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketPotentialDemandTests
+          build/final06/MarketPotentialDemandTests
           g++ $CXXFLAGS game/tests/RevenueInventoryTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryTests
           build/final06/RevenueInventoryTests
           g++ $CXXFLAGS game/tests/RevenueManagementTests.cpp build/final06/RevenueManagement.o -o build/final06/RevenueManagementTests
@@ -65,29 +76,33 @@ jobs:
           build/final06/HotelEconomicsTests
           g++ $CXXFLAGS game/tests/FinancingTests.cpp build/final06/Financing.o -o build/final06/FinancingTests
           build/final06/FinancingTests
+          g++ $CXXFLAGS game/tests/FinancingCovenantTests.cpp build/final06/Financing.o -o build/final06/FinancingCovenantTests
+          build/final06/FinancingCovenantTests
           g++ $CXXFLAGS game/tests/OverbookingTests.cpp build/final06/Overbooking.o -o build/final06/OverbookingTests
           build/final06/OverbookingTests
           g++ $CXXFLAGS game/tests/CommercialDemandTests.cpp build/final06/CommercialDemand.o -o build/final06/CommercialDemandTests
           build/final06/CommercialDemandTests
-          OBJS='build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o build/final06/RevenueInventory.o build/final06/RevenueManagement.o build/final06/HotelEconomics.o build/final06/Financing.o build/final06/Overbooking.o build/final06/CommercialDemand.o build/final06/EconomyRuntime.o'
-          g++ $CXXFLAGS game/tests/EconomyIntegrationTests.cpp $OBJS -o build/final06/EconomyIntegrationTests
-          build/final06/EconomyIntegrationTests
-          g++ $CXXFLAGS game/tests/EconomySoakTests.cpp $OBJS -o build/final06/EconomySoakTests
-          build/final06/EconomySoakTests
+          OBJS='build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o build/final06/RevenueInventory.o build/final06/RevenueManagement.o build/final06/HotelEconomics.o build/final06/Financing.o build/final06/Overbooking.o build/final06/CommercialDemand.o build/final06/EconomyRuntime.o build/final06/EconomyRuntimeBridge.o build/final06/EconomyDiagnostics.o'
+          for test in MarketingAttributionIntegration ContractBookingIntegration EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics; do
+            g++ $CXXFLAGS game/tests/${test}Tests.cpp $OBJS -o build/final06/${test}Tests
+            build/final06/${test}Tests
+          done
 
   sanitizer-final06-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build and run ASan UBSan integration suites
+      - name: Build and run ASan UBSan FINAL-06 suites
         run: |
           mkdir -p build/final06-sanitize
           CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
-          SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/EconomyRuntime.cpp'
-          g++ $CXXFLAGS game/tests/EconomyIntegrationTests.cpp $SRCS -o build/final06-sanitize/EconomyIntegrationTests
-          build/final06-sanitize/EconomyIntegrationTests
-          g++ $CXXFLAGS game/tests/EconomySoakTests.cpp $SRCS -o build/final06-sanitize/EconomySoakTests
-          build/final06-sanitize/EconomySoakTests
+          SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
+          g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp $SRCS -o build/final06-sanitize/MarketPotentialDemandTests
+          build/final06-sanitize/MarketPotentialDemandTests
+          for test in FinancingCovenant MarketingAttributionIntegration ContractBookingIntegration EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics; do
+            g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
+            build/final06-sanitize/${test}Tests
+          done
 
   integrated-game-tests:
     runs-on: ubuntu-latest

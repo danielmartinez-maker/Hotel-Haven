@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <string>
 #include <string_view>
@@ -11,6 +12,8 @@ struct OverbookingPolicy {
   std::string roomCategory;
   int allowance{};
   std::int64_t relocationCompensationCents{};
+  int startDay{};
+  int endDay{std::numeric_limits<int>::max()};
   bool operator==(const OverbookingPolicy &) const = default;
 };
 
@@ -43,12 +46,15 @@ struct RecoveryDecision {
   RecoveryAction action{RecoveryAction::Unresolved};
   std::int64_t compensationCents{};
   std::string reason;
+  bool severeExperienceEvent{};
+  std::string experienceEventCode;
 };
 
 class OverbookingSystem {
 public:
   [[nodiscard]] OverbookingResult setPolicy(const OverbookingPolicy &policy);
   [[nodiscard]] int allowance(std::string_view category) const;
+  [[nodiscard]] int allowance(std::string_view category, int day) const;
   [[nodiscard]] RecoveryDecision chooseRecovery(const RecoveryContext &context) const;
   [[nodiscard]] const std::map<std::string, OverbookingPolicy> &policies() const noexcept;
   [[nodiscard]] std::string save() const;

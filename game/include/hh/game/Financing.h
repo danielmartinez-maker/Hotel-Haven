@@ -36,6 +36,16 @@ struct LoanOffer {
   std::int64_t minimumCashCents{};
 };
 
+struct LoanQuote {
+  bool ok{};
+  std::string reason;
+  int paymentCount{};
+  std::int64_t nextPaymentCents{};
+  std::int64_t totalInterestCents{};
+  std::int64_t totalRepaymentCents{};
+  explicit operator bool() const noexcept { return ok; }
+};
+
 struct LoanResult {
   bool ok{};
   std::string reason;
@@ -59,10 +69,12 @@ struct FinancingSnapshot {
   DistressStage distressStage{DistressStage::Healthy};
   int defaultStartDay{-1};
   bool covenantBreach{};
+  int debtToGopBasisPoints{};
 };
 
 class FinancingSystem {
 public:
+  [[nodiscard]] LoanQuote quoteLoan(const LoanOffer &offer) const;
   [[nodiscard]] LoanResult acceptLoan(const LoanOffer &offer,
                                       std::int64_t currentCashCents);
   [[nodiscard]] DebtServiceResult processDay(int day,
@@ -70,7 +82,8 @@ public:
   void setCurePeriodDays(int days);
   void observeDay(int day, std::int64_t cashCents,
                   std::int64_t averageDailyOperatingCostCents,
-                  bool missedObligation);
+                  bool missedObligation,
+                  std::int64_t gopCents = 0);
   [[nodiscard]] FinancingSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static FinancingSystem load(std::string_view data);
@@ -81,6 +94,10 @@ private:
     std::int64_t remainingPrincipalCents{};
     int paymentsRemaining{};
     int nextPaymentDay{};
+    std::int64_t scheduledPaymentCents{};
+    std::int64_t quotedTotalInterestCents{};
+    std::int64_t interestPaidCents{};
+    bool legacyEqualPrincipal{};
   };
 
   std::vector<ActiveLoan> loans_;
@@ -89,9 +106,13 @@ private:
   int curePeriodDays_{14};
   std::int64_t missedObligationCents_{};
   bool covenantBreach_{};
+  int debtToGopBasisPoints_{};
 
-  [[nodiscard]] static std::int64_t interestDue(const ActiveLoan &loan);
-  [[nodiscard]] static std::int64_t principalDue(const ActiveLoan &loan);
+  [[nodiscard]] static int paymentCount(const LoanOffer &offer);
+  [[nodiscard]] static std::int64_t periodicInterestDue(const ActiveLoan &loan);
+  [[nodiscard]] static std::int64_t legacyInterestDue(const ActiveLoan &loan);
+  [[nodiscard]] static std::int64_t legacyPrincipalDue(const ActiveLoan &loan);
+  [[nodiscard]] static std::int64_t nextPaymentDue(const ActiveLoan &loan);
 };
 
 } // namespace hh::game

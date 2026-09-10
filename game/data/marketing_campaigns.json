@@ -1,9 +1,34 @@
 {
-  "schema": "hotel-haven.marketing-campaigns.v1",
+  "schema": "hotel-haven.marketing-campaigns.v2",
+  "base_player_consideration_probability_bp": 7000,
   "campaigns": [
-    {"id":1,"name":"Weekend Leisure Push","cost_cents":150000,"visibility_boost_bp":1500,"segments":["leisure"]},
-    {"id":2,"name":"Corporate Sales Outreach","cost_cents":250000,"visibility_boost_bp":1200,"segments":["business","group"]},
-    {"id":3,"name":"Premium Brand Campaign","cost_cents":400000,"visibility_boost_bp":1800,"segments":["luxury","leisure"]}
+    {
+      "id": 1,
+      "name": "Weekend Leisure Push",
+      "cost_cents": 150000,
+      "visibility_boost_bp": 1500,
+      "ramp_up_days": 2,
+      "attribution_decay_days": 3,
+      "segments": ["couple_leisure", "family_leisure", "budget_leisure"]
+    },
+    {
+      "id": 2,
+      "name": "Corporate Sales Outreach",
+      "cost_cents": 250000,
+      "visibility_boost_bp": 1200,
+      "ramp_up_days": 5,
+      "attribution_decay_days": 7,
+      "segments": ["business", "executive_business", "conference_group"]
+    },
+    {
+      "id": 3,
+      "name": "Premium Brand Campaign",
+      "cost_cents": 400000,
+      "visibility_boost_bp": 1800,
+      "ramp_up_days": 4,
+      "attribution_decay_days": 10,
+      "segments": ["luxury_leisure", "wellness", "couple_leisure"]
+    }
   ],
   "booking_guarantee": false
 }
