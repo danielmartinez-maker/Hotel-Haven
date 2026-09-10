@@ -29,3 +29,20 @@ TEST_CASE("Large operations lists expose bounded virtual windows") {
     EXPECT_EQ(window.size(), static_cast<std::size_t>(80));
     EXPECT_EQ(window.front().id, static_cast<EntityId>(1200));
 }
+
+TEST_CASE("Filtered operations lists virtualize before materializing rows") {
+    OperationsSnapshot source;
+    for (std::uint64_t i = 0; i < 10000; ++i) {
+        const auto area = (i % 3 == 0) ? OperationArea::Engineering
+                                       : OperationArea::Housekeeping;
+        source.rows.push_back({i, area, "Task", "Ready", 1, "", 0});
+    }
+
+    OperationsDashboard dashboard;
+    dashboard.update(source);
+    const auto page = dashboard.filteredWindow(OperationArea::Engineering, 1000, 64);
+
+    EXPECT_EQ(page.size(), static_cast<std::size_t>(64));
+    EXPECT_EQ(page.front().id, static_cast<EntityId>(3000));
+    EXPECT_EQ(page.back().id, static_cast<EntityId>(3189));
+}
