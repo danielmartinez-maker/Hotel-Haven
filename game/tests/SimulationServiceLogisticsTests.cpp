@@ -1,5 +1,6 @@
 #include "hh/game/Simulation.h"
 #include <stdexcept>
+#include <string>
 #include <string_view>
 
 using namespace hh::game;
@@ -37,6 +38,28 @@ static int itemAt(const LogisticsSnapshot &snapshot, StorageKind kind,
     if (stack.storage == storage && stack.item == item)
       total += stack.quantity;
   return total;
+}
+
+static ServiceLogisticsRuntime serviceRuntime(const Simulation &sim) {
+  const auto encoded = sim.save();
+  const auto marker = encoded.rfind("FINAL04 ");
+  require(marker != std::string::npos, "Simulation save omitted FINAL-04 section");
+  const auto lineEnd = encoded.find('\n', marker);
+  require(lineEnd != std::string::npos, "FINAL-04 section header is malformed");
+  const auto byteText = encoded.substr(marker + 8, lineEnd - (marker + 8));
+  const auto bytes = static_cast<std::size_t>(std::stoull(byteText));
+  const auto payloadStart = lineEnd + 1;
+  require(payloadStart + bytes <= encoded.size(),
+          "FINAL-04 section length exceeds Simulation save");
+  return ServiceLogisticsRuntime::load(encoded.substr(payloadStart, bytes));
+}
+
+static const WorkOrderView &workOrder(const EngineeringSnapshot &snapshot,
+                                      WorkOrderId id) {
+  for (const auto &entry : snapshot.workOrders)
+    if (entry.id == id)
+      return entry;
+  throw std::runtime_error("engineering work order missing");
 }
 
 static void stable_commands_and_save_boundary() {
@@ -96,6 +119,38 @@ static void room_turn_uses_staff_execution_and_main_room_state() {
           "staff-executed FINAL-04 room turn never returned room to sellable");
 }
 
+static void preventive_maintenance_requires_technician_execution() {
+  Simulation sim(325, 24, 14, 1);
+  for (int x = 0; x <= 10; ++x)
+    require(sim.buildTile({0, x, 5},
+                          x == 0 ? TileKind::Entrance : TileKind::Floor)
+                .ok,
+            "preventive bridge corridor build failed");
+  const auto built = sim.buildFurnishedRoom(
+      {"201", 0, 5, 6, 5, 5, {0, 5, 6}, 1, 1, 120});
+  require(built.ok, "preventive bridge room build failed");
+
+  const auto work = sim.createWorkOrder(built.id, WorkOrderType::Preventive);
+  require(work != 0, "preventive work order bridge rejected");
+  const auto initial = serviceRuntime(sim).engineering().snapshot();
+  const auto initialRemaining = workOrder(initial, work).remainingSeconds;
+  require(initialRemaining > 0, "preventive work order started complete");
+
+  sim.step(1800);
+  const auto unattended = serviceRuntime(sim).engineering().snapshot();
+  require(workOrder(unattended, work).remainingSeconds == initialRemaining,
+          "preventive maintenance progressed without maintenance staff");
+  require(workOrder(unattended, work).stage != WorkOrderStage::Completed,
+          "preventive maintenance completed without maintenance staff");
+
+  require(sim.hireStaff({"Engineering", PersonKind::Maintenance, 0, 0, 25}).ok,
+          "preventive bridge maintenance hire failed");
+  sim.step(1800);
+  const auto staffed = serviceRuntime(sim).engineering().snapshot();
+  require(workOrder(staffed, work).stage == WorkOrderStage::Completed,
+          "on-shift maintenance staff never completed preventive work");
+}
+
 static void definition_inventory_is_physical_authority() {
   auto sim = Simulation::tutorial(323);
   require(sim.loadDefinitions(
@@ -143,6 +198,7 @@ static void simulation_supply_orders_enter_receiving() {
 int main() {
   stable_commands_and_save_boundary();
   room_turn_uses_staff_execution_and_main_room_state();
+  preventive_maintenance_requires_technician_execution();
   definition_inventory_is_physical_authority();
   simulation_supply_orders_enter_receiving();
 }
