@@ -69,6 +69,7 @@ struct FinancingSnapshot {
   DistressStage distressStage{DistressStage::Healthy};
   int defaultStartDay{-1};
   bool covenantBreach{};
+  int debtToGopBasisPoints{};
 };
 
 class FinancingSystem {
@@ -81,7 +82,8 @@ public:
   void setCurePeriodDays(int days);
   void observeDay(int day, std::int64_t cashCents,
                   std::int64_t averageDailyOperatingCostCents,
-                  bool missedObligation);
+                  bool missedObligation,
+                  std::int64_t gopCents = 0);
   [[nodiscard]] FinancingSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static FinancingSystem load(std::string_view data);
@@ -104,6 +106,7 @@ private:
   int curePeriodDays_{14};
   std::int64_t missedObligationCents_{};
   bool covenantBreach_{};
+  int debtToGopBasisPoints_{};
 
   [[nodiscard]] static int paymentCount(const LoanOffer &offer);
   [[nodiscard]] static std::int64_t periodicInterestDue(const ActiveLoan &loan);
