@@ -7,6 +7,7 @@
 #include "hh/frontend/AlertCenter.h"
 #include "hh/frontend/GameHudController.h"
 #include "hh/frontend/GameUiRuntime.h"
+#include "hh/frontend/ObjectiveUi.h"
 #include "hh/frontend/UiSettings.h"
 #include "hh/game/Simulation.h"
 #include "hh/renderer/Camera.h"
@@ -18,9 +19,6 @@
 #include <vector>
 #include <windows.h>
 
-// Legacy Win32/RPC headers still expose these as macros on current Windows SDKs.
-// They collide with ordinary C++ identifiers used by the client and must not
-// leak beyond the platform include boundary.
 #ifdef small
 #undef small
 #endif
@@ -80,10 +78,12 @@ struct Client {
   hh::frontend::GameHudController hudController;
   hh::frontend::GameUiRuntime ui;
   hh::frontend::AlertCenter alertCenter{200};
+  hh::frontend::ObjectiveUi objectiveUi;
   hh::frontend::UiSettings uiSettings;
   hh::frontend::BuildPlacementPreview buildPreview;
   bool uiConfigured{};
   std::uint64_t previewRequestSerial{};
+  std::uint64_t selectedAlertId{};
   hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
@@ -96,6 +96,7 @@ struct Client {
   int width = 1500, height = 960, floor = 0, speed = 0, priorSpeed = 1,
       tabScroll = 0;
   int hoverX = -1, hoverY = -1;
+  int focusedButton = -1;
   double pendingSimulationSeconds = 0;
   hh::game::EntityId selected{};
   Page page = Page::Guide;

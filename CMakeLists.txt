@@ -59,7 +59,7 @@ if(WIN32)
     add_executable(hotel_haven WIN32
         game/app/GameMain.cpp
         game/app/ClientUi.cpp
-        game/app/Panels.cpp)
+        game/app/Final07Panels.cpp)
     target_compile_definitions(hotel_haven PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
     target_link_libraries(hotel_haven PRIVATE
         hh_game
