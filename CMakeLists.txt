@@ -19,6 +19,11 @@ target_link_libraries(hh_world_view PUBLIC hh_game)
 add_executable(hh_world_view_tests game/app/WorldViewTests.cpp)
 target_link_libraries(hh_world_view_tests PRIVATE hh_world_view)
 add_test(NAME hh_world_view_tests COMMAND hh_world_view_tests)
+
+add_executable(hh_final07_client_contract_tests game/app/InGameUiContractTests.cpp)
+target_include_directories(hh_final07_client_contract_tests PRIVATE game/app)
+add_test(NAME hh_final07_client_contract_tests COMMAND hh_final07_client_contract_tests)
+
 if(WIN32)
     add_subdirectory(renderer)
     add_subdirectory(frontend)
