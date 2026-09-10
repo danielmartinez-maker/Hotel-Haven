@@ -43,4 +43,8 @@ if(HH_GAME_BUILD_TESTS)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
   endforeach()
+
+  add_executable(hh_stress_harness_tests tests/stress/StressHarnessTests.cpp)
+  target_include_directories(hh_stress_harness_tests PRIVATE tests/stress)
+  add_test(NAME StressHarness COMMAND hh_stress_harness_tests)
 endif()
