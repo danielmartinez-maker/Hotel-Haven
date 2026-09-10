@@ -74,6 +74,8 @@ jobs:
           build/final06/MarketReputationCategoryTests
           g++ $CXXFLAGS game/tests/MarketCompetitorCategoryAllocationTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketCompetitorCategoryAllocationTests
           build/final06/MarketCompetitorCategoryAllocationTests
+          g++ $CXXFLAGS game/tests/MarketCompetitorCalendarTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketCompetitorCalendarTests
+          build/final06/MarketCompetitorCalendarTests
           g++ $CXXFLAGS game/tests/RevenueInventoryTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryTests
           build/final06/RevenueInventoryTests
           g++ $CXXFLAGS game/tests/ReservationPolicySpecTests.cpp build/final06/RevenueInventory.o -o build/final06/ReservationPolicySpecTests
@@ -111,7 +113,7 @@ jobs:
           mkdir -p build/final06-sanitize
           CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
           SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/CommercialDemandProfile.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
-          for test in MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant OverbookingPercentage MarketingAttributionIntegration MarketingDailyCostIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+          for test in MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation MarketCompetitorCalendar ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant OverbookingPercentage MarketingAttributionIntegration MarketingDailyCostIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
             build/final06-sanitize/${test}Tests
           done
