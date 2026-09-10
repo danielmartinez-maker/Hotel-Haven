@@ -1,11 +1,116 @@
 {
-  "schema": "hotel-haven.market-segments.v1",
+  "schema": "hotel-haven.market-segments.v2",
   "segments": [
-    {"id":"leisure","weight":30,"base_budget_cents":17000,"price_sensitivity_bp":20000,"amenity_sensitivity_bp":8000},
-    {"id":"business","weight":25,"base_budget_cents":22000,"price_sensitivity_bp":11000,"amenity_sensitivity_bp":10000},
-    {"id":"group","weight":15,"base_budget_cents":18000,"price_sensitivity_bp":16000,"amenity_sensitivity_bp":9000},
-    {"id":"luxury","weight":10,"base_budget_cents":30000,"price_sensitivity_bp":7000,"amenity_sensitivity_bp":15000},
-    {"id":"budget","weight":20,"base_budget_cents":11000,"price_sensitivity_bp":30000,"amenity_sensitivity_bp":4000}
+    {
+      "id": "budget_leisure",
+      "base_daily_demand": 18,
+      "share_weight": 16,
+      "base_budget_cents": 11000,
+      "price_elasticity_bp": 16000,
+      "amenity_sensitivity_bp": 3500,
+      "median_lead_time_days": 14,
+      "median_stay_nights": 2,
+      "cancellation_rate_bp": 900,
+      "no_show_rate_bp": 500
+    },
+    {
+      "id": "business",
+      "base_daily_demand": 22,
+      "share_weight": 18,
+      "base_budget_cents": 22000,
+      "price_elasticity_bp": 10000,
+      "amenity_sensitivity_bp": 10000,
+      "median_lead_time_days": 10,
+      "median_stay_nights": 2,
+      "cancellation_rate_bp": 700,
+      "no_show_rate_bp": 300
+    },
+    {
+      "id": "executive_business",
+      "base_daily_demand": 8,
+      "share_weight": 7,
+      "base_budget_cents": 32000,
+      "price_elasticity_bp": 7200,
+      "amenity_sensitivity_bp": 12000,
+      "median_lead_time_days": 14,
+      "median_stay_nights": 2,
+      "cancellation_rate_bp": 500,
+      "no_show_rate_bp": 200
+    },
+    {
+      "id": "couple_leisure",
+      "base_daily_demand": 20,
+      "share_weight": 17,
+      "base_budget_cents": 18000,
+      "price_elasticity_bp": 11800,
+      "amenity_sensitivity_bp": 9000,
+      "median_lead_time_days": 21,
+      "median_stay_nights": 3,
+      "cancellation_rate_bp": 1000,
+      "no_show_rate_bp": 350
+    },
+    {
+      "id": "family_leisure",
+      "base_daily_demand": 14,
+      "share_weight": 12,
+      "base_budget_cents": 20000,
+      "price_elasticity_bp": 13000,
+      "amenity_sensitivity_bp": 10500,
+      "median_lead_time_days": 35,
+      "median_stay_nights": 4,
+      "cancellation_rate_bp": 1200,
+      "no_show_rate_bp": 300
+    },
+    {
+      "id": "luxury_leisure",
+      "base_daily_demand": 7,
+      "share_weight": 6,
+      "base_budget_cents": 36000,
+      "price_elasticity_bp": 5800,
+      "amenity_sensitivity_bp": 15500,
+      "median_lead_time_days": 28,
+      "median_stay_nights": 3,
+      "cancellation_rate_bp": 700,
+      "no_show_rate_bp": 150
+    },
+    {
+      "id": "conference_group",
+      "base_daily_demand": 9,
+      "share_weight": 8,
+      "base_budget_cents": 19000,
+      "price_elasticity_bp": 8800,
+      "amenity_sensitivity_bp": 11000,
+      "median_lead_time_days": 120,
+      "median_stay_nights": 3,
+      "cancellation_rate_bp": 600,
+      "no_show_rate_bp": 100
+    },
+    {
+      "id": "airport_transit",
+      "base_daily_demand": 15,
+      "share_weight": 11,
+      "base_budget_cents": 13000,
+      "price_elasticity_bp": 14200,
+      "amenity_sensitivity_bp": 4500,
+      "median_lead_time_days": 2,
+      "median_stay_nights": 1,
+      "cancellation_rate_bp": 500,
+      "no_show_rate_bp": 700
+    },
+    {
+      "id": "wellness",
+      "base_daily_demand": 6,
+      "share_weight": 5,
+      "base_budget_cents": 27000,
+      "price_elasticity_bp": 8200,
+      "amenity_sensitivity_bp": 17000,
+      "median_lead_time_days": 24,
+      "median_stay_nights": 3,
+      "cancellation_rate_bp": 800,
+      "no_show_rate_bp": 200
+    }
   ],
-  "eligibility": {"maximum_price_to_budget_basis_points":15000}
+  "eligibility": {"maximum_price_to_budget_basis_points": 15000},
+  "choice_temperature_basis_points": 3500,
+  "reputation_half_life_review_equivalents": 90
 }
