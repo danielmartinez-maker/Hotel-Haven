@@ -547,6 +547,65 @@ struct Simulation::Impl {
     for (EntityId roomId : failedRooms)
       if (auto *room = getRoom(roomId))
         createTask(TaskKind::Repair, roomId, room->door, repairWork);
+
+    // FINAL-03/current staff scheduling owns technician execution for FINAL-04
+    // preventive work orders. The work order remains authoritative/persisted in
+    // EngineeringSystem; this bridge only supplies an eligible worker and travel.
+    std::unordered_set<EntityId> preventiveWorkers;
+    const auto engineering = services.engineering().snapshot();
+    for (const auto &order : engineering.workOrders) {
+      if (order.type != WorkOrderType::Preventive ||
+          order.stage == WorkOrderStage::Completed)
+        continue;
+      auto *target = getRoom(order.assetId);
+      if (!target)
+        continue;
+
+      Person *best = nullptr;
+      int bestDistance = 999999;
+      for (auto &person : people) {
+        if (person.kind != PersonKind::Maintenance || !person.onShift ||
+            person.task != 0 || preventiveWorkers.contains(person.id))
+          continue;
+        const int distance = manhattan(person.position, target->door);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = &person;
+        }
+      }
+      if (!best)
+        continue;
+      preventiveWorkers.insert(best->id);
+      best->destination = target->door;
+      best->goal = "Preventive maintenance";
+
+      if (!same(best->position, best->destination)) {
+        auto route = path(best->position, best->destination);
+        if (route.empty()) {
+          best->state = PersonState::Idle;
+          best->goal = "Preventive maintenance blocked: no route";
+          continue;
+        }
+        best->state = PersonState::Traveling;
+        best->position = route.front();
+        ++best->travelSeconds;
+        best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);
+        continue;
+      }
+
+      const auto serviceWork = services.workEngineeringSecond(
+          order.assetId, WorkOrderType::Preventive);
+      if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {
+        best->state = PersonState::Idle;
+        continue;
+      }
+      best->state = PersonState::Working;
+      best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);
+      if (serviceWork.completed) {
+        best->state = PersonState::Idle;
+        best->goal.clear();
+      }
+    }
   }
   void guests() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
