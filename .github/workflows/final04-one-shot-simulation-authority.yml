@@ -7,6 +7,10 @@ on:
       - feature/final-04-service-logistics
     paths:
       - .github/workflows/final04-one-shot-simulation-authority.yml
+      - tools/final04_reconcile_scheduler.py
+      - tools/final04_reconcile_main.py
+      - game/include/hh/game/Engineering.h
+      - game/src/Engineering.cpp
 
 permissions:
   contents: read
@@ -19,72 +23,16 @@ jobs:
         with:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
-      - name: Merge and reconcile scheduler
-        shell: bash
+      - name: Merge current main without committing
         run: |
           git config user.name "hotel-haven-final04-bot"
           git config user.email "actions@users.noreply.github.com"
           git fetch origin main
           git merge --no-commit --no-ff -X ours origin/main
-          python - <<'PY'
-          from pathlib import Path
-          import subprocess
-
-          def replace_once(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label} anchor mismatch: {count}')
-              return text.replace(old, new, 1)
-
-          cmake = Path('game/CMakeLists.txt')
-          text = cmake.read_text()
-          missing_sources = [src for src in (
-              'src/Workforce.cpp', 'src/Departments.cpp', 'src/StaffOptimization.cpp')
-              if src not in text]
-          if missing_sources:
-              insertion = ''.join(f'  {src}\n' for src in missing_sources)
-              text = text.replace('  src/ServiceLogistics.cpp\n)',
-                                  '  src/ServiceLogistics.cpp\n' + insertion + ')')
-          if 'hh_workforce_tests' not in text:
-              text = text.replace('endif()\n', '''  add_executable(hh_workforce_tests tests/WorkforceTests.cpp)\n  target_link_libraries(hh_workforce_tests PRIVATE hh_game)\n  add_test(NAME Workforce COMMAND hh_workforce_tests)\n\n  add_executable(hh_department_tests tests/DepartmentTests.cpp)\n  target_link_libraries(hh_department_tests PRIVATE hh_game)\n  add_test(NAME Department COMMAND hh_department_tests)\n\n  add_executable(hh_optimizer_tests tests/OptimizerIntegrationTests.cpp)\n  target_link_libraries(hh_optimizer_tests PRIVATE hh_game)\n  add_test(NAME Optimizer COMMAND hh_optimizer_tests)\nendif()\n''', 1)
-          cmake.write_text(text)
-
-          header = Path('game/include/hh/game/Simulation.h')
-          text = header.read_text()
-          anchor = '#include "hh/game/ServiceLogistics.h"\n'
-          includes = ''.join(f'#include "hh/game/{name}.h"\n' for name in ('Departments','StaffOptimization','Workforce'))
-          if '#include "hh/game/Workforce.h"' not in text:
-              text = text.replace(anchor, anchor + includes)
-          header.write_text(text)
-
-          path = Path('game/src/Simulation.cpp')
-          merged = path.read_text()
-          main = subprocess.check_output(['git','show','origin/main:game/src/Simulation.cpp'], text=True)
-          start = main.index('  void staffAndTasks() {')
-          end = main.index('  void guests() {', start)
-          fn = main[start:end]
-
-          fn = replace_once(fn, '''        bool resources = true;\n        if (task.kind == TaskKind::Turnover)\n          resources = task.resourcesClaimed ||\n                      (has(TileKind::SupplyCloset) && inventory.linen >= 1 &&\n                       inventory.towels >= 2 && inventory.amenities >= 1 &&\n                       inventory.chemicals >= 1);\n        if (task.kind == TaskKind::Repair)\n          resources = task.resourcesClaimed || inventory.parts >= 1;\n''', '''        bool resources = true;\n        if (task.kind == TaskKind::Turnover) {\n          const auto &logistics = services.logistics();\n          resources = task.resourcesClaimed ||\n                      (has(TileKind::SupplyCloset) &&\n                       logistics.inventoryUsable("clean_linen_set") >= 1 &&\n                       logistics.inventoryUsable("towel_unit") >= 2 &&\n                       logistics.inventoryUsable("amenity_kit") >= 1 &&\n                       logistics.inventoryUsable("cleaning_chemical") >= 1);\n        }\n        if (task.kind == TaskKind::Repair)\n          resources = task.resourcesClaimed ||\n                      services.logistics().inventoryUsable("maintenance_part") >= 1;\n''', 'physical-resource-check')
-
-          fn = replace_once(fn, '''          if (p.onShift && !p.absent && p.task == 0 && eligible(p, task)) {\n''', '''          if (p.onShift && !p.absent && p.task == 0 &&\n              p.goal != "Preventive maintenance" && eligible(p, task)) {\n''', 'preventive-reservation')
-
-          fn = replace_once(fn, '''        if (task.kind == TaskKind::Repair && !task.resourcesClaimed) {\n          inventory.parts--;\n          task.resourcesClaimed = true;\n        }\n''', '''        if (task.kind == TaskKind::Repair && !task.resourcesClaimed)\n          task.resourcesClaimed = true;\n''', 'repair-resource-authority')
-
-          fn = replace_once(fn, '''          if (task.kind == TaskKind::Turnover &&\n              same(p->destination, supply()) && !task.resourcesClaimed) {\n            if (inventory.linen < 1 || inventory.towels < 2 ||\n                inventory.amenities < 1 || inventory.chemicals < 1) {\n              task.status = TaskStatus::Blocked;\n              task.blockedReason = "Required local supplies unavailable";\n              task.employeeId = 0;\n              p->task = 0;\n              p->state = PersonState::Idle;\n              continue;\n            }\n            inventory.linen--;\n            inventory.towels -= 2;\n            inventory.amenities--;\n            inventory.chemicals--;\n            task.resourcesClaimed = true;\n''', '''          if (task.kind == TaskKind::Turnover &&\n              same(p->destination, supply()) && !task.resourcesClaimed) {\n            const auto &logistics = services.logistics();\n            if (logistics.inventoryUsable("clean_linen_set") < 1 ||\n                logistics.inventoryUsable("towel_unit") < 2 ||\n                logistics.inventoryUsable("amenity_kit") < 1 ||\n                logistics.inventoryUsable("cleaning_chemical") < 1) {\n              task.status = TaskStatus::Blocked;\n              task.blockedReason = "Required physical supplies unavailable";\n              task.employeeId = 0;\n              p->task = 0;\n              p->state = PersonState::Idle;\n              continue;\n            }\n            task.resourcesClaimed = true;\n''', 'turnover-resource-authority')
-
-          fn = replace_once(fn, '''      } else {\n        p->onBreak = false;\n        p->inTraining = false;\n        const double fatiguePerHour =\n''', '''      } else {\n        p->onBreak = false;\n        p->inTraining = false;\n        if (task.kind == TaskKind::Turnover) {\n          const auto serviceWork = services.workRoomTurnSecond(task.targetId);\n          if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {\n            task.status = TaskStatus::Blocked;\n            task.blockedReason = !serviceWork.valid\n                                     ? "FINAL-04 room-turn job missing"\n                                     : "FINAL-04 room-turn resources blocked";\n            task.employeeId = 0;\n            p->task = 0;\n            p->state = PersonState::Idle;\n            continue;\n          }\n        } else if (task.kind == TaskKind::Repair) {\n          const auto serviceWork = services.workEngineeringSecond(\n              task.targetId, WorkOrderType::Corrective);\n          if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {\n            task.status = TaskStatus::Blocked;\n            task.blockedReason = !serviceWork.valid\n                                     ? "FINAL-04 engineering work order missing"\n                                     : "FINAL-04 engineering resources blocked";\n            task.employeeId = 0;\n            p->task = 0;\n            p->state = PersonState::Idle;\n            continue;\n          }\n        }\n        const double fatiguePerHour =\n''', 'service-work-hook')
-
-          fn = replace_once(fn, '''      if (task.workRemainingSeconds > 0)\n        continue;\n\n      task.status = TaskStatus::Completed;\n''', '''      const bool serviceTurnComplete =\n          task.kind != TaskKind::Turnover ||\n          services.housekeeping().roomStatus(task.targetId) ==\n              ServiceRoomStatus::Ready;\n      bool serviceRepairComplete = task.kind != TaskKind::Repair;\n      if (task.kind == TaskKind::Repair) {\n        const auto engineering = services.engineering().snapshot();\n        for (const auto &order : engineering.workOrders)\n          if (order.assetId == task.targetId &&\n              order.type == WorkOrderType::Corrective &&\n              order.stage == WorkOrderStage::Completed)\n            serviceRepairComplete = true;\n      }\n      if (task.workRemainingSeconds > 0 || !serviceTurnComplete ||\n          !serviceRepairComplete)\n        continue;\n\n      task.status = TaskStatus::Completed;\n''', 'service-completion-gate')
-
-          fn = replace_once(fn, '''        if (task.kind == TaskKind::Repair) {\n          room->condition = 100;\n''', '''        if (task.kind == TaskKind::Repair) {\n          const auto engineering = services.engineering().snapshot();\n          for (const auto &asset : engineering.assets)\n            if (asset.id == room->id)\n              room->condition = asset.condition / 100.0;\n''', 'repair-condition-authority')
-
-          fn = replace_once(fn, '''    for (EntityId roomId : failedRooms)\n      if (auto *room = getRoom(roomId))\n        createTask(TaskKind::Repair, roomId, room->door, repairWork);\n  }\n''', '''    for (EntityId roomId : failedRooms)\n      if (auto *room = getRoom(roomId))\n        createTask(TaskKind::Repair, roomId, room->door, repairWork);\n\n    // FINAL-03 scheduler supplies labor to authoritative FINAL-04 preventive work.\n    std::unordered_set<EntityId> preventiveWorkers;\n    const auto engineering = services.engineering().snapshot();\n    for (const auto &order : engineering.workOrders) {\n      if (order.type != WorkOrderType::Preventive ||\n          order.stage == WorkOrderStage::Completed)\n        continue;\n      auto *target = getRoom(order.assetId);\n      if (!target)\n        continue;\n      Person *best = nullptr;\n      int bestDistance = std::numeric_limits<int>::max();\n      for (auto &person : people) {\n        if (person.kind != PersonKind::Maintenance || !person.onShift ||\n            person.absent || person.task != 0 ||\n            preventiveWorkers.contains(person.id))\n          continue;\n        const int distance = manhattan(person.position, target->door);\n        if (distance < bestDistance ||\n            (distance == bestDistance && (!best || person.id < best->id))) {\n          bestDistance = distance;\n          best = &person;\n        }\n      }\n      if (!best)\n        continue;\n      preventiveWorkers.insert(best->id);\n      best->destination = target->door;\n      best->goal = "Preventive maintenance";\n      if (!same(best->position, best->destination)) {\n        auto route = path(best->position, best->destination);\n        if (route.empty()) {\n          best->state = PersonState::Idle;\n          best->goal.clear();\n          continue;\n        }\n        best->state = PersonState::Traveling;\n        best->position = route.front();\n        ++best->travelSeconds;\n        best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);\n        continue;\n      }\n      const auto serviceWork = services.workEngineeringSecond(\n          order.assetId, WorkOrderType::Preventive);\n      if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {\n        best->state = PersonState::Idle;\n        best->goal.clear();\n        continue;\n      }\n      best->state = PersonState::Working;\n      best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);\n      if (serviceWork.completed) {\n        best->state = PersonState::Idle;\n        best->goal.clear();\n      }\n    }\n  }\n''', 'preventive-scheduler')
-
-          mstart = merged.index('  void staffAndTasks() {')
-          mend = merged.index('  void guests() {', mstart)
-          merged = merged[:mstart] + fn + merged[mend:]
-          path.write_text(merged)
-          PY
+      - name: Reconcile FINAL-03 scheduler with FINAL-04 authority
+        run: |
+          python tools/final04_reconcile_scheduler.py
+          python tools/final04_reconcile_main.py
           grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
       - name: Configure combined build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
