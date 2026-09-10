@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hh/game/RevenueInventory.h"
 #include <cstdint>
 #include <map>
 #include <string>
@@ -36,6 +37,7 @@ struct RevenueManagementSnapshot {
   std::map<std::string, std::int64_t> comparableMedianRateCents;
   std::map<std::string, PricePosition> pricePositions;
   std::map<std::string, std::int64_t> effectiveRateCents;
+  RevenueInventorySnapshot inventory;
 };
 
 class RevenueManagement {
