@@ -86,7 +86,9 @@ jobs:
 
           git checkout --theirs game/src/Simulation.cpp
           python Tools/reconcile_final04_final05.py
-          git add game/CMakeLists.txt game/src/Simulation.cpp
+          python Tools/reconcile_final04_authority.py
+          python Tools/reconcile_physical_restock_test.py
+          git add game/CMakeLists.txt game/src/Simulation.cpp game/tests/SimulationTests.cpp
 
           if git diff --name-only --diff-filter=U | grep -q .; then
             echo "Unresolved conflicts remain"
@@ -94,28 +96,6 @@ jobs:
             exit 1
           fi
           grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
-
-      - name: Add temporary profitability diagnostics
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('game/tests/SimulationTests.cpp')
-          text = path.read_text()
-          anchor = '  require(operatingProfit > 0, "fully occupied tutorial loses money by design");'
-          diag = '''  std::cerr << "Tutorial economics: revenue=" << economy.revenueCents
-                    << " payroll=" << economy.payrollCents
-                    << " supplies=" << economy.supplyCostCents
-                    << " utilities=" << economy.utilityCostCents
-                    << " operatingProfit=" << operatingProfit
-                    << " cash=" << economy.cashCents
-                    << " openingCash=" << openingCash
-                    << " stays=" << economy.completedStays << '\\n';
-          '''
-          if text.count(anchor) != 1:
-              raise SystemExit(f'profitability diagnostic anchor count={text.count(anchor)}')
-          path.write_text(text.replace(anchor, diag + anchor, 1))
-          PY
 
       - name: Configure reconciled game
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -126,8 +106,7 @@ jobs:
       - name: Commit verified reconciliation
         shell: bash
         run: |
-          rm Tools/reconcile_final04_final05.py .github/workflows/reconcile-final04-final05.yml
-          git checkout -- game/tests/SimulationTests.cpp
+          rm Tools/reconcile_final04_final05.py Tools/reconcile_final04_authority.py Tools/reconcile_physical_restock_test.py .github/workflows/reconcile-final04-final05.yml
           git add -A
           git commit -m "merge(game): reconcile FINAL-04 service/logistics into FINAL-05"
           git push origin HEAD:reconcile/final04-final05-20260909
