@@ -27,12 +27,31 @@ void readReputationCategories(std::istringstream &in,
     throw std::invalid_argument("invalid saved reputation categories");
 }
 
+void writeChoiceWeights(std::ostringstream &out,
+                        const SegmentChoiceWeights &weights) {
+  out << ' ' << weights.priceBasisPoints << ' ' << weights.reputationBasisPoints
+      << ' ' << weights.amenityBasisPoints << ' ' << weights.locationBasisPoints
+      << ' ' << weights.starBasisPoints << ' ' << weights.roomBasisPoints << ' '
+      << weights.brandBasisPoints;
+}
+
+void readChoiceWeights(std::istringstream &in, SegmentChoiceWeights &weights) {
+  in >> weights.priceBasisPoints >> weights.reputationBasisPoints >>
+      weights.amenityBasisPoints >> weights.locationBasisPoints >>
+      weights.starBasisPoints >> weights.roomBasisPoints >> weights.brandBasisPoints;
+  if (!in || weights.priceBasisPoints < 0 || weights.reputationBasisPoints < 0 ||
+      weights.amenityBasisPoints < 0 || weights.locationBasisPoints < 0 ||
+      weights.starBasisPoints < 0 || weights.roomBasisPoints < 0 ||
+      weights.brandBasisPoints < 0 || weights.totalBasisPoints() != 10000)
+    throw std::invalid_argument("invalid saved market choice weights");
+}
+
 } // namespace
 
 std::string MarketDemandSystem::save() const {
   std::ostringstream out;
   out << std::setprecision(17);
-  out << "HHMARKET 5 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
+  out << "HHMARKET 6 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
       << player_.hotelId << ' ' << player_.nightlyRateCents << ' ' << player_.reputation << ' '
       << player_.stars << ' ' << player_.amenityScore << ' ' << player_.locationScore << ' '
       << player_.brandScore << ' ' << player_.sellable;
@@ -59,12 +78,16 @@ std::string MarketDemandSystem::save() const {
     for (const int multiplier : profile.weekdayMultiplierBasisPoints)
       out << ' ' << multiplier;
     out << ' ' << profile.medianLeadTimeDays << ' ' << profile.medianStayNights << ' '
-        << profile.baseBudgetCents;
+        << profile.baseBudgetCents << ' ' << profile.priceElasticityBasisPoints << ' '
+        << profile.amenitySensitivityBasisPoints << ' '
+        << profile.cancellationBasisPoints << ' ' << profile.noShowBasisPoints;
+    writeChoiceWeights(out, profile.choiceWeights);
   }
 
   out << ' ' << playerConsiderationBasisPoints_.size();
   for (const auto &[segment, basisPoints] : playerConsiderationBasisPoints_)
     out << ' ' << static_cast<int>(segment) << ' ' << basisPoints;
+  out << ' ' << choiceTemperatureBasisPoints_;
 
   out << ' ' << snapshot_.generatedRequests << ' ' << snapshot_.playerWins << ' '
       << snapshot_.competitorWins << ' ' << snapshot_.unallocatedRequests << ' '
@@ -89,7 +112,7 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   in >> magic >> version >> seed >> rngState >> nextRequest;
   if (!in || magic != "HHMARKET" ||
       (version != 1 && version != 2 && version != 3 && version != 4 &&
-       version != 5) ||
+       version != 5 && version != 6) ||
       seed == 0 || nextRequest == 0)
     throw std::invalid_argument("invalid market save");
   MarketDemandSystem result(seed);
@@ -148,16 +171,24 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
     if (!in || count > 9)
       throw std::invalid_argument("invalid demand profile count");
     for (std::size_t i = 0; i < count; ++i) {
-      SegmentDemandProfile profile;
-      int segment{};
-      in >> segment >> profile.baseDailyDemand;
-      if (!in || segment < static_cast<int>(MarketSegment::CoupleLeisure) ||
-          segment > static_cast<int>(MarketSegment::Wellness))
+      int segmentValue{};
+      double baseDailyDemand{};
+      in >> segmentValue >> baseDailyDemand;
+      if (!in || segmentValue < static_cast<int>(MarketSegment::CoupleLeisure) ||
+          segmentValue > static_cast<int>(MarketSegment::Wellness))
         throw std::invalid_argument("invalid saved demand profile segment");
-      profile.segment = static_cast<MarketSegment>(segment);
+      const auto segment = static_cast<MarketSegment>(segmentValue);
+      auto profile = result.segmentDemandProfile(segment);
+      profile.baseDailyDemand = baseDailyDemand;
       for (int &multiplier : profile.weekdayMultiplierBasisPoints)
         in >> multiplier;
       in >> profile.medianLeadTimeDays >> profile.medianStayNights >> profile.baseBudgetCents;
+      if (version >= 6) {
+        in >> profile.priceElasticityBasisPoints >>
+            profile.amenitySensitivityBasisPoints >>
+            profile.cancellationBasisPoints >> profile.noShowBasisPoints;
+        readChoiceWeights(in, profile.choiceWeights);
+      }
       if (!in)
         throw std::invalid_argument("invalid saved demand profile");
       result.setSegmentDemandProfile(profile);
@@ -177,6 +208,12 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
       result.setPlayerConsiderationBasisPoints(static_cast<MarketSegment>(segment),
                                                basisPoints);
     }
+  }
+  if (version >= 6) {
+    in >> result.choiceTemperatureBasisPoints_;
+    if (!in || result.choiceTemperatureBasisPoints_ <= 0 ||
+        result.choiceTemperatureBasisPoints_ > 100000)
+      throw std::invalid_argument("invalid saved choice temperature");
   }
 
   in >> result.snapshot_.generatedRequests >> result.snapshot_.playerWins >>
