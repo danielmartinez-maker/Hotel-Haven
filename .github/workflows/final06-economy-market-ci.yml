@@ -46,6 +46,10 @@ on:
       - '.github/workflows/final06-economy-market-ci.yml'
   workflow_dispatch:
 
+concurrency:
+  group: final06-economy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   portable-final06-tests:
     runs-on: ubuntu-latest
