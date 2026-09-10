@@ -73,4 +73,8 @@ if(HH_GAME_BUILD_TESTS)
   target_include_directories(hh_optimizer_integration_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
   target_link_libraries(hh_optimizer_integration_tests PRIVATE hh_game hh_optimization)
   add_test(NAME hh_optimizer_integration_tests COMMAND hh_optimizer_integration_tests)
+
+  add_executable(hh_stress_harness_tests tests/stress/StressHarnessTests.cpp)
+  target_include_directories(hh_stress_harness_tests PRIVATE tests/stress)
+  add_test(NAME StressHarness COMMAND hh_stress_harness_tests)
 endif()
