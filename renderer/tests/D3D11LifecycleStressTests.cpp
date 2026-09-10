@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "StressScale.h"
 #include "d3d11/D3D11Renderer.h"
 #include "hh/renderer/Camera.h"
 #include "hh/renderer/RenderScene.h"
@@ -6,7 +7,6 @@
 #include <windows.h>
 
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <stdexcept>
 #include <string>
@@ -15,8 +15,7 @@
 namespace {
 
 std::size_t lifecycleBudget() {
-    const char* scale = std::getenv("HH_STRESS_SCALE");
-    const std::string_view value = scale ? std::string_view{scale} : std::string_view{"pr"};
+    const auto value = hh::renderer::stress_test::scaleFromEnvironment();
     if (value == "pr") return 100;
     if (value == "extended") return 500;
     if (value == "exhaustive") return 1'000;
@@ -102,7 +101,7 @@ TEST_CASE("D3D11 WARP renderer survives repeated initialize render present shutd
         const auto scene = oneBoxScene(cycle);
         EXPECT_TRUE(renderer.renderWorld(scene, camera));
         EXPECT_TRUE(renderer.present());
-        EXPECT_EQ(renderer.stats().boxDrawCalls, 1u);
+        EXPECT_EQ(renderer.stats().cachedMeshes, 0u);
 
         renderer.shutdown();
         EXPECT_TRUE(renderer.device() == nullptr);
