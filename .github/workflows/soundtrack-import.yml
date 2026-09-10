@@ -1,0 +1,54 @@
+name: One-shot Soundtrack Binary Import
+
+on:
+  push:
+    branches: [feature/hotel-soundtrack-v1]
+    paths:
+      - '.github/workflows/soundtrack-import.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-soundtrack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/hotel-soundtrack-v1
+          fetch-depth: 0
+      - name: Download verified package
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --output /tmp/hotel-haven-soundtrack.zip 'https://uc741697dd625724ee12a9c29147.dl.dropboxusercontent.com/cd/0/get/DH0xrBu-Rw8qQYVdpoPG3ImFzhOrVpsTqJCOe6wh8n06x3vWfOowZn7Sd9eIOW5IurQRfCmiJCnWUCOqaS9uKE5KzCG9t55UN4SQA-6-eTpeDtY2P5m1P6glAluFFmwgeJy03jpzwMp7pDBPNN6S_2Zg2_H9HIecJgsvaVHEm3OSMQ/file?c_luid=5a0ff20e'
+          echo 'fe60ac39cc13adb91484da5ddd0083ce5024ff01da9cdabc17513b1d9dfc965a  /tmp/hotel-haven-soundtrack.zip' | sha256sum -c -
+      - name: Extract exact soundtrack assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hh-soundtrack-extract
+          mkdir -p /tmp/hh-soundtrack-extract
+          unzip -q /tmp/hotel-haven-soundtrack.zip -d /tmp/hh-soundtrack-extract
+          src=/tmp/hh-soundtrack-extract/Hotel-Haven-0.1.0-Windows/data/audio
+          test -d "$src"
+          cp "$src/Morning_in_the_Atrium.mp3" game/data/audio/
+          cp "$src/Sunlight_on_Marble.mp3" game/data/audio/
+          cp "$src/The_Concierge_Desk.mp3" game/data/audio/
+          cp "$src/First_Light_on_Marble.mp3" game/data/audio/
+      - name: Verify exact asset bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -DHH_SOUNDTRACK_DIR="$PWD/game/data/audio" -P game/audio/VerifySoundtrackAssets.cmake
+      - name: Commit binaries and remove importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/soundtrack-import.yml
+          git add game/data/audio/*.mp3
+          git status --short
+          git commit -m 'assets(audio): add verified Hotel Haven soundtrack binaries'
+          git push origin HEAD:feature/hotel-soundtrack-v1
