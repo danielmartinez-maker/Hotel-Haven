@@ -57,13 +57,16 @@ void EconomyRuntime::setPhysicalRoomCapacity(std::string category, int units) {
   inventory_.clearOverbookingAllowances(category);
   const auto policy = overbooking_.policies().find(category);
   if (policy != overbooking_.policies().end()) {
-    if (policy->second.startDay == 0 &&
-        policy->second.endDay == std::numeric_limits<int>::max())
-      inventory_.setOverbookingAllowance(category, policy->second.allowance);
+    const auto &configured = policy->second;
+    const int resolved =
+        overbooking_.allowance(category, configured.startDay, units);
+    if (configured.startDay == 0 &&
+        configured.endDay == std::numeric_limits<int>::max())
+      inventory_.setOverbookingAllowance(category, resolved);
     else
-      inventory_.setOverbookingAllowance(category, policy->second.allowance,
-                                         policy->second.startDay,
-                                         policy->second.endDay);
+      inventory_.setOverbookingAllowance(category, resolved,
+                                         configured.startDay,
+                                         configured.endDay);
   }
 }
 
@@ -102,10 +105,13 @@ OverbookingResult EconomyRuntime::setOverbookingPolicy(const OverbookingPolicy &
   const auto result = overbooking_.setPolicy(policy);
   if (result.ok && physicalCapacity_.contains(policy.roomCategory)) {
     inventory_.clearOverbookingAllowances(policy.roomCategory);
+    const int physicalRooms = physicalCapacity_.at(policy.roomCategory);
+    const int resolved =
+        overbooking_.allowance(policy.roomCategory, policy.startDay, physicalRooms);
     if (policy.startDay == 0 && policy.endDay == std::numeric_limits<int>::max())
-      inventory_.setOverbookingAllowance(policy.roomCategory, policy.allowance);
+      inventory_.setOverbookingAllowance(policy.roomCategory, resolved);
     else
-      inventory_.setOverbookingAllowance(policy.roomCategory, policy.allowance,
+      inventory_.setOverbookingAllowance(policy.roomCategory, resolved,
                                          policy.startDay, policy.endDay);
   }
   return result;
