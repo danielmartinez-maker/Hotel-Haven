@@ -40,6 +40,16 @@ public:
       bool acceptRisk = false);
   void applyReviewOutcome(const ReviewSignal &review);
 
+  // Integration hooks for an owning campaign runtime. These do not generate
+  // market requests or reservations; they only mirror authoritative external
+  // economic events and absolute KPI counters into the FINAL-06 ledger.
+  void postExternalTransaction(int day, EconomicCategory category,
+                               std::int64_t amountCents,
+                               std::uint64_t sourceId, std::string memo);
+  void synchronizeExternalMetrics(int currentDay,
+                                  std::int64_t cumulativeSellableRoomNights,
+                                  std::int64_t cumulativeOccupiedRoomNights);
+
   void runDays(int days);
 
   [[nodiscard]] MarketSnapshot marketSnapshot() const;
