@@ -1,0 +1,34 @@
+name: FINAL-04 FINAL-05 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/final04-final05-20260909
+    paths:
+      - '.github/workflows/reconcile-final04-final05.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Diagnose exact FINAL-04 merge
+        shell: bash
+        run: |
+          set +e
+          git config user.name "hotel-haven-reconcile"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin feature/final-04-service-logistics
+          git merge --no-commit --no-ff 6e3bf150cae45c68b6067c644d9637d61ebba917
+          rc=$?
+          echo "MERGE_EXIT=$rc"
+          echo "=== CONFLICTS ==="
+          git diff --name-only --diff-filter=U
+          echo "=== STATUS ==="
+          git status --short
+          exit $rc
