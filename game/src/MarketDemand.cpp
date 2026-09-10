@@ -7,26 +7,49 @@
 namespace hh::game {
 namespace {
 
-constexpr double segmentPriceSensitivity(MarketSegment segment) {
+constexpr double segmentPriceElasticity(MarketSegment segment) {
   switch (segment) {
-  case MarketSegment::Budget: return 3.0;
-  case MarketSegment::Leisure: return 2.0;
-  case MarketSegment::Group: return 1.6;
-  case MarketSegment::Business: return 1.1;
-  case MarketSegment::Luxury: return 0.7;
+  case MarketSegment::BudgetLeisure: return 1.60;
+  case MarketSegment::Business: return 1.00;
+  case MarketSegment::ExecutiveBusiness: return 0.72;
+  case MarketSegment::CoupleLeisure: return 1.18;
+  case MarketSegment::FamilyLeisure: return 1.30;
+  case MarketSegment::LuxuryLeisure: return 0.58;
+  case MarketSegment::ConferenceGroup: return 0.88;
+  case MarketSegment::AirportTransit: return 1.42;
+  case MarketSegment::Wellness: return 0.82;
   }
   return 1.0;
 }
 
 constexpr double segmentAmenitySensitivity(MarketSegment segment) {
   switch (segment) {
-  case MarketSegment::Luxury: return 1.5;
-  case MarketSegment::Business: return 1.0;
-  case MarketSegment::Group: return 0.9;
-  case MarketSegment::Leisure: return 0.8;
-  case MarketSegment::Budget: return 0.4;
+  case MarketSegment::BudgetLeisure: return 0.35;
+  case MarketSegment::Business: return 1.00;
+  case MarketSegment::ExecutiveBusiness: return 1.20;
+  case MarketSegment::CoupleLeisure: return 0.90;
+  case MarketSegment::FamilyLeisure: return 1.05;
+  case MarketSegment::LuxuryLeisure: return 1.55;
+  case MarketSegment::ConferenceGroup: return 1.10;
+  case MarketSegment::AirportTransit: return 0.45;
+  case MarketSegment::Wellness: return 1.70;
   }
   return 1.0;
+}
+
+std::int64_t baseBudget(MarketSegment segment) {
+  switch (segment) {
+  case MarketSegment::BudgetLeisure: return 11'000;
+  case MarketSegment::Business: return 22'000;
+  case MarketSegment::ExecutiveBusiness: return 32'000;
+  case MarketSegment::CoupleLeisure: return 18'000;
+  case MarketSegment::FamilyLeisure: return 20'000;
+  case MarketSegment::LuxuryLeisure: return 36'000;
+  case MarketSegment::ConferenceGroup: return 19'000;
+  case MarketSegment::AirportTransit: return 13'000;
+  case MarketSegment::Wellness: return 27'000;
+  }
+  return 17'000;
 }
 
 MarketHotelOffer asHotel(const CompetitorOffer &c) {
@@ -71,26 +94,47 @@ bool MarketDemandSystem::isEligible(const BookingRequest &request,
   if (!hotel.sellable || hotel.hotelId == 0 || request.budgetCents <= 0 ||
       hotel.nightlyRateCents <= 0)
     return false;
-  // HMG-030 default hard consideration cutoff: strictly above 1.5x budget.
   return hotel.nightlyRateCents <= request.budgetCents + request.budgetCents / 2;
+}
+
+double MarketDemandSystem::priceUtility(const BookingRequest &request,
+                                        const MarketHotelOffer &hotel) const {
+  if (!isEligible(request, hotel))
+    return 0.0;
+  const double budget = static_cast<double>(request.budgetCents);
+  const double ratio = static_cast<double>(hotel.nightlyRateCents) / budget;
+  if (ratio <= 0.75)
+    return 1.0;
+  if (ratio <= 1.0)
+    return 1.0 - ((ratio - 0.75) / 0.25) * 0.20;
+  if (ratio <= 1.25)
+    return 0.80 - ((ratio - 1.0) / 0.25) * 0.55;
+  if (ratio <= 1.50)
+    return std::max(0.0, 0.25 - ((ratio - 1.25) / 0.25) * 0.25);
+  return 0.0;
 }
 
 double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
                                                const MarketHotelOffer &hotel) const {
   if (!isEligible(request, hotel))
     return 0.0;
-  const double budget = static_cast<double>(std::max<std::int64_t>(1, request.budgetCents));
-  const double rateRatio = static_cast<double>(hotel.nightlyRateCents) / budget;
-  const double priceUtility = -segmentPriceSensitivity(request.segment) * rateRatio;
-  const double reputationUtility = std::clamp(hotel.reputation, 0, 100) * 0.018;
-  const double starUtility = std::clamp(hotel.stars, 1, 5) * 0.12;
-  const double amenityFit = (std::clamp(hotel.amenityScore, 0, 100) / 100.0) *
-                            segmentAmenitySensitivity(request.segment);
-  const double locationFit = std::clamp(hotel.locationScore, 0, 100) / 100.0 * 0.65;
-  const double brandFit = std::clamp(hotel.brandScore, 0, 100) / 100.0 * 0.35;
-  const double utility = priceUtility + reputationUtility + starUtility + amenityFit +
-                         locationFit + brandFit;
-  return std::exp(std::clamp(utility, -20.0, 20.0));
+  const double basePriceUtility = priceUtility(request, hotel);
+  if (basePriceUtility <= 0.0)
+    return 0.0;
+  const double price = std::pow(basePriceUtility, segmentPriceElasticity(request.segment));
+  const double reputation = std::clamp(hotel.reputation, 0, 100) / 100.0;
+  const double amenities = (std::clamp(hotel.amenityScore, 0, 100) / 100.0) *
+                           segmentAmenitySensitivity(request.segment);
+  const double location = std::clamp(hotel.locationScore, 0, 100) / 100.0;
+  const double stars = std::clamp(hotel.stars, 1, 5) / 5.0;
+  const double brand = std::clamp(hotel.brandScore, 0, 100) / 100.0;
+  const double roomFit = request.partySize <= 4 ? 1.0 : 0.85;
+
+  const double score = 0.30 * price + 0.20 * reputation + 0.15 * amenities +
+                       0.10 * location + 0.10 * stars + 0.10 * brand +
+                       0.05 * roomFit;
+  constexpr double temperature = 0.35;
+  return std::exp(std::clamp(score / temperature, -20.0, 20.0));
 }
 
 void MarketDemandSystem::allocate(const BookingRequest &request) {
@@ -136,24 +180,27 @@ void MarketDemandSystem::generateRequests(int firstArrivalDay, int lastArrivalDa
   if (count <= 0 || lastArrivalDay < firstArrivalDay)
     return;
   static constexpr MarketSegment segments[] = {
-      MarketSegment::Leisure, MarketSegment::Business, MarketSegment::Group,
-      MarketSegment::Luxury, MarketSegment::Budget};
+      MarketSegment::BudgetLeisure, MarketSegment::Business,
+      MarketSegment::ExecutiveBusiness, MarketSegment::CoupleLeisure,
+      MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
+      MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
+      MarketSegment::Wellness};
   const int daySpan = lastArrivalDay - firstArrivalDay + 1;
   for (int i = 0; i < count; ++i) {
     BookingRequest request;
     request.id = nextRequestId_++;
-    request.segment = segments[nextRandom() % 5];
-    request.arrivalDay = firstArrivalDay + static_cast<int>(nextRandom() % static_cast<std::uint64_t>(daySpan));
+    request.segment = segments[nextRandom() % 9];
+    request.arrivalDay = firstArrivalDay +
+        static_cast<int>(nextRandom() % static_cast<std::uint64_t>(daySpan));
     request.departureDay = request.arrivalDay + 1 + static_cast<int>(nextRandom() % 4);
-    const std::int64_t baseBudget = request.segment == MarketSegment::Luxury ? 30000
-                                    : request.segment == MarketSegment::Business ? 22000
-                                    : request.segment == MarketSegment::Group ? 18000
-                                    : request.segment == MarketSegment::Budget ? 11000
-                                                                              : 17000;
-    request.budgetCents = baseBudget + static_cast<std::int64_t>(nextRandom() % 8001) - 2000;
-    request.partySize = request.segment == MarketSegment::Group
-                            ? 4 + static_cast<int>(nextRandom() % 5)
-                            : 1 + static_cast<int>(nextRandom() % 3);
+    request.budgetCents = baseBudget(request.segment) +
+                          static_cast<std::int64_t>(nextRandom() % 8001) - 2000;
+    if (request.segment == MarketSegment::ConferenceGroup)
+      request.partySize = 4 + static_cast<int>(nextRandom() % 8);
+    else if (request.segment == MarketSegment::FamilyLeisure)
+      request.partySize = 3 + static_cast<int>(nextRandom() % 4);
+    else
+      request.partySize = 1 + static_cast<int>(nextRandom() % 3);
     request.amenityPreference = static_cast<int>(nextRandom() % 101);
     request.locationPreference = static_cast<int>(nextRandom() % 101);
     request.brandPreference = static_cast<int>(nextRandom() % 101);
