@@ -29,6 +29,25 @@ void RevenueInventory::setOverbookingAllowance(std::string category, int units) 
   overbookingAllowance_[std::move(category)] = units;
 }
 
+void RevenueInventory::setOverbookingAllowance(std::string category, int units,
+                                               int startDay, int endDay) {
+  if (category.empty() || units < 0 || startDay < 0 || endDay < startDay)
+    throw std::invalid_argument("invalid dated overbooking allowance");
+  auto &windows = overbookingWindows_[category];
+  auto it = std::find_if(windows.begin(), windows.end(), [&](const auto &window) {
+    return window.startDay == startDay && window.endDay == endDay;
+  });
+  if (it == windows.end())
+    windows.push_back({startDay, endDay, units});
+  else
+    it->units = units;
+  std::sort(windows.begin(), windows.end(), [](const auto &a, const auto &b) {
+    if (a.startDay != b.startDay)
+      return a.startDay < b.startDay;
+    return a.endDay < b.endDay;
+  });
+}
+
 void RevenueInventory::setCancellationBasisPoints(BookingChannel channel, int basisPoints) {
   if (basisPoints < 0 || basisPoints > 10000)
     throw std::invalid_argument("invalid cancellation probability");
@@ -41,12 +60,21 @@ void RevenueInventory::setNoShowBasisPoints(BookingChannel channel, int basisPoi
   noShowBasisPoints_[channel] = basisPoints;
 }
 
-int RevenueInventory::sellableUnits(int, std::string_view category) const {
-  const auto physical = physicalCapacity_.find(std::string(category));
+int RevenueInventory::sellableUnits(int day, std::string_view category) const {
+  const std::string key(category);
+  const auto physical = physicalCapacity_.find(key);
   if (physical == physicalCapacity_.end())
     return 0;
-  const auto allowance = overbookingAllowance_.find(std::string(category));
-  return physical->second + (allowance == overbookingAllowance_.end() ? 0 : allowance->second);
+  int allowance = 0;
+  if (const auto broad = overbookingAllowance_.find(key);
+      broad != overbookingAllowance_.end())
+    allowance = broad->second;
+  if (const auto dated = overbookingWindows_.find(key);
+      dated != overbookingWindows_.end())
+    for (const auto &window : dated->second)
+      if (day >= window.startDay && day <= window.endDay)
+        allowance = window.units;
+  return physical->second + allowance;
 }
 
 int RevenueInventory::bookedUnits(int day, std::string_view category) const {
@@ -96,7 +124,8 @@ InventoryCommandResult RevenueInventory::book(const BookingRequestInput &request
   booking.state = BookingState::Confirmed;
   booking.commissionBasisPoints = defaultCommissionBasisPoints(request.channel);
   const auto roomNights = static_cast<std::int64_t>(request.departureDay - request.arrivalDay);
-  booking.commissionCents = (request.rateCents * roomNights * booking.commissionBasisPoints + 5000) / 10000;
+  booking.commissionCents =
+      (request.rateCents * roomNights * booking.commissionBasisPoints + 5000) / 10000;
   bookings_.push_back(std::move(booking));
   std::sort(bookings_.begin(), bookings_.end(), [](const auto &a, const auto &b) {
     return a.bookingId < b.bookingId;
@@ -122,7 +151,8 @@ InventoryCommandResult RevenueInventory::cancel(std::uint64_t bookingId) {
 }
 
 void RevenueInventory::complete(std::uint64_t bookingId) {
-  if (auto *booking = find(bookingId); booking && booking->state == BookingState::Confirmed)
+  if (auto *booking = find(bookingId);
+      booking && booking->state == BookingState::Confirmed)
     booking->state = BookingState::Completed;
 }
 
@@ -143,14 +173,15 @@ void RevenueInventory::processDay(int day) {
     if (day < booking.arrivalDay) {
       const auto it = cancellationBasisPoints_.find(booking.channel);
       const int threshold = it == cancellationBasisPoints_.end() ? 0 : it->second;
-      // Resolve cancellation once, on the day before arrival, so repeated calls are idempotent.
       if (day == booking.arrivalDay - 1 &&
-          deterministicRoll(booking.bookingId, day, 0xCACE11A7ULL) < static_cast<std::uint32_t>(threshold))
+          deterministicRoll(booking.bookingId, day, 0xCACE11A7ULL) <
+              static_cast<std::uint32_t>(threshold))
         booking.state = BookingState::Cancelled;
     } else if (day == booking.arrivalDay) {
       const auto it = noShowBasisPoints_.find(booking.channel);
       const int threshold = it == noShowBasisPoints_.end() ? 0 : it->second;
-      if (deterministicRoll(booking.bookingId, day, 0xA05A0ULL) < static_cast<std::uint32_t>(threshold))
+      if (deterministicRoll(booking.bookingId, day, 0xA05A0ULL) <
+          static_cast<std::uint32_t>(threshold))
         booking.state = BookingState::NoShow;
     } else if (day >= booking.departureDay) {
       booking.state = BookingState::Completed;
@@ -171,8 +202,8 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
     out.bookedRoomRevenueCents += booking.rateCents * nights;
     out.channelCommissionCents += booking.commissionCents;
     for (int day = booking.arrivalDay; day < booking.departureDay; ++day)
-      out.minimumAvailableUnits = std::min(out.minimumAvailableUnits,
-                                           availableUnits(day, booking.roomCategory));
+      out.minimumAvailableUnits = std::min(
+          out.minimumAvailableUnits, availableUnits(day, booking.roomCategory));
   }
   out.hotPathBookingCount = active;
   if (out.minimumAvailableUnits == std::numeric_limits<int>::max())
@@ -182,18 +213,33 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
 
 std::string RevenueInventory::save() const {
   std::ostringstream out;
-  out << "HHRINV 1 " << seed_ << ' ' << physicalCapacity_.size();
+  out << "HHRINV 2 " << seed_ << ' ' << physicalCapacity_.size();
   for (const auto &[category, units] : physicalCapacity_)
-    out << ' ' << std::quoted(category) << ' ' << units << ' ' << overbookingAllowance_.contains(category)
-        << ' ' << (overbookingAllowance_.contains(category) ? overbookingAllowance_.at(category) : 0);
+    out << ' ' << std::quoted(category) << ' ' << units << ' '
+        << overbookingAllowance_.contains(category) << ' '
+        << (overbookingAllowance_.contains(category) ? overbookingAllowance_.at(category) : 0);
+
+  std::size_t windowCount = 0;
+  for (const auto &[category, windows] : overbookingWindows_) {
+    (void)category;
+    windowCount += windows.size();
+  }
+  out << ' ' << windowCount;
+  for (const auto &[category, windows] : overbookingWindows_)
+    for (const auto &window : windows)
+      out << ' ' << std::quoted(category) << ' ' << window.startDay << ' '
+          << window.endDay << ' ' << window.units;
+
   out << ' ' << cancellationBasisPoints_.size();
   for (const auto &[channel, bp] : cancellationBasisPoints_)
-    out << ' ' << static_cast<int>(channel) << ' ' << bp << ' ' << noShowBasisPoints_.at(channel);
+    out << ' ' << static_cast<int>(channel) << ' ' << bp << ' '
+        << noShowBasisPoints_.at(channel);
   out << ' ' << bookings_.size();
   for (const auto &b : bookings_)
     out << ' ' << b.bookingId << ' ' << b.arrivalDay << ' ' << b.departureDay << ' '
-        << std::quoted(b.roomCategory) << ' ' << b.rateCents << ' ' << static_cast<int>(b.channel)
-        << ' ' << static_cast<int>(b.state) << ' ' << b.commissionBasisPoints << ' ' << b.commissionCents;
+        << std::quoted(b.roomCategory) << ' ' << b.rateCents << ' '
+        << static_cast<int>(b.channel) << ' ' << static_cast<int>(b.state) << ' '
+        << b.commissionBasisPoints << ' ' << b.commissionCents;
   return out.str();
 }
 
@@ -204,7 +250,7 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
   std::uint64_t seed{};
   std::size_t count{};
   in >> magic >> version >> seed >> count;
-  if (!in || magic != "HHRINV" || version != 1 || count > 10000)
+  if (!in || magic != "HHRINV" || (version != 1 && version != 2) || count > 10000)
     throw std::invalid_argument("invalid revenue inventory save");
   RevenueInventory result(seed);
   for (std::size_t i = 0; i < count; ++i) {
@@ -212,10 +258,27 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
     int units{}, hasAllowance{}, allowance{};
     in >> std::quoted(category) >> units >> hasAllowance >> allowance;
     result.setPhysicalCapacity(category, units);
-    if (hasAllowance) result.setOverbookingAllowance(category, allowance);
+    if (hasAllowance)
+      result.setOverbookingAllowance(category, allowance);
   }
+
+  if (version >= 2) {
+    in >> count;
+    if (!in || count > 100000)
+      throw std::invalid_argument("invalid dated allowance count");
+    for (std::size_t i = 0; i < count; ++i) {
+      std::string category;
+      int startDay{}, endDay{}, units{};
+      in >> std::quoted(category) >> startDay >> endDay >> units;
+      if (!in)
+        throw std::invalid_argument("invalid saved dated allowance");
+      result.setOverbookingAllowance(category, units, startDay, endDay);
+    }
+  }
+
   in >> count;
-  if (!in || count > 16) throw std::invalid_argument("invalid channel policy count");
+  if (!in || count > 16)
+    throw std::invalid_argument("invalid channel policy count");
   for (std::size_t i = 0; i < count; ++i) {
     int channel{}, cancelBp{}, noShowBp{};
     in >> channel >> cancelBp >> noShowBp;
@@ -226,13 +289,15 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
     result.setNoShowBasisPoints(c, noShowBp);
   }
   in >> count;
-  if (!in || count > 1000000) throw std::invalid_argument("invalid booking count");
+  if (!in || count > 1000000)
+    throw std::invalid_argument("invalid booking count");
   result.bookings_.clear();
   for (std::size_t i = 0; i < count; ++i) {
     BookingView b;
     int channel{}, state{};
-    in >> b.bookingId >> b.arrivalDay >> b.departureDay >> std::quoted(b.roomCategory)
-       >> b.rateCents >> channel >> state >> b.commissionBasisPoints >> b.commissionCents;
+    in >> b.bookingId >> b.arrivalDay >> b.departureDay >>
+        std::quoted(b.roomCategory) >> b.rateCents >> channel >> state >>
+        b.commissionBasisPoints >> b.commissionCents;
     if (!in || channel < 0 || channel > static_cast<int>(BookingChannel::Group) ||
         state < 0 || state > static_cast<int>(BookingState::Completed))
       throw std::invalid_argument("invalid saved booking");
@@ -241,7 +306,8 @@ RevenueInventory RevenueInventory::load(std::string_view data) {
     result.bookings_.push_back(std::move(b));
   }
   in >> std::ws;
-  if (!in.eof()) throw std::invalid_argument("unexpected revenue inventory trailing data");
+  if (!in.eof())
+    throw std::invalid_argument("unexpected revenue inventory trailing data");
   return result;
 }
 
