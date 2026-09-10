@@ -63,6 +63,7 @@ public:
   void setOverbookingAllowance(std::string category, int units);
   void setOverbookingAllowance(std::string category, int units,
                                int startDay, int endDay);
+  void clearOverbookingAllowances(std::string_view category);
   void setCancellationBasisPoints(BookingChannel channel, int basisPoints);
   void setNoShowBasisPoints(BookingChannel channel, int basisPoints);
 
