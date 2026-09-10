@@ -8,16 +8,27 @@
 namespace hh::game {
 
 enum class MarketSegment : std::uint8_t {
-  Leisure,
-  Business,
-  Group,
-  Luxury,
-  Budget
+  CoupleLeisure = 0,
+  Business = 1,
+  ConferenceGroup = 2,
+  LuxuryLeisure = 3,
+  BudgetLeisure = 4,
+  ExecutiveBusiness = 5,
+  FamilyLeisure = 6,
+  AirportTransit = 7,
+  Wellness = 8,
+
+  // Source compatibility aliases retained for FINAL-06 callers/saves created
+  // before the HMG-030 nine-segment reconciliation.
+  Leisure = CoupleLeisure,
+  Group = ConferenceGroup,
+  Luxury = LuxuryLeisure,
+  Budget = BudgetLeisure
 };
 
 struct BookingRequest {
   std::uint64_t id{};
-  MarketSegment segment{MarketSegment::Leisure};
+  MarketSegment segment{MarketSegment::CoupleLeisure};
   int arrivalDay{};
   int departureDay{};
   std::int64_t budgetCents{};
@@ -82,6 +93,8 @@ public:
 
   [[nodiscard]] bool isEligible(const BookingRequest &request,
                                 const MarketHotelOffer &hotel) const;
+  [[nodiscard]] double priceUtility(const BookingRequest &request,
+                                    const MarketHotelOffer &hotel) const;
   [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
                                           const MarketHotelOffer &hotel) const;
   [[nodiscard]] MarketSnapshot snapshot() const;
