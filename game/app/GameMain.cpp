@@ -96,6 +96,13 @@ void captureClient(HWND window, const std::filesystem::path &path) {
             static_cast<std::streamsize>(pixels.size()));
 }
 
+void applyScaleIfChanged(Client &client, int priorScale) {
+  if (client.uiSettings.scalePercent() == priorScale)
+    return;
+  applyClientUiScale(client.uiSettings.scalePercent());
+  client.layout();
+}
+
 LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
   auto *c = reinterpret_cast<Client *>(GetWindowLongPtrW(window, GWLP_USERDATA));
   if (message == WM_NCCREATE) {
@@ -148,8 +155,15 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
     case WM_PAINT: {
       PAINTSTRUCT ps{};
       HDC dc = BeginPaint(window, &ps);
-      if (!view)
+      if (!view) {
         c->paint(dc);
+        if (c->uiSettings.visibleFocusRequired() && c->focusedButton >= 0 &&
+            c->focusedButton < static_cast<int>(c->buttons.size())) {
+          RECT focus = c->buttons[static_cast<std::size_t>(c->focusedButton)].rect;
+          InflateRect(&focus, -2, -2);
+          DrawFocusRect(dc, &focus);
+        }
+      }
       EndPaint(window, &ps);
       return 0;
     }
@@ -254,6 +268,7 @@ Client::Client() : simulation(Simulation::tutorial(20260907)), hudController(hud
   number = CreateFontW(-24, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                        CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  applyClientUiScale(uiSettings.scalePercent());
   snapshot = simulation.view();
   refreshUi();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
@@ -302,8 +317,10 @@ void Client::click(int x, int y) {
   focusedButton = -1;
   for (const auto &b : buttons) {
     if (x >= b.rect.left && x < b.rect.right && y >= b.rect.top && y < b.rect.bottom) {
+      const int priorScale = uiSettings.scalePercent();
       auto fn = b.action;
       fn();
+      applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
     }
@@ -397,23 +414,34 @@ void Client::key(int k) {
   }
   if (k == VK_RETURN) {
     if (focusedButton >= 0 && focusedButton < static_cast<int>(buttons.size())) {
+      const int priorScale = uiSettings.scalePercent();
       auto action = buttons[static_cast<std::size_t>(focusedButton)].action;
       action();
+      applyScaleIfChanged(*this, priorScale);
       refresh();
     }
     return;
   }
   if (k == VK_SPACE) {
     const auto command = hudController.handleAction(UiAction::PauseToggle);
-    if (command)
-      ui.dispatchUiCommand(*command);
+    if (command) {
+      const auto result = ui.dispatchUiCommand(*command);
+      if (!result.message.empty())
+        notice = wide(result.message);
+    }
   }
   if (k == 'Q') camera.rotateSnapped(-1);
   if (k == 'E') camera.rotateSnapped(1);
   if (k == VK_PRIOR) changeFloor(floor + 1);
   if (k == VK_NEXT) changeFloor(floor - 1);
-  if (k == VK_F5) ui.dispatchUiCommand(UiCommand{UiCommandType::SaveGame});
-  if (k == VK_F9) ui.dispatchUiCommand(UiCommand{UiCommandType::LoadGame});
+  if (k == VK_F5) {
+    const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::SaveGame});
+    if (!result.message.empty()) notice = wide(result.message);
+  }
+  if (k == VK_F9) {
+    const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::LoadGame});
+    if (!result.message.empty()) notice = wide(result.message);
+  }
   if (k == VK_F1) { page = Page::Guide; tabScroll = 0; }
   if (k == 'O') { page = Page::Overlays; tabScroll = 0; }
   if (k == VK_ESCAPE) {
@@ -641,8 +669,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         RECT viewSize{};
         GetClientRect(c.viewport, &viewSize);
         const auto expected = computeFinal07Layout(c.width, c.height, c.uiSettings.scalePercent());
-        if (viewSize.right != expected.viewportWidth ||
-            viewSize.bottom != expected.viewportHeight)
+        if (viewSize.right != expected.viewportWidth || viewSize.bottom != expected.viewportHeight)
           throw std::runtime_error("Viewport dimensions do not match scaled FINAL-07 layout");
         if (c.ui.snapshot().revision == 0)
           throw std::runtime_error("FINAL-07 UI snapshot was not built");
