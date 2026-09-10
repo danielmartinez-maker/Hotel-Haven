@@ -5,18 +5,45 @@
 #include <stdexcept>
 
 namespace hh::game {
+namespace {
+
+void writeReputationCategories(std::ostringstream &out,
+                               const ReputationCategoryScores &scores) {
+  out << ' ' << scores.service << ' ' << scores.room << ' '
+      << scores.cleanliness << ' ' << scores.quiet << ' ' << scores.business
+      << ' ' << scores.food;
+}
+
+void readReputationCategories(std::istringstream &in,
+                              ReputationCategoryScores &scores) {
+  in >> scores.service >> scores.room >> scores.cleanliness >> scores.quiet >>
+      scores.business >> scores.food;
+  const auto valid = [](int value) {
+    return value == -1 || (value >= 0 && value <= 100);
+  };
+  if (!in || !valid(scores.service) || !valid(scores.room) ||
+      !valid(scores.cleanliness) || !valid(scores.quiet) ||
+      !valid(scores.business) || !valid(scores.food))
+    throw std::invalid_argument("invalid saved reputation categories");
+}
+
+} // namespace
 
 std::string MarketDemandSystem::save() const {
   std::ostringstream out;
   out << std::setprecision(17);
-  out << "HHMARKET 3 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
+  out << "HHMARKET 4 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
       << player_.hotelId << ' ' << player_.nightlyRateCents << ' ' << player_.reputation << ' '
       << player_.stars << ' ' << player_.amenityScore << ' ' << player_.locationScore << ' '
-      << player_.brandScore << ' ' << player_.sellable << ' ' << competitors_.size();
-  for (const auto &c : competitors_)
+      << player_.brandScore << ' ' << player_.sellable;
+  writeReputationCategories(out, player_.reputationCategories);
+  out << ' ' << competitors_.size();
+  for (const auto &c : competitors_) {
     out << ' ' << c.hotelId << ' ' << std::quoted(c.name) << ' ' << c.nightlyRateCents << ' '
-        << c.reputation << ' ' << c.stars << ' ' << c.amenityScore << ' ' << c.locationScore << ' '
-        << c.brandScore;
+        << c.reputation << ' ' << c.stars << ' ' << c.amenityScore << ' '
+        << c.locationScore << ' ' << c.brandScore;
+    writeReputationCategories(out, c.reputationCategories);
+  }
 
   out << ' ' << demandProfiles_.size();
   for (const auto &[segment, profile] : demandProfiles_) {
@@ -53,7 +80,8 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   std::uint64_t seed{}, rngState{}, nextRequest{};
   in >> magic >> version >> seed >> rngState >> nextRequest;
   if (!in || magic != "HHMARKET" ||
-      (version != 1 && version != 2 && version != 3) || seed == 0 || nextRequest == 0)
+      (version != 1 && version != 2 && version != 3 && version != 4) ||
+      seed == 0 || nextRequest == 0)
     throw std::invalid_argument("invalid market save");
   MarketDemandSystem result(seed);
   result.rngState_ = rngState;
@@ -61,6 +89,9 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   in >> result.player_.hotelId >> result.player_.nightlyRateCents >> result.player_.reputation >>
       result.player_.stars >> result.player_.amenityScore >> result.player_.locationScore >>
       result.player_.brandScore >> result.player_.sellable;
+  if (version >= 4)
+    readReputationCategories(in, result.player_.reputationCategories);
+
   std::size_t count{};
   in >> count;
   if (!in || count > 10000)
@@ -70,6 +101,8 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
     CompetitorOffer c;
     in >> c.hotelId >> std::quoted(c.name) >> c.nightlyRateCents >> c.reputation >> c.stars >>
         c.amenityScore >> c.locationScore >> c.brandScore;
+    if (version >= 4)
+      readReputationCategories(in, c.reputationCategories);
     if (!in || c.hotelId == 0 || c.nightlyRateCents <= 0)
       throw std::invalid_argument("invalid saved competitor");
     result.competitors_.push_back(std::move(c));
