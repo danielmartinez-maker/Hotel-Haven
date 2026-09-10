@@ -66,6 +66,7 @@ struct BookingRequest {
   int locationPreference{};
   int brandPreference{};
   int bookingDay{};
+  std::string roomCategory{"standard"};
   bool operator==(const BookingRequest &) const = default;
 };
 
@@ -82,6 +83,15 @@ struct MarketHotelOffer {
   bool operator==(const MarketHotelOffer &) const = default;
 };
 
+struct CompetitorInventoryWindow {
+  std::string roomCategory{"standard"};
+  int startDay{};
+  int endDay{};
+  std::int64_t nightlyRateCents{};
+  int availableRooms{};
+  bool operator==(const CompetitorInventoryWindow &) const = default;
+};
+
 struct CompetitorOffer {
   std::uint64_t hotelId{};
   std::string name;
@@ -92,6 +102,9 @@ struct CompetitorOffer {
   int locationScore{};
   int brandScore{};
   ReputationCategoryScores reputationCategories{};
+  int roomCount{};
+  std::vector<std::string> roomCategories;
+  std::vector<CompetitorInventoryWindow> inventoryWindows;
   bool operator==(const CompetitorOffer &) const = default;
 };
 
@@ -138,6 +151,8 @@ public:
                                          const MarketHotelOffer &hotel) const;
   [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
                                           const MarketHotelOffer &hotel) const;
+  [[nodiscard]] MarketHotelOffer effectiveCompetitorOffer(
+      std::uint64_t hotelId, const BookingRequest &request) const;
   [[nodiscard]] MarketSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static MarketDemandSystem load(std::string_view data);
