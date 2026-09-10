@@ -65,11 +65,52 @@ struct Simulation::Impl {
   std::vector<PendingOrder> orders;
   InventoryView inventory{24, 48, 36, 24, 8};
   ServiceLogisticsRuntime services{1};
+  FoodServiceSystem food;
+  EventsSystem events;
+  AmenitiesSystem amenities;
   EconomyView economy{2500000};
   double baseDemand{1.5}, turnoverWork{2400}, repairWork{1800},
       checkInWork{300}, hungerRate{10.0 / 60.0}, restLoss{5.0 / 60.0},
       roomConditionLossPerDay{2.5};
   int utilityPerRoomDayCents{350};
+
+  void configureTutorialFinal05() {
+    food.addRecipe({1, "Classic Breakfast", {{"eggs", 2}, {"bread", 2}},
+                    FoodStationClass::Oven, 30, 120, 20, 8500, 1800});
+    food.addRecipe({2, "Grilled Dinner", {{"protein", 1}, {"produce", 2}},
+                    FoodStationClass::Range, 60, 240, 30, 8800, 3200});
+    food.addRecipe({3, "House Cocktail", {{"beverage_base", 1}, {"garnish", 1}},
+                    FoodStationClass::Bar, 45, 0, 10, 8400, 1600});
+    food.setIngredientStock("eggs", 200);
+    food.setIngredientStock("bread", 200);
+    food.setIngredientStock("protein", 100);
+    food.setIngredientStock("produce", 200);
+    food.setIngredientStock("beverage_base", 100);
+    food.setIngredientStock("garnish", 100);
+    food.setStaffCapacity(8);
+    food.addStation({1, FoodStationClass::Oven, 3, true});
+    food.addStation({2, FoodStationClass::Range, 4, true});
+    food.addStation({3, FoodStationClass::Bar, 3, true});
+    food.addStation({4, FoodStationClass::Plating, 4, true});
+    food.addStation({5, FoodStationClass::ServicePass, 4, true});
+    food.addVenue({101, FoodOrderChannel::Breakfast, 48, 360, 630, 20, 45, 30, 20, true});
+    food.addVenue({102, FoodOrderChannel::Restaurant, 64, 660, 1380, 20, 60, 30, 30, true});
+    food.addVenue({103, FoodOrderChannel::Bar, 32, 960, 120, 15, 30, 20, 20, true});
+    events.addFunctionSpace({301, 200, true});
+    events.setFoodServiceCapacity(120);
+    events.setStaffCapacity(24);
+    amenities.addAmenity({201, AmenityType::Gym, 300, 1380, 24, 0, 10000, 10000, 0, 3600, true});
+    amenities.addAmenity({202, AmenityType::Spa, 540, 1260, 4, 4, 10000, 10000, 15000, 3600, true});
+    amenities.addAmenity({203, AmenityType::Pool, 420, 1320, 36, 2, 10000, 10000, 0, 3600, true});
+    food.setElapsedSeconds(elapsed);
+    events.setElapsedSeconds(elapsed);
+    amenities.setElapsedSeconds(elapsed);
+  }
+
+  [[nodiscard]] std::int64_t final05RevenueCents() const {
+    return food.snapshot().revenueCents + events.snapshot().revenueCents +
+           amenities.snapshot().revenueCents;
+  }
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
   bool inside(Position p) const {
@@ -712,6 +753,7 @@ Simulation Simulation::tutorial(std::uint64_t seed) {
   s.hireStaff({"Morgan", PersonKind::Housekeeper, 8, 16, 18});
   s.hireStaff({"Casey", PersonKind::Maintenance, 10, 12, 25});
   s.impl_->elapsed = 14 * 3600;
+  s.impl_->configureTutorialFinal05();
   return s;
 }
 CommandResult Simulation::buildTile(Position p, TileKind k) {
@@ -1010,8 +1052,23 @@ void Simulation::step(double seconds) {
   impl_->remainderMillis += (std::int64_t)std::llround(seconds * 1000);
   while (impl_->remainderMillis >= 1000) {
     impl_->remainderMillis -= 1000;
+    const auto revenueBefore = impl_->final05RevenueCents();
     impl_->minute();
     impl_->services.tickSecond();
+    impl_->food.tickSecond();
+    impl_->events.tickSecond();
+    impl_->amenities.tickSecond();
+    for (const auto &handoff : impl_->food.pendingRoomServiceHandoffs())
+      if (impl_->services.markRoomServiceProductionReady(
+              handoff.roomServiceOrderId))
+        (void)impl_->food.acknowledgeRoomServiceHandoff(
+            handoff.foodOrderId);
+    const auto revenueAfter = impl_->final05RevenueCents();
+    if (revenueAfter < revenueBefore)
+      throw std::logic_error("FINAL-05 revenue moved backwards");
+    const auto revenueDelta = revenueAfter - revenueBefore;
+    impl_->economy.revenueCents += revenueDelta;
+    impl_->economy.cashCents += revenueDelta;
   }
 }
 
@@ -1038,6 +1095,41 @@ bool Simulation::markRoomServiceProductionReady(RoomServiceOrderId orderId) {
 }
 bool Simulation::requestRoomServiceTrayPickup(RoomServiceOrderId orderId) {
   return impl_->services.requestRoomServiceTrayPickup(orderId);
+}
+FoodOrderId Simulation::createFoodOrder(GuestId guestId,
+                                        const MenuOrder &order) {
+  RoomServiceOrderId deliveryId{};
+  if (order.channel == FoodOrderChannel::RoomService) {
+    RoomServiceOrder delivery;
+    delivery.itemCount = std::max(1, order.quantity);
+    deliveryId = impl_->services.placeRoomServiceOrder(guestId, delivery);
+    if (deliveryId == 0)
+      return 0;
+  }
+  const auto id = impl_->food.createFoodOrder(guestId, order, deliveryId);
+  if (id != 0 && (order.channel == FoodOrderChannel::RoomService ||
+                  order.channel == FoodOrderChannel::Banquet))
+    (void)impl_->food.beginProduction(id);
+  return id;
+}
+EventQuote Simulation::quoteEvent(const EventRequest &request) const {
+  return impl_->events.quoteEvent(request);
+}
+EventBookingId Simulation::confirmEvent(const EventRequest &request) {
+  return impl_->events.confirmEvent(request);
+}
+AmenityReservationResult Simulation::reserveAmenity(
+    GuestId guestId, const AmenityRequest &request) {
+  return impl_->amenities.reserveAmenity(guestId, request);
+}
+FoodServiceSnapshot Simulation::foodServiceSnapshot() const {
+  return impl_->food.snapshot();
+}
+EventsSnapshot Simulation::eventsSnapshot() const {
+  return impl_->events.snapshot();
+}
+AmenitiesSnapshot Simulation::amenitiesSnapshot() const {
+  return impl_->amenities.snapshot();
 }
 
 bool Simulation::isReachable(Position a, Position b) const {
@@ -1079,7 +1171,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 8 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 9 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -1163,6 +1255,18 @@ std::string Simulation::save() const {
   o << "FINAL04 " << serviceState.size() << '\n';
   o.write(serviceState.data(), static_cast<std::streamsize>(serviceState.size()));
   o << '\n';
+  const auto foodState = impl_->food.save();
+  o << "FINAL05_FOOD " << foodState.size() << '\n';
+  o.write(foodState.data(), static_cast<std::streamsize>(foodState.size()));
+  o << '\n';
+  const auto eventState = impl_->events.save();
+  o << "FINAL05_EVENTS " << eventState.size() << '\n';
+  o.write(eventState.data(), static_cast<std::streamsize>(eventState.size()));
+  o << '\n';
+  const auto amenityState = impl_->amenities.save();
+  o << "FINAL05_AMENITIES " << amenityState.size() << '\n';
+  o.write(amenityState.data(), static_cast<std::streamsize>(amenityState.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -1172,7 +1276,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 8)
+  if (magic != "HHGS" || version < 2 || version > 9)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -1403,6 +1507,36 @@ Simulation Simulation::load(std::string_view data) {
           room.id,
           std::clamp(static_cast<int>(std::llround(room.condition * 100.0)), 0, 10000));
     }
+  }
+  if (version >= 9) {
+    auto readFinal05Section = [&](std::string_view expected) {
+      std::string tag;
+      std::size_t bytes{};
+      i >> tag >> bytes;
+      if (!i || tag != expected || bytes > 16 * 1024 * 1024)
+        throw std::invalid_argument("invalid FINAL-05 save section");
+      if (i.get() != '\n')
+        throw std::invalid_argument("invalid FINAL-05 save delimiter");
+      std::string state(bytes, '\0');
+      i.read(state.data(), static_cast<std::streamsize>(bytes));
+      if (!i || static_cast<std::size_t>(i.gcount()) != bytes)
+        throw std::invalid_argument("truncated FINAL-05 save section");
+      if (i.get() != '\n')
+        throw std::invalid_argument("invalid FINAL-05 save terminator");
+      return state;
+    };
+    d.food = FoodServiceSystem::load(readFinal05Section("FINAL05_FOOD"));
+    d.events = EventsSystem::load(readFinal05Section("FINAL05_EVENTS"));
+    d.amenities = AmenitiesSystem::load(
+        readFinal05Section("FINAL05_AMENITIES"));
+    if (d.food.snapshot().elapsedSeconds != d.elapsed ||
+        d.events.snapshot().elapsedSeconds != d.elapsed ||
+        d.amenities.snapshot().elapsedSeconds != d.elapsed)
+      throw std::invalid_argument("FINAL-05 clock does not match simulation");
+  } else {
+    d.food.setElapsedSeconds(d.elapsed);
+    d.events.setElapsedSeconds(d.elapsed);
+    d.amenities.setElapsedSeconds(d.elapsed);
   }
   if (!i)
     throw std::invalid_argument("corrupt simulation save");
