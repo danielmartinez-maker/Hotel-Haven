@@ -8,12 +8,16 @@
 
 namespace hh::game {
 
+enum class OverbookingAllowanceMode : std::uint8_t { Rooms, Percentage };
+
 struct OverbookingPolicy {
   std::string roomCategory;
   int allowance{};
   std::int64_t relocationCompensationCents{};
   int startDay{};
   int endDay{std::numeric_limits<int>::max()};
+  OverbookingAllowanceMode allowanceMode{OverbookingAllowanceMode::Rooms};
+  int allowanceBasisPoints{};
   bool operator==(const OverbookingPolicy &) const = default;
 };
 
@@ -55,6 +59,8 @@ public:
   [[nodiscard]] OverbookingResult setPolicy(const OverbookingPolicy &policy);
   [[nodiscard]] int allowance(std::string_view category) const;
   [[nodiscard]] int allowance(std::string_view category, int day) const;
+  [[nodiscard]] int allowance(std::string_view category, int day,
+                              int physicalRooms) const;
   [[nodiscard]] RecoveryDecision chooseRecovery(const RecoveryContext &context) const;
   [[nodiscard]] const std::map<std::string, OverbookingPolicy> &policies() const noexcept;
   [[nodiscard]] std::string save() const;
