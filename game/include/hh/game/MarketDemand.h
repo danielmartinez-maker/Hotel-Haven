@@ -1,0 +1,103 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+namespace hh::game {
+
+enum class MarketSegment : std::uint8_t {
+  Leisure,
+  Business,
+  Group,
+  Luxury,
+  Budget
+};
+
+struct BookingRequest {
+  std::uint64_t id{};
+  MarketSegment segment{MarketSegment::Leisure};
+  int arrivalDay{};
+  int departureDay{};
+  std::int64_t budgetCents{};
+  int partySize{1};
+  int amenityPreference{};
+  int locationPreference{};
+  int brandPreference{};
+  bool operator==(const BookingRequest &) const = default;
+};
+
+struct MarketHotelOffer {
+  std::uint64_t hotelId{};
+  std::int64_t nightlyRateCents{};
+  int reputation{};
+  int stars{};
+  int amenityScore{};
+  int locationScore{};
+  int brandScore{};
+  bool sellable{};
+  bool operator==(const MarketHotelOffer &) const = default;
+};
+
+struct CompetitorOffer {
+  std::uint64_t hotelId{};
+  std::string name;
+  std::int64_t nightlyRateCents{};
+  int reputation{};
+  int stars{};
+  int amenityScore{};
+  int locationScore{};
+  int brandScore{};
+  bool operator==(const CompetitorOffer &) const = default;
+};
+
+struct MarketChoice {
+  std::uint64_t requestId{};
+  std::uint64_t hotelId{};
+  bool playerWon{};
+  bool operator==(const MarketChoice &) const = default;
+};
+
+struct MarketSnapshot {
+  std::uint64_t generatedRequests{};
+  std::uint64_t playerWins{};
+  std::uint64_t competitorWins{};
+  std::uint64_t unallocatedRequests{};
+  std::int64_t comparableMedianRateCents{};
+  int physicalCompetitorGuests{};
+  std::vector<BookingRequest> requests;
+  std::vector<CompetitorOffer> competitors;
+  std::vector<MarketChoice> choices;
+  bool operator==(const MarketSnapshot &) const = default;
+};
+
+class MarketDemandSystem {
+public:
+  explicit MarketDemandSystem(std::uint64_t seed = 1);
+
+  void setPlayerOffer(const MarketHotelOffer &offer);
+  void setCompetitors(std::vector<CompetitorOffer> competitors);
+  void generateRequests(int firstArrivalDay, int lastArrivalDay, int count);
+
+  [[nodiscard]] bool isEligible(const BookingRequest &request,
+                                const MarketHotelOffer &hotel) const;
+  [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
+                                          const MarketHotelOffer &hotel) const;
+  [[nodiscard]] MarketSnapshot snapshot() const;
+
+private:
+  struct Impl;
+  std::uint64_t seed_{};
+  std::uint64_t rngState_{};
+  std::uint64_t nextRequestId_{1};
+  MarketHotelOffer player_{};
+  std::vector<CompetitorOffer> competitors_;
+  MarketSnapshot snapshot_{};
+
+  [[nodiscard]] std::uint64_t nextRandom();
+  [[nodiscard]] double unitRandom();
+  void allocate(const BookingRequest &request);
+  void refreshComparableMedian();
+};
+
+} // namespace hh::game
