@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace hh::game {
@@ -84,9 +85,10 @@ public:
   [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
                                           const MarketHotelOffer &hotel) const;
   [[nodiscard]] MarketSnapshot snapshot() const;
+  [[nodiscard]] std::string save() const;
+  static MarketDemandSystem load(std::string_view data);
 
 private:
-  struct Impl;
   std::uint64_t seed_{};
   std::uint64_t rngState_{};
   std::uint64_t nextRequestId_{1};
