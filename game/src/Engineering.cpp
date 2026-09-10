@@ -98,7 +98,7 @@ ServiceWorkResult EngineeringSystem::workSecond(WorkOrderId id) {
       target->failurePressure /= 4;
     } else {
       target->condition = std::max(target->condition, 8000);
-      target->failurePressure /= 2;
+      target->failurePressure = 0;
       target->failed = false;
     }
   }
