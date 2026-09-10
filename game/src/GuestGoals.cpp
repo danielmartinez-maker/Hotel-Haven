@@ -1,4 +1,5 @@
 #include "hh/game/GuestGoals.h"
+#include "hh/game/GuestPsychology.h"
 #include <algorithm>
 #include <limits>
 
@@ -22,6 +23,41 @@ int distanceUtility(const GoalOpportunity &opportunity) noexcept {
   const std::int64_t seconds = static_cast<std::int64_t>(travel) + wait;
   return static_cast<int>((factorScale * 600) / (600 + seconds));
 }
+
+int preferenceForGoal(const GuestPreferenceState &preferences,
+                      GuestGoalClass goal) noexcept {
+  switch (goal) {
+  case GuestGoalClass::Sleep:
+    return preferences.quietRoom;
+  case GuestGoalClass::Eat:
+    return preferences.breakfast;
+  case GuestGoalClass::Drink:
+    return preferences.social;
+  case GuestGoalClass::Work:
+    return (preferences.wifi + preferences.desk) / 2;
+  case GuestGoalClass::Exercise:
+    return preferences.fitness;
+  case GuestGoalClass::Swim:
+    return preferences.pool;
+  case GuestGoalClass::Socialize:
+  case GuestGoalClass::AttendEvent:
+    return preferences.social;
+  case GuestGoalClass::Relax:
+    return (preferences.spa + preferences.roomQuality) / 2;
+  case GuestGoalClass::RequestService:
+    return preferences.roomQuality;
+  default:
+    return static_cast<int>(factorScale);
+  }
+}
+
+int combinePreference(int opportunityPreference,
+                      int guestPreference) noexcept {
+  const auto base = std::clamp(opportunityPreference, 0, maxFactor);
+  const auto guest = std::clamp(guestPreference, 0, 10000);
+  const auto combined = static_cast<std::int64_t>(base) * guest / factorScale;
+  return static_cast<int>(std::clamp<std::int64_t>(combined, 0, maxFactor));
+}
 } // namespace
 
 std::int64_t scoreGuestGoal(const GoalOpportunity &opportunity) noexcept {
@@ -38,6 +74,19 @@ std::int64_t scoreGuestGoal(const GoalOpportunity &opportunity) noexcept {
   utility = multiplyFactor(utility, distanceUtility(opportunity));
   utility = multiplyFactor(utility, opportunity.moodModifier);
   return utility;
+}
+
+GuestOpportunitySnapshot
+applyGuestPreferences(const GuestPreferenceState &preferences,
+                      const GuestOpportunitySnapshot &snapshot) noexcept {
+  GuestOpportunitySnapshot personalized = snapshot;
+  for (auto &opportunity : personalized.opportunities) {
+    if (opportunity.mandatory)
+      continue;
+    opportunity.preference = combinePreference(
+        opportunity.preference, preferenceForGoal(preferences, opportunity.goal));
+  }
+  return personalized;
 }
 
 GoalSelection chooseGuestGoal(EntityId guestId,
