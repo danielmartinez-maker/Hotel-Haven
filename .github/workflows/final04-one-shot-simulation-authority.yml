@@ -1,4 +1,4 @@
-name: FINAL-04 FINAL-03 Replay Audit
+name: FINAL-04 FINAL-03 Trial Merge
 
 on:
   push:
@@ -11,31 +11,47 @@ permissions:
   contents: read
 
 jobs:
-  replay-audit:
+  trial-merge:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
-      - name: Replay FINAL-04 Simulation delta onto FINAL-03 baseline
+      - name: Merge FINAL-03 baseline and union additive build/header conflicts
         shell: bash
         run: |
+          git config user.name "hotel-haven-final04-bot"
+          git config user.email "actions@users.noreply.github.com"
           git fetch origin main
-          git diff d6e895822a80a22d8428cc3657d09dec4f591187..HEAD -- game/src/Simulation.cpp > /tmp/final04-simulation.patch
-          git merge --no-commit --no-ff origin/main || true
-          git checkout --theirs game/src/Simulation.cpp
-          git add game/src/Simulation.cpp
-          set +e
-          git apply --reject --whitespace=nowarn /tmp/final04-simulation.patch
-          apply_status=$?
-          set -e
-          echo "APPLY_STATUS=$apply_status"
-          echo "=== REJECT FILES ==="
-          find game/src -name '*.rej' -print
-          for f in $(find game/src -name '*.rej' -print); do
-            echo "--- $f ---"
-            cat "$f"
-          done
-          echo "=== FINAL04 SYMBOLS AFTER REPLAY ==="
-          grep -n -E 'ServiceLogisticsRuntime|serviceInventoryView|workRoomTurnSecond|workEngineeringSecond|FINAL04|Preventive maintenance' game/src/Simulation.cpp || true
+          git merge --no-commit --no-ff -X ours origin/main
+          python - <<'PY'
+          from pathlib import Path
+
+          cmake = Path('game/CMakeLists.txt')
+          text = cmake.read_text()
+          for src in ('src/Workforce.cpp', 'src/Departments.cpp', 'src/StaffOptimization.cpp'):
+              if src not in text:
+                  text = text.replace('  src/ServiceLogistics.cpp\n)', f'  src/ServiceLogistics.cpp\n  {src}\n)')
+          if 'hh_workforce_tests' not in text:
+              text = text.replace('endif()\n', '''  add_executable(hh_workforce_tests tests/WorkforceTests.cpp)\n  target_link_libraries(hh_workforce_tests PRIVATE hh_game)\n  add_test(NAME Workforce COMMAND hh_workforce_tests)\n\n  add_executable(hh_department_tests tests/DepartmentTests.cpp)\n  target_link_libraries(hh_department_tests PRIVATE hh_game)\n  add_test(NAME Department COMMAND hh_department_tests)\n\n  add_executable(hh_optimizer_tests tests/OptimizerIntegrationTests.cpp)\n  target_link_libraries(hh_optimizer_tests PRIVATE hh_game)\n  add_test(NAME Optimizer COMMAND hh_optimizer_tests)\nendif()\n''', 1)
+          cmake.write_text(text)
+
+          header = Path('game/include/hh/game/Simulation.h')
+          text = header.read_text()
+          anchor = '#include "hh/game/ServiceLogistics.h"\n'
+          includes = ''.join(f'#include "hh/game/{name}.h"\n' for name in ('Departments','StaffOptimization','Workforce'))
+          if '#include "hh/game/Workforce.h"' not in text:
+              text = text.replace(anchor, anchor + includes)
+          header.write_text(text)
+          PY
+          echo "=== MERGED STATUS ==="
+          git status --short
+          echo "=== CONFLICT MARKERS ==="
+          grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game || true
+      - name: Configure combined build
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build combined game
+        run: cmake --build build --config Release --parallel 4
+      - name: Run combined CTest
+        run: ctest --test-dir build -C Release --output-on-failure
