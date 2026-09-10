@@ -1,11 +1,11 @@
 #include "TestFramework.h"
+#include "StressScale.h"
 #include "hh/assets/Hasset.h"
 #include "hh/renderer/RuntimeAssetRegistry.h"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
@@ -17,8 +17,7 @@ namespace {
 using hh::assets::AssetType;
 
 std::size_t operationBudget() {
-    const char* scale = std::getenv("HH_STRESS_SCALE");
-    const std::string_view value = scale ? std::string_view{scale} : std::string_view{"pr"};
+    const auto value = hh::renderer::stress_test::scaleFromEnvironment();
     if (value == "pr") return 100'000;
     if (value == "extended") return 1'000'000;
     if (value == "exhaustive") return 5'000'000;
