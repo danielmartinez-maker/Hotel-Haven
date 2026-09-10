@@ -59,6 +59,8 @@ public:
 
   [[nodiscard]] PricingRuleResult setPricingRule(const PricingRuleCommand &command);
   [[nodiscard]] OverbookingResult setOverbookingPolicy(const OverbookingPolicy &policy);
+  [[nodiscard]] RecoveryDecision resolveOverbooking(const RecoveryContext &context,
+                                                    std::uint64_t sourceId = 0);
   [[nodiscard]] LoanResult acceptLoan(const LoanOffer &offer);
   [[nodiscard]] CommercialCommandResult startMarketingCampaign(
       const MarketingCampaign &campaign);
