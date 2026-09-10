@@ -2,7 +2,21 @@ from __future__ import annotations
 
 import trimesh
 
-from v2_asset_common import add, box, cabinet, cyl, elevator_or_door, semantic_composite, stair
+from v2_asset_common import add, box, cabinet, cyl, elevator_or_door, semantic_composite
+
+
+def stair(name: str, mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    steps = 8
+    width = 1.20 if 'Service' not in name else 1.05
+    rise = 0.17
+    run = 0.27
+    for i in range(steps):
+        node = 'PrimaryStep_0' if i == 0 else f'Step_{i}'
+        add(scene, box((width, run, rise), (0, i * run, rise / 2 + i * rise), mat), node)
+    add(scene, box((0.08, steps * run, steps * rise), (-width * 0.48, steps * run / 2, steps * rise / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_L')
+    add(scene, box((0.08, steps * run, steps * rise), (width * 0.48, steps * run / 2, steps * rise / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_R')
+    return scene
 
 
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
