@@ -23,6 +23,9 @@ endif()
 add_executable(hh_soundtrack_catalog_tests game/audio/SoundtrackCatalogTests.cpp)
 target_link_libraries(hh_soundtrack_catalog_tests PRIVATE hh_soundtrack_catalog)
 add_test(NAME hh_soundtrack_catalog_tests COMMAND hh_soundtrack_catalog_tests)
+add_executable(hh_soundtrack_stress_tests game/audio/SoundtrackStressTests.cpp)
+target_link_libraries(hh_soundtrack_stress_tests PRIVATE hh_soundtrack_catalog)
+add_test(NAME StressSoundtrackCatalog COMMAND hh_soundtrack_stress_tests)
 set(HH_SOUNDTRACK_ASSET_NAMES
     Morning_in_the_Atrium.mp3
     Sunlight_on_Marble.mp3
