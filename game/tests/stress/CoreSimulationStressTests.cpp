@@ -172,7 +172,7 @@ ScenarioResult runScenario(std::uint64_t seed, std::size_t operations,
                            const hh::stress::Config &config) {
   auto sim = Simulation::tutorial(seed);
   if (!sim.loadDefinitions(
-          R"({"baseDemand":100,"initialLinen":400,"initialTowels":800,"initialAmenities":400,"initialChemicals":400,"initialParts":100})"))
+          R"({"baseDemand":100,"initialLinen":400,"initialTowels":400,"initialAmenities":200,"initialChemicals":200,"initialParts":100})"))
     throw std::runtime_error("stress definitions rejected");
 
   hh::stress::RunContext ctx{"core-simulation", config};
