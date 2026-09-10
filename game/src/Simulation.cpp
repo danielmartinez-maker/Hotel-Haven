@@ -21,6 +21,25 @@ int manhattan(Position a, Position b) {
          std::abs(a.floor - b.floor) * 8;
 }
 template <class E> int ei(E e) { return static_cast<int>(e); }
+template <class Engine>
+double deterministicUnitDouble(Engine &rng) {
+  // mt19937_64 is specified; map one draw to [0, 1) with a fixed 53-bit
+  // conversion so standard-library distribution implementations cannot alter
+  // the authoritative simulation stream across platforms.
+  constexpr double inverseTwoTo53 = 1.0 / 9007199254740992.0;
+  return static_cast<double>(rng() >> 11) * inverseTwoTo53;
+}
+
+template <class T, class Engine>
+void deterministicShuffle(std::vector<T> &values, Engine &rng) {
+  // Explicit Fisher-Yates. Index selection and engine consumption are fixed by
+  // this code rather than by std::shuffle's implementation.
+  for (std::size_t remaining = values.size(); remaining > 1; --remaining) {
+    const auto index = static_cast<std::size_t>(
+        rng() % static_cast<typename Engine::result_type>(remaining));
+    std::swap(values[remaining - 1], values[index]);
+  }
+}
 StaffRole staffRole(PersonKind kind) {
   switch (kind) {
   case PersonKind::Receptionist:
@@ -258,7 +277,7 @@ struct Simulation::Impl {
     for (auto &r : rooms)
       if (!r.closed && r.status == RoomStatus::VacantReady && r.reachable)
         free.push_back(&r);
-    std::shuffle(free.begin(), free.end(), rng);
+    deterministicShuffle(free, rng);
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
     for (Room *r : free) {
@@ -277,7 +296,7 @@ struct Simulation::Impl {
       const double hourlyChance =
           dailyChance >= 1.0 ? 1.0
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
-      if (std::generate_canonical<double, 32>(rng) > hourlyChance)
+      if (deterministicUnitDouble(rng) > hourlyChance)
         continue;
       Reservation z;
       z.id = nextId++;

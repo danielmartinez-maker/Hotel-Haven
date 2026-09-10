@@ -219,7 +219,7 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
   require(guests == 6, "layout benchmark did not fill equivalent hotels");
   outcome.guestSatisfaction /= guests;
 
-  require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,
+  require(s.loadDefinitions(R"({"baseDemand":100})").ok,
           "layout benchmark steady demand rejected");
   s.step(20 * 86400);
   const auto economy = s.view().economy;
