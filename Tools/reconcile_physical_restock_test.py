@@ -13,9 +13,9 @@ old = '''  for (int day = 0; day < 30; ++day) {
 '''
 new = '''  for (int day = 0; day < 30; ++day) {
     const auto state = s.view();
-    const bool pendingSupply = std::any_of(
-        state.supplyOrders.begin(), state.supplyOrders.end(),
-        [](const auto &order) { return !order.delivered; });
+    bool pendingSupply = false;
+    for (const auto &order : state.supplyOrders)
+      pendingSupply |= !order.delivered;
     const auto &inventory = state.inventory;
     if (!pendingSupply &&
         (inventory.linen < 12 || inventory.towels < 24 ||
