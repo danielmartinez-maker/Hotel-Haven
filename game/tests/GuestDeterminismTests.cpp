@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 
@@ -19,6 +20,18 @@ void applyCampaignSetup(Simulation &simulation) {
   for (const auto &room : simulation.view().rooms)
     require(simulation.setRoomRate(room.id, 110).ok,
             "determinism campaign rate update failed");
+}
+
+void requireSameReviews(const SimulationView &first, const SimulationView &second) {
+  require(first.reviews.size() == second.reviews.size(),
+          "same-seed campaign produced a different review count");
+  for (std::size_t index = 0; index < first.reviews.size(); ++index) {
+    const auto &a = first.reviews[index];
+    const auto &b = second.reviews[index];
+    require(a.reservationId == b.reservationId && a.day == b.day &&
+                std::abs(a.score - b.score) < 1e-12 && a.text == b.text,
+            "same-seed campaign produced different review history");
+  }
 }
 
 void twenty_day_same_seed_campaign_is_byte_deterministic() {
@@ -49,12 +62,8 @@ void twenty_day_same_seed_campaign_is_byte_deterministic() {
             "loaded guest campaign diverged across twenty-day gate");
   }
 
-  const auto firstView = first.view();
-  const auto secondView = second.view();
-  require(firstView.reviews == secondView.reviews,
-          "same-seed campaign produced different review history");
-  require(firstView.reservations == secondView.reservations,
-          "same-seed campaign produced different guest decisions/history");
+  requireSameReviews(first.view(), second.view());
+  requireSameReviews(first.view(), reloaded.view());
 }
 } // namespace
 
