@@ -2,6 +2,9 @@
 #include "hh/game/GuestPsychology.h"
 #include <algorithm>
 #include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <unordered_set>
 
 namespace hh::game {
 namespace {
@@ -57,6 +60,12 @@ int combinePreference(int opportunityPreference,
   const auto guest = std::clamp(guestPreference, 0, 10000);
   const auto combined = static_cast<std::int64_t>(base) * guest / factorScale;
   return static_cast<int>(std::clamp<std::int64_t>(combined, 0, maxFactor));
+}
+
+bool validGoalValue(GuestGoalClass goal) noexcept {
+  const auto value = static_cast<int>(goal);
+  return value >= static_cast<int>(GuestGoalClass::ReachHotel) &&
+         value <= static_cast<int>(GuestGoalClass::LeaveHotel);
 }
 } // namespace
 
@@ -123,5 +132,73 @@ bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
   const auto threshold = quotient * 7 + (remainder * 7 + 9) / 10;
   return proposedGroupUtility >= threshold;
 }
+
+namespace detail {
+bool validGuestGroup(const GuestGroup &group) noexcept {
+  if (group.id == 0 || group.leader == 0 || group.members.size() < 2 ||
+      group.members.size() > 1024 || group.cohesion < 0 ||
+      group.cohesion > 10000 || group.cohesionRadiusTiles < 0 ||
+      group.cohesionRadiusTiles > 1024 || group.sharedItinerary.size() > 128)
+    return false;
+
+  std::unordered_set<EntityId> members;
+  bool leaderPresent = false;
+  for (const auto member : group.members) {
+    if (member == 0 || !members.insert(member).second)
+      return false;
+    leaderPresent = leaderPresent || member == group.leader;
+  }
+  if (!leaderPresent)
+    return false;
+  return std::all_of(group.sharedItinerary.begin(), group.sharedItinerary.end(),
+                     [](GuestGoalClass goal) { return validGoalValue(goal); });
+}
+
+std::string serializeGuestGroup(const GuestGroup &group) {
+  if (!validGuestGroup(group))
+    throw std::invalid_argument("guest group state is invalid");
+  std::ostringstream output;
+  output << "HGG1 " << group.id << ' ' << group.leader << ' ' << group.cohesion
+         << ' ' << group.cohesionRadiusTiles << ' ' << group.members.size();
+  for (const auto member : group.members)
+    output << ' ' << member;
+  output << ' ' << group.sharedItinerary.size();
+  for (const auto goal : group.sharedItinerary)
+    output << ' ' << static_cast<int>(goal);
+  return output.str();
+}
+
+GuestGroup deserializeGuestGroup(std::string_view archive) {
+  if (archive.size() > 64 * 1024)
+    throw std::invalid_argument("guest group archive is too large");
+  std::istringstream input{std::string(archive)};
+  std::string magic;
+  GuestGroup group;
+  std::size_t memberCount{}, itineraryCount{};
+  input >> magic >> group.id >> group.leader >> group.cohesion >>
+      group.cohesionRadiusTiles >> memberCount;
+  if (!input || magic != "HGG1" || memberCount < 2 || memberCount > 1024)
+    throw std::invalid_argument("invalid guest group archive");
+  group.members.resize(memberCount);
+  for (auto &member : group.members)
+    input >> member;
+  input >> itineraryCount;
+  if (!input || itineraryCount > 128)
+    throw std::invalid_argument("invalid guest group itinerary");
+  group.sharedItinerary.resize(itineraryCount);
+  for (auto &goal : group.sharedItinerary) {
+    int value{};
+    input >> value;
+    if (!input || value < static_cast<int>(GuestGoalClass::ReachHotel) ||
+        value > static_cast<int>(GuestGoalClass::LeaveHotel))
+      throw std::invalid_argument("invalid guest group goal");
+    goal = static_cast<GuestGoalClass>(value);
+  }
+  input >> std::ws;
+  if (!input.eof() || !validGuestGroup(group))
+    throw std::invalid_argument("invalid guest group archive");
+  return group;
+}
+} // namespace detail
 
 } // namespace hh::game
