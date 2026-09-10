@@ -1,0 +1,6 @@
+{
+  "schema": "hotel-haven.game-loan-simulation.v1",
+  "default_cure_period_days": 14,
+  "year_length_days": 365,
+  "rounding_policy": "nearest_cent_half_up"
+}
