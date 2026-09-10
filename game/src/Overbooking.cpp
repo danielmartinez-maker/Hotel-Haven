@@ -43,7 +43,8 @@ RecoveryDecision OverbookingSystem::chooseRecovery(const RecoveryContext &contex
     return {RecoveryAction::CompetitorRelocation, compensation,
             "COMPETITOR_RELOCATION_AND_COMPENSATION"};
   }
-  return {RecoveryAction::Unresolved, 0, "NO_FEASIBLE_RECOVERY"};
+  return {RecoveryAction::Unresolved, 0, "NO_FEASIBLE_RECOVERY", true,
+          "OVERBOOKING_UNRESOLVED_SEVERE"};
 }
 
 const std::map<std::string, OverbookingPolicy> &OverbookingSystem::policies() const noexcept {
