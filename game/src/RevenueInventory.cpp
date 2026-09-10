@@ -48,6 +48,12 @@ void RevenueInventory::setOverbookingAllowance(std::string category, int units,
   });
 }
 
+void RevenueInventory::clearOverbookingAllowances(std::string_view category) {
+  const std::string key(category);
+  overbookingAllowance_.erase(key);
+  overbookingWindows_.erase(key);
+}
+
 void RevenueInventory::setCancellationBasisPoints(BookingChannel channel, int basisPoints) {
   if (basisPoints < 0 || basisPoints > 10000)
     throw std::invalid_argument("invalid cancellation probability");
