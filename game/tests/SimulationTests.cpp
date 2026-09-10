@@ -661,7 +661,7 @@ static void long_campaign_bounds_transient_history() {
   auto s = Simulation::tutorial(37);
   require(
       s.loadDefinitions(
-           R"({"baseDemand":100,"turnoverWorkSeconds":1,"checkInWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":500,"initialTowels":1000,"initialAmenities":500,"initialChemicals":500})")
+           R"({"baseDemand":100,"turnoverWorkSeconds":1,"checkInWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":400,"initialTowels":500,"initialAmenities":200,"initialChemicals":200})")
           .ok,
       "long-campaign definitions rejected");
   s.step(20 * 86400);
