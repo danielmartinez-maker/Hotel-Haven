@@ -6,6 +6,9 @@ on:
       - reconcile/final04-final05-20260909
     paths:
       - '.github/workflows/reconcile-final04-final05.yml'
+      - 'Tools/reconcile_final04_final05.py'
+      - 'Tools/reconcile_final04_authority.py'
+      - 'Tools/reconcile_physical_restock_test.py'
 
 permissions:
   contents: write
