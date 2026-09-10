@@ -2,6 +2,7 @@
 
 #include "hh/game/MarketDemand.h"
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
