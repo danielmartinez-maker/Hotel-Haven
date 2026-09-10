@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "amenities": [
+    {"id": 201, "type": "gym", "openMinuteOfDay": 300, "closeMinuteOfDay": 1380, "capacity": 24, "staffCapacity": 0, "priceCents": 0, "defaultDurationSeconds": 3600},
+    {"id": 202, "type": "spa", "openMinuteOfDay": 540, "closeMinuteOfDay": 1260, "capacity": 4, "staffCapacity": 4, "priceCents": 15000, "defaultDurationSeconds": 3600},
+    {"id": 203, "type": "pool", "openMinuteOfDay": 420, "closeMinuteOfDay": 1320, "capacity": 36, "staffCapacity": 2, "priceCents": 0, "defaultDurationSeconds": 3600}
+  ],
+  "availabilityThresholds": {"minimumCleanliness": 3000, "minimumCondition": 3000},
+  "taskDemandThresholds": {"cleaningBelow": 6000, "maintenanceBelow": 5000}
+}
