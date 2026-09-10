@@ -27,48 +27,7 @@ on:
       - '.github/workflows/final04-service-logistics-ci.yml'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  apply-simulation-authority:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: feature/final-04-service-logistics
-          fetch-depth: 0
-      - name: Correct final load-migration anchor and apply bridge
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('tools/final04_patch_simulation_authority.py')
-          source = p.read_text(encoding='utf-8')
-          marker = "''', \"load-inventory-migration\")"
-          end = source.index(marker) + len(marker)
-          start = source.rfind('replace_once(', 0, end)
-          if start < 0:
-              raise SystemExit('load migration replace_once block missing')
-          block = source[start:end]
-          if "r'''" not in block:
-              block = block.replace("'''", "r'''")
-          source = source[:start] + block + source[end:]
-          p.write_text(source, encoding='utf-8')
-          PY
-          python tools/final04_patch_simulation_authority.py
-      - name: Commit Simulation bridge if changed
-        run: |
-          git config user.name "hotel-haven-final04-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add game/src/Simulation.cpp
-          if git diff --cached --quiet; then
-            echo "Simulation authority patch already applied"
-            exit 0
-          fi
-          git commit -m "feat(game): make FINAL-04 authoritative in Simulation"
-          git push origin HEAD:feature/final-04-service-logistics
-
   portable-service-tests:
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +39,7 @@ jobs:
           for src in Logistics Housekeeping Laundry Engineering RoomService ServiceLogistics; do
             g++ $CXXFLAGS -c game/src/${src}.cpp -o build/final04/${src}.o
           done
-      - name: Run FINAL-04 behavior and soak tests
+      - name: Run FINAL-04 behavior and 100-day soak tests
         run: |
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           OBJECTS='build/final04/Logistics.o build/final04/Housekeeping.o build/final04/Laundry.o build/final04/Engineering.o build/final04/RoomService.o build/final04/ServiceLogistics.o'
@@ -88,3 +47,14 @@ jobs:
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $OBJECTS -o build/final04/${test}Tests
             build/final04/${test}Tests
           done
+
+  simulation-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build Simulation/FINAL-04 integration gate
+        run: cmake --build build --config Release --target hh_SimulationServiceLogistics_tests --parallel 4
+      - name: Run Simulation/FINAL-04 integration gate
+        run: build/game/hh_SimulationServiceLogistics_tests
