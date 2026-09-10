@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -26,9 +28,29 @@ enum class MarketSegment : std::uint8_t {
   Budget = BudgetLeisure
 };
 
+struct SegmentDemandProfile {
+  MarketSegment segment{MarketSegment::CoupleLeisure};
+  double baseDailyDemand{};
+  std::array<int, 7> weekdayMultiplierBasisPoints{
+      10000, 10000, 10000, 10000, 10000, 10000, 10000};
+  int medianLeadTimeDays{};
+  int medianStayNights{1};
+  std::int64_t baseBudgetCents{};
+  bool operator==(const SegmentDemandProfile &) const = default;
+};
+
+struct MarketDemandModifiers {
+  int seasonMultiplierBasisPoints{10000};
+  int economicMultiplierBasisPoints{10000};
+  int eventMultiplierBasisPoints{10000};
+  int scenarioMultiplierBasisPoints{10000};
+  bool operator==(const MarketDemandModifiers &) const = default;
+};
+
 struct BookingRequest {
   std::uint64_t id{};
   MarketSegment segment{MarketSegment::CoupleLeisure};
+  int bookingDay{};
   int arrivalDay{};
   int departureDay{};
   std::int64_t budgetCents{};
@@ -89,6 +111,11 @@ public:
 
   void setPlayerOffer(const MarketHotelOffer &offer);
   void setCompetitors(std::vector<CompetitorOffer> competitors);
+  void setSegmentDemandProfile(const SegmentDemandProfile &profile);
+  [[nodiscard]] double potentialDemand(MarketSegment segment, int stayDay,
+                                       const MarketDemandModifiers &modifiers) const;
+  [[nodiscard]] int generatePotentialRequests(
+      MarketSegment segment, int stayDay, const MarketDemandModifiers &modifiers);
   void generateRequests(int firstArrivalDay, int lastArrivalDay, int count);
 
   [[nodiscard]] bool isEligible(const BookingRequest &request,
@@ -107,10 +134,12 @@ private:
   std::uint64_t nextRequestId_{1};
   MarketHotelOffer player_{};
   std::vector<CompetitorOffer> competitors_;
+  std::map<MarketSegment, SegmentDemandProfile> demandProfiles_;
   MarketSnapshot snapshot_{};
 
   [[nodiscard]] std::uint64_t nextRandom();
   [[nodiscard]] double unitRandom();
+  [[nodiscard]] const SegmentDemandProfile *profileFor(MarketSegment segment) const;
   void allocate(const BookingRequest &request);
   void refreshComparableMedian();
 };
