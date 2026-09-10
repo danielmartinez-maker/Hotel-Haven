@@ -1,4 +1,6 @@
-# Temporary reconciliation gate. Remove after FINAL-03 ancestry is incorporated.
+# Temporary reconciliation gate. This run materializes the already-verified
+# FINAL-03 reconciliation into branch history, then the workflow itself is
+# removed in the following externally-triggered cleanup commit.
 name: FINAL-04 FINAL-03 Scheduler Reconciliation
 
 on:
@@ -15,7 +17,7 @@ on:
       - game/tests/EngineeringTests.cpp
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   reconcile-scheduler:
@@ -37,9 +39,20 @@ jobs:
           python tools/final04_reconcile_main.py
           python tools/final04_reconcile_fixtures.py
           grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
+      - name: Remove reconciliation helpers from final tree
+        run: |
+          git rm tools/final04_reconcile_scheduler.py
+          git rm tools/final04_reconcile_main.py
+          git rm tools/final04_reconcile_fixtures.py
       - name: Configure combined build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build combined game
         run: cmake --build build --config Release --parallel 4
       - name: Run combined CTest
         run: ctest --test-dir build -C Release --output-on-failure
+      - name: Materialize tested FINAL-03 reconciliation
+        run: |
+          git add -A
+          git status --short
+          git commit -m "merge: reconcile FINAL-03 into FINAL-04"
+          git push origin HEAD:feature/final-04-service-logistics
