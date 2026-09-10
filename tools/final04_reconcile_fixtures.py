@@ -75,6 +75,22 @@ text = replace_once(
 )
 text = replace_once(
     text,
+    """  require(failedRooms > 0 && repairs == failedRooms,
+          "engineering wear did not create one repair task per failed room");
+
+  s.step(22 * 3600);
+""",
+    """  require(failedRooms > 0 && repairs == failedRooms,
+          "engineering wear did not create one repair task per failed room");
+  require(s.loadDefinitions(R"({"roomConditionLossPerDay":0})").ok,
+          "maintenance stabilization definitions rejected");
+
+  s.step(22 * 3600);
+""",
+    "maintenance-repair-isolates-new-wear",
+)
+text = replace_once(
+    text,
     """  require(economy.completedStays >= 30,
           "tutorial did not sustain meaningful guest throughput");
 """,
