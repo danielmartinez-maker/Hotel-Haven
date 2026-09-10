@@ -30,6 +30,28 @@ bool targets(const MarketingCampaign &campaign, MarketSegment segment) {
          campaign.targetSegments.end();
 }
 
+int effectiveCampaignBoost(const MarketingCampaign &campaign, int day) {
+  if (day < campaign.startDay)
+    return 0;
+  if (day <= campaign.endDay) {
+    if (campaign.rampUpDays <= 0)
+      return campaign.visibilityBoostBasisPoints;
+    const int elapsedActiveDays = day - campaign.startDay + 1;
+    if (elapsedActiveDays >= campaign.rampUpDays)
+      return campaign.visibilityBoostBasisPoints;
+    return campaign.visibilityBoostBasisPoints * elapsedActiveDays /
+           campaign.rampUpDays;
+  }
+  if (campaign.attributionDecayDays <= 0)
+    return 0;
+  const int elapsedDecayDays = day - campaign.endDay;
+  if (elapsedDecayDays >= campaign.attributionDecayDays)
+    return 0;
+  return campaign.visibilityBoostBasisPoints *
+         (campaign.attributionDecayDays - elapsedDecayDays) /
+         campaign.attributionDecayDays;
+}
+
 } // namespace
 
 void CommercialDemand::setReputation(int basisPoints) {
@@ -69,7 +91,9 @@ CommercialCommandResult CommercialDemand::startCampaign(const MarketingCampaign 
                                                          int currentDay) {
   if (campaign.id == 0 || campaign.startDay < currentDay ||
       campaign.endDay < campaign.startDay || campaign.costCents < 0 ||
-      campaign.visibilityBoostBasisPoints < 0 || campaign.targetSegments.empty())
+      campaign.visibilityBoostBasisPoints < 0 || campaign.targetSegments.empty() ||
+      campaign.rampUpDays < 0 || campaign.attributionDecayDays < 0 ||
+      campaign.rampUpDays > 3650 || campaign.attributionDecayDays > 3650)
     return {false, "INVALID_MARKETING_CAMPAIGN", 0};
   if (std::any_of(snapshot_.campaigns.begin(), snapshot_.campaigns.end(),
                   [&](const auto &existing) { return existing.id == campaign.id; }))
@@ -83,8 +107,8 @@ CommercialCommandResult CommercialDemand::startCampaign(const MarketingCampaign 
 int CommercialDemand::visibilityBasisPoints(MarketSegment segment, int day) const {
   int visibility = 10000;
   for (const auto &campaign : snapshot_.campaigns)
-    if (day >= campaign.startDay && day <= campaign.endDay && targets(campaign, segment))
-      visibility += campaign.visibilityBoostBasisPoints;
+    if (targets(campaign, segment))
+      visibility += effectiveCampaignBoost(campaign, day);
   return std::max(0, visibility);
 }
 
@@ -124,7 +148,7 @@ CommercialDemandSnapshot CommercialDemand::snapshot() const { return snapshot_; 
 
 std::string CommercialDemand::save() const {
   std::ostringstream out;
-  out << "HHCOMM 2 " << snapshot_.overallReputationBasisPoints << ' '
+  out << "HHCOMM 3 " << snapshot_.overallReputationBasisPoints << ' '
       << snapshot_.serviceReputationBasisPoints << ' '
       << snapshot_.cleanlinessReputationBasisPoints << ' '
       << snapshot_.valueReputationBasisPoints << ' ' << snapshot_.reviewCount << ' '
@@ -135,6 +159,7 @@ std::string CommercialDemand::save() const {
         << campaign.targetSegments.size();
     for (const auto segment : campaign.targetSegments)
       out << ' ' << static_cast<int>(segment);
+    out << ' ' << campaign.rampUpDays << ' ' << campaign.attributionDecayDays;
   }
   out << ' ' << snapshot_.contracts.size();
   for (const auto &accepted : snapshot_.contracts) {
@@ -158,7 +183,7 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
       result.snapshot_.serviceReputationBasisPoints >>
       result.snapshot_.cleanlinessReputationBasisPoints >>
       result.snapshot_.valueReputationBasisPoints;
-  if (!in || magic != "HHCOMM" || (version != 1 && version != 2))
+  if (!in || magic != "HHCOMM" || (version != 1 && version != 2 && version != 3))
     throw std::invalid_argument("invalid commercial demand save");
   if (version >= 2)
     in >> result.snapshot_.reviewCount;
@@ -180,6 +205,10 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
         throw std::invalid_argument("invalid saved market segment");
       campaign.targetSegments.push_back(static_cast<MarketSegment>(segment));
     }
+    if (version >= 3)
+      in >> campaign.rampUpDays >> campaign.attributionDecayDays;
+    if (!in || campaign.rampUpDays < 0 || campaign.attributionDecayDays < 0)
+      throw std::invalid_argument("invalid saved campaign schedule");
     result.snapshot_.campaigns.push_back(std::move(campaign));
   }
   in >> count;
