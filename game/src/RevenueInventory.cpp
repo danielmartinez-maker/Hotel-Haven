@@ -317,6 +317,11 @@ RevenueInventorySnapshot RevenueInventory::snapshot() const {
   out.bookings = bookings_;
   out.physicalCapacity = physicalCapacity_;
   out.indexedRoomNightCount = indexedRoomNightCount_;
+  out.resolvedOverbookingAllowance = overbookingAllowance_;
+  for (const auto &[category, windows] : overbookingWindows_)
+    for (const auto &window : windows)
+      out.resolvedOverbookingAllowance[category] = std::max(
+          out.resolvedOverbookingAllowance[category], window.units);
   for (const auto &[id, block] : inventoryBlocks_) {
     (void)id;
     out.inventoryBlocks.push_back(block);
