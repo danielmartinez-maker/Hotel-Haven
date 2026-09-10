@@ -92,6 +92,16 @@ add_executable(hh_frontend_tests
     tests/ShowcaseHotelSceneTests.cpp
     tests/MenuInputTests.cpp
     tests/D2DUiSmokeTests.cpp
+    tests/GameHudTests.cpp
+    tests/InspectorTests.cpp
+    tests/BuildToolTests.cpp
+    tests/OverlayTests.cpp
+    tests/OperationsDashboardTests.cpp
+    tests/EconomyDashboardTests.cpp
+    tests/AlertCenterTests.cpp
+    tests/ObjectiveUiTests.cpp
+    tests/AccessibilityTests.cpp
+    tests/GameUiRuntimeTests.cpp
     src/ShowcaseHotelScene.cpp
 )
 
