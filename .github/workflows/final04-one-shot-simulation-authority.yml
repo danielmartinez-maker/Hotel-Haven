@@ -6,6 +6,7 @@ on:
       - feature/final-04-service-logistics
     paths:
       - tools/final04_patch_simulation_authority.py
+      - .github/workflows/final04-one-shot-simulation-authority.yml
 
 permissions:
   contents: write
