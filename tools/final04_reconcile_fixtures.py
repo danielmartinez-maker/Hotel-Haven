@@ -87,6 +87,19 @@ text = replace_once(
     ordered.chemicals += pending.items.chemicals;
     ordered.parts += pending.items.parts;
   }
+  int turnoverTasks = 0;
+  int completedTurnovers = 0;
+  int repairTasks = 0;
+  int completedRepairs = 0;
+  for (const auto &task : finalView.tasks) {
+    if (task.kind == TaskKind::Turnover) {
+      ++turnoverTasks;
+      completedTurnovers += task.status == TaskStatus::Completed ? 1 : 0;
+    } else if (task.kind == TaskKind::Repair) {
+      ++repairTasks;
+      completedRepairs += task.status == TaskStatus::Completed ? 1 : 0;
+    }
+  }
   std::cout << "Tutorial economics: stays " << economy.completedStays
             << ", revenue " << economy.revenueCents
             << ", payroll " << economy.payrollCents
@@ -99,7 +112,10 @@ text = replace_once(
             << "; final usable L/T/A/C/P " << finalView.inventory.linen << '/'
             << finalView.inventory.towels << '/' << finalView.inventory.amenities
             << '/' << finalView.inventory.chemicals << '/'
-            << finalView.inventory.parts << "\\n";
+            << finalView.inventory.parts
+            << "; turnover tasks/completed " << turnoverTasks << '/'
+            << completedTurnovers << "; repair tasks/completed " << repairTasks
+            << '/' << completedRepairs << "\\n";
   require(economy.completedStays >= 30,
           "tutorial did not sustain meaningful guest throughput");
 """,
