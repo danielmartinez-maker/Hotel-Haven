@@ -56,7 +56,10 @@ if(WIN32)
     target_link_libraries(hh_game_ui_command_router_tests PRIVATE hh_game_ui_bridge)
     add_test(NAME hh_game_ui_command_router_tests COMMAND hh_game_ui_command_router_tests)
 
-    add_executable(hotel_haven WIN32 game/app/GameMain.cpp game/app/Panels.cpp)
+    add_executable(hotel_haven WIN32
+        game/app/GameMain.cpp
+        game/app/ClientUi.cpp
+        game/app/Panels.cpp)
     target_compile_definitions(hotel_haven PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
     target_link_libraries(hotel_haven PRIVATE
         hh_game

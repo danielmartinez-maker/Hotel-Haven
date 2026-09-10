@@ -15,6 +15,7 @@ namespace hh::client {
 using namespace hh::game;
 using namespace hh::renderer;
 namespace {
+
 std::optional<Position> pick(const Client &c, int x, int y) {
   RECT r{};
   GetClientRect(c.viewport, &r);
@@ -44,6 +45,7 @@ std::optional<Position> pick(const Client &c, int x, int y) {
     return {};
   return Position{c.floor, tx, ty};
 }
+
 std::string readFile(const std::filesystem::path &path) {
   std::ifstream stream(path, std::ios::binary);
   if (!stream)
@@ -54,29 +56,7 @@ std::string readFile(const std::filesystem::path &path) {
   stream.seekg(0);
   return {std::istreambuf_iterator<char>(stream), {}};
 }
-CommandResult applyBuildTool(Simulation &simulation, Tool tool,
-                             Position position, std::size_t roomCount) {
-  if (tool == Tool::Bedroom) {
-    RoomBlueprint r;
-    r.name =
-        "Room " + std::to_string((position.floor + 1) * 100 + roomCount + 1);
-    r.floor = position.floor;
-    r.x = position.x;
-    r.y = position.y;
-    r.width = 6;
-    r.height = 6;
-    r.door = {position.floor, position.x + 2, position.y + 5};
-    r.nightlyRate = 120;
-    return simulation.buildFurnishedRoom(r);
-  }
-  constexpr std::array<TileKind, 13> kinds = {
-      TileKind::Empty,     TileKind::Empty,        TileKind::Floor,
-      TileKind::Wall,      TileKind::Door,         TileKind::Entrance,
-      TileKind::FrontDesk, TileKind::SupplyCloset, TileKind::Stairs,
-      TileKind::Empty,     TileKind::Bathroom,     TileKind::StaffRoom,
-      TileKind::Lobby};
-  return simulation.buildTile(position, kinds[static_cast<std::size_t>(tool)]);
-}
+
 void captureClient(HWND window, const std::filesystem::path &path) {
   RECT r{};
   GetClientRect(window, &r);
@@ -114,6 +94,7 @@ void captureClient(HWND window, const std::filesystem::path &path) {
   out.write(reinterpret_cast<const char *>(pixels.data()),
             static_cast<std::streamsize>(pixels.size()));
 }
+
 LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
   auto *c =
       reinterpret_cast<Client *>(GetWindowLongPtrW(window, GWLP_USERDATA));
@@ -193,8 +174,9 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       if (view) {
         SetFocus(window);
         c->mapClick(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
-      } else
+      } else {
         c->click(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+      }
       return 0;
     case WM_MOUSEMOVE:
       if (view)
@@ -215,8 +197,30 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
   }
   return DefWindowProcW(window, message, wp, lp);
 }
+
+void updateBuildPreview(Client &c, Position position) {
+  auto previewSimulation = c.simulation;
+  const auto check = applyBuildTool(previewSimulation, c.tool, position,
+                                    c.snapshot.rooms.size());
+  c.previewValid = check.ok;
+  c.buildPreview = {};
+  c.buildPreview.requestId = ++c.previewRequestSerial;
+  c.buildPreview.itemId = toolName(c.tool);
+  c.buildPreview.valid = check.ok;
+  c.buildPreview.reasonCode = check.ok ? std::string{} : "BUILD_REJECTED";
+  c.buildPreview.reasonText = check.message;
+  c.buildPreview.floor = position.floor;
+  c.buildPreview.x = position.x;
+  c.buildPreview.y = position.y;
+  c.notice = check.ok ? L"Placement preview · click to build"
+                      : wide(check.message);
+  c.refreshUi();
+}
+
 } // namespace
-Client::Client() : simulation(Simulation::tutorial(20260907)) {
+
+Client::Client()
+    : simulation(Simulation::tutorial(20260907)), hudController(hudModel) {
   normal = CreateFontW(-16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                        CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
@@ -230,28 +234,34 @@ Client::Client() : simulation(Simulation::tutorial(20260907)) {
                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                        CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
   snapshot = simulation.view();
+  refreshUi();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
   camera.setYawDegrees(45);
   camera.setOrthoHeight(30);
 }
+
 Client::~Client() {
   DeleteObject(normal);
   DeleteObject(small);
   DeleteObject(title);
   DeleteObject(number);
 }
+
 void Client::refresh() {
   snapshot = simulation.view();
+  refreshUi();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
 }
+
 void Client::result(const CommandResult &r) {
   notice = wide(r.message);
   if (notice.empty())
     notice = r.ok ? L"Change applied." : L"This change could not be applied.";
   refresh();
 }
+
 void Client::layout() {
   const int vw = std::max(1, width - SidebarWidth),
             vh = std::max(1, height - HeaderHeight - FooterHeight);
@@ -265,8 +275,9 @@ void Client::layout() {
   }
   InvalidateRect(window, nullptr, FALSE);
 }
+
 void Client::click(int x, int y) {
-  for (const auto &b : buttons)
+  for (const auto &b : buttons) {
     if (x >= b.rect.left && x < b.rect.right && y >= b.rect.top &&
         y < b.rect.bottom) {
       auto fn = b.action;
@@ -274,7 +285,9 @@ void Client::click(int x, int y) {
       refresh();
       return;
     }
+  }
 }
+
 void Client::hover(int x, int y) {
   const auto p = pick(*this, x, y);
   if (p && p->x == hoverX && p->y == hoverY && previewTool == tool)
@@ -283,52 +296,76 @@ void Client::hover(int x, int y) {
   hoverY = p ? p->y : -1;
   previewTool = tool;
   if (p && tool != Tool::Inspect) {
-    auto preview = simulation;
-    const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size());
-    previewValid = check.ok;
-    notice =
-        check.ok ? L"Placement preview · click to build" : wide(check.message);
-    InvalidateRect(window, nullptr, FALSE);
+    updateBuildPreview(*this, *p);
+  } else {
+    previewValid = false;
+    buildPreview = {};
+    refreshUi();
   }
+  InvalidateRect(window, nullptr, FALSE);
 }
+
 void Client::mapClick(int x, int y) {
   const auto pos = pick(*this, x, y);
   if (!pos)
     return;
   if (tool == Tool::Inspect) {
     selected = 0;
-    for (const auto &r : snapshot.rooms)
+    ui.openInspector(0);
+    for (const auto &r : snapshot.rooms) {
       if (r.floor == floor && pos->x >= r.x && pos->x < r.x + r.width &&
           pos->y >= r.y && pos->y < r.y + r.height) {
-        selected = r.id;
-        page = Page::Rooms;
-        tabScroll = 0;
+        const auto command = hh::frontend::UiCommand{
+            hh::frontend::UiCommandType::OpenInspector, r.id};
+        const auto response = ui.dispatchUiCommand(command);
+        if (!response.ok)
+          notice = wide(response.message);
         break;
       }
+    }
     refresh();
     return;
   }
-  const auto out =
-      applyBuildTool(simulation, tool, *pos, snapshot.rooms.size());
-  if (out && tool == Tool::Bedroom)
-    selected = out.id;
-  result(out);
+
+  if (!buildPreview.valid || buildPreview.floor != pos->floor ||
+      buildPreview.x != pos->x || buildPreview.y != pos->y ||
+      buildPreview.itemId != toolName(tool)) {
+    updateBuildPreview(*this, *pos);
+  }
+  const hh::frontend::UiCommand command{
+      hh::frontend::UiCommandType::BuildConfirm, 0,
+      static_cast<std::int64_t>(buildPreview.requestId),
+      buildPreview.rotationQuarterTurns, buildPreview.itemId};
+  const auto response = ui.dispatchUiCommand(command);
+  notice = wide(response.message);
+  if (notice.empty())
+    notice = response.ok ? L"Construction command accepted."
+                         : L"Construction command rejected.";
   hoverX = hoverY = -1;
+  previewValid = false;
+  buildPreview = {};
+  refresh();
 }
+
 void Client::changeFloor(int requested) {
   floor = std::clamp(requested, 0, snapshot.floors - 1);
   auto target = camera.target();
   target.y = static_cast<float>(floor) * 3.2f;
   camera.setTarget(target);
   hoverX = hoverY = -1;
+  buildPreview = {};
+  previewValid = false;
+  refreshUi();
 }
+
 void Client::key(int k) {
+  using hh::frontend::UiAction;
+  using hh::frontend::UiCommand;
+  using hh::frontend::UiCommandType;
   if (k == VK_SPACE) {
-    if (speed) {
-      priorSpeed = speed;
-      speed = 0;
-    } else
-      speed = priorSpeed;
+    const auto command = hudController.handleAction(UiAction::PauseToggle);
+    if (command)
+      ui.dispatchUiCommand(*command);
   }
   if (k == 'Q')
     camera.rotateSnapped(-1);
@@ -339,17 +376,29 @@ void Client::key(int k) {
   if (k == VK_NEXT)
     changeFloor(floor - 1);
   if (k == VK_F5)
-    save();
+    ui.dispatchUiCommand(UiCommand{UiCommandType::SaveGame});
   if (k == VK_F9)
-    load();
+    ui.dispatchUiCommand(UiCommand{UiCommandType::LoadGame});
+  if (k == VK_F1) {
+    page = Page::Guide;
+    tabScroll = 0;
+  }
+  if (k == 'O') {
+    page = Page::Overlays;
+    tabScroll = 0;
+  }
   if (k == VK_ESCAPE) {
     tool = Tool::Inspect;
     selected = 0;
+    ui.openInspector(0);
+    buildPreview = {};
+    previewValid = false;
   }
   if (k == 'C')
     context = !context;
   refresh();
 }
+
 bool Client::save() {
   try {
     std::filesystem::create_directories(savePath.parent_path());
@@ -375,7 +424,8 @@ bool Client::save() {
   refresh();
   return true;
 }
-void Client::load() {
+
+bool Client::load() {
   try {
     auto restored = Simulation::load(readFile(savePath));
     simulation = std::move(restored);
@@ -383,14 +433,22 @@ void Client::load() {
     speed = 0;
     selected = 0;
     tabScroll = 0;
+    buildPreview = {};
+    previewValid = false;
+    managementOverlay = hh::frontend::OverlayId::None;
+    overlay = Overlay::Natural;
     refresh();
     changeFloor(std::min(floor, snapshot.floors - 1));
     notice = L"Campaign restored and paused.";
   } catch (const std::exception &e) {
     notice = L"Load failed: " + wide(e.what());
+    refresh();
+    return false;
   }
   refresh();
+  return true;
 }
+
 void Client::newCampaign() {
   if (MessageBoxW(
           window,
@@ -400,9 +458,9 @@ void Client::newCampaign() {
   auto campaign = Simulation::tutorial(20260907);
   const auto definitions = directory / L"data" / L"balance.json";
   if (std::filesystem::exists(definitions)) {
-    const auto result = campaign.loadDefinitions(readFile(definitions));
-    if (!result) {
-      notice = wide(result.message);
+    const auto loadResult = campaign.loadDefinitions(readFile(definitions));
+    if (!loadResult) {
+      notice = wide(loadResult.message);
       refresh();
       return;
     }
@@ -413,10 +471,15 @@ void Client::newCampaign() {
   speed = 0;
   floor = 0;
   page = Page::Guide;
+  managementOverlay = hh::frontend::OverlayId::None;
+  overlay = Overlay::Natural;
+  buildPreview = {};
+  previewValid = false;
   refresh();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
 }
+
 } // namespace hh::client
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
@@ -435,9 +498,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
     c.directory = std::filesystem::path(path.data()).parent_path();
     const auto definitions = c.directory / L"data" / L"balance.json";
     if (std::filesystem::exists(definitions)) {
-      const auto result = c.simulation.loadDefinitions(readFile(definitions));
-      if (!result)
-        throw std::runtime_error(result.message);
+      const auto loadResult = c.simulation.loadDefinitions(readFile(definitions));
+      if (!loadResult)
+        throw std::runtime_error(loadResult.message);
     }
     c.worldAssets = loadWorldAssetsFromDirectory(
         c.assetRegistry, c.directory / L"data" / L"assets");
@@ -547,7 +610,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
       if (c.smoke && frames == 10)
         captureClient(c.window, c.directory / L"smoke-guide.bmp");
       if (c.smoke && frames == 20) {
-        c.page = Page::Rooms;
+        c.page = Page::Operations;
         if (!c.snapshot.rooms.empty())
           c.selected = c.snapshot.rooms.front().id;
         c.refresh();
@@ -560,6 +623,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
             viewSize.bottom != c.height - HeaderHeight - FooterHeight)
           throw std::runtime_error(
               "Viewport dimensions do not match client layout");
+        if (c.ui.snapshot().revision == 0)
+          throw std::runtime_error("FINAL-07 UI snapshot was not built");
+        if (c.hudModel.speed() != hh::frontend::SimulationSpeed::Paused)
+          throw std::runtime_error("Opening management UI advanced paused simulation");
         captureClient(c.window, c.directory / L"smoke-hotel.bmp");
         auto state = c.simulation.save();
         auto restored = hh::game::Simulation::load(state);

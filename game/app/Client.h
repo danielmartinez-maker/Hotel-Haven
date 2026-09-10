@@ -1,6 +1,13 @@
 #pragma once
+#include "GameUiBridge.h"
+#include "GameUiCommandRouter.h"
+#include "InGameUiContract.h"
 #include "RuntimeWorldAssets.h"
 #include "d3d11/D3D11Renderer.h"
+#include "hh/frontend/AlertCenter.h"
+#include "hh/frontend/GameHudController.h"
+#include "hh/frontend/GameUiRuntime.h"
+#include "hh/frontend/UiSettings.h"
 #include "hh/game/Simulation.h"
 #include "hh/renderer/Camera.h"
 #include "hh/renderer/RenderScene.h"
@@ -26,7 +33,6 @@
 
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
-enum class Page { Build, Rooms, Staff, Guests, Supplies, Finance, Guide };
 enum class Tool {
   Inspect,
   Bedroom,
@@ -70,6 +76,15 @@ private:
 struct Client {
   hh::game::Simulation simulation;
   hh::game::SimulationView snapshot;
+  hh::frontend::GameHudModel hudModel;
+  hh::frontend::GameHudController hudController;
+  hh::frontend::GameUiRuntime ui;
+  hh::frontend::AlertCenter alertCenter{200};
+  hh::frontend::UiSettings uiSettings;
+  hh::frontend::BuildPlacementPreview buildPreview;
+  bool uiConfigured{};
+  std::uint64_t previewRequestSerial{};
+  hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
   ClientRenderer renderer{assetRegistry};
@@ -96,6 +111,7 @@ struct Client {
   Client();
   ~Client();
   void refresh();
+  void refreshUi();
   void layout();
   void paint(HDC);
   void click(int, int);
@@ -104,10 +120,16 @@ struct Client {
   void key(int);
   void changeFloor(int);
   bool save();
-  void load();
+  bool load();
   void result(const hh::game::CommandResult &);
   void newCampaign();
+  [[nodiscard]] hh::frontend::UiCommandResult
+  dispatchUiCommand(const hh::frontend::UiCommand &command);
 };
+[[nodiscard]] std::string toolName(Tool tool);
+[[nodiscard]] hh::game::CommandResult
+applyBuildTool(hh::game::Simulation &simulation, Tool tool,
+               hh::game::Position position, std::size_t roomCount);
 std::wstring wide(const std::string &);
 std::wstring money(std::int64_t);
 std::wstring roomStatus(hh::game::RoomStatus);
