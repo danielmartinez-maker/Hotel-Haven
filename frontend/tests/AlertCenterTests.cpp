@@ -25,4 +25,7 @@ TEST_CASE("Resolved alert history remains bounded") {
         center.ingest({{i, AlertSeverity::Info, i, "X", "resolved", 0, true}});
     }
     EXPECT_EQ(center.resolvedHistory().size(), static_cast<std::size_t>(2));
+    EXPECT_TRUE(center.causalChain(1).empty());
+    EXPECT_FALSE(center.navigationFor(1).has_value());
+    EXPECT_FALSE(center.causalChain(5).empty());
 }
