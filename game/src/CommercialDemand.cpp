@@ -135,7 +135,7 @@ ContractAcceptanceResult CommercialDemand::acceptContract(
   if (!feasible && !acceptRisk)
     return {false, "CURRENT_CAPACITY_INSUFFICIENT_ACCEPT_RISK_REQUIRED", 0, false};
 
-  snapshot_.contracts.push_back({contract, !feasible});
+  snapshot_.contracts.push_back({contract, !feasible, 0, 0});
   std::sort(snapshot_.contracts.begin(), snapshot_.contracts.end(),
             [](const auto &a, const auto &b) {
               return a.contract.id < b.contract.id;
@@ -144,11 +144,29 @@ ContractAcceptanceResult CommercialDemand::acceptContract(
           !feasible};
 }
 
+void CommercialDemand::setContractCommitment(std::uint64_t contractId,
+                                             int reservedRoomNights,
+                                             int unfulfilledRoomNights) {
+  if (contractId == 0 || reservedRoomNights < 0 || unfulfilledRoomNights < 0)
+    throw std::invalid_argument("invalid commercial contract commitment");
+  auto it = std::find_if(snapshot_.contracts.begin(), snapshot_.contracts.end(),
+                         [&](const auto &accepted) {
+                           return accepted.contract.id == contractId;
+                         });
+  if (it == snapshot_.contracts.end())
+    throw std::invalid_argument("commercial contract not found");
+  if (reservedRoomNights + unfulfilledRoomNights !=
+      it->contract.minimumRoomNights)
+    throw std::invalid_argument("commercial contract commitment does not reconcile");
+  it->reservedRoomNights = reservedRoomNights;
+  it->unfulfilledRoomNights = unfulfilledRoomNights;
+}
+
 CommercialDemandSnapshot CommercialDemand::snapshot() const { return snapshot_; }
 
 std::string CommercialDemand::save() const {
   std::ostringstream out;
-  out << "HHCOMM 3 " << snapshot_.overallReputationBasisPoints << ' '
+  out << "HHCOMM 4 " << snapshot_.overallReputationBasisPoints << ' '
       << snapshot_.serviceReputationBasisPoints << ' '
       << snapshot_.cleanlinessReputationBasisPoints << ' '
       << snapshot_.valueReputationBasisPoints << ' ' << snapshot_.reviewCount << ' '
@@ -168,7 +186,8 @@ std::string CommercialDemand::save() const {
         << c.minimumRoomNights << ' ' << c.maximumRoomNights << ' '
         << c.negotiatedRateCents << ' ' << c.requiredVenueCapacity << ' '
         << c.requiredServiceUnits << ' ' << c.cancellationPenaltyCents << ' '
-        << c.paymentDelayDays << ' ' << accepted.acceptedRisk;
+        << c.paymentDelayDays << ' ' << accepted.acceptedRisk << ' '
+        << accepted.reservedRoomNights << ' ' << accepted.unfulfilledRoomNights;
   }
   return out.str();
 }
@@ -183,7 +202,8 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
       result.snapshot_.serviceReputationBasisPoints >>
       result.snapshot_.cleanlinessReputationBasisPoints >>
       result.snapshot_.valueReputationBasisPoints;
-  if (!in || magic != "HHCOMM" || (version != 1 && version != 2 && version != 3))
+  if (!in || magic != "HHCOMM" ||
+      (version != 1 && version != 2 && version != 3 && version != 4))
     throw std::invalid_argument("invalid commercial demand save");
   if (version >= 2)
     in >> result.snapshot_.reviewCount;
@@ -221,8 +241,13 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
         c.maximumRoomNights >> c.negotiatedRateCents >> c.requiredVenueCapacity >>
         c.requiredServiceUnits >> c.cancellationPenaltyCents >> c.paymentDelayDays >>
         accepted.acceptedRisk;
-    if (!in)
+    if (version >= 4)
+      in >> accepted.reservedRoomNights >> accepted.unfulfilledRoomNights;
+    if (!in || accepted.reservedRoomNights < 0 || accepted.unfulfilledRoomNights < 0)
       throw std::invalid_argument("invalid saved contract");
+    if (version >= 4 && accepted.reservedRoomNights + accepted.unfulfilledRoomNights !=
+                            c.minimumRoomNights)
+      throw std::invalid_argument("saved contract commitment does not reconcile");
     result.snapshot_.contracts.push_back(std::move(accepted));
   }
   in >> std::ws;
