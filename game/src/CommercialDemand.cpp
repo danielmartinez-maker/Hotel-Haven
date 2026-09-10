@@ -9,9 +9,6 @@ namespace hh::game {
 namespace {
 
 int reviewAlphaBasisPoints(std::uint64_t priorReviewCount) {
-  // 77 bp is the asymptotic EWMA alpha corresponding to an effective
-  // half-life of roughly 90 review-equivalents. Low-volume hotels react more
-  // quickly so an individual review remains meaningful early in a campaign.
   constexpr int halfLife90AlphaBasisPoints = 77;
   const auto denominator = std::min<std::uint64_t>(priorReviewCount + 1, 1000000);
   const int lowVolumeAlpha = static_cast<int>(2000 / denominator);
@@ -23,6 +20,14 @@ int ewma(int previous, int sample, int alphaBasisPoints) {
       (previous * (10000 - alphaBasisPoints) + sample * alphaBasisPoints + 5000) /
           10000,
       0, 10000);
+}
+
+bool validBasisPoints(int value) { return value >= 0 && value <= 10000; }
+bool validOptionalBasisPoints(int value) {
+  return value == -1 || validBasisPoints(value);
+}
+int reviewCategoryOrOverall(int category, int overall) {
+  return category < 0 ? overall : category;
 }
 
 bool targets(const MarketingCampaign &campaign, MarketSegment segment) {
@@ -55,21 +60,28 @@ int effectiveCampaignBoost(const MarketingCampaign &campaign, int day) {
 } // namespace
 
 void CommercialDemand::setReputation(int basisPoints) {
-  if (basisPoints < 0 || basisPoints > 10000)
+  if (!validBasisPoints(basisPoints))
     throw std::invalid_argument("invalid reputation");
   snapshot_.overallReputationBasisPoints = basisPoints;
   snapshot_.serviceReputationBasisPoints = basisPoints;
   snapshot_.cleanlinessReputationBasisPoints = basisPoints;
   snapshot_.valueReputationBasisPoints = basisPoints;
+  snapshot_.roomReputationBasisPoints = basisPoints;
+  snapshot_.quietReputationBasisPoints = basisPoints;
+  snapshot_.businessReputationBasisPoints = basisPoints;
+  snapshot_.foodReputationBasisPoints = basisPoints;
   snapshot_.reviewCount = 0;
 }
 
 void CommercialDemand::applyReview(const ReviewSignal &review) {
-  if (review.sourceId == 0 || review.overallBasisPoints < 0 ||
-      review.overallBasisPoints > 10000 || review.serviceBasisPoints < 0 ||
-      review.serviceBasisPoints > 10000 || review.cleanlinessBasisPoints < 0 ||
-      review.cleanlinessBasisPoints > 10000 || review.valueBasisPoints < 0 ||
-      review.valueBasisPoints > 10000)
+  if (review.sourceId == 0 || !validBasisPoints(review.overallBasisPoints) ||
+      !validBasisPoints(review.serviceBasisPoints) ||
+      !validBasisPoints(review.cleanlinessBasisPoints) ||
+      !validBasisPoints(review.valueBasisPoints) ||
+      !validOptionalBasisPoints(review.roomBasisPoints) ||
+      !validOptionalBasisPoints(review.quietBasisPoints) ||
+      !validOptionalBasisPoints(review.businessBasisPoints) ||
+      !validOptionalBasisPoints(review.foodBasisPoints))
     throw std::invalid_argument("invalid review signal");
   const int alphaBasisPoints = reviewAlphaBasisPoints(snapshot_.reviewCount);
   snapshot_.overallReputationBasisPoints =
@@ -84,6 +96,22 @@ void CommercialDemand::applyReview(const ReviewSignal &review) {
   snapshot_.valueReputationBasisPoints =
       ewma(snapshot_.valueReputationBasisPoints, review.valueBasisPoints,
            alphaBasisPoints);
+  snapshot_.roomReputationBasisPoints = ewma(
+      snapshot_.roomReputationBasisPoints,
+      reviewCategoryOrOverall(review.roomBasisPoints, review.overallBasisPoints),
+      alphaBasisPoints);
+  snapshot_.quietReputationBasisPoints = ewma(
+      snapshot_.quietReputationBasisPoints,
+      reviewCategoryOrOverall(review.quietBasisPoints, review.overallBasisPoints),
+      alphaBasisPoints);
+  snapshot_.businessReputationBasisPoints = ewma(
+      snapshot_.businessReputationBasisPoints,
+      reviewCategoryOrOverall(review.businessBasisPoints, review.overallBasisPoints),
+      alphaBasisPoints);
+  snapshot_.foodReputationBasisPoints = ewma(
+      snapshot_.foodReputationBasisPoints,
+      reviewCategoryOrOverall(review.foodBasisPoints, review.overallBasisPoints),
+      alphaBasisPoints);
   ++snapshot_.reviewCount;
 }
 
@@ -168,10 +196,14 @@ CommercialDemandSnapshot CommercialDemand::snapshot() const { return snapshot_; 
 
 std::string CommercialDemand::save() const {
   std::ostringstream out;
-  out << "HHCOMM 4 " << snapshot_.overallReputationBasisPoints << ' '
+  out << "HHCOMM 5 " << snapshot_.overallReputationBasisPoints << ' '
       << snapshot_.serviceReputationBasisPoints << ' '
       << snapshot_.cleanlinessReputationBasisPoints << ' '
-      << snapshot_.valueReputationBasisPoints << ' ' << snapshot_.reviewCount << ' '
+      << snapshot_.valueReputationBasisPoints << ' '
+      << snapshot_.roomReputationBasisPoints << ' '
+      << snapshot_.quietReputationBasisPoints << ' '
+      << snapshot_.businessReputationBasisPoints << ' '
+      << snapshot_.foodReputationBasisPoints << ' ' << snapshot_.reviewCount << ' '
       << snapshot_.campaigns.size();
   for (const auto &campaign : snapshot_.campaigns) {
     out << ' ' << campaign.id << ' ' << campaign.startDay << ' ' << campaign.endDay << ' '
@@ -205,10 +237,36 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
       result.snapshot_.cleanlinessReputationBasisPoints >>
       result.snapshot_.valueReputationBasisPoints;
   if (!in || magic != "HHCOMM" ||
-      (version != 1 && version != 2 && version != 3 && version != 4))
+      (version != 1 && version != 2 && version != 3 && version != 4 &&
+       version != 5))
     throw std::invalid_argument("invalid commercial demand save");
+  if (version >= 5) {
+    in >> result.snapshot_.roomReputationBasisPoints >>
+        result.snapshot_.quietReputationBasisPoints >>
+        result.snapshot_.businessReputationBasisPoints >>
+        result.snapshot_.foodReputationBasisPoints;
+  } else {
+    result.snapshot_.roomReputationBasisPoints =
+        result.snapshot_.overallReputationBasisPoints;
+    result.snapshot_.quietReputationBasisPoints =
+        result.snapshot_.overallReputationBasisPoints;
+    result.snapshot_.businessReputationBasisPoints =
+        result.snapshot_.overallReputationBasisPoints;
+    result.snapshot_.foodReputationBasisPoints =
+        result.snapshot_.overallReputationBasisPoints;
+  }
   if (version >= 2)
     in >> result.snapshot_.reviewCount;
+  if (!in || !validBasisPoints(result.snapshot_.overallReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.serviceReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.cleanlinessReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.valueReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.roomReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.quietReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.businessReputationBasisPoints) ||
+      !validBasisPoints(result.snapshot_.foodReputationBasisPoints))
+    throw std::invalid_argument("invalid saved commercial reputation");
+
   in >> count;
   if (!in || count > 100000)
     throw std::invalid_argument("invalid commercial demand save");
