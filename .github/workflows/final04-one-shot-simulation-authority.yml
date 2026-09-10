@@ -1,3 +1,4 @@
+# Temporary reconciliation gate. Remove after FINAL-03 ancestry is incorporated.
 name: FINAL-04 FINAL-03 Scheduler Reconciliation
 
 on:
