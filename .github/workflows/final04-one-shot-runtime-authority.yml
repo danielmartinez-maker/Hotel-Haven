@@ -1,0 +1,30 @@
+name: FINAL-04 One-Shot Runtime Authority Patch
+
+on:
+  push:
+    branches:
+      - feature/final-04-service-logistics
+    paths:
+      - tools/final04_patch_service_runtime.py
+
+permissions:
+  contents: write
+
+jobs:
+  apply-runtime-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/final-04-service-logistics
+          fetch-depth: 0
+      - name: Apply anchored FINAL-04 aggregate patch
+        run: python tools/final04_patch_service_runtime.py
+      - name: Commit aggregate patch
+        run: |
+          git config user.name "hotel-haven-final04-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add game/src/ServiceLogistics.cpp
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "feat(game): expose FINAL-04 scheduler and inventory authority"
+          git push origin HEAD:feature/final-04-service-logistics
