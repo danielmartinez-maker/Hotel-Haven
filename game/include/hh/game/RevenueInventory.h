@@ -18,6 +18,17 @@ enum class BookingChannel : std::uint8_t {
   TravelAgent = Gds
 };
 enum class BookingState : std::uint8_t { Confirmed, Cancelled, NoShow, Completed };
+enum class InventoryBlockKind : std::uint8_t { Owner, Scenario };
+
+struct InventoryBlock {
+  std::uint64_t id{};
+  std::string roomCategory;
+  int startDay{};
+  int endDay{};
+  int units{};
+  InventoryBlockKind kind{InventoryBlockKind::Owner};
+  bool operator==(const InventoryBlock &) const = default;
+};
 
 struct BookingRequestInput {
   std::uint64_t bookingId{};
@@ -67,6 +78,7 @@ struct RevenueInventorySnapshot {
   std::int64_t bookedRoomRevenueCents{};
   std::int64_t channelCommissionCents{};
   std::map<std::string, int> physicalCapacity;
+  std::vector<InventoryBlock> inventoryBlocks;
   bool operator==(const RevenueInventorySnapshot &) const = default;
 };
 
@@ -79,6 +91,8 @@ public:
   void setOverbookingAllowance(std::string category, int units,
                                int startDay, int endDay);
   void clearOverbookingAllowances(std::string_view category);
+  [[nodiscard]] InventoryCommandResult setInventoryBlock(const InventoryBlock &block);
+  [[nodiscard]] InventoryCommandResult removeInventoryBlock(std::uint64_t blockId);
   void setCancellationBasisPoints(BookingChannel channel, int basisPoints);
   void setNoShowBasisPoints(BookingChannel channel, int basisPoints);
 
@@ -107,6 +121,7 @@ private:
   std::map<std::string, int> physicalCapacity_;
   std::map<std::string, int> overbookingAllowance_;
   std::map<std::string, std::vector<AllowanceWindow>> overbookingWindows_;
+  std::map<std::uint64_t, InventoryBlock> inventoryBlocks_;
   std::map<BookingChannel, int> cancellationBasisPoints_;
   std::map<BookingChannel, int> noShowBasisPoints_;
   std::vector<BookingView> bookings_;
