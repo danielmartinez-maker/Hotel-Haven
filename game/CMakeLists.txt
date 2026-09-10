@@ -11,6 +11,7 @@ add_library(hh_game
   src/GuestPsychologyRestore.cpp
   src/GuestPsychologyArchive.cpp
   src/GuestGoals.cpp
+  src/GuestExpectations.cpp
   src/GuestLoyalty.cpp
   src/GuestReviews.cpp)
 target_include_directories(hh_game PUBLIC include)
