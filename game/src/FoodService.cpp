@@ -1,5 +1,4 @@
 #include "hh/game/FoodService.h"
-
 #include <algorithm>
 #include <iomanip>
 #include <limits>
@@ -9,511 +8,51 @@
 
 namespace hh::game {
 namespace {
-template <class E> int ei(E value) { return static_cast<int>(value); }
-
-bool validStationClass(int value) {
-  return value >= ei(FoodStationClass::Prep) &&
-         value <= ei(FoodStationClass::ServicePass);
+template<class E> int ei(E v){return static_cast<int>(v);}
+bool validStationClass(int v){return v>=ei(FoodStationClass::Prep)&&v<=ei(FoodStationClass::ServicePass);}
+bool validChannel(int v){return v>=ei(FoodOrderChannel::Restaurant)&&v<=ei(FoodOrderChannel::Banquet);}
+bool validStage(int v){return v>=ei(FoodStage::Queued)&&v<=ei(FoodStage::Cancelled);}
+bool validBlock(int v){return v>=ei(FoodBlockReason::None)&&v<=ei(FoodBlockReason::MissingVenue);}
 }
-bool validChannel(int value) {
-  return value >= ei(FoodOrderChannel::Restaurant) &&
-         value <= ei(FoodOrderChannel::Banquet);
-}
-bool validStage(int value) {
-  return value >= ei(FoodStage::Queued) && value <= ei(FoodStage::Cancelled);
-}
-bool validBlock(int value) {
-  return value >= ei(FoodBlockReason::None) &&
-         value <= ei(FoodBlockReason::VenueCapacity);
-}
-} // namespace
 
 struct FoodServiceSystem::Impl {
-  struct Station : FoodStationView {};
-  struct ActiveOrder : FoodOrderView {
-    int quantity{1};
-    FoodStationId stationId{};
-    bool resourcesClaimed{};
-    std::vector<FoodStage> history;
-  };
-
-  ServiceId nextId{1};
-  std::int64_t elapsedSeconds{};
-  std::map<RecipeId, Recipe> recipes;
-  std::map<std::string, int, std::less<>> inventory;
-  std::vector<Station> stations;
-  std::vector<ActiveOrder> orders;
-  int staffCapacity{};
-  int activeStaff{};
-  std::int64_t revenueCents{};
-
-  ActiveOrder *findOrder(FoodOrderId id) {
-    for (auto &value : orders)
-      if (value.id == id)
-        return &value;
-    return nullptr;
-  }
-  const ActiveOrder *findOrder(FoodOrderId id) const {
-    for (const auto &value : orders)
-      if (value.id == id)
-        return &value;
-    return nullptr;
-  }
-  Station *findStation(FoodStationId id) {
-    for (auto &station : stations)
-      if (station.id == id)
-        return &station;
-    return nullptr;
-  }
-  void enter(ActiveOrder &order, FoodStage stage, int seconds = 0,
-             FoodBlockReason block = FoodBlockReason::None) {
-    order.stage = stage;
-    order.blockReason = block;
-    order.remainingStageSeconds = std::max(0, seconds);
-    if (order.history.empty() || order.history.back() != stage)
-      order.history.push_back(stage);
-  }
-  void releaseProduction(ActiveOrder &order) {
-    if (!order.resourcesClaimed)
-      return;
-    if (auto *station = findStation(order.stationId))
-      station->active = std::max(0, station->active - 1);
-    activeStaff = std::max(0, activeStaff - 1);
-    order.resourcesClaimed = false;
-    order.stationId = 0;
-  }
-  void advanceStage(ActiveOrder &order, const Recipe &recipe) {
-    for (;;) {
-      if (order.stage == FoodStage::Prep) {
-        if (recipe.cookSeconds > 0) {
-          enter(order, FoodStage::Cook, recipe.cookSeconds);
-          return;
-        }
-        order.stage = FoodStage::Cook;
-      }
-      if (order.stage == FoodStage::Cook) {
-        if (recipe.plateSeconds > 0) {
-          enter(order, FoodStage::Plate, recipe.plateSeconds);
-          return;
-        }
-        order.stage = FoodStage::Plate;
-      }
-      if (order.stage == FoodStage::Plate) {
-        enter(order, FoodStage::Ready);
-        releaseProduction(order);
-        return;
-      }
-      return;
-    }
-  }
+  struct Station:FoodStationView{};
+  struct Venue:FoodVenueView{int seatSeconds{1},orderSeconds{1},serveSeconds{1},paymentSeconds{1};};
+  struct ActiveOrder:FoodOrderView{int quantity{1};FoodStationId stationId{};bool resourcesClaimed{};bool seatClaimed{};std::vector<FoodStage> history;};
+  ServiceId nextId{1}; std::int64_t elapsedSeconds{}; std::map<RecipeId,Recipe> recipes; std::map<std::string,int,std::less<>> inventory; std::vector<Station> stations; std::vector<Venue> venues; std::vector<ActiveOrder> orders; int staffCapacity{},activeStaff{}; std::int64_t revenueCents{};
+  ActiveOrder* findOrder(FoodOrderId id){for(auto&x:orders)if(x.id==id)return &x;return nullptr;} const ActiveOrder* findOrder(FoodOrderId id)const{for(auto&x:orders)if(x.id==id)return &x;return nullptr;}
+  Station* findStation(FoodStationId id){for(auto&x:stations)if(x.id==id)return &x;return nullptr;}
+  Venue* findVenue(VenueId id){for(auto&x:venues)if(x.id==id)return &x;return nullptr;} const Venue* findVenue(VenueId id)const{for(auto&x:venues)if(x.id==id)return &x;return nullptr;}
+  bool venueOpen(const Venue&v)const{if(!v.enabled)return false;int m=static_cast<int>((elapsedSeconds/60)%1440);if(v.openMinuteOfDay==v.closeMinuteOfDay)return true;if(v.closeMinuteOfDay==1440)return m>=v.openMinuteOfDay;if(v.openMinuteOfDay<v.closeMinuteOfDay)return m>=v.openMinuteOfDay&&m<v.closeMinuteOfDay;return m>=v.openMinuteOfDay||m<v.closeMinuteOfDay;}
+  void enter(ActiveOrder&o,FoodStage s,int seconds=0,FoodBlockReason b=FoodBlockReason::None){o.stage=s;o.blockReason=b;o.remainingStageSeconds=std::max(0,seconds);if(o.history.empty()||o.history.back()!=s)o.history.push_back(s);}
+  void releaseProduction(ActiveOrder&o){if(!o.resourcesClaimed)return;if(auto*s=findStation(o.stationId))s->active=std::max(0,s->active-1);activeStaff=std::max(0,activeStaff-1);o.resourcesClaimed=false;o.stationId=0;}
+  void releaseSeat(ActiveOrder&o){if(!o.seatClaimed)return;if(auto*v=findVenue(o.venueId))v->activeSeats=std::max(0,v->activeSeats-1);o.seatClaimed=false;}
+  void advanceProduction(ActiveOrder&o,const Recipe&r){for(;;){if(o.stage==FoodStage::Prep){if(r.cookSeconds>0){enter(o,FoodStage::Cook,r.cookSeconds);return;}o.stage=FoodStage::Cook;}if(o.stage==FoodStage::Cook){if(r.plateSeconds>0){enter(o,FoodStage::Plate,r.plateSeconds);return;}o.stage=FoodStage::Plate;}if(o.stage==FoodStage::Plate){enter(o,FoodStage::Ready);releaseProduction(o);return;}return;}}
 };
 
-FoodServiceSystem::FoodServiceSystem() : impl_(std::make_unique<Impl>()) {}
-FoodServiceSystem::~FoodServiceSystem() = default;
-FoodServiceSystem::FoodServiceSystem(FoodServiceSystem &&) noexcept = default;
-FoodServiceSystem &FoodServiceSystem::operator=(FoodServiceSystem &&) noexcept =
-    default;
-FoodServiceSystem::FoodServiceSystem(const FoodServiceSystem &other)
-    : impl_(std::make_unique<Impl>(*other.impl_)) {}
-FoodServiceSystem &
-FoodServiceSystem::operator=(const FoodServiceSystem &other) {
-  if (this != &other)
-    impl_ = std::make_unique<Impl>(*other.impl_);
-  return *this;
-}
+FoodServiceSystem::FoodServiceSystem():impl_(std::make_unique<Impl>()){} FoodServiceSystem::~FoodServiceSystem()=default; FoodServiceSystem::FoodServiceSystem(FoodServiceSystem&&)noexcept=default; FoodServiceSystem&FoodServiceSystem::operator=(FoodServiceSystem&&)noexcept=default; FoodServiceSystem::FoodServiceSystem(const FoodServiceSystem&o):impl_(std::make_unique<Impl>(*o.impl_)){} FoodServiceSystem&FoodServiceSystem::operator=(const FoodServiceSystem&o){if(this!=&o)impl_=std::make_unique<Impl>(*o.impl_);return *this;}
 
-void FoodServiceSystem::addRecipe(const Recipe &recipe) {
-  if (recipe.id == 0 || recipe.name.empty() || recipe.prepSeconds < 0 ||
-      recipe.cookSeconds < 0 || recipe.plateSeconds < 0 ||
-      recipe.qualityBase < 0 || recipe.qualityBase > 10000 ||
-      recipe.priceCents < 0)
-    throw std::invalid_argument("invalid food recipe");
-  for (const auto &ingredient : recipe.ingredients)
-    if (ingredient.item.empty() || ingredient.units <= 0)
-      throw std::invalid_argument("invalid food ingredient requirement");
-  impl_->recipes[recipe.id] = recipe;
-}
+void FoodServiceSystem::addRecipe(const Recipe&r){if(r.id==0||r.name.empty()||r.prepSeconds<0||r.cookSeconds<0||r.plateSeconds<0||r.qualityBase<0||r.qualityBase>10000||r.priceCents<0)throw std::invalid_argument("invalid food recipe");for(auto&i:r.ingredients)if(i.item.empty()||i.units<=0)throw std::invalid_argument("invalid food ingredient requirement");impl_->recipes[r.id]=r;}
+void FoodServiceSystem::setIngredientStock(std::string item,int units){if(item.empty()||units<0)throw std::invalid_argument("invalid ingredient stock");impl_->inventory[std::move(item)]=units;}
+int FoodServiceSystem::ingredientUnits(std::string_view item)const{auto it=impl_->inventory.find(item);return it==impl_->inventory.end()?0:it->second;}
+void FoodServiceSystem::addStation(const FoodStationConfig&s){if(s.id==0||s.capacity<=0)throw std::invalid_argument("invalid food station");if(std::any_of(impl_->stations.begin(),impl_->stations.end(),[&](auto&x){return x.id==s.id;}))throw std::invalid_argument("duplicate food station");Impl::Station x;x.id=s.id;x.stationClass=s.stationClass;x.capacity=s.capacity;x.enabled=s.enabled;impl_->stations.push_back(x);std::sort(impl_->stations.begin(),impl_->stations.end(),[](auto&a,auto&b){return a.id<b.id;});}
+void FoodServiceSystem::setStaffCapacity(int c){if(c<0)throw std::invalid_argument("invalid food staff capacity");impl_->staffCapacity=c;}
+void FoodServiceSystem::addVenue(const FoodVenueConfig&v){if(v.id==0||v.channel==FoodOrderChannel::RoomService||v.seatCapacity<=0||v.openMinuteOfDay<0||v.openMinuteOfDay>=1440||v.closeMinuteOfDay<0||v.closeMinuteOfDay>1440||v.seatSeconds<0||v.orderSeconds<0||v.serveSeconds<0||v.paymentSeconds<0)throw std::invalid_argument("invalid food venue");if(std::any_of(impl_->venues.begin(),impl_->venues.end(),[&](auto&x){return x.id==v.id;}))throw std::invalid_argument("duplicate food venue");Impl::Venue x;x.id=v.id;x.channel=v.channel;x.seatCapacity=v.seatCapacity;x.openMinuteOfDay=v.openMinuteOfDay;x.closeMinuteOfDay=v.closeMinuteOfDay;x.enabled=v.enabled;x.seatSeconds=v.seatSeconds;x.orderSeconds=v.orderSeconds;x.serveSeconds=v.serveSeconds;x.paymentSeconds=v.paymentSeconds;impl_->venues.push_back(x);std::sort(impl_->venues.begin(),impl_->venues.end(),[](auto&a,auto&b){return a.id<b.id;});}
+void FoodServiceSystem::setElapsedSeconds(std::int64_t s){if(s<0)throw std::invalid_argument("invalid food-service clock");impl_->elapsedSeconds=s;}
 
-void FoodServiceSystem::setIngredientStock(std::string item, int units) {
-  if (item.empty() || units < 0)
-    throw std::invalid_argument("invalid ingredient stock");
-  impl_->inventory[std::move(item)] = units;
-}
+FoodOrderId FoodServiceSystem::createFoodOrder(GuestId guest,const MenuOrder&req,RoomServiceOrderId roomService){Impl::ActiveOrder o;o.id=impl_->nextId++;o.guestId=guest;o.recipeId=req.recipeId;o.channel=req.channel;o.venueId=req.venueId;o.quantity=req.quantity;o.roomServiceOrderId=roomService;auto rit=impl_->recipes.find(req.recipeId);if(rit==impl_->recipes.end())impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingRecipe);else if(req.quantity<=0||req.quantity>1000)impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::InvalidOrder);else{auto&r=rit->second;o.quality=r.qualityBase;if(r.priceCents>std::numeric_limits<std::int64_t>::max()/req.quantity)impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::InvalidOrder);else{o.priceCents=r.priceCents*req.quantity;if(req.venueId!=0&&req.channel!=FoodOrderChannel::RoomService&&req.channel!=FoodOrderChannel::Banquet){auto*v=impl_->findVenue(req.venueId);if(!v||v->channel!=req.channel)impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingVenue);else impl_->enter(o,FoodStage::AwaitingSeat);}else impl_->enter(o,FoodStage::Queued);}}const auto id=o.id;impl_->orders.push_back(std::move(o));return id;}
 
-int FoodServiceSystem::ingredientUnits(std::string_view item) const {
-  const auto found = impl_->inventory.find(item);
-  return found == impl_->inventory.end() ? 0 : found->second;
-}
+bool FoodServiceSystem::beginProduction(FoodOrderId id){auto*o=impl_->findOrder(id);if(!o)return false;if(o->stage==FoodStage::Prep||o->stage==FoodStage::Cook||o->stage==FoodStage::Plate||o->stage==FoodStage::Ready||o->stage==FoodStage::Served||o->stage==FoodStage::Paid||o->stage==FoodStage::Completed)return true;if(o->stage==FoodStage::AwaitingSeat||o->stage==FoodStage::Seated)return false;if(o->blockReason==FoodBlockReason::MissingRecipe||o->blockReason==FoodBlockReason::InvalidOrder||o->blockReason==FoodBlockReason::MissingVenue||o->blockReason==FoodBlockReason::OutsideServiceWindow||o->blockReason==FoodBlockReason::VenueCapacity)return false;auto rit=impl_->recipes.find(o->recipeId);if(rit==impl_->recipes.end()){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::MissingRecipe);return false;}auto&r=rit->second;Impl::Station*chosen=nullptr;bool found=false;for(auto&s:impl_->stations)if(s.stationClass==r.requiredStation&&s.enabled){found=true;if(s.active<s.capacity){chosen=&s;break;}}if(!found){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::MissingStation);return false;}if(!chosen){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::StationCapacity);return false;}if(impl_->activeStaff>=impl_->staffCapacity){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::NoStaffCapacity);return false;}for(auto&i:r.ingredients){if(o->quantity<=0||i.units>std::numeric_limits<int>::max()/o->quantity){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::InvalidOrder);return false;}int needed=i.units*o->quantity;if(ingredientUnits(i.item)<needed){impl_->enter(*o,FoodStage::Blocked,0,FoodBlockReason::MissingIngredient);return false;}}for(auto&i:r.ingredients)impl_->inventory[i.item]-=i.units*o->quantity;++chosen->active;++impl_->activeStaff;o->resourcesClaimed=true;o->stationId=chosen->id;o->blockReason=FoodBlockReason::None;if(r.prepSeconds>0)impl_->enter(*o,FoodStage::Prep,r.prepSeconds);else{o->stage=FoodStage::Prep;impl_->advanceProduction(*o,r);}return true;}
 
-void FoodServiceSystem::addStation(const FoodStationConfig &station) {
-  if (station.id == 0 || station.capacity <= 0)
-    throw std::invalid_argument("invalid food station");
-  if (std::any_of(impl_->stations.begin(), impl_->stations.end(),
-                  [&](const auto &value) { return value.id == station.id; }))
-    throw std::invalid_argument("duplicate food station");
-  Impl::Station value;
-  value.id = station.id;
-  value.stationClass = station.stationClass;
-  value.capacity = station.capacity;
-  value.enabled = station.enabled;
-  impl_->stations.push_back(value);
-  std::sort(impl_->stations.begin(), impl_->stations.end(),
-            [](const auto &a, const auto &b) { return a.id < b.id; });
-}
+void FoodServiceSystem::tickSecond(){++impl_->elapsedSeconds;for(auto&o:impl_->orders){if(o.stage!=FoodStage::Completed&&o.stage!=FoodStage::Cancelled)++o.ageSeconds;if(o.stage==FoodStage::AwaitingSeat||(o.stage==FoodStage::Blocked&&!o.seatClaimed&&(o.blockReason==FoodBlockReason::OutsideServiceWindow||o.blockReason==FoodBlockReason::VenueCapacity))){auto*v=impl_->findVenue(o.venueId);if(!v){impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingVenue);continue;}if(!impl_->venueOpen(*v)){impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::OutsideServiceWindow);continue;}if(v->activeSeats>=v->seatCapacity){impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::VenueCapacity);continue;}++v->activeSeats;o.seatClaimed=true;impl_->enter(o,FoodStage::Seated,v->seatSeconds);continue;}if(o.stage==FoodStage::Seated){if(o.remainingStageSeconds>0)--o.remainingStageSeconds;if(o.remainingStageSeconds==0){auto*v=impl_->findVenue(o.venueId);if(!v){impl_->releaseSeat(o);impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingVenue);}else impl_->enter(o,FoodStage::Ordered,v->orderSeconds);}continue;}if(o.stage==FoodStage::Ordered){if(o.remainingStageSeconds>0)--o.remainingStageSeconds;if(o.remainingStageSeconds==0)(void)beginProduction(o.id);continue;}if(o.stage==FoodStage::Blocked&&o.seatClaimed&&(o.blockReason==FoodBlockReason::MissingIngredient||o.blockReason==FoodBlockReason::MissingStation||o.blockReason==FoodBlockReason::StationCapacity||o.blockReason==FoodBlockReason::NoStaffCapacity)){(void)beginProduction(o.id);continue;}if(o.stage==FoodStage::Prep||o.stage==FoodStage::Cook||o.stage==FoodStage::Plate){if(o.remainingStageSeconds>0)--o.remainingStageSeconds;if(o.remainingStageSeconds==0){auto it=impl_->recipes.find(o.recipeId);if(it==impl_->recipes.end()){impl_->releaseProduction(o);impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingRecipe);}else impl_->advanceProduction(o,it->second);}continue;}if(o.stage==FoodStage::Ready&&o.roomServiceOrderId==0&&o.seatClaimed){auto*v=impl_->findVenue(o.venueId);if(!v){impl_->releaseSeat(o);impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingVenue);}else impl_->enter(o,FoodStage::Served,v->serveSeconds);continue;}if(o.stage==FoodStage::Served){if(o.remainingStageSeconds>0)--o.remainingStageSeconds;if(o.remainingStageSeconds==0){auto*v=impl_->findVenue(o.venueId);if(!v){impl_->releaseSeat(o);impl_->enter(o,FoodStage::Blocked,0,FoodBlockReason::MissingVenue);}else impl_->enter(o,FoodStage::Paid,v->paymentSeconds);}continue;}if(o.stage==FoodStage::Paid){if(o.remainingStageSeconds>0)--o.remainingStageSeconds;if(o.remainingStageSeconds==0){impl_->revenueCents+=o.priceCents;impl_->releaseSeat(o);impl_->enter(o,FoodStage::Completed);}continue;}}}
+void FoodServiceSystem::tickSeconds(std::int64_t s){if(s<0||s>1000000000LL)throw std::invalid_argument("invalid food-service tick duration");for(std::int64_t i=0;i<s;++i)tickSecond();}
+FoodOrderView FoodServiceSystem::order(FoodOrderId id)const{if(auto*x=impl_->findOrder(id))return *x;return {};}
+std::vector<FoodStage> FoodServiceSystem::stageHistory(FoodOrderId id)const{if(auto*x=impl_->findOrder(id))return x->history;return {};}
+FoodServiceSnapshot FoodServiceSystem::snapshot()const{FoodServiceSnapshot s;s.elapsedSeconds=impl_->elapsedSeconds;s.revenueCents=impl_->revenueCents;for(auto&[name,n]:impl_->inventory)s.inventory.push_back({name,n});for(auto&x:impl_->stations)s.stations.push_back(x);for(auto&x:impl_->venues)s.venues.push_back(x);for(auto&x:impl_->orders)s.orders.push_back(x);return s;}
+std::vector<PreparedRoomServiceHandoff> FoodServiceSystem::pendingRoomServiceHandoffs()const{std::vector<PreparedRoomServiceHandoff> r;for(auto&o:impl_->orders)if(o.stage==FoodStage::Ready&&o.roomServiceOrderId!=0&&o.roomServiceTransferCount==0)r.push_back({o.id,o.roomServiceOrderId});return r;}
+bool FoodServiceSystem::acknowledgeRoomServiceHandoff(FoodOrderId id){auto*o=impl_->findOrder(id);if(!o||o->stage!=FoodStage::Ready||o->roomServiceOrderId==0||o->roomServiceTransferCount!=0)return false;o->roomServiceTransferCount=1;impl_->revenueCents+=o->priceCents;impl_->enter(*o,FoodStage::Completed);return true;}
 
-void FoodServiceSystem::setStaffCapacity(int capacity) {
-  if (capacity < 0)
-    throw std::invalid_argument("invalid food staff capacity");
-  impl_->staffCapacity = capacity;
-}
-
-FoodOrderId FoodServiceSystem::createFoodOrder(
-    GuestId guest, const MenuOrder &request,
-    RoomServiceOrderId roomServiceOrderId) {
-  Impl::ActiveOrder order;
-  order.id = impl_->nextId++;
-  order.guestId = guest;
-  order.recipeId = request.recipeId;
-  order.channel = request.channel;
-  order.quantity = request.quantity;
-  order.roomServiceOrderId = roomServiceOrderId;
-  order.history.push_back(FoodStage::Queued);
-
-  const auto recipe = impl_->recipes.find(request.recipeId);
-  if (recipe == impl_->recipes.end()) {
-    impl_->enter(order, FoodStage::Blocked, 0,
-                 FoodBlockReason::MissingRecipe);
-  } else if (request.quantity <= 0 || request.quantity > 1000) {
-    impl_->enter(order, FoodStage::Blocked, 0,
-                 FoodBlockReason::InvalidOrder);
-  } else {
-    order.quality = recipe->second.qualityBase;
-    if (recipe->second.priceCents >
-        std::numeric_limits<std::int64_t>::max() / request.quantity)
-      impl_->enter(order, FoodStage::Blocked, 0,
-                   FoodBlockReason::InvalidOrder);
-    else
-      order.priceCents = recipe->second.priceCents * request.quantity;
-  }
-  impl_->orders.push_back(order);
-  return order.id;
-}
-
-bool FoodServiceSystem::beginProduction(FoodOrderId id) {
-  auto *order = impl_->findOrder(id);
-  if (!order)
-    return false;
-  if (order->stage == FoodStage::Prep || order->stage == FoodStage::Cook ||
-      order->stage == FoodStage::Plate || order->stage == FoodStage::Ready ||
-      order->stage == FoodStage::Served || order->stage == FoodStage::Paid ||
-      order->stage == FoodStage::Completed)
-    return true;
-  if (order->blockReason == FoodBlockReason::MissingRecipe ||
-      order->blockReason == FoodBlockReason::InvalidOrder)
-    return false;
-
-  const auto recipeIt = impl_->recipes.find(order->recipeId);
-  if (recipeIt == impl_->recipes.end()) {
-    impl_->enter(*order, FoodStage::Blocked, 0,
-                 FoodBlockReason::MissingRecipe);
-    return false;
-  }
-  const auto &recipe = recipeIt->second;
-
-  Impl::Station *chosen = nullptr;
-  bool foundClass = false;
-  for (auto &station : impl_->stations) {
-    if (station.stationClass != recipe.requiredStation || !station.enabled)
-      continue;
-    foundClass = true;
-    if (station.active < station.capacity) {
-      chosen = &station;
-      break;
-    }
-  }
-  if (!foundClass) {
-    impl_->enter(*order, FoodStage::Blocked, 0,
-                 FoodBlockReason::MissingStation);
-    return false;
-  }
-  if (!chosen) {
-    impl_->enter(*order, FoodStage::Blocked, 0,
-                 FoodBlockReason::StationCapacity);
-    return false;
-  }
-  if (impl_->activeStaff >= impl_->staffCapacity) {
-    impl_->enter(*order, FoodStage::Blocked, 0,
-                 FoodBlockReason::NoStaffCapacity);
-    return false;
-  }
-  for (const auto &ingredient : recipe.ingredients) {
-    const auto required = ingredient.units * order->quantity;
-    if (ingredient.units >
-            std::numeric_limits<int>::max() / order->quantity ||
-        ingredientUnits(ingredient.item) < required) {
-      impl_->enter(*order, FoodStage::Blocked, 0,
-                   FoodBlockReason::MissingIngredient);
-      return false;
-    }
-  }
-
-  for (const auto &ingredient : recipe.ingredients)
-    impl_->inventory[ingredient.item] -=
-        ingredient.units * order->quantity;
-  ++chosen->active;
-  ++impl_->activeStaff;
-  order->resourcesClaimed = true;
-  order->stationId = chosen->id;
-  order->blockReason = FoodBlockReason::None;
-  if (recipe.prepSeconds > 0)
-    impl_->enter(*order, FoodStage::Prep, recipe.prepSeconds);
-  else {
-    order->stage = FoodStage::Prep;
-    impl_->advanceStage(*order, recipe);
-  }
-  return true;
-}
-
-void FoodServiceSystem::tickSecond() {
-  ++impl_->elapsedSeconds;
-  for (auto &order : impl_->orders) {
-    if (order.stage != FoodStage::Completed &&
-        order.stage != FoodStage::Cancelled)
-      ++order.ageSeconds;
-    if (order.stage != FoodStage::Prep && order.stage != FoodStage::Cook &&
-        order.stage != FoodStage::Plate)
-      continue;
-    if (order.remainingStageSeconds > 0)
-      --order.remainingStageSeconds;
-    if (order.remainingStageSeconds == 0) {
-      const auto recipe = impl_->recipes.find(order.recipeId);
-      if (recipe == impl_->recipes.end()) {
-        impl_->releaseProduction(order);
-        impl_->enter(order, FoodStage::Blocked, 0,
-                     FoodBlockReason::MissingRecipe);
-      } else {
-        impl_->advanceStage(order, recipe->second);
-      }
-    }
-  }
-}
-
-void FoodServiceSystem::tickSeconds(std::int64_t seconds) {
-  if (seconds < 0 || seconds > 1000000000LL)
-    throw std::invalid_argument("invalid food-service tick duration");
-  for (std::int64_t i = 0; i < seconds; ++i)
-    tickSecond();
-}
-
-FoodOrderView FoodServiceSystem::order(FoodOrderId id) const {
-  if (const auto *value = impl_->findOrder(id))
-    return *value;
-  return {};
-}
-
-std::vector<FoodStage>
-FoodServiceSystem::stageHistory(FoodOrderId id) const {
-  if (const auto *value = impl_->findOrder(id))
-    return value->history;
-  return {};
-}
-
-FoodServiceSnapshot FoodServiceSystem::snapshot() const {
-  FoodServiceSnapshot result;
-  result.elapsedSeconds = impl_->elapsedSeconds;
-  result.revenueCents = impl_->revenueCents;
-  for (const auto &[item, units] : impl_->inventory)
-    result.inventory.push_back({item, units});
-  for (const auto &station : impl_->stations)
-    result.stations.push_back(station);
-  for (const auto &order : impl_->orders)
-    result.orders.push_back(order);
-  return result;
-}
-
-std::vector<PreparedRoomServiceHandoff>
-FoodServiceSystem::pendingRoomServiceHandoffs() const {
-  std::vector<PreparedRoomServiceHandoff> result;
-  for (const auto &order : impl_->orders)
-    if (order.stage == FoodStage::Ready && order.roomServiceOrderId != 0 &&
-        order.roomServiceTransferCount == 0)
-      result.push_back({order.id, order.roomServiceOrderId});
-  return result;
-}
-
-bool FoodServiceSystem::acknowledgeRoomServiceHandoff(FoodOrderId id) {
-  auto *order = impl_->findOrder(id);
-  if (!order || order->stage != FoodStage::Ready ||
-      order->roomServiceOrderId == 0 || order->roomServiceTransferCount != 0)
-    return false;
-  order->roomServiceTransferCount = 1;
-  impl_->revenueCents += order->priceCents;
-  impl_->enter(*order, FoodStage::Completed);
-  return true;
-}
-
-std::string FoodServiceSystem::save() const {
-  std::ostringstream out;
-  out << "HHFNB 1\n";
-  out << impl_->nextId << ' ' << impl_->elapsedSeconds << ' '
-      << impl_->staffCapacity << ' ' << impl_->activeStaff << ' '
-      << impl_->revenueCents << '\n';
-  out << impl_->recipes.size() << '\n';
-  for (const auto &[id, recipe] : impl_->recipes) {
-    out << id << ' ' << std::quoted(recipe.name) << ' '
-        << ei(recipe.requiredStation) << ' ' << recipe.prepSeconds << ' '
-        << recipe.cookSeconds << ' ' << recipe.plateSeconds << ' '
-        << recipe.qualityBase << ' ' << recipe.priceCents << ' '
-        << recipe.ingredients.size();
-    for (const auto &ingredient : recipe.ingredients)
-      out << ' ' << std::quoted(ingredient.item) << ' '
-          << ingredient.units;
-    out << '\n';
-  }
-  out << impl_->inventory.size() << '\n';
-  for (const auto &[item, units] : impl_->inventory)
-    out << std::quoted(item) << ' ' << units << '\n';
-  out << impl_->stations.size() << '\n';
-  for (const auto &station : impl_->stations)
-    out << station.id << ' ' << ei(station.stationClass) << ' '
-        << station.capacity << ' ' << station.active << ' '
-        << station.enabled << '\n';
-  out << impl_->orders.size() << '\n';
-  for (const auto &order : impl_->orders) {
-    out << order.id << ' ' << order.guestId << ' ' << order.recipeId << ' '
-        << ei(order.channel) << ' ' << ei(order.stage) << ' '
-        << ei(order.blockReason) << ' ' << order.remainingStageSeconds << ' '
-        << order.ageSeconds << ' ' << order.quality << ' '
-        << order.priceCents << ' ' << order.roomServiceOrderId << ' '
-        << order.roomServiceTransferCount << ' ' << order.quantity << ' '
-        << order.stationId << ' ' << order.resourcesClaimed << ' '
-        << order.history.size();
-    for (const auto stage : order.history)
-      out << ' ' << ei(stage);
-    out << '\n';
-  }
-  return out.str();
-}
-
-FoodServiceSystem FoodServiceSystem::load(std::string_view data) {
-  if (data.size() > 16 * 1024 * 1024)
-    throw std::invalid_argument("food-service save too large");
-  std::istringstream in{std::string(data)};
-  std::string magic;
-  int version{};
-  in >> magic >> version;
-  if (!in || magic != "HHFNB" || version != 1)
-    throw std::invalid_argument("unsupported food-service save");
-
-  FoodServiceSystem result;
-  auto &d = *result.impl_;
-  in >> d.nextId >> d.elapsedSeconds >> d.staffCapacity >> d.activeStaff >>
-      d.revenueCents;
-  if (!in || d.nextId == 0 || d.elapsedSeconds < 0 ||
-      d.staffCapacity < 0 || d.activeStaff < 0 ||
-      d.activeStaff > d.staffCapacity || d.revenueCents < 0)
-    throw std::invalid_argument("invalid food-service state");
-
-  std::size_t count{};
-  in >> count;
-  if (!in || count > 100000)
-    throw std::invalid_argument("invalid recipe count");
-  for (std::size_t index = 0; index < count; ++index) {
-    Recipe recipe;
-    int stationClass{};
-    std::size_t ingredientCount{};
-    in >> recipe.id >> std::quoted(recipe.name) >> stationClass >>
-        recipe.prepSeconds >> recipe.cookSeconds >> recipe.plateSeconds >>
-        recipe.qualityBase >> recipe.priceCents >> ingredientCount;
-    if (!in || !validStationClass(stationClass) ||
-        ingredientCount > 10000)
-      throw std::invalid_argument("invalid saved recipe");
-    recipe.requiredStation =
-        static_cast<FoodStationClass>(stationClass);
-    recipe.ingredients.resize(ingredientCount);
-    for (auto &ingredient : recipe.ingredients)
-      in >> std::quoted(ingredient.item) >> ingredient.units;
-    result.addRecipe(recipe);
-  }
-
-  in >> count;
-  if (!in || count > 100000)
-    throw std::invalid_argument("invalid ingredient inventory count");
-  for (std::size_t index = 0; index < count; ++index) {
-    std::string item;
-    int units{};
-    in >> std::quoted(item) >> units;
-    result.setIngredientStock(std::move(item), units);
-  }
-
-  in >> count;
-  if (!in || count > 100000)
-    throw std::invalid_argument("invalid station count");
-  for (std::size_t index = 0; index < count; ++index) {
-    Impl::Station station;
-    int stationClass{};
-    in >> station.id >> stationClass >> station.capacity >> station.active >>
-        station.enabled;
-    if (!in || station.id == 0 || !validStationClass(stationClass) ||
-        station.capacity <= 0 || station.active < 0 ||
-        station.active > station.capacity)
-      throw std::invalid_argument("invalid saved station");
-    station.stationClass =
-        static_cast<FoodStationClass>(stationClass);
-    d.stations.push_back(station);
-  }
-  std::sort(d.stations.begin(), d.stations.end(),
-            [](const auto &a, const auto &b) { return a.id < b.id; });
-
-  in >> count;
-  if (!in || count > 100000)
-    throw std::invalid_argument("invalid food-order count");
-  d.orders.resize(count);
-  int computedActiveStaff{};
-  std::map<FoodStationId, int> computedStationActive;
-  for (auto &order : d.orders) {
-    int channel{}, stage{}, block{};
-    std::size_t historyCount{};
-    in >> order.id >> order.guestId >> order.recipeId >> channel >> stage >>
-        block >> order.remainingStageSeconds >> order.ageSeconds >>
-        order.quality >> order.priceCents >> order.roomServiceOrderId >>
-        order.roomServiceTransferCount >> order.quantity >> order.stationId >>
-        order.resourcesClaimed >> historyCount;
-    if (!in || order.id == 0 || !validChannel(channel) ||
-        !validStage(stage) || !validBlock(block) ||
-        order.remainingStageSeconds < 0 || order.ageSeconds < 0 ||
-        order.quality < 0 || order.quality > 10000 ||
-        order.priceCents < 0 || order.roomServiceTransferCount < 0 ||
-        order.roomServiceTransferCount > 1 || order.quantity <= 0 ||
-        historyCount > 100000)
-      throw std::invalid_argument("invalid saved food order");
-    order.channel = static_cast<FoodOrderChannel>(channel);
-    order.stage = static_cast<FoodStage>(stage);
-    order.blockReason = static_cast<FoodBlockReason>(block);
-    order.history.resize(historyCount);
-    for (auto &historyStage : order.history) {
-      int value{};
-      in >> value;
-      if (!in || !validStage(value))
-        throw std::invalid_argument("invalid saved food stage history");
-      historyStage = static_cast<FoodStage>(value);
-    }
-    if (order.resourcesClaimed) {
-      ++computedActiveStaff;
-      ++computedStationActive[order.stationId];
-    }
-  }
-
-  if (computedActiveStaff != d.activeStaff)
-    throw std::invalid_argument("invalid saved food staff claims");
-  for (const auto &station : d.stations)
-    if (computedStationActive[station.id] != station.active)
-      throw std::invalid_argument("invalid saved station claims");
-
-  in >> std::ws;
-  if (!in.eof())
-    throw std::invalid_argument("unexpected food-service trailing data");
-  return result;
-}
+std::string FoodServiceSystem::save()const{std::ostringstream out;out<<"HHFNB 2\n"<<impl_->nextId<<' '<<impl_->elapsedSeconds<<' '<<impl_->staffCapacity<<' '<<impl_->activeStaff<<' '<<impl_->revenueCents<<'\n';out<<impl_->recipes.size()<<'\n';for(auto&[id,r]:impl_->recipes){out<<id<<' '<<std::quoted(r.name)<<' '<<ei(r.requiredStation)<<' '<<r.prepSeconds<<' '<<r.cookSeconds<<' '<<r.plateSeconds<<' '<<r.qualityBase<<' '<<r.priceCents<<' '<<r.ingredients.size();for(auto&i:r.ingredients)out<<' '<<std::quoted(i.item)<<' '<<i.units;out<<'\n';}out<<impl_->inventory.size()<<'\n';for(auto&[name,n]:impl_->inventory)out<<std::quoted(name)<<' '<<n<<'\n';out<<impl_->stations.size()<<'\n';for(auto&s:impl_->stations)out<<s.id<<' '<<ei(s.stationClass)<<' '<<s.capacity<<' '<<s.active<<' '<<s.enabled<<'\n';out<<impl_->venues.size()<<'\n';for(auto&v:impl_->venues)out<<v.id<<' '<<ei(v.channel)<<' '<<v.seatCapacity<<' '<<v.activeSeats<<' '<<v.openMinuteOfDay<<' '<<v.closeMinuteOfDay<<' '<<v.seatSeconds<<' '<<v.orderSeconds<<' '<<v.serveSeconds<<' '<<v.paymentSeconds<<' '<<v.enabled<<'\n';out<<impl_->orders.size()<<'\n';for(auto&o:impl_->orders){out<<o.id<<' '<<o.guestId<<' '<<o.recipeId<<' '<<ei(o.channel)<<' '<<o.venueId<<' '<<ei(o.stage)<<' '<<ei(o.blockReason)<<' '<<o.remainingStageSeconds<<' '<<o.ageSeconds<<' '<<o.quality<<' '<<o.priceCents<<' '<<o.roomServiceOrderId<<' '<<o.roomServiceTransferCount<<' '<<o.quantity<<' '<<o.stationId<<' '<<o.resourcesClaimed<<' '<<o.seatClaimed<<' '<<o.history.size();for(auto s:o.history)out<<' '<<ei(s);out<<'\n';}return out.str();}
+FoodServiceSystem FoodServiceSystem::load(std::string_view data){if(data.size()>16*1024*1024)throw std::invalid_argument("food-service save too large");std::istringstream in{std::string(data)};std::string magic;int ver{};in>>magic>>ver;if(!in||magic!="HHFNB"||ver!=2)throw std::invalid_argument("unsupported food-service save");FoodServiceSystem r;auto&d=*r.impl_;in>>d.nextId>>d.elapsedSeconds>>d.staffCapacity>>d.activeStaff>>d.revenueCents;if(!in||d.nextId==0||d.elapsedSeconds<0||d.staffCapacity<0||d.activeStaff<0||d.activeStaff>d.staffCapacity||d.revenueCents<0)throw std::invalid_argument("invalid food-service state");std::size_t n{};in>>n;if(!in||n>100000)throw std::invalid_argument("invalid recipe count");for(size_t j=0;j<n;++j){Recipe x;int sc{};size_t ni{};in>>x.id>>std::quoted(x.name)>>sc>>x.prepSeconds>>x.cookSeconds>>x.plateSeconds>>x.qualityBase>>x.priceCents>>ni;if(!in||!validStationClass(sc)||ni>10000)throw std::invalid_argument("invalid saved recipe");x.requiredStation=static_cast<FoodStationClass>(sc);x.ingredients.resize(ni);for(auto&i:x.ingredients)in>>std::quoted(i.item)>>i.units;r.addRecipe(x);}in>>n;if(!in||n>100000)throw std::invalid_argument("invalid inventory count");for(size_t j=0;j<n;++j){std::string name;int q{};in>>std::quoted(name)>>q;r.setIngredientStock(std::move(name),q);}in>>n;if(!in||n>100000)throw std::invalid_argument("invalid station count");for(size_t j=0;j<n;++j){Impl::Station s;int sc{};in>>s.id>>sc>>s.capacity>>s.active>>s.enabled;if(!in||s.id==0||!validStationClass(sc)||s.capacity<=0||s.active<0||s.active>s.capacity)throw std::invalid_argument("invalid saved station");s.stationClass=static_cast<FoodStationClass>(sc);d.stations.push_back(s);}std::sort(d.stations.begin(),d.stations.end(),[](auto&a,auto&b){return a.id<b.id;});in>>n;if(!in||n>100000)throw std::invalid_argument("invalid venue count");for(size_t j=0;j<n;++j){Impl::Venue v;int ch{};in>>v.id>>ch>>v.seatCapacity>>v.activeSeats>>v.openMinuteOfDay>>v.closeMinuteOfDay>>v.seatSeconds>>v.orderSeconds>>v.serveSeconds>>v.paymentSeconds>>v.enabled;if(!in||v.id==0||!validChannel(ch)||v.seatCapacity<=0||v.activeSeats<0||v.activeSeats>v.seatCapacity||v.openMinuteOfDay<0||v.openMinuteOfDay>=1440||v.closeMinuteOfDay<0||v.closeMinuteOfDay>1440||v.seatSeconds<0||v.orderSeconds<0||v.serveSeconds<0||v.paymentSeconds<0)throw std::invalid_argument("invalid saved venue");v.channel=static_cast<FoodOrderChannel>(ch);d.venues.push_back(v);}std::sort(d.venues.begin(),d.venues.end(),[](auto&a,auto&b){return a.id<b.id;});in>>n;if(!in||n>100000)throw std::invalid_argument("invalid food-order count");d.orders.resize(n);int activeStaff{};std::map<FoodStationId,int> stationClaims;std::map<VenueId,int> seatClaims;for(auto&o:d.orders){int ch{},st{},bl{};size_t nh{};in>>o.id>>o.guestId>>o.recipeId>>ch>>o.venueId>>st>>bl>>o.remainingStageSeconds>>o.ageSeconds>>o.quality>>o.priceCents>>o.roomServiceOrderId>>o.roomServiceTransferCount>>o.quantity>>o.stationId>>o.resourcesClaimed>>o.seatClaimed>>nh;if(!in||o.id==0||!validChannel(ch)||!validStage(st)||!validBlock(bl)||o.remainingStageSeconds<0||o.ageSeconds<0||o.quality<0||o.quality>10000||o.priceCents<0||o.roomServiceTransferCount<0||o.roomServiceTransferCount>1||o.quantity<=0||nh>100000)throw std::invalid_argument("invalid saved food order");o.channel=static_cast<FoodOrderChannel>(ch);o.stage=static_cast<FoodStage>(st);o.blockReason=static_cast<FoodBlockReason>(bl);o.history.resize(nh);for(auto&hs:o.history){int v{};in>>v;if(!in||!validStage(v))throw std::invalid_argument("invalid saved food history");hs=static_cast<FoodStage>(v);}if(o.resourcesClaimed){++activeStaff;++stationClaims[o.stationId];}if(o.seatClaimed)++seatClaims[o.venueId];}if(activeStaff!=d.activeStaff)throw std::invalid_argument("invalid saved staff claims");for(auto&s:d.stations)if(stationClaims[s.id]!=s.active)throw std::invalid_argument("invalid saved station claims");for(auto&v:d.venues)if(seatClaims[v.id]!=v.activeSeats)throw std::invalid_argument("invalid saved seat claims");in>>std::ws;if(!in.eof())throw std::invalid_argument("unexpected food-service trailing data");return r;}
 
 } // namespace hh::game

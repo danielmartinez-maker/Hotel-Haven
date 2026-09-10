@@ -9,7 +9,6 @@ add_library(hh_game
   src/RoomService.cpp
   src/ServiceLogistics.cpp
   src/FoodService.cpp
-  src/FoodServiceVenueStubs.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
