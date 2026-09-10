@@ -16,16 +16,43 @@ on:
       - 'game/src/Engineering.cpp'
       - 'game/src/RoomService.cpp'
       - 'game/src/ServiceLogistics.cpp'
+      - 'game/src/Simulation.cpp'
       - 'game/tests/HousekeepingTests.cpp'
       - 'game/tests/LaundryTests.cpp'
       - 'game/tests/LogisticsTests.cpp'
       - 'game/tests/EngineeringTests.cpp'
       - 'game/tests/ServiceLogisticsTests.cpp'
       - 'game/tests/ServiceLogisticsSoakTests.cpp'
+      - 'game/tests/SimulationServiceLogisticsTests.cpp'
       - '.github/workflows/final04-service-logistics-ci.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
+  apply-simulation-authority:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/final-04-service-logistics
+          fetch-depth: 0
+      - name: Apply anchored Simulation authority patch
+        run: python tools/final04_patch_simulation_authority.py
+      - name: Commit Simulation bridge if changed
+        run: |
+          git config user.name "hotel-haven-final04-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add game/src/Simulation.cpp
+          if git diff --cached --quiet; then
+            echo "Simulation authority patch already applied"
+            exit 0
+          fi
+          git commit -m "feat(game): make FINAL-04 authoritative in Simulation"
+          git push origin HEAD:feature/final-04-service-logistics
+
   portable-service-tests:
     runs-on: ubuntu-latest
     steps:
