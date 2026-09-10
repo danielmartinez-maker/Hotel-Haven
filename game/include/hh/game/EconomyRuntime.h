@@ -21,6 +21,32 @@ struct FinancialSnapshot {
   FinancingSnapshot financing;
 };
 
+struct EconomyDiagnostics {
+  int occupancyTodayBasisPoints{};
+  int occupancy7DayBasisPoints{};
+  int occupancy30DayBasisPoints{};
+  std::int64_t adrCents{};
+  std::int64_t revParCents{};
+  std::int64_t roomRevenueCents{};
+  std::int64_t totalRevenueCents{};
+  std::int64_t laborCostCents{};
+  int laborCostShareBasisPoints{};
+  std::int64_t utilityCostCents{};
+  std::int64_t foodBeverageCostCents{};
+  int foodCostShareBasisPoints{};
+  std::int64_t channelCommissionCents{};
+  std::int64_t competitorMedianRateCents{};
+  std::uint64_t cancellations{};
+  std::uint64_t noShows{};
+  std::map<int, int> bookingPaceByArrivalDay;
+  std::map<BookingChannel, std::uint64_t> channelBookings;
+  std::map<MarketSegment, std::uint64_t> demandBySegment;
+  double cashRunwayDays{};
+  std::int64_t outstandingPrincipalCents{};
+  std::int64_t nextDebtServiceCents{};
+  int nextDebtPaymentDay{};
+};
+
 class EconomyRuntime {
 public:
   explicit EconomyRuntime(std::uint64_t seed = 1,
@@ -56,6 +82,7 @@ public:
   [[nodiscard]] RevenueManagementSnapshot revenueManagementSnapshot() const;
   [[nodiscard]] FinancialSnapshot financialSnapshot() const;
   [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
+  [[nodiscard]] EconomyDiagnostics diagnostics() const;
   [[nodiscard]] int currentDay() const noexcept;
 
   [[nodiscard]] std::string save() const;
