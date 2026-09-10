@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <set>
 #include <stdexcept>
 
 namespace hh::game {
@@ -141,11 +142,35 @@ int categoryOrOverall(int category, int overall) {
   return category < 0 ? std::clamp(overall, 0, 100) : category;
 }
 
-MarketHotelOffer asHotel(const CompetitorOffer &c) {
-  MarketHotelOffer offer{c.hotelId, c.nightlyRateCents, c.reputation, c.stars,
-                         c.amenityScore, c.locationScore, c.brandScore, true};
-  offer.reputationCategories = c.reputationCategories;
-  return offer;
+bool validCompetitorCalendar(const CompetitorOffer &competitor) {
+  if (competitor.roomCount < 0)
+    return false;
+  std::set<std::string> declaredCategories;
+  for (const auto &category : competitor.roomCategories) {
+    if (category.empty() || !declaredCategories.insert(category).second)
+      return false;
+  }
+  std::vector<CompetitorInventoryWindow> windows = competitor.inventoryWindows;
+  std::sort(windows.begin(), windows.end(), [](const auto &a, const auto &b) {
+    if (a.roomCategory != b.roomCategory)
+      return a.roomCategory < b.roomCategory;
+    if (a.startDay != b.startDay)
+      return a.startDay < b.startDay;
+    return a.endDay < b.endDay;
+  });
+  for (std::size_t i = 0; i < windows.size(); ++i) {
+    const auto &window = windows[i];
+    if (window.roomCategory.empty() || window.startDay < 0 ||
+        window.endDay < window.startDay || window.nightlyRateCents <= 0 ||
+        window.availableRooms < 0 ||
+        (!declaredCategories.empty() &&
+         !declaredCategories.contains(window.roomCategory)))
+      return false;
+    if (i > 0 && windows[i - 1].roomCategory == window.roomCategory &&
+        window.startDay <= windows[i - 1].endDay)
+      return false;
+  }
+  return true;
 }
 
 std::uint64_t mix64(std::uint64_t value) {
@@ -173,12 +198,28 @@ void MarketDemandSystem::setPlayerOffer(const MarketHotelOffer &offer) {
 
 void MarketDemandSystem::setCompetitors(std::vector<CompetitorOffer> competitors) {
   if (std::any_of(competitors.begin(), competitors.end(), [](const auto &competitor) {
-        return !validReputationCategories(competitor.reputationCategories);
+        return competitor.hotelId == 0 || competitor.nightlyRateCents <= 0 ||
+               !validReputationCategories(competitor.reputationCategories) ||
+               !validCompetitorCalendar(competitor);
       }))
-    throw std::invalid_argument("invalid competitor reputation categories");
+    throw std::invalid_argument("invalid competitor offer");
+  for (auto &competitor : competitors) {
+    std::sort(competitor.roomCategories.begin(), competitor.roomCategories.end());
+    std::sort(competitor.inventoryWindows.begin(), competitor.inventoryWindows.end(),
+              [](const auto &a, const auto &b) {
+                if (a.roomCategory != b.roomCategory)
+                  return a.roomCategory < b.roomCategory;
+                if (a.startDay != b.startDay)
+                  return a.startDay < b.startDay;
+                return a.endDay < b.endDay;
+              });
+  }
   std::sort(competitors.begin(), competitors.end(), [](const auto &a, const auto &b) {
     return a.hotelId < b.hotelId;
   });
+  for (std::size_t i = 1; i < competitors.size(); ++i)
+    if (competitors[i - 1].hotelId == competitors[i].hotelId)
+      throw std::invalid_argument("duplicate competitor hotel id");
   competitors_ = std::move(competitors);
   snapshot_.competitors = competitors_;
   snapshot_.physicalCompetitorGuests = 0;
@@ -359,6 +400,40 @@ double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
   return std::exp(std::clamp(score / temperature, -20.0, 20.0));
 }
 
+MarketHotelOffer MarketDemandSystem::effectiveCompetitorOffer(
+    std::uint64_t hotelId, const BookingRequest &request) const {
+  const auto it = std::find_if(competitors_.begin(), competitors_.end(),
+                               [&](const auto &competitor) {
+                                 return competitor.hotelId == hotelId;
+                               });
+  if (it == competitors_.end())
+    return {};
+  const auto &competitor = *it;
+  MarketHotelOffer offer{competitor.hotelId, competitor.nightlyRateCents,
+                         competitor.reputation, competitor.stars,
+                         competitor.amenityScore, competitor.locationScore,
+                         competitor.brandScore, true};
+  offer.reputationCategories = competitor.reputationCategories;
+  if (!competitor.roomCategories.empty() &&
+      std::find(competitor.roomCategories.begin(), competitor.roomCategories.end(),
+                request.roomCategory) == competitor.roomCategories.end()) {
+    offer.sellable = false;
+    return offer;
+  }
+  const auto window = std::find_if(
+      competitor.inventoryWindows.begin(), competitor.inventoryWindows.end(),
+      [&](const auto &candidate) {
+        return candidate.roomCategory == request.roomCategory &&
+               request.arrivalDay >= candidate.startDay &&
+               request.arrivalDay <= candidate.endDay;
+      });
+  if (window != competitor.inventoryWindows.end()) {
+    offer.nightlyRateCents = window->nightlyRateCents;
+    offer.sellable = window->availableRooms > 0;
+  }
+  return offer;
+}
+
 void MarketDemandSystem::allocate(const BookingRequest &request) {
   struct Candidate {
     std::uint64_t id{};
@@ -370,7 +445,7 @@ void MarketDemandSystem::allocate(const BookingRequest &request) {
   if (playerConsidered(request) && playerWeight > 0.0)
     candidates.push_back({player_.hotelId, playerWeight, true});
   for (const auto &competitor : competitors_) {
-    const auto offer = asHotel(competitor);
+    const auto offer = effectiveCompetitorOffer(competitor.hotelId, request);
     const double weight = playerChoiceWeight(request, offer);
     if (weight > 0.0)
       candidates.push_back({offer.hotelId, weight, false});
