@@ -26,6 +26,22 @@ enum class MarketSegment : std::uint8_t {
   Budget = BudgetLeisure
 };
 
+struct SegmentChoiceWeights {
+  int priceBasisPoints{3000};
+  int reputationBasisPoints{2000};
+  int amenityBasisPoints{1500};
+  int locationBasisPoints{1000};
+  int starBasisPoints{1000};
+  int roomBasisPoints{500};
+  int brandBasisPoints{1000};
+  [[nodiscard]] int totalBasisPoints() const noexcept {
+    return priceBasisPoints + reputationBasisPoints + amenityBasisPoints +
+           locationBasisPoints + starBasisPoints + roomBasisPoints +
+           brandBasisPoints;
+  }
+  bool operator==(const SegmentChoiceWeights &) const = default;
+};
+
 struct SegmentDemandProfile {
   MarketSegment segment{MarketSegment::CoupleLeisure};
   double baseDailyDemand{};
@@ -34,6 +50,11 @@ struct SegmentDemandProfile {
   int medianLeadTimeDays{};
   int medianStayNights{1};
   std::int64_t baseBudgetCents{};
+  int priceElasticityBasisPoints{10000};
+  int amenitySensitivityBasisPoints{10000};
+  int cancellationBasisPoints{};
+  int noShowBasisPoints{};
+  SegmentChoiceWeights choiceWeights{};
   bool operator==(const SegmentDemandProfile &) const = default;
 };
 
@@ -128,6 +149,12 @@ struct MarketSnapshot {
   bool operator==(const MarketSnapshot &) const = default;
 };
 
+struct MarketDefinitionLoadResult {
+  bool ok{};
+  std::string reason;
+  explicit operator bool() const noexcept { return ok; }
+};
+
 class MarketDemandSystem {
 public:
   explicit MarketDemandSystem(std::uint64_t seed = 1);
@@ -137,6 +164,8 @@ public:
   void setSegmentDemandProfile(const SegmentDemandProfile &profile);
   [[nodiscard]] const SegmentDemandProfile &segmentDemandProfile(MarketSegment segment) const;
   void setPlayerConsiderationBasisPoints(MarketSegment segment, int basisPoints);
+  [[nodiscard]] MarketDefinitionLoadResult loadDefinitions(std::string_view jsonText);
+  [[nodiscard]] int choiceTemperatureBasisPoints() const noexcept;
   [[nodiscard]] double potentialDemand(MarketSegment segment, int stayDay,
                                        const MarketDemandModifiers &modifiers) const;
   [[nodiscard]] int generatePotentialRequests(
@@ -165,6 +194,7 @@ private:
   std::vector<CompetitorOffer> competitors_;
   std::map<MarketSegment, SegmentDemandProfile> demandProfiles_;
   std::map<MarketSegment, int> playerConsiderationBasisPoints_;
+  int choiceTemperatureBasisPoints_{3500};
   MarketSnapshot snapshot_{};
 
   [[nodiscard]] std::uint64_t nextRandom();
