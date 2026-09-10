@@ -1,0 +1,11 @@
+{
+  "schema": "hotel-haven.market-segments.v1",
+  "segments": [
+    {"id":"leisure","weight":30,"base_budget_cents":17000,"price_sensitivity_bp":20000,"amenity_sensitivity_bp":8000},
+    {"id":"business","weight":25,"base_budget_cents":22000,"price_sensitivity_bp":11000,"amenity_sensitivity_bp":10000},
+    {"id":"group","weight":15,"base_budget_cents":18000,"price_sensitivity_bp":16000,"amenity_sensitivity_bp":9000},
+    {"id":"luxury","weight":10,"base_budget_cents":30000,"price_sensitivity_bp":7000,"amenity_sensitivity_bp":15000},
+    {"id":"budget","weight":20,"base_budget_cents":11000,"price_sensitivity_bp":30000,"amenity_sensitivity_bp":4000}
+  ],
+  "eligibility": {"maximum_price_to_budget_basis_points":15000}
+}
