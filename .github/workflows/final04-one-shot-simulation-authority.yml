@@ -1,26 +1,46 @@
-name: FINAL-04 Preventive Maintenance RED Gate
+name: FINAL-04 Preventive Maintenance GREEN Patch
 
 on:
   push:
     branches:
       - feature/final-04-service-logistics
     paths:
-      - game/tests/SimulationServiceLogisticsTests.cpp
       - .github/workflows/final04-one-shot-simulation-authority.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  preventive-maintenance-red:
+  preventive-maintenance-green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feature/final-04-service-logistics
+          fetch-depth: 0
+      - name: Apply preventive-maintenance scheduler bridge
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('game/src/Simulation.cpp')
+          text = p.read_text(encoding='utf-8')
+          old = '''    for (EntityId roomId : failedRooms)\n      if (auto *room = getRoom(roomId))\n        createTask(TaskKind::Repair, roomId, room->door, repairWork);\n  }\n  void guests() {\n'''
+          new = '''    for (EntityId roomId : failedRooms)\n      if (auto *room = getRoom(roomId))\n        createTask(TaskKind::Repair, roomId, room->door, repairWork);\n\n    // FINAL-03/current staff scheduling owns technician execution for FINAL-04\n    // preventive work orders. The work order remains authoritative/persisted in\n    // EngineeringSystem; this bridge only supplies an eligible worker and travel.\n    std::unordered_set<EntityId> preventiveWorkers;\n    const auto engineering = services.engineering().snapshot();\n    for (const auto &order : engineering.workOrders) {\n      if (order.type != WorkOrderType::Preventive ||\n          order.stage == WorkOrderStage::Completed)\n        continue;\n      auto *target = getRoom(order.assetId);\n      if (!target)\n        continue;\n\n      Person *best = nullptr;\n      int bestDistance = 999999;\n      for (auto &person : people) {\n        if (person.kind != PersonKind::Maintenance || !person.onShift ||\n            person.task != 0 || preventiveWorkers.contains(person.id))\n          continue;\n        const int distance = manhattan(person.position, target->door);\n        if (distance < bestDistance) {\n          bestDistance = distance;\n          best = &person;\n        }\n      }\n      if (!best)\n        continue;\n      preventiveWorkers.insert(best->id);\n      best->destination = target->door;\n      best->goal = \"Preventive maintenance\";\n\n      if (!same(best->position, best->destination)) {\n        auto route = path(best->position, best->destination);\n        if (route.empty()) {\n          best->state = PersonState::Idle;\n          best->goal = \"Preventive maintenance blocked: no route\";\n          continue;\n        }\n        best->state = PersonState::Traveling;\n        best->position = route.front();\n        ++best->travelSeconds;\n        best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);\n        continue;\n      }\n\n      const auto serviceWork = services.workEngineeringSecond(\n          order.assetId, WorkOrderType::Preventive);\n      if (!serviceWork.valid || serviceWork.blockedReason != BlockReason::None) {\n        best->state = PersonState::Idle;\n        continue;\n      }\n      best->state = PersonState::Working;\n      best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);\n      if (serviceWork.completed) {\n        best->state = PersonState::Idle;\n        best->goal.clear();\n      }\n    }\n  }\n  void guests() {\n'''
+          if text.count(old) != 1:
+              raise SystemExit(f'preventive scheduler anchor mismatch: {text.count(old)}')
+          p.write_text(text.replace(old, new), encoding='utf-8')
+          PY
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build integration test
         run: cmake --build build --config Release --target hh_SimulationServiceLogistics_tests --parallel 4
       - name: Run integration test
         run: build/game/hh_SimulationServiceLogistics_tests
+      - name: Commit scheduler bridge
+        run: |
+          git config user.name "hotel-haven-final04-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add game/src/Simulation.cpp
+          git diff --cached --exit-code && exit 1 || true
+          git commit -m "feat(game): schedule FINAL-04 preventive maintenance"
+          git push origin HEAD:feature/final-04-service-logistics
