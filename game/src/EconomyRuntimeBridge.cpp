@@ -19,13 +19,32 @@ void EconomyRuntime::postExternalTransaction(int day, EconomicCategory category,
                                              std::int64_t amountCents,
                                              std::uint64_t sourceId,
                                              std::string memo) {
+  postExternalTransaction(day, category,
+                          HotelEconomics::defaultDepartment(category), amountCents,
+                          sourceId, std::move(memo));
+}
+
+void EconomyRuntime::postExternalTransaction(int day, EconomicCategory category,
+                                             EconomicDepartment department,
+                                             std::int64_t amountCents,
+                                             std::uint64_t sourceId,
+                                             std::string memo) {
   if (day < 0 || day < currentDay_)
     throw std::invalid_argument("external economic transaction moved backwards in time");
+  if (department == EconomicDepartment::Unassigned)
+    throw std::invalid_argument("external economic transaction requires a department");
   if (amountCents == 0)
     return;
   currentDay_ = day;
-  economics_.post({nextTransactionId_++, day, category, amountCents, sourceId,
-                   std::move(memo)});
+  EconomicTransaction transaction;
+  transaction.id = nextTransactionId_++;
+  transaction.day = day;
+  transaction.category = category;
+  transaction.amountCents = amountCents;
+  transaction.sourceId = sourceId;
+  transaction.memo = std::move(memo);
+  transaction.department = department;
+  economics_.post(transaction);
 }
 
 void EconomyRuntime::synchronizeExternalMetrics(
