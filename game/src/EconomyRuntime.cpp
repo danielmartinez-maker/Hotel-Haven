@@ -10,6 +10,13 @@
 namespace hh::game {
 namespace {
 
+constexpr MarketSegment kSegments[] = {
+    MarketSegment::BudgetLeisure, MarketSegment::Business,
+    MarketSegment::ExecutiveBusiness, MarketSegment::CoupleLeisure,
+    MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
+    MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
+    MarketSegment::Wellness};
+
 BookingChannel channelFor(std::uint64_t requestId) {
   switch (requestId % 5) {
   case 0: return BookingChannel::Direct;
@@ -18,6 +25,10 @@ BookingChannel channelFor(std::uint64_t requestId) {
   case 3: return BookingChannel::Corporate;
   default: return BookingChannel::Group;
   }
+}
+
+bool validDemandMultiplier(int value) {
+  return value >= 0 && value <= 100000;
 }
 
 } // namespace
@@ -70,6 +81,15 @@ void EconomyRuntime::setCompetitors(std::vector<CompetitorOffer> competitors) {
     for (const auto &[category, units] : physicalCapacity_)
       if (units > 0)
         revenueManagement_.setComparableMedianCents(category, median);
+}
+
+void EconomyRuntime::setDemandModifiers(const MarketDemandModifiers &modifiers) {
+  if (!validDemandMultiplier(modifiers.seasonMultiplierBasisPoints) ||
+      !validDemandMultiplier(modifiers.economicMultiplierBasisPoints) ||
+      !validDemandMultiplier(modifiers.eventMultiplierBasisPoints) ||
+      !validDemandMultiplier(modifiers.scenarioMultiplierBasisPoints))
+    throw std::invalid_argument("invalid market demand modifiers");
+  demandModifiers_ = modifiers;
 }
 
 PricingRuleResult EconomyRuntime::setPricingRule(const PricingRuleCommand &command) {
@@ -147,13 +167,15 @@ void EconomyRuntime::runOneDay() {
   if (basePlayerOffer_.hotelId != 0) {
     auto offer = basePlayerOffer_;
     offer.reputation = commercial_.snapshot().overallReputationBasisPoints / 100;
-    std::string pricingCategory = physicalCapacity_.contains("standard")
-                                      ? std::string("standard")
-                                      : (physicalCapacity_.empty() ? std::string() : physicalCapacity_.begin()->first);
+    const std::string pricingCategory =
+        physicalCapacity_.contains("standard")
+            ? std::string("standard")
+            : (physicalCapacity_.empty() ? std::string() : physicalCapacity_.begin()->first);
     if (!pricingCategory.empty()) {
       const int sellable = inventory_.sellableUnits(currentDay_ + 7, pricingCategory);
       const int booked = inventory_.bookedUnits(currentDay_ + 7, pricingCategory);
-      const int occupancyBp = sellable > 0 ? std::clamp(booked * 10000 / sellable, 0, 10000) : 0;
+      const int occupancyBp =
+          sellable > 0 ? std::clamp(booked * 10000 / sellable, 0, 10000) : 0;
       offer.nightlyRateCents = revenueManagement_.effectiveRateCents(
           currentDay_, currentDay_ % 7, pricingCategory, occupancyBp,
           basePlayerOffer_.nightlyRateCents);
@@ -164,8 +186,11 @@ void EconomyRuntime::runOneDay() {
   const auto beforeMarket = market_.snapshot();
   const std::size_t oldRequestCount = beforeMarket.requests.size();
   const std::size_t oldChoiceCount = beforeMarket.choices.size();
-  const int requestCount = std::max(4, capacity / 20);
-  market_.generateRequests(currentDay_ + 1, currentDay_ + 14, requestCount);
+  for (const auto segment : kSegments) {
+    const auto &profile = market_.segmentDemandProfile(segment);
+    const int stayDay = currentDay_ + profile.medianLeadTimeDays;
+    (void)market_.generatePotentialRequests(segment, stayDay, demandModifiers_);
+  }
   const auto afterMarket = market_.snapshot();
 
   if (!physicalCapacity_.empty()) {
@@ -281,22 +306,22 @@ int EconomyRuntime::currentDay() const noexcept { return currentDay_; }
 
 std::string EconomyRuntime::save() const {
   std::ostringstream out;
-  out << "HHECONRT 1 " << seed_ << ' ' << currentDay_ << ' ' << nextBookingId_ << ' '
+  out << "HHECONRT 2 " << seed_ << ' ' << currentDay_ << ' ' << nextBookingId_ << ' '
       << nextTransactionId_ << ' ' << cumulativeSellableRoomNights_ << ' '
       << cumulativeOccupiedRoomNights_ << ' ' << basePlayerOffer_.hotelId << ' '
       << basePlayerOffer_.nightlyRateCents << ' ' << basePlayerOffer_.reputation << ' '
       << basePlayerOffer_.stars << ' ' << basePlayerOffer_.amenityScore << ' '
       << basePlayerOffer_.locationScore << ' ' << basePlayerOffer_.brandScore << ' '
-      << basePlayerOffer_.sellable << ' ' << physicalCapacity_.size();
+      << basePlayerOffer_.sellable << ' ' << demandModifiers_.seasonMultiplierBasisPoints << ' '
+      << demandModifiers_.economicMultiplierBasisPoints << ' '
+      << demandModifiers_.eventMultiplierBasisPoints << ' '
+      << demandModifiers_.scenarioMultiplierBasisPoints << ' ' << physicalCapacity_.size();
   for (const auto &[category, units] : physicalCapacity_)
     out << ' ' << std::quoted(category) << ' ' << units;
-  out << ' ' << std::quoted(market_.save())
-      << ' ' << std::quoted(inventory_.save())
-      << ' ' << std::quoted(revenueManagement_.save())
-      << ' ' << std::quoted(economics_.save())
-      << ' ' << std::quoted(financing_.save())
-      << ' ' << std::quoted(overbooking_.save())
-      << ' ' << std::quoted(commercial_.save());
+  out << ' ' << std::quoted(market_.save()) << ' ' << std::quoted(inventory_.save()) << ' '
+      << std::quoted(revenueManagement_.save()) << ' ' << std::quoted(economics_.save()) << ' '
+      << std::quoted(financing_.save()) << ' ' << std::quoted(overbooking_.save()) << ' '
+      << std::quoted(commercial_.save());
   return out.str();
 }
 
@@ -309,7 +334,7 @@ EconomyRuntime EconomyRuntime::load(std::string_view data) {
   std::uint64_t seed{};
   std::int64_t sellable{}, occupied{};
   in >> magic >> version >> seed;
-  if (!in || magic != "HHECONRT" || version != 1 || seed == 0)
+  if (!in || magic != "HHECONRT" || (version != 1 && version != 2) || seed == 0)
     throw std::invalid_argument("invalid economy runtime save");
   EconomyRuntime result(seed, 0);
   in >> result.currentDay_ >> result.nextBookingId_ >> result.nextTransactionId_ >>
@@ -318,13 +343,21 @@ EconomyRuntime EconomyRuntime::load(std::string_view data) {
       result.basePlayerOffer_.stars >> result.basePlayerOffer_.amenityScore >>
       result.basePlayerOffer_.locationScore >> result.basePlayerOffer_.brandScore >>
       result.basePlayerOffer_.sellable;
+  if (version >= 2)
+    in >> result.demandModifiers_.seasonMultiplierBasisPoints >>
+        result.demandModifiers_.economicMultiplierBasisPoints >>
+        result.demandModifiers_.eventMultiplierBasisPoints >>
+        result.demandModifiers_.scenarioMultiplierBasisPoints;
   result.cumulativeSellableRoomNights_ = sellable;
   result.cumulativeOccupiedRoomNights_ = occupied;
   std::size_t count{};
   in >> count;
   if (!in || result.currentDay_ < 0 || result.nextBookingId_ == 0 ||
       result.nextTransactionId_ == 0 || sellable < 0 || occupied < 0 || occupied > sellable ||
-      count > 10000)
+      count > 10000 || !validDemandMultiplier(result.demandModifiers_.seasonMultiplierBasisPoints) ||
+      !validDemandMultiplier(result.demandModifiers_.economicMultiplierBasisPoints) ||
+      !validDemandMultiplier(result.demandModifiers_.eventMultiplierBasisPoints) ||
+      !validDemandMultiplier(result.demandModifiers_.scenarioMultiplierBasisPoints))
     throw std::invalid_argument("invalid economy runtime state");
   result.physicalCapacity_.clear();
   for (std::size_t i = 0; i < count; ++i) {
@@ -365,8 +398,6 @@ std::uint64_t EconomyRuntime::authoritativeHash() const {
   return hash;
 }
 
-std::size_t EconomyRuntime::estimatedStateBytes() const {
-  return save().size();
-}
+std::size_t EconomyRuntime::estimatedStateBytes() const { return save().size(); }
 
 } // namespace hh::game
