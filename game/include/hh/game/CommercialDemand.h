@@ -23,6 +23,8 @@ struct MarketingCampaign {
   std::int64_t costCents{};
   int visibilityBoostBasisPoints{};
   std::vector<MarketSegment> targetSegments;
+  int rampUpDays{};
+  int attributionDecayDays{};
 };
 
 struct CommercialCommandResult {
