@@ -239,12 +239,48 @@ ComplaintUrgency urgencyFor(int magnitude) noexcept {
   return ComplaintUrgency::Low;
 }
 
-void recalculateOverall(SatisfactionBreakdown &satisfaction) noexcept {
-  const int weighted = satisfaction.room * 28 + satisfaction.service * 24 +
-                       satisfaction.cleanliness * 16 + satisfaction.food * 10 +
-                       satisfaction.amenities * 8 + satisfaction.convenience * 6 +
-                       satisfaction.value * 5 + satisfaction.arrivalDeparture * 3;
-  satisfaction.overall = clampScore((weighted + 50) / 100);
+std::int64_t personalizedCategoryWeight(int baseWeight,
+                                        const GuestProfileView &profile,
+                                        ExperienceCategory category) noexcept {
+  // A neutral 0.5 sensitivity preserves the documented global category weight.
+  // Sensitivity then provides the per-guest modulation required by HMG-010,
+  // spanning 0.5x..1.5x before normalization across all categories.
+  return static_cast<std::int64_t>(baseWeight) *
+         (5000 + sensitivityBasisPoints(profile, category));
+}
+
+void recalculateOverall(SatisfactionBreakdown &satisfaction,
+                        const GuestProfileView &profile) noexcept {
+  const std::int64_t roomWeight =
+      personalizedCategoryWeight(28, profile, ExperienceCategory::Room);
+  const std::int64_t serviceWeight =
+      personalizedCategoryWeight(24, profile, ExperienceCategory::Service);
+  const std::int64_t cleanlinessWeight = personalizedCategoryWeight(
+      16, profile, ExperienceCategory::Cleanliness);
+  const std::int64_t foodWeight =
+      personalizedCategoryWeight(10, profile, ExperienceCategory::Food);
+  const std::int64_t amenitiesWeight =
+      personalizedCategoryWeight(8, profile, ExperienceCategory::Amenities);
+  const std::int64_t convenienceWeight = personalizedCategoryWeight(
+      6, profile, ExperienceCategory::Convenience);
+  const std::int64_t valueWeight =
+      personalizedCategoryWeight(5, profile, ExperienceCategory::Value);
+  const std::int64_t arrivalWeight = personalizedCategoryWeight(
+      3, profile, ExperienceCategory::ArrivalDeparture);
+  const std::int64_t totalWeight =
+      roomWeight + serviceWeight + cleanlinessWeight + foodWeight +
+      amenitiesWeight + convenienceWeight + valueWeight + arrivalWeight;
+  const std::int64_t weighted =
+      static_cast<std::int64_t>(satisfaction.room) * roomWeight +
+      static_cast<std::int64_t>(satisfaction.service) * serviceWeight +
+      static_cast<std::int64_t>(satisfaction.cleanliness) * cleanlinessWeight +
+      static_cast<std::int64_t>(satisfaction.food) * foodWeight +
+      static_cast<std::int64_t>(satisfaction.amenities) * amenitiesWeight +
+      static_cast<std::int64_t>(satisfaction.convenience) * convenienceWeight +
+      static_cast<std::int64_t>(satisfaction.value) * valueWeight +
+      static_cast<std::int64_t>(satisfaction.arrivalDeparture) * arrivalWeight;
+  satisfaction.overall = clampScore(static_cast<int>(
+      (weighted + totalWeight / 2) / std::max<std::int64_t>(1, totalWeight)));
 }
 } // namespace
 
@@ -361,7 +397,7 @@ void GuestPsychology::recordExperience(GuestId guestId,
   if (event.type == ExperienceEventType::ElevatorDelay ||
       event.type == ExperienceEventType::SlowRoomService)
     apply(state.satisfaction.waits);
-  recalculateOverall(state.satisfaction);
+  recalculateOverall(state.satisfaction, state.profile);
 
   if (magnitude > 0 && event.memorySalience > 0) {
     GuestMemory memory;
@@ -410,7 +446,8 @@ void GuestPsychology::recordExperience(GuestId guestId,
 
 double GuestPsychology::memoryContribution(const GuestMemory &memory,
                                             std::int64_t nowSeconds) noexcept {
-  const auto ageSeconds = std::max<std::int64_t>(0, nowSeconds - memory.timestampSeconds);
+  const auto ageSeconds =
+      std::max<std::int64_t>(0, nowSeconds - memory.timestampSeconds);
   const double salience = std::clamp(memory.salience, 0, 10000) / 10000.0;
   double decay = 1.0;
   if (memory.halfLifeHours > 0) {
