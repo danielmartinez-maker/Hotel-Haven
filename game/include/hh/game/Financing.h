@@ -61,6 +61,16 @@ struct DebtServiceResult {
   std::int64_t missedObligationCents{};
 };
 
+struct DebtPaymentScheduleEntry {
+  LoanOfferId loanId{};
+  int paymentDay{};
+  int paymentNumber{};
+  std::int64_t amountCents{};
+  std::int64_t principalCents{};
+  std::int64_t interestCents{};
+  bool operator==(const DebtPaymentScheduleEntry &) const = default;
+};
+
 struct FinancingSnapshot {
   std::int64_t outstandingPrincipalCents{};
   std::int64_t nextDebtServiceCents{};
@@ -70,6 +80,7 @@ struct FinancingSnapshot {
   int defaultStartDay{-1};
   bool covenantBreach{};
   int debtToGopBasisPoints{};
+  std::vector<DebtPaymentScheduleEntry> paymentSchedule;
 };
 
 class FinancingSystem {
@@ -113,6 +124,8 @@ private:
   [[nodiscard]] static std::int64_t legacyInterestDue(const ActiveLoan &loan);
   [[nodiscard]] static std::int64_t legacyPrincipalDue(const ActiveLoan &loan);
   [[nodiscard]] static std::int64_t nextPaymentDue(const ActiveLoan &loan);
+  [[nodiscard]] static DebtPaymentScheduleEntry scheduleEntry(
+      const ActiveLoan &loan, int paymentNumber);
 };
 
 } // namespace hh::game
