@@ -53,7 +53,7 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
   add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
 
-  foreach(economy_test MarketDemand RevenueInventory RevenueManagement HotelEconomics Financing Overbooking CommercialDemand EconomyIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec SimulationEconomyBridge EconomyDiagnostics)
+  foreach(economy_test MarketDemand MarketPotentialDemand RevenueInventory RevenueManagement HotelEconomics Financing Overbooking CommercialDemand EconomyIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec SimulationEconomyBridge EconomyDiagnostics)
     add_executable(hh_${economy_test}_tests tests/${economy_test}Tests.cpp)
     target_link_libraries(hh_${economy_test}_tests PRIVATE hh_game)
     add_test(NAME ${economy_test} COMMAND hh_${economy_test}_tests)
