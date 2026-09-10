@@ -14,6 +14,7 @@ constexpr MarketSegment kSegments[] = {
     MarketSegment::FamilyLeisure, MarketSegment::LuxuryLeisure,
     MarketSegment::ConferenceGroup, MarketSegment::AirportTransit,
     MarketSegment::Wellness};
+constexpr int kDefaultPlayerConsiderationBasisPoints = 7000;
 
 constexpr double segmentPriceElasticity(MarketSegment segment) {
   switch (segment) {
@@ -131,12 +132,20 @@ MarketHotelOffer asHotel(const CompetitorOffer &c) {
           c.amenityScore, c.locationScore, c.brandScore, true};
 }
 
+std::uint64_t mix64(std::uint64_t value) {
+  value = (value ^ (value >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+  value = (value ^ (value >> 27U)) * 0x94D049BB133111EBULL;
+  return value ^ (value >> 31U);
+}
+
 } // namespace
 
 MarketDemandSystem::MarketDemandSystem(std::uint64_t seed)
     : seed_(seed ? seed : 1), rngState_(seed_ ^ 0x9E3779B97F4A7C15ULL) {
-  for (const auto segment : kSegments)
+  for (const auto segment : kSegments) {
     demandProfiles_[segment] = baselineProfile(segment);
+    playerConsiderationBasisPoints_[segment] = kDefaultPlayerConsiderationBasisPoints;
+  }
 }
 
 void MarketDemandSystem::setPlayerOffer(const MarketHotelOffer &offer) {
@@ -176,6 +185,29 @@ const SegmentDemandProfile &MarketDemandSystem::segmentDemandProfile(
   if (!profile)
     throw std::invalid_argument("market segment demand profile missing");
   return *profile;
+}
+
+void MarketDemandSystem::setPlayerConsiderationBasisPoints(MarketSegment segment,
+                                                           int basisPoints) {
+  if (basisPoints < 0 || basisPoints > 10000)
+    throw std::invalid_argument("invalid player consideration probability");
+  playerConsiderationBasisPoints_[segment] = basisPoints;
+}
+
+bool MarketDemandSystem::playerConsidered(const BookingRequest &request) const {
+  const auto it = playerConsiderationBasisPoints_.find(request.segment);
+  const int basisPoints = it == playerConsiderationBasisPoints_.end()
+                              ? kDefaultPlayerConsiderationBasisPoints
+                              : it->second;
+  if (basisPoints <= 0)
+    return false;
+  if (basisPoints >= 10000)
+    return true;
+  const std::uint64_t salt =
+      static_cast<std::uint64_t>(static_cast<int>(request.segment) + 1) *
+      0x9E3779B97F4A7C15ULL;
+  const auto roll = mix64(seed_ ^ (request.id * 0xD1B54A32D192ED03ULL) ^ salt) % 10000ULL;
+  return roll < static_cast<std::uint64_t>(basisPoints);
 }
 
 double MarketDemandSystem::potentialDemand(
@@ -296,7 +328,7 @@ void MarketDemandSystem::allocate(const BookingRequest &request) {
   };
   std::vector<Candidate> candidates;
   const double playerWeight = playerChoiceWeight(request, player_);
-  if (playerWeight > 0.0)
+  if (playerConsidered(request) && playerWeight > 0.0)
     candidates.push_back({player_.hotelId, playerWeight, true});
   for (const auto &competitor : competitors_) {
     const auto offer = asHotel(competitor);
