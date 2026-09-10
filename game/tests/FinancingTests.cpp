@@ -14,6 +14,9 @@ int main() {
   offer.paymentFrequencyDays = 30;
   offer.originationFeeCents = 12000;
   offer.minimumCashCents = 100000;
+  const auto quote = financing.quoteLoan(offer);
+  require(quote.ok && quote.nextPaymentCents > 0 && quote.totalInterestCents > 0,
+          "loan quote did not expose payment and total interest before acceptance");
   const auto accepted = financing.acceptLoan(offer, 500000);
   require(accepted.ok && accepted.netProceedsCents == 1188000,
           "loan proceeds/origination fee incorrect");
@@ -21,7 +24,8 @@ int main() {
           "loan principal not recorded");
 
   const auto due = financing.processDay(30, 500000);
-  require(due.debtServiceCents > 0 && due.principalPaidCents > 0 && due.interestPaidCents > 0,
+  require(due.debtServiceCents > 0 && due.principalPaidCents > 0 &&
+              due.interestPaidCents > 0,
           "scheduled amortization did not split principal and interest");
   require(financing.snapshot().outstandingPrincipalCents < 1200000,
           "principal did not amortize");
@@ -29,8 +33,8 @@ int main() {
   FinancingSystem distress;
   distress.setCurePeriodDays(2);
   distress.observeDay(1, 50000, 100000, false);
-  require(distress.snapshot().distressStage == DistressStage::Tight,
-          "cash runway did not enter Tight stage");
+  require(distress.snapshot().distressStage == DistressStage::Critical,
+          "cash runway below seven days did not enter Critical stage");
   distress.observeDay(2, -1, 100000, true);
   require(distress.snapshot().distressStage == DistressStage::Default,
           "missed obligation did not remain inspectable as Default");
