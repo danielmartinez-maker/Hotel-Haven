@@ -54,6 +54,57 @@ bool uniqueIds(const Range &range, IdFn idFn) {
   return true;
 }
 
+void checkRoomReservationLinks(const SimulationView &view,
+                               std::uint64_t operation,
+                               hh::stress::RunContext &ctx) {
+  for (const auto &reservation : view.reservations) {
+    const auto room = std::find_if(view.rooms.begin(), view.rooms.end(),
+                                   [&](const RoomView &candidate) {
+                                     return candidate.id == reservation.roomId;
+                                   });
+    if (room == view.rooms.end())
+      ctx.fail("reservation=" + std::to_string(reservation.id) +
+                   " references missing room=" + std::to_string(reservation.roomId),
+               operation);
+    if (!reservation.checkoutStarted && !reservation.completed &&
+        room->reservationId != reservation.id)
+      ctx.fail("active reservation=" + std::to_string(reservation.id) +
+                   " room=" + std::to_string(room->id) +
+                   " points_to=" + std::to_string(room->reservationId) +
+                   " checked_in=" + std::to_string(reservation.checkedIn),
+               operation);
+  }
+
+  for (const auto &room : view.rooms) {
+    if (room.reservationId != 0) {
+      const auto reservation =
+          std::find_if(view.reservations.begin(), view.reservations.end(),
+                       [&](const ReservationView &candidate) {
+                         return candidate.id == room.reservationId;
+                       });
+      if (reservation == view.reservations.end())
+        ctx.fail("room=" + std::to_string(room.id) +
+                     " points to missing reservation=" +
+                     std::to_string(room.reservationId),
+                 operation);
+      if (reservation->roomId != room.id || reservation->checkoutStarted ||
+          reservation->completed)
+        ctx.fail("room=" + std::to_string(room.id) +
+                     " has invalid reservation=" +
+                     std::to_string(room.reservationId),
+                 operation);
+    }
+    const bool assignedStatus = room.status == RoomStatus::Reserved ||
+                                room.status == RoomStatus::Occupied;
+    if (assignedStatus != (room.reservationId != 0))
+      ctx.fail("room=" + std::to_string(room.id) +
+                   " status/reservation assignment diverged status=" +
+                   std::to_string(static_cast<int>(room.status)) +
+                   " reservation=" + std::to_string(room.reservationId),
+               operation);
+  }
+}
+
 void checkSnapshot(const SimulationView &view, std::int64_t previousElapsed,
                    std::uint64_t operation, hh::stress::RunContext &ctx) {
   if (view.elapsedSeconds < previousElapsed)
@@ -88,6 +139,7 @@ void checkSnapshot(const SimulationView &view, std::int64_t previousElapsed,
   if (!uniqueIds(view.supplyOrders, [](const auto &v) { return v.id; }))
     ctx.fail("duplicate supply order id", operation);
 
+  checkRoomReservationLinks(view, operation, ctx);
   if (view.tasks.size() > operation + 10'000)
     ctx.fail("task collection grew beyond issued work", operation);
 }
@@ -182,6 +234,7 @@ ScenarioResult runScenario(std::uint64_t seed, std::size_t operations,
 
   for (std::size_t operation = 0; operation < operations; ++operation) {
     applyCommand(sim, rng, operation, scenario, ctx);
+    checkRoomReservationLinks(sim.view(), operation, ctx);
     if ((operation & 255U) == 0U) {
       const auto view = sim.view();
       checkSnapshot(view, previousElapsed, operation, ctx);
