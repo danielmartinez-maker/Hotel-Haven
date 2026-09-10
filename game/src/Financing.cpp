@@ -69,6 +69,30 @@ std::int64_t FinancingSystem::nextPaymentDue(const ActiveLoan &loan) {
   return loan.scheduledPaymentCents;
 }
 
+DebtPaymentScheduleEntry FinancingSystem::scheduleEntry(const ActiveLoan &loan,
+                                                        int paymentNumber) {
+  std::int64_t interest{};
+  std::int64_t principal{};
+  if (loan.legacyEqualPrincipal) {
+    interest = legacyInterestDue(loan);
+    principal = std::min(loan.remainingPrincipalCents, legacyPrincipalDue(loan));
+  } else {
+    const auto remainingQuotedInterest =
+        std::max<std::int64_t>(0, loan.quotedTotalInterestCents - loan.interestPaidCents);
+    if (loan.paymentsRemaining <= 1) {
+      interest = remainingQuotedInterest;
+      principal = loan.remainingPrincipalCents;
+    } else {
+      interest = std::min(periodicInterestDue(loan), remainingQuotedInterest);
+      principal = std::min(
+          loan.remainingPrincipalCents,
+          std::max<std::int64_t>(1, loan.scheduledPaymentCents - interest));
+    }
+  }
+  return {loan.offer.id, loan.nextPaymentDay, paymentNumber,
+          interest + principal, principal, interest};
+}
+
 LoanQuote FinancingSystem::quoteLoan(const LoanOffer &offer) const {
   if (!validOffer(offer))
     return {false, "INVALID_LOAN_OFFER", 0, 0, 0, 0};
@@ -140,39 +164,21 @@ DebtServiceResult FinancingSystem::processDay(int day,
     if (loan.remainingPrincipalCents <= 0 || day < loan.nextPaymentDay)
       continue;
     while (loan.remainingPrincipalCents > 0 && day >= loan.nextPaymentDay) {
-      std::int64_t interest{};
-      std::int64_t principal{};
-      if (loan.legacyEqualPrincipal) {
-        interest = legacyInterestDue(loan);
-        principal = std::min(loan.remainingPrincipalCents, legacyPrincipalDue(loan));
-      } else {
-        const auto remainingQuotedInterest =
-            std::max<std::int64_t>(0,
-                loan.quotedTotalInterestCents - loan.interestPaidCents);
-        if (loan.paymentsRemaining <= 1) {
-          interest = remainingQuotedInterest;
-          principal = loan.remainingPrincipalCents;
-        } else {
-          interest = std::min(periodicInterestDue(loan), remainingQuotedInterest);
-          principal = std::min(
-              loan.remainingPrincipalCents,
-              std::max<std::int64_t>(1, loan.scheduledPaymentCents - interest));
-        }
-      }
-      const auto due = interest + principal;
-      if (currentCashCents - result.debtServiceCents < due) {
-        result.missedObligationCents += due;
-        missedObligationCents_ += due;
+      const auto scheduled = scheduleEntry(
+          loan, paymentCount(loan.offer) - loan.paymentsRemaining + 1);
+      if (currentCashCents - result.debtServiceCents < scheduled.amountCents) {
+        result.missedObligationCents += scheduled.amountCents;
+        missedObligationCents_ += scheduled.amountCents;
         if (defaultStartDay_ < 0)
           defaultStartDay_ = day;
         distressStage_ = DistressStage::Default;
         break;
       }
-      result.debtServiceCents += due;
-      result.principalPaidCents += principal;
-      result.interestPaidCents += interest;
-      loan.remainingPrincipalCents -= principal;
-      loan.interestPaidCents += interest;
+      result.debtServiceCents += scheduled.amountCents;
+      result.principalPaidCents += scheduled.principalCents;
+      result.interestPaidCents += scheduled.interestCents;
+      loan.remainingPrincipalCents -= scheduled.principalCents;
+      loan.interestPaidCents += scheduled.interestCents;
       --loan.paymentsRemaining;
       loan.nextPaymentDay += loan.offer.paymentFrequencyDays;
     }
@@ -217,9 +223,10 @@ void FinancingSystem::observeDay(int day, std::int64_t cashCents,
     const long double rawRatio =
         static_cast<long double>(totalOutstandingPrincipal) * 10000.0L /
         static_cast<long double>(gopCents);
-    debtToGopBasisPoints_ = rawRatio >= static_cast<long double>(std::numeric_limits<int>::max())
-                                ? std::numeric_limits<int>::max()
-                                : static_cast<int>(std::llround(rawRatio));
+    debtToGopBasisPoints_ =
+        rawRatio >= static_cast<long double>(std::numeric_limits<int>::max())
+            ? std::numeric_limits<int>::max()
+            : static_cast<int>(std::llround(rawRatio));
   }
 
   covenantBreach_ = false;
@@ -269,7 +276,26 @@ FinancingSnapshot FinancingSystem::snapshot() const {
     out.nextDebtServiceCents += nextPaymentDue(loan);
     if (nextPayment == 0 || loan.nextPaymentDay < nextPayment)
       nextPayment = loan.nextPaymentDay;
+
+    ActiveLoan projected = loan;
+    int paymentNumber = paymentCount(projected.offer) - projected.paymentsRemaining + 1;
+    while (projected.remainingPrincipalCents > 0 && projected.paymentsRemaining > 0) {
+      const auto entry = scheduleEntry(projected, paymentNumber++);
+      out.paymentSchedule.push_back(entry);
+      projected.remainingPrincipalCents -= entry.principalCents;
+      projected.interestPaidCents += entry.interestCents;
+      --projected.paymentsRemaining;
+      projected.nextPaymentDay += projected.offer.paymentFrequencyDays;
+    }
   }
+  std::sort(out.paymentSchedule.begin(), out.paymentSchedule.end(),
+            [](const auto &a, const auto &b) {
+              if (a.paymentDay != b.paymentDay)
+                return a.paymentDay < b.paymentDay;
+              if (a.loanId != b.loanId)
+                return a.loanId < b.loanId;
+              return a.paymentNumber < b.paymentNumber;
+            });
   out.nextPaymentDay = nextPayment;
   return out;
 }
