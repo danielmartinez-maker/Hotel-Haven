@@ -262,16 +262,21 @@ void runStress(const hh::stress::Config &config, std::string_view scenario) {
     if ((scenario == "partial_build_save" || scenario == "dense_place_cancel") &&
         operation != 0 && operation % 4096U == 0U) {
       const auto encoded = fixture.sim.save();
-      auto restored = Simulation::load(encoded);
-      if (restored.save() != encoded ||
-          restored.constructionSnapshot() != fixture.sim.constructionSnapshot() ||
-          restored.buildingSystemsSnapshot() != fixture.sim.buildingSystemsSnapshot())
-        ctx.fail("partial construction save did not round-trip", operation);
-      restored.step(120);
-      auto replay = Simulation::load(encoded);
-      replay.step(120);
-      if (restored.save() != replay.save())
-        ctx.fail("partial construction continuation diverged", operation);
+      try {
+        auto restored = Simulation::load(encoded);
+        if (restored.save() != encoded ||
+            restored.constructionSnapshot() != fixture.sim.constructionSnapshot() ||
+            restored.buildingSystemsSnapshot() != fixture.sim.buildingSystemsSnapshot())
+          ctx.fail("partial construction save did not round-trip", operation);
+        restored.step(120);
+        auto replay = Simulation::load(encoded);
+        replay.step(120);
+        if (restored.save() != replay.save())
+          ctx.fail("partial construction continuation diverged", operation);
+      } catch (const std::invalid_argument &error) {
+        ctx.fail(std::string("construction checkpoint rejected: ") + error.what(),
+                 operation);
+      }
     }
   }
   assertConstruction(fixture.sim, ctx, operations);
