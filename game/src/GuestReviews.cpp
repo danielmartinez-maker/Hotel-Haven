@@ -67,7 +67,7 @@ GuestReviewDraft buildGuestReview(const GuestPsychologySnapshot &psychology,
       mix(campaignSeed ^ mix(psychology.guestId) ^ 0x524556494557ULL);
   const double unit = static_cast<double>(reviewSeed >> 11) *
                       (1.0 / static_cast<double>(std::uint64_t{1} << 53));
-  const double jitter = (unit * 2.0 - 1.0) * 0.15;
+  const double jitter = (unit * 2.0 - 1.0) * 0.30;
   review.score = std::clamp(1.0 + normalized * 0.09 + jitter, 1.0, 10.0);
 
   std::vector<RankedMemory> ranked;
