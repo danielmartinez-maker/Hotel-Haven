@@ -211,8 +211,8 @@ HH_TEST("metadata fingerprints and Hasset round trips remain deterministic under
     document.asset_id = "asset.child";
     document.fingerprint = expectedFingerprint;
     document.dependencies = {"asset.base"};
-    document.source_path = record.source_path.generic_string();
-    document.sidecar_path = record.sidecar_path.generic_string();
+    document.source_path = "Art/Source/child.blend";
+    document.sidecar_path = "Art/Exports/child.glb.asset.json";
     document.payload = {std::byte{0x01}, std::byte{0x02}, std::byte{0x03}, std::byte{0x04}};
     const auto encoded = serialize_hasset(document);
 
@@ -225,6 +225,8 @@ HH_TEST("metadata fingerprints and Hasset round trips remain deterministic under
         HH_REQUIRE(parsed.fingerprint == document.fingerprint);
         HH_REQUIRE(parsed.dependencies == document.dependencies);
         HH_REQUIRE(parsed.payload == document.payload);
+        HH_REQUIRE(parsed.source_path == document.source_path);
+        HH_REQUIRE(parsed.sidecar_path == document.sidecar_path);
     }
 
     for (std::size_t cut = 0; cut < std::min<std::size_t>(encoded.size(), 64); ++cut) {
