@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -41,7 +42,17 @@ void EconomyRuntime::setPhysicalRoomCapacity(std::string category, int units) {
     throw std::invalid_argument("invalid physical room capacity");
   physicalCapacity_[category] = units;
   inventory_.setPhysicalCapacity(category, units);
-  inventory_.setOverbookingAllowance(category, overbooking_.allowance(category));
+  inventory_.clearOverbookingAllowances(category);
+  const auto policy = overbooking_.policies().find(category);
+  if (policy != overbooking_.policies().end()) {
+    if (policy->second.startDay == 0 &&
+        policy->second.endDay == std::numeric_limits<int>::max())
+      inventory_.setOverbookingAllowance(category, policy->second.allowance);
+    else
+      inventory_.setOverbookingAllowance(category, policy->second.allowance,
+                                         policy->second.startDay,
+                                         policy->second.endDay);
+  }
 }
 
 void EconomyRuntime::setPlayerHotelOffer(const MarketHotelOffer &offer) {
@@ -67,8 +78,14 @@ PricingRuleResult EconomyRuntime::setPricingRule(const PricingRuleCommand &comma
 
 OverbookingResult EconomyRuntime::setOverbookingPolicy(const OverbookingPolicy &policy) {
   const auto result = overbooking_.setPolicy(policy);
-  if (result.ok && physicalCapacity_.contains(policy.roomCategory))
-    inventory_.setOverbookingAllowance(policy.roomCategory, policy.allowance);
+  if (result.ok && physicalCapacity_.contains(policy.roomCategory)) {
+    inventory_.clearOverbookingAllowances(policy.roomCategory);
+    if (policy.startDay == 0 && policy.endDay == std::numeric_limits<int>::max())
+      inventory_.setOverbookingAllowance(policy.roomCategory, policy.allowance);
+    else
+      inventory_.setOverbookingAllowance(policy.roomCategory, policy.allowance,
+                                         policy.startDay, policy.endDay);
+  }
   return result;
 }
 
