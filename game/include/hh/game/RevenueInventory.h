@@ -8,7 +8,14 @@
 
 namespace hh::game {
 
-enum class BookingChannel : std::uint8_t { Direct, Ota, Gds, Corporate, Group };
+enum class BookingChannel : std::uint8_t {
+  Direct,
+  Ota,
+  Gds,
+  Corporate,
+  Group,
+  TravelAgent = Gds
+};
 enum class BookingState : std::uint8_t { Confirmed, Cancelled, NoShow, Completed };
 
 struct BookingRequestInput {
@@ -54,6 +61,8 @@ public:
 
   void setPhysicalCapacity(std::string category, int units);
   void setOverbookingAllowance(std::string category, int units);
+  void setOverbookingAllowance(std::string category, int units,
+                               int startDay, int endDay);
   void setCancellationBasisPoints(BookingChannel channel, int basisPoints);
   void setNoShowBasisPoints(BookingChannel channel, int basisPoints);
 
@@ -70,9 +79,17 @@ public:
   static RevenueInventory load(std::string_view data);
 
 private:
+  struct AllowanceWindow {
+    int startDay{};
+    int endDay{};
+    int units{};
+    bool operator==(const AllowanceWindow &) const = default;
+  };
+
   std::uint64_t seed_{1};
   std::map<std::string, int> physicalCapacity_;
   std::map<std::string, int> overbookingAllowance_;
+  std::map<std::string, std::vector<AllowanceWindow>> overbookingWindows_;
   std::map<BookingChannel, int> cancellationBasisPoints_;
   std::map<BookingChannel, int> noShowBasisPoints_;
   std::vector<BookingView> bookings_;
