@@ -1,0 +1,81 @@
+#pragma once
+
+#include "hh/game/CommercialDemand.h"
+#include "hh/game/Financing.h"
+#include "hh/game/HotelEconomics.h"
+#include "hh/game/MarketDemand.h"
+#include "hh/game/Overbooking.h"
+#include "hh/game/RevenueInventory.h"
+#include "hh/game/RevenueManagement.h"
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace hh::game {
+
+struct FinancialSnapshot {
+  HotelEconomicsSnapshot economics;
+  FinancingSnapshot financing;
+};
+
+class EconomyRuntime {
+public:
+  explicit EconomyRuntime(std::uint64_t seed = 1,
+                          std::int64_t openingCashCents = 5'000'000);
+
+  void setPhysicalRoomCapacity(std::string category, int units);
+  void setPlayerHotelOffer(const MarketHotelOffer &offer);
+  void setCompetitors(std::vector<CompetitorOffer> competitors);
+
+  [[nodiscard]] PricingRuleResult setPricingRule(const PricingRuleCommand &command);
+  [[nodiscard]] OverbookingResult setOverbookingPolicy(const OverbookingPolicy &policy);
+  [[nodiscard]] LoanResult acceptLoan(const LoanOffer &offer);
+  [[nodiscard]] CommercialCommandResult startMarketingCampaign(
+      const MarketingCampaign &campaign);
+  [[nodiscard]] ContractAcceptanceResult acceptCommercialContract(
+      const CommercialContract &contract, const ContractFeasibility &feasibility,
+      bool acceptRisk = false);
+  void applyReviewOutcome(const ReviewSignal &review);
+
+  void runDays(int days);
+
+  [[nodiscard]] MarketSnapshot marketSnapshot() const;
+  [[nodiscard]] RevenueManagementSnapshot revenueManagementSnapshot() const;
+  [[nodiscard]] FinancialSnapshot financialSnapshot() const;
+  [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
+  [[nodiscard]] int currentDay() const noexcept;
+
+  [[nodiscard]] std::string save() const;
+  static EconomyRuntime load(std::string_view data);
+  [[nodiscard]] std::uint64_t authoritativeHash() const;
+  [[nodiscard]] std::size_t estimatedStateBytes() const;
+
+private:
+  std::uint64_t seed_{1};
+  int currentDay_{};
+  std::uint64_t nextBookingId_{1};
+  std::uint64_t nextTransactionId_{1};
+  std::int64_t cumulativeSellableRoomNights_{};
+  std::int64_t cumulativeOccupiedRoomNights_{};
+  std::map<std::string, int> physicalCapacity_;
+  MarketHotelOffer basePlayerOffer_{};
+
+  MarketDemandSystem market_;
+  RevenueInventory inventory_;
+  RevenueManagement revenueManagement_;
+  HotelEconomics economics_;
+  FinancingSystem financing_;
+  OverbookingSystem overbooking_;
+  CommercialDemand commercial_;
+
+  void runOneDay();
+  [[nodiscard]] int physicalCapacityTotal() const;
+  [[nodiscard]] std::int64_t currentCashCents() const;
+  void post(EconomicCategory category, std::int64_t amountCents,
+            std::uint64_t sourceId, std::string memo);
+};
+
+} // namespace hh::game
