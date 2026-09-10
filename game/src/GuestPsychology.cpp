@@ -57,6 +57,68 @@ static_assert([] {
   return total == 100;
 }());
 
+constexpr std::array<GuestPreferenceState, 13> archetypePreferences{{
+    {6000, 3000, 6500, 2000, 5000, 3500, 6000, 4500, 4000},
+    {7500, 2500, 6500, 1000, 3000, 4000, 8500, 3000, 3000},
+    {9500, 8000, 7000, 1000, 1500, 4500, 3500, 8500, 7000},
+    {9800, 9000, 7500, 3000, 2000, 5000, 3000, 9000, 9000},
+    {6000, 2000, 7500, 6000, 5500, 3000, 6500, 7000, 7500},
+    {6000, 1500, 8500, 2000, 8500, 3000, 7000, 6000, 7000},
+    {8000, 3500, 8500, 9500, 8500, 6500, 6000, 9000, 9800},
+    {9000, 7500, 8000, 2500, 2000, 4000, 8000, 7000, 6500},
+    {5500, 1000, 9000, 2500, 4500, 2500, 9000, 4500, 5000},
+    {8000, 3500, 6500, 1000, 1000, 2000, 2500, 8500, 5500},
+    {5000, 1500, 8000, 9500, 7000, 9500, 5000, 9000, 8500},
+    {9000, 6000, 9000, 9500, 9000, 8000, 5500, 9800, 10000},
+    {8000, 5500, 8500, 7000, 6000, 5000, 4500, 9500, 9500},
+}};
+
+int clampPreference(int value) noexcept { return std::clamp(value, 0, 10000); }
+
+GuestPreferenceState preferencesFor(const GuestProfileView &profile) noexcept {
+  const auto index = static_cast<std::size_t>(profile.archetype);
+  GuestPreferenceState preferences =
+      index < archetypePreferences.size() ? archetypePreferences[index]
+                                          : GuestPreferenceState{};
+  const auto has = [&](GuestTrait trait) {
+    return (profile.traitFlags & guestTraitFlag(trait)) != 0;
+  };
+  const auto add = [&](int &value, int delta) {
+    value = clampPreference(value + delta);
+  };
+
+  if (has(GuestTrait::Workaholic)) {
+    add(preferences.desk, 1500);
+    add(preferences.wifi, 500);
+  }
+  if (has(GuestTrait::Foodie))
+    add(preferences.breakfast, 1500);
+  if (has(GuestTrait::FitnessFocused))
+    add(preferences.fitness, 2000);
+  if (has(GuestTrait::Social)) {
+    add(preferences.social, 1500);
+    add(preferences.quietRoom, -1000);
+  }
+  if (has(GuestTrait::Private)) {
+    add(preferences.social, -1000);
+    add(preferences.quietRoom, 1500);
+  }
+  if (has(GuestTrait::LightSleeper))
+    add(preferences.quietRoom, 1500);
+  if (has(GuestTrait::HeavySleeper))
+    add(preferences.quietRoom, -1000);
+  if (has(GuestTrait::StatusConscious)) {
+    add(preferences.roomQuality, 1500);
+    add(preferences.spa, 750);
+  }
+  if (has(GuestTrait::Frugal)) {
+    add(preferences.spa, -1000);
+    add(preferences.roomQuality, -750);
+    add(preferences.breakfast, 500);
+  }
+  return preferences;
+}
+
 double randomUnit(std::mt19937_64 &random) noexcept {
   return static_cast<double>(random() >> 11) *
          (1.0 / static_cast<double>(std::uint64_t{1} << 53));
@@ -207,6 +269,7 @@ void GuestPsychology::initializeGuest(GuestId guestId,
   Record record;
   record.snapshot.guestId = guestId;
   record.snapshot.profile = profile;
+  record.snapshot.preferences = preferencesFor(profile);
   guests_[guestId] = std::move(record);
 }
 
