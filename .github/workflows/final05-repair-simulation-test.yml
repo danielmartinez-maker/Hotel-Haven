@@ -1,0 +1,49 @@
+name: FINAL-05 Repair Simulation Test
+
+on:
+  push:
+    branches:
+      - feature/final-05-fnb-amenities-events
+    paths:
+      - '.github/workflows/final05-repair-simulation-test.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Restore parent test and update only schema assertion
+        shell: bash
+        run: |
+          git show HEAD~2:game/tests/SimulationTests.cpp > game/tests/SimulationTests.cpp
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('game/tests/SimulationTests.cpp')
+          text = path.read_text()
+          old = 'HHGS 8 16 32 20 3'
+          new = 'HHGS 9 16 32 20 3'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one old save-header assertion, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          rm .github/workflows/final05-repair-simulation-test.yml
+      - name: Verify repair diff is header-only
+        shell: bash
+        run: |
+          git diff -- game/tests/SimulationTests.cpp | tee /tmp/test.diff
+          grep -q 'HHGS 8 16 32 20 3' /tmp/test.diff
+          grep -q 'HHGS 9 16 32 20 3' /tmp/test.diff
+          test "$(git diff --numstat -- game/tests/SimulationTests.cpp | awk '{print $1+$2}')" -eq 2
+      - name: Commit exact repair
+        shell: bash
+        run: |
+          git config user.name "hotel-haven-ci"
+          git config user.email "hotel-haven-ci@users.noreply.github.com"
+          git add -A
+          git commit -m "test(game): update save schema assertion only"
+          git push origin HEAD:feature/final-05-fnb-amenities-events
