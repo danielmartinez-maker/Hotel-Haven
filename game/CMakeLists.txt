@@ -8,6 +8,9 @@ add_library(hh_game
   src/Engineering.cpp
   src/RoomService.cpp
   src/ServiceLogistics.cpp
+  src/FoodService.cpp
+  src/Events.cpp
+  src/Amenities.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
@@ -24,9 +27,17 @@ if(HH_GAME_BUILD_TESTS)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
 
-  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics ServiceLogisticsSoak SimulationServiceLogistics)
+  foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics ServiceLogisticsSoak SimulationServiceLogistics FoodService Event Amenity)
     add_executable(hh_${service_test}_tests tests/${service_test}Tests.cpp)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
   endforeach()
+
+  add_executable(hh_FoodRoomServiceIntegration_tests tests/FoodRoomServiceIntegrationTests.cpp)
+  target_link_libraries(hh_FoodRoomServiceIntegration_tests PRIVATE hh_game)
+  add_test(NAME FoodRoomServiceIntegration COMMAND hh_FoodRoomServiceIntegration_tests)
+
+  add_executable(hh_SimulationFinal05_tests tests/SimulationFinal05Tests.cpp)
+  target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
+  add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
 endif()

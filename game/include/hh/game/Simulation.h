@@ -1,5 +1,8 @@
 #pragma once
 
+#include "hh/game/Amenities.h"
+#include "hh/game/Events.h"
+#include "hh/game/FoodService.h"
 #include "hh/game/ServiceLogistics.h"
 #include <cstdint>
 #include <memory>
@@ -233,6 +236,16 @@ public:
       GuestId guestId, const RoomServiceOrder &order);
   [[nodiscard]] bool markRoomServiceProductionReady(RoomServiceOrderId orderId);
   [[nodiscard]] bool requestRoomServiceTrayPickup(RoomServiceOrderId orderId);
+
+  [[nodiscard]] FoodOrderId createFoodOrder(GuestId guestId,
+                                            const MenuOrder &order);
+  [[nodiscard]] EventQuote quoteEvent(const EventRequest &request) const;
+  [[nodiscard]] EventBookingId confirmEvent(const EventRequest &request);
+  [[nodiscard]] AmenityReservationResult reserveAmenity(
+      GuestId guestId, const AmenityRequest &request);
+  [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
+  [[nodiscard]] EventsSnapshot eventsSnapshot() const;
+  [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot() const;
 
   void step(double seconds);
 

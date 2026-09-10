@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "recipes": [
+    {
+      "id": 1,
+      "name": "Classic Breakfast",
+      "station": "oven",
+      "priceCents": 1800,
+      "prepSeconds": 30,
+      "cookSeconds": 120,
+      "plateSeconds": 20,
+      "qualityBase": 8500,
+      "ingredients": [
+        {"item": "eggs", "units": 2},
+        {"item": "bread", "units": 2}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Grilled Dinner",
+      "station": "range",
+      "priceCents": 3200,
+      "prepSeconds": 60,
+      "cookSeconds": 240,
+      "plateSeconds": 30,
+      "qualityBase": 8800,
+      "ingredients": [
+        {"item": "protein", "units": 1},
+        {"item": "produce", "units": 2}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "House Cocktail",
+      "station": "bar",
+      "priceCents": 1600,
+      "prepSeconds": 45,
+      "cookSeconds": 0,
+      "plateSeconds": 10,
+      "qualityBase": 8400,
+      "ingredients": [
+        {"item": "beverage_base", "units": 1},
+        {"item": "garnish", "units": 1}
+      ]
+    }
+  ]
+}

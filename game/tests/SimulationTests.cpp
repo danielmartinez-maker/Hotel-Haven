@@ -282,7 +282,7 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 8 16 32 20 3");
+  auto pos = saved.find("HHGS 9 16 32 20 3");
   require(pos == 0, "unexpected save header");
   saved.replace(10, 2, "99");
   bool rejected = false;
@@ -415,9 +415,23 @@ static void tutorial_campaign_can_operate_profitably() {
   auto s = Simulation::tutorial(24);
   const auto openingCash = s.view().economy.cashCents;
   for (int day = 0; day < 30; ++day) {
-    if (s.view().inventory.linen < 12) {
-      const auto order = s.orderSupplies({30, 60, 30, 30, 5});
-      require(order.ok, "viable tutorial could not fund routine supplies");
+    const auto state = s.view();
+    bool pendingSupply = false;
+    for (const auto &order : state.supplyOrders)
+      pendingSupply |= !order.delivered;
+    const auto &inventory = state.inventory;
+    if (!pendingSupply &&
+        (inventory.linen < 12 || inventory.towels < 24 ||
+         inventory.amenities < 12 || inventory.chemicals < 12 ||
+         inventory.parts < 2)) {
+      const SupplyOrder refill{
+          std::max(0, 24 - inventory.linen),
+          std::max(0, 48 - inventory.towels),
+          std::max(0, 36 - inventory.amenities),
+          std::max(0, 24 - inventory.chemicals),
+          std::max(0, 8 - inventory.parts)};
+      const auto order = s.orderSupplies(refill);
+      require(order.ok, "viable tutorial could not fund physical restock");
     }
     s.step(86400);
   }
@@ -601,8 +615,10 @@ static void worn_rooms_create_physical_maintenance_work() {
   auto serviced = s.view();
   bool restored = false;
   for (const auto &roomView : serviced.rooms)
-    restored |=
-        roomView.condition == 100 && roomView.status != RoomStatus::OutOfOrder;
+    // FINAL-04 Engineering owns condition; corrective work restores at least
+    // the authoritative 80% service floor rather than resetting to 100%.
+    restored |= roomView.condition >= 80.0 &&
+                roomView.status != RoomStatus::OutOfOrder;
   require(restored, "maintenance staff did not restore a failed room");
   require(serviced.inventory.parts < partsBefore,
           "repair completed without consuming a spare part");

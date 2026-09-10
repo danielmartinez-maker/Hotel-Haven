@@ -1,0 +1,63 @@
+name: FINAL-05 F&B Amenities Events CI
+
+on:
+  push:
+    branches:
+      - feature/final-05-fnb-amenities-events
+  pull_request:
+    paths:
+      - 'game/include/hh/game/FoodService.h'
+      - 'game/include/hh/game/Events.h'
+      - 'game/include/hh/game/Amenities.h'
+      - 'game/include/hh/game/Simulation.h'
+      - 'game/src/FoodService.cpp'
+      - 'game/src/Events.cpp'
+      - 'game/src/Amenities.cpp'
+      - 'game/src/Simulation.cpp'
+      - 'game/tests/FoodServiceTests.cpp'
+      - 'game/tests/FoodRoomServiceIntegrationTests.cpp'
+      - 'game/tests/EventTests.cpp'
+      - 'game/tests/AmenityTests.cpp'
+      - 'game/tests/SimulationFinal05Tests.cpp'
+      - 'game/data/fnb_recipes.json'
+      - 'game/data/fnb_service_constants.json'
+      - 'game/data/amenities.json'
+      - 'game/CMakeLists.txt'
+      - '.github/workflows/final05-fnb-amenities-events-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  portable-final05-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile FINAL-05 portable systems
+        run: |
+          mkdir -p build/final05
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          g++ $CXXFLAGS -c game/src/FoodService.cpp -o build/final05/FoodService.o
+          g++ $CXXFLAGS -c game/src/RoomService.cpp -o build/final05/RoomService.o
+          g++ $CXXFLAGS -c game/src/Events.cpp -o build/final05/Events.o
+          g++ $CXXFLAGS -c game/src/Amenities.cpp -o build/final05/Amenities.o
+      - name: Run FINAL-05 behavior tests
+        run: |
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          g++ $CXXFLAGS game/tests/FoodServiceTests.cpp build/final05/FoodService.o -o build/final05/FoodServiceTests
+          build/final05/FoodServiceTests
+          g++ $CXXFLAGS game/tests/FoodRoomServiceIntegrationTests.cpp build/final05/FoodService.o build/final05/RoomService.o -o build/final05/FoodRoomServiceIntegrationTests
+          build/final05/FoodRoomServiceIntegrationTests
+          g++ $CXXFLAGS game/tests/EventTests.cpp build/final05/Events.o -o build/final05/EventTests
+          build/final05/EventTests
+          g++ $CXXFLAGS game/tests/AmenityTests.cpp build/final05/Amenities.o -o build/final05/AmenityTests
+          build/final05/AmenityTests
+
+  integrated-game-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure integrated game
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build integrated game
+        run: cmake --build build --config Release --parallel 4
+      - name: Run integrated game tests
+        run: ctest --test-dir build -C Release --output-on-failure

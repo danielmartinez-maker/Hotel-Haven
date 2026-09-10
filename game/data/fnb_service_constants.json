@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "venues": [
+    {"id": 101, "channel": "breakfast", "seatCapacity": 48, "openMinuteOfDay": 360, "closeMinuteOfDay": 630, "seatSeconds": 20, "orderSeconds": 45, "serveSeconds": 30, "paymentSeconds": 20},
+    {"id": 102, "channel": "restaurant", "seatCapacity": 64, "openMinuteOfDay": 660, "closeMinuteOfDay": 1380, "seatSeconds": 20, "orderSeconds": 60, "serveSeconds": 30, "paymentSeconds": 30},
+    {"id": 103, "channel": "bar", "seatCapacity": 32, "openMinuteOfDay": 960, "closeMinuteOfDay": 120, "seatSeconds": 15, "orderSeconds": 30, "serveSeconds": 20, "paymentSeconds": 20}
+  ],
+  "defaultFoodStaffCapacity": 8,
+  "stationCapacity": {"oven": 3, "range": 4, "bar": 3, "plating": 4, "servicePass": 4}
+}
