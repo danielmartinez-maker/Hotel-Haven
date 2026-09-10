@@ -5,6 +5,16 @@
 
 namespace hh::game {
 
+InventoryCommandResult EconomyRuntime::setInventoryBlock(
+    const InventoryBlock &block) {
+  return inventory_.setInventoryBlock(block);
+}
+
+InventoryCommandResult EconomyRuntime::removeInventoryBlock(
+    std::uint64_t blockId) {
+  return inventory_.removeInventoryBlock(blockId);
+}
+
 RecoveryDecision EconomyRuntime::resolveOverbooking(const RecoveryContext &context,
                                                     std::uint64_t sourceId) {
   const auto decision = overbooking_.chooseRecovery(context);
