@@ -42,7 +42,8 @@ EngineeringSystem::workOrder(WorkOrderId id) const {
 }
 
 WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
-                                               WorkOrderType type) {
+                                               WorkOrderType type,
+                                               int workSeconds) {
   if (!asset(assetId))
     return 0;
   for (const auto &order : workOrders_)
@@ -50,7 +51,11 @@ WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
         order.stage != WorkOrderStage::Completed)
       return order.id;
   const auto id = nextId_++;
-  const int work = type == WorkOrderType::Preventive ? 15 * 60 : 25 * 60;
+  const int defaultWork =
+      type == WorkOrderType::Preventive ? 15 * 60 : 25 * 60;
+  const int work = workSeconds > 0
+                       ? std::clamp(workSeconds, 1, 7 * 24 * 60 * 60)
+                       : defaultWork;
   workOrders_.push_back({id, assetId, type, WorkOrderStage::Queued, work,
                          BlockReason::None, false});
   return id;
@@ -102,18 +107,33 @@ ServiceWorkResult EngineeringSystem::workSecond(WorkOrderId id) {
   return {true, true, true, BlockReason::None};
 }
 
+void EngineeringSystem::setConditionLossPerDayHundredths(int units) {
+  conditionLossPerDayHundredths_ = std::clamp(units, 0, 10000);
+}
+
 void EngineeringSystem::tickSecond() {
   ++elapsedSeconds_;
   if (elapsedSeconds_ % 3600 != 0)
     return;
 
+  const auto completedHours = elapsedSeconds_ / 3600;
+  const int hourIndex = static_cast<int>((completedHours - 1) % 24);
+  const int baseLoss = conditionLossPerDayHundredths_ / 24;
+  const int remainder = conditionLossPerDayHundredths_ % 24;
+  const int hourlyLoss = baseLoss + (hourIndex < remainder ? 1 : 0);
+
   for (auto &entry : assets_) {
-    entry.condition = std::max(0, entry.condition - 10);
+    entry.condition = std::max(0, entry.condition - hourlyLoss);
     const int pressureGain = std::max(1, (7000 - entry.condition) / 8);
     entry.failurePressure =
         std::clamp(entry.failurePressure + pressureGain, 0, 9500);
     if (entry.failed)
       continue;
+    if (entry.condition == 0) {
+      ++failures_;
+      entry.failed = true;
+      continue;
+    }
     const auto draw = static_cast<int>(rng_() % 10000ULL);
     if (draw < entry.failurePressure) {
       ++failures_;
