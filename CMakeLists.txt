@@ -39,12 +39,17 @@ if(WIN32)
     target_link_libraries(hh_frame_pipeline_tests PRIVATE hh_frame_pipeline)
     add_test(NAME hh_frame_pipeline_tests COMMAND hh_frame_pipeline_tests)
 
-    add_library(hh_game_ui_bridge STATIC game/app/GameUiBridge.cpp)
+    add_library(hh_game_ui_bridge STATIC
+        game/app/GameUiBridge.cpp
+        game/app/GameUiCommandRouter.cpp)
     target_include_directories(hh_game_ui_bridge PUBLIC game/app)
     target_link_libraries(hh_game_ui_bridge PUBLIC hh_game hh_frontend_core)
     add_executable(hh_game_ui_bridge_tests game/app/GameUiBridgeTests.cpp)
     target_link_libraries(hh_game_ui_bridge_tests PRIVATE hh_game_ui_bridge)
     add_test(NAME hh_game_ui_bridge_tests COMMAND hh_game_ui_bridge_tests)
+    add_executable(hh_game_ui_command_router_tests game/app/GameUiCommandRouterTests.cpp)
+    target_link_libraries(hh_game_ui_command_router_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_command_router_tests COMMAND hh_game_ui_command_router_tests)
 
     add_executable(hotel_haven WIN32 game/app/GameMain.cpp game/app/Panels.cpp)
     target_compile_definitions(hotel_haven PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
