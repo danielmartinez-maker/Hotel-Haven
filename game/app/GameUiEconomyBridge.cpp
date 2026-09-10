@@ -69,6 +69,14 @@ std::string departmentName(hh::game::EconomicDepartment department) {
   return "Unknown department";
 }
 
+void mixRevision(std::uint64_t &hash, std::uint64_t value) noexcept {
+  constexpr std::uint64_t Prime = 1099511628211ULL;
+  for (unsigned shift = 0; shift < 64; shift += 8) {
+    hash ^= (value >> shift) & 0xffULL;
+    hash *= Prime;
+  }
+}
+
 void mapDiagnostics(const hh::game::EconomyDiagnostics &diagnostics,
                     hh::frontend::EconomySnapshot &economy) {
   economy.kpis.sevenDayOccupancyPermille =
@@ -112,6 +120,7 @@ void mapDiagnostics(const hh::game::EconomyDiagnostics &diagnostics,
              cents(contribution.contributionCents)});
   }
 
+  economy.debtSchedule.clear();
   for (const auto &payment : diagnostics.debtPaymentSchedule) {
     economy.debtSchedule.push_back(
         {"Loan " + std::to_string(payment.loanId) + " · payment " +
@@ -120,6 +129,22 @@ void mapDiagnostics(const hh::game::EconomyDiagnostics &diagnostics,
          cents(payment.amountCents) + " · principal " +
              cents(payment.principalCents) + " · interest " +
              cents(payment.interestCents)});
+  }
+}
+
+void mapControlState(const hh::game::SimulationEconomyBridge &simulation,
+                     hh::frontend::EconomySnapshot &economy) {
+  economy.pricingRules.clear();
+  for (const auto &rule : simulation.revenueManagementSnapshot().rules) {
+    economy.pricingRules.push_back({rule.ruleId, rule.startDay, rule.endDay,
+                                    rule.roomCategory, rule.rateCents});
+  }
+
+  economy.overbookingPolicies.clear();
+  for (const auto &[category, policy] : simulation.overbookingPolicies()) {
+    economy.overbookingPolicies.push_back(
+        {category, policy.allowance, policy.relocationCompensationCents,
+         policy.startDay, policy.endDay});
   }
 }
 
@@ -133,6 +158,8 @@ makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge &simulation,
   auto snapshot =
       makeGameUiSnapshotSource(simulation.physicalSimulation(), bridgedContext);
   mapDiagnostics(simulation.economyDiagnostics(), snapshot.economy);
+  mapControlState(simulation, snapshot.economy);
+  mixRevision(snapshot.revision, simulation.authoritativeHash());
   return snapshot;
 }
 
