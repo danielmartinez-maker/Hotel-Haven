@@ -78,12 +78,28 @@ text = replace_once(
     """  require(economy.completedStays >= 30,
           "tutorial did not sustain meaningful guest throughput");
 """,
-    """  std::cout << "Tutorial economics: stays " << economy.completedStays
+    """  const auto finalView = s.view();
+  SupplyOrder ordered{};
+  for (const auto &pending : finalView.supplyOrders) {
+    ordered.linen += pending.items.linen;
+    ordered.towels += pending.items.towels;
+    ordered.amenities += pending.items.amenities;
+    ordered.chemicals += pending.items.chemicals;
+    ordered.parts += pending.items.parts;
+  }
+  std::cout << "Tutorial economics: stays " << economy.completedStays
             << ", revenue " << economy.revenueCents
             << ", payroll " << economy.payrollCents
             << ", supplies " << economy.supplyCostCents
             << ", utilities " << economy.utilityCostCents
-            << ", cash " << economy.cashCents << " cents\\n";
+            << ", cash " << economy.cashCents
+            << "; purchased L/T/A/C/P " << ordered.linen << '/'
+            << ordered.towels << '/' << ordered.amenities << '/'
+            << ordered.chemicals << '/' << ordered.parts
+            << "; final usable L/T/A/C/P " << finalView.inventory.linen << '/'
+            << finalView.inventory.towels << '/' << finalView.inventory.amenities
+            << '/' << finalView.inventory.chemicals << '/'
+            << finalView.inventory.parts << "\\n";
   require(economy.completedStays >= 30,
           "tutorial did not sustain meaningful guest throughput");
 """,
