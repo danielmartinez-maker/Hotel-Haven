@@ -298,7 +298,7 @@ static void three_hundred_employee_snapshot_and_scheduler_remain_valid() {
 static void thirty_day_workforce_soak_preserves_assignment_invariants() {
   auto sim = Simulation::tutorial(209);
   require(sim.loadDefinitions(
-                 R"({"baseDemand":100,"initialLinen":1000,"initialTowels":2000,"initialAmenities":1000,"initialChemicals":1000,"initialParts":500,"staffBreakAfterMinutes":240,"staffBreakDurationMinutes":15})")
+                 R"({"baseDemand":100,"initialLinen":400,"initialTowels":400,"initialAmenities":250,"initialChemicals":250,"initialParts":100,"staffBreakAfterMinutes":240,"staffBreakDurationMinutes":15})")
               .ok,
           "soak definitions rejected");
   for (int index = 0; index < 18; ++index) {
