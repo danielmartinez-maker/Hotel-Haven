@@ -87,6 +87,14 @@ struct EconomyKpiSnapshot {
     std::int64_t laborCostCents{}; std::int64_t utilitiesCostCents{}; std::int64_t foodCostCents{};
     std::int64_t cashCents{}; std::int64_t cashRunwayDays{};
 };
+struct PricingRuleSnapshot {
+    std::uint64_t ruleId{}; int startDay{}; int endDay{}; std::string roomCategory;
+    std::int64_t rateCents{};
+};
+struct OverbookingPolicySnapshot {
+    std::string roomCategory; int allowance{}; std::int64_t relocationCompensationCents{};
+    int startDay{}; int endDay{};
+};
 struct EconomySnapshot {
     EconomyKpiSnapshot kpis; std::vector<FieldSnapshot> departmentContribution;
     std::vector<FieldSnapshot> bookingPace; std::vector<FieldSnapshot> cancellationAndNoShow;
@@ -94,6 +102,8 @@ struct EconomySnapshot {
     std::vector<FieldSnapshot> demandBySegment; std::vector<FieldSnapshot> futureRateCalendar;
     std::vector<FieldSnapshot> campaigns; std::vector<FieldSnapshot> contracts;
     std::vector<FieldSnapshot> debtSchedule; std::vector<DiagnosticSnapshot> financingDiagnostics;
+    std::vector<PricingRuleSnapshot> pricingRules;
+    std::vector<OverbookingPolicySnapshot> overbookingPolicies;
 };
 struct AlertSnapshot {
     std::uint64_t id{}; AlertSeverity severity{AlertSeverity::Info}; EntityId sourceEntityId{};
