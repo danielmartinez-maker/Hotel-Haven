@@ -100,6 +100,30 @@ struct GuestExpectationState {
   bool operator==(const GuestExpectationState &) const = default;
 };
 
+struct GuestExpectationFactors {
+  int room{};
+  int cleanliness{};
+  int service{};
+  int food{};
+  int amenities{};
+  int quiet{};
+  int convenience{};
+  int value{};
+  bool operator==(const GuestExpectationFactors &) const = default;
+};
+
+struct GuestExpectationInputs {
+  GuestExpectationFactors segmentBase;
+  GuestExpectationFactors starClassModifier;
+  GuestExpectationFactors reputationModifier;
+  GuestExpectationFactors pricePositionModifier;
+  GuestExpectationFactors marketingClaimModifier;
+  bool operator==(const GuestExpectationInputs &) const = default;
+};
+
+[[nodiscard]] GuestExpectationState
+calculateGuestExpectations(const GuestExpectationInputs &inputs) noexcept;
+
 struct SatisfactionBreakdown {
   int room{70};
   int service{70};
@@ -188,6 +212,8 @@ public:
   [[nodiscard]] std::optional<GuestPsychologySnapshot>
   snapshot(GuestId guestId) const;
   void updateNeeds(GuestId guestId, std::int64_t seconds, bool sleeping);
+  void updateExpectations(GuestId guestId,
+                          const GuestExpectationInputs &inputs);
   void recordExperience(GuestId guestId, const ExperienceEvent &event);
 
   [[nodiscard]] static double
