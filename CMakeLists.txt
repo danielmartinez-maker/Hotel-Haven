@@ -55,6 +55,9 @@ if(WIN32)
     add_executable(hh_game_ui_command_router_tests game/app/GameUiCommandRouterTests.cpp)
     target_link_libraries(hh_game_ui_command_router_tests PRIVATE hh_game_ui_bridge)
     add_test(NAME hh_game_ui_command_router_tests COMMAND hh_game_ui_command_router_tests)
+    add_executable(hh_game_ui_economy_integration_tests game/app/GameUiEconomyIntegrationTests.cpp)
+    target_link_libraries(hh_game_ui_economy_integration_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_economy_integration_tests COMMAND hh_game_ui_economy_integration_tests)
 
     add_executable(hotel_haven WIN32
         game/app/GameMain.cpp
