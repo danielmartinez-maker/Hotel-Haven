@@ -29,6 +29,7 @@ on:
       - 'game/src/SimulationEconomyBridge.cpp'
       - 'game/tests/*Economy*Tests.cpp'
       - 'game/tests/MarketDemandTests.cpp'
+      - 'game/tests/MarketPotentialDemandTests.cpp'
       - 'game/tests/RevenueInventoryTests.cpp'
       - 'game/tests/RevenueManagementTests.cpp'
       - 'game/tests/HotelEconomicsTests.cpp'
@@ -62,6 +63,8 @@ jobs:
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
           g++ $CXXFLAGS game/tests/MarketDemandTests.cpp build/final06/MarketDemand.o -o build/final06/MarketDemandTests
           build/final06/MarketDemandTests
+          g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketPotentialDemandTests
+          build/final06/MarketPotentialDemandTests
           g++ $CXXFLAGS game/tests/RevenueInventoryTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryTests
           build/final06/RevenueInventoryTests
           g++ $CXXFLAGS game/tests/RevenueManagementTests.cpp build/final06/RevenueManagement.o -o build/final06/RevenueManagementTests
@@ -89,6 +92,8 @@ jobs:
           mkdir -p build/final06-sanitize
           CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
           SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
+          g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp $SRCS -o build/final06-sanitize/MarketPotentialDemandTests
+          build/final06-sanitize/MarketPotentialDemandTests
           for test in EconomyIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics; do
             g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
             build/final06-sanitize/${test}Tests
