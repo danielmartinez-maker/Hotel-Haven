@@ -19,6 +19,23 @@ jobs:
         with:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
+      - name: Correct final load-migration anchor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/final04_patch_simulation_authority.py')
+          source = p.read_text(encoding='utf-8')
+          marker = "''', \"load-inventory-migration\")"
+          end = source.index(marker) + len(marker)
+          start = source.rfind('replace_once(', 0, end)
+          if start < 0:
+              raise SystemExit('load migration replace_once block missing')
+          block = source[start:end]
+          if "r'''" not in block:
+              block = block.replace("'''", "r'''")
+          source = source[:start] + block + source[end:]
+          p.write_text(source, encoding='utf-8')
+          PY
       - name: Apply anchored Simulation authority patch
         run: python tools/final04_patch_simulation_authority.py
       - name: Commit Simulation bridge
