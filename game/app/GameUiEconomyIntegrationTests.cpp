@@ -55,6 +55,15 @@ int main() {
           "cancellation/no-show diagnostics were omitted from finance UI");
   require(!source.economy.departmentContribution.empty(),
           "department contribution diagnostics were omitted from finance UI");
+  require(source.economy.pricingRules.empty(),
+          "pricing-control state fabricated a rule before authority had one");
+  require(source.economy.overbookingPolicies.size() == 1 &&
+              source.economy.overbookingPolicies.front().roomCategory == "standard" &&
+              source.economy.overbookingPolicies.front().allowance == 0 &&
+              source.economy.overbookingPolicies.front().relocationCompensationCents == 25000 &&
+              source.economy.overbookingPolicies.front().startDay == 2 &&
+              source.economy.overbookingPolicies.front().endDay == 20,
+          "structured overbooking control state did not preserve authority fields");
   require(authority.save() == beforeSnapshot,
           "building the FINAL-07 snapshot mutated integrated authority");
 
@@ -69,6 +78,16 @@ int main() {
               revenue.rules.front().rateCents == 17500,
           "future-rate command fields changed at the application seam");
 
+  const auto afterRate = hh::client::makeGameUiSnapshotSource(authority, context);
+  require(afterRate.revision != source.revision,
+          "economy-only authority mutation did not invalidate the UI snapshot revision");
+  require(afterRate.economy.pricingRules.size() == 1 &&
+              afterRate.economy.pricingRules.front().startDay == 4 &&
+              afterRate.economy.pricingRules.front().endDay == 4 &&
+              afterRate.economy.pricingRules.front().roomCategory == "standard" &&
+              afterRate.economy.pricingRules.front().rateCents == 17500,
+          "structured pricing control state did not expose the authoritative rule");
+
   const auto overbooking = dashboard.setOverbookingCommand(1);
   const auto overbookingResult =
       hh::client::dispatchFinal06UiCommand(authority, overbooking);
@@ -82,6 +101,13 @@ int main() {
               standardPolicy->second.startDay == 2 &&
               standardPolicy->second.endDay == 20,
           "overbooking UI command changed authority-owned recovery policy fields");
+  const auto afterOverbooking =
+      hh::client::makeGameUiSnapshotSource(authority, context);
+  require(afterOverbooking.revision != afterRate.revision,
+          "overbooking-only authority mutation did not invalidate the UI snapshot revision");
+  require(afterOverbooking.economy.overbookingPolicies.size() == 1 &&
+              afterOverbooking.economy.overbookingPolicies.front().allowance == 1,
+          "updated overbooking allowance was not exposed to the UI snapshot");
 
   const auto campaign = dashboard.startCampaignCommand("1");
   const auto campaignResult =
