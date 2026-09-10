@@ -47,11 +47,11 @@ void complete_construction_state_round_trips_and_migrates_v10() {
   sim.step(1);
 
   const auto saved = sim.save();
-  require(saved.starts_with("HHGS 11 "),
-          "FINAL-01 state did not bump the save format to v11");
+  require(saved.starts_with("HHGS 12 "),
+          "FINAL-02 state did not bump the save format to v12");
   auto loaded = Simulation::load(saved);
   require(loaded.save() == saved,
-          "v11 construction/building state was not byte-stable after load");
+          "v12 construction/building state was not byte-stable after load");
   require(loaded.constructionSnapshot() == sim.constructionSnapshot(),
           "construction state did not round-trip");
   require(loaded.buildingSystemsSnapshot() == sim.buildingSystemsSnapshot(),
@@ -59,15 +59,15 @@ void complete_construction_state_round_trips_and_migrates_v10() {
 
   Simulation empty(4002, 4, 4, 1);
   auto legacy = empty.save();
-  const auto marker = legacy.find("HHGS 11 ");
-  require(marker == 0, "v11 migration fixture header missing");
+  const auto marker = legacy.find("HHGS 12 ");
+  require(marker == 0, "v12 migration fixture header missing");
   legacy.replace(5, 2, "10");
   auto migrated = Simulation::load(legacy);
-  require(migrated.save().starts_with("HHGS 11 ") &&
+  require(migrated.save().starts_with("HHGS 12 ") &&
               migrated.constructionSnapshot().objects.empty() &&
               migrated.constructionSnapshot().buildJobs.empty() &&
               migrated.buildingSystemsSnapshot().elevators.empty(),
-          "v10 save did not migrate with safe FINAL-01 defaults");
+          "v10 save did not migrate with safe FINAL-01/02 defaults");
 }
 } // namespace
 

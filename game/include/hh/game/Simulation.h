@@ -22,6 +22,12 @@ enum class InfrastructureKind;
 struct BuildingSystemsSnapshot;
 struct RoomSaleValidation;
 struct ElevatorSpec;
+struct GuestPsychologySnapshot;
+struct GuestOpportunitySnapshot;
+struct GoalSelection;
+struct GuestGroup;
+struct SatisfactionBreakdown;
+struct ExperienceEvent;
 
 struct Position {
   int floor{};
@@ -138,6 +144,7 @@ struct GuestProfileView {
   double foodSensitivity{0.5};
   double patience{0.5};
   std::uint32_t traitFlags{};
+  bool operator==(const GuestProfileView &) const = default;
 };
 struct PersonView {
   EntityId id{};
@@ -179,6 +186,8 @@ struct ReservationView {
   bool completed{};
   bool walkedRelocated{};
   GuestProfileView profile;
+  std::string psychologyArchive;
+  std::string guestGroupArchive;
 };
 struct TaskView {
   EntityId id{};
@@ -316,6 +325,17 @@ public:
                                 int destinationFloor);
   [[nodiscard]] BuildingSystemsSnapshot buildingSystemsSnapshot() const;
 
+  [[nodiscard]] GuestPsychologySnapshot guestPsychology(EntityId guestId) const;
+  [[nodiscard]] GoalSelection
+  chooseGuestGoal(EntityId guestId,
+                  const GuestOpportunitySnapshot &opportunities) const;
+  CommandResult createGuestGroup(const GuestGroup &specification);
+  [[nodiscard]] std::vector<GuestGroup> guestGroupsSnapshot() const;
+  [[nodiscard]] SatisfactionBreakdown
+  finalizeStaySatisfaction(EntityId guestId) const;
+  CommandResult recordGuestExperience(EntityId guestId,
+                                      const ExperienceEvent &event);
+
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;
@@ -324,6 +344,10 @@ public:
   static Simulation load(std::string_view data);
 
 private:
+  void stepV11(double seconds);
+  [[nodiscard]] std::string saveV11() const;
+  static Simulation loadV11(std::string_view data);
+
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
