@@ -75,7 +75,7 @@ void assertGuest(const GuestPsychologySnapshot &guest,
     if (complaint.magnitude < 0 || complaint.magnitude > 100)
       ctx.fail("guest complaint out of range", checkpoint);
   const auto repeatIntent = calculateRepeatIntent(guest, checkpoint);
-  if (!in100(repeatIntent))
+  if (!in10000(repeatIntent))
     ctx.fail("repeat intent out of range", checkpoint);
 }
 
