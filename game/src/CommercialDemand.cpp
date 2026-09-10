@@ -115,7 +115,9 @@ int CommercialDemand::visibilityBasisPoints(MarketSegment segment, int day) cons
 ContractAcceptanceResult CommercialDemand::acceptContract(
     const CommercialContract &contract, const ContractFeasibility &feasibility,
     bool acceptRisk) {
-  if (contract.id == 0 || contract.startDay < 0 || contract.endDay < contract.startDay ||
+  if (contract.id == 0 || contract.startDay < 0 ||
+      contract.endDay < contract.startDay ||
+      contract.endDay == std::numeric_limits<int>::max() ||
       contract.minimumRoomNights < 0 ||
       contract.maximumRoomNights < contract.minimumRoomNights ||
       contract.negotiatedRateCents <= 0 || contract.requiredVenueCapacity < 0 ||
@@ -241,13 +243,16 @@ CommercialDemand CommercialDemand::load(std::string_view data) {
         c.maximumRoomNights >> c.negotiatedRateCents >> c.requiredVenueCapacity >>
         c.requiredServiceUnits >> c.cancellationPenaltyCents >> c.paymentDelayDays >>
         accepted.acceptedRisk;
-    if (version >= 4)
+    if (version >= 4) {
       in >> accepted.reservedRoomNights >> accepted.unfulfilledRoomNights;
-    if (!in || accepted.reservedRoomNights < 0 || accepted.unfulfilledRoomNights < 0)
+    } else {
+      accepted.reservedRoomNights = 0;
+      accepted.unfulfilledRoomNights = c.minimumRoomNights;
+    }
+    if (!in || accepted.reservedRoomNights < 0 || accepted.unfulfilledRoomNights < 0 ||
+        accepted.reservedRoomNights + accepted.unfulfilledRoomNights !=
+            c.minimumRoomNights)
       throw std::invalid_argument("invalid saved contract");
-    if (version >= 4 && accepted.reservedRoomNights + accepted.unfulfilledRoomNights !=
-                            c.minimumRoomNights)
-      throw std::invalid_argument("saved contract commitment does not reconcile");
     result.snapshot_.contracts.push_back(std::move(accepted));
   }
   in >> std::ws;
