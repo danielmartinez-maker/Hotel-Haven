@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace hh::game {
 namespace {
@@ -52,6 +53,18 @@ std::int64_t baseBudget(MarketSegment segment) {
   return 17'000;
 }
 
+int defaultPartySize(MarketSegment segment) {
+  if (segment == MarketSegment::ConferenceGroup)
+    return 6;
+  if (segment == MarketSegment::FamilyLeisure)
+    return 4;
+  return 2;
+}
+
+bool validBasisPoints(int value) {
+  return value >= 0 && value <= 100000;
+}
+
 MarketHotelOffer asHotel(const CompetitorOffer &c) {
   return {c.hotelId, c.nightlyRateCents, c.reputation, c.stars,
           c.amenityScore, c.locationScore, c.brandScore, true};
@@ -75,6 +88,72 @@ void MarketDemandSystem::setCompetitors(std::vector<CompetitorOffer> competitors
   snapshot_.competitors = competitors_;
   snapshot_.physicalCompetitorGuests = 0;
   refreshComparableMedian();
+}
+
+void MarketDemandSystem::setSegmentDemandProfile(const SegmentDemandProfile &profile) {
+  if (!std::isfinite(profile.baseDailyDemand) || profile.baseDailyDemand < 0.0 ||
+      profile.medianLeadTimeDays < 0 || profile.medianStayNights <= 0 ||
+      profile.baseBudgetCents <= 0 ||
+      std::any_of(profile.weekdayMultiplierBasisPoints.begin(),
+                  profile.weekdayMultiplierBasisPoints.end(),
+                  [](int value) { return !validBasisPoints(value); }))
+    throw std::invalid_argument("invalid segment demand profile");
+  demandProfiles_[profile.segment] = profile;
+}
+
+const SegmentDemandProfile *MarketDemandSystem::profileFor(MarketSegment segment) const {
+  const auto it = demandProfiles_.find(segment);
+  return it == demandProfiles_.end() ? nullptr : &it->second;
+}
+
+double MarketDemandSystem::potentialDemand(
+    MarketSegment segment, int stayDay, const MarketDemandModifiers &modifiers) const {
+  if (stayDay < 0 || !validBasisPoints(modifiers.seasonMultiplierBasisPoints) ||
+      !validBasisPoints(modifiers.economicMultiplierBasisPoints) ||
+      !validBasisPoints(modifiers.eventMultiplierBasisPoints) ||
+      !validBasisPoints(modifiers.scenarioMultiplierBasisPoints))
+    throw std::invalid_argument("invalid potential demand input");
+  const auto *profile = profileFor(segment);
+  if (!profile)
+    return 0.0;
+  const int weekday = stayDay % 7;
+  double result = profile->baseDailyDemand;
+  result *= static_cast<double>(profile->weekdayMultiplierBasisPoints[weekday]) / 10000.0;
+  result *= static_cast<double>(modifiers.seasonMultiplierBasisPoints) / 10000.0;
+  result *= static_cast<double>(modifiers.economicMultiplierBasisPoints) / 10000.0;
+  result *= static_cast<double>(modifiers.eventMultiplierBasisPoints) / 10000.0;
+  result *= static_cast<double>(modifiers.scenarioMultiplierBasisPoints) / 10000.0;
+  return result;
+}
+
+int MarketDemandSystem::generatePotentialRequests(
+    MarketSegment segment, int stayDay, const MarketDemandModifiers &modifiers) {
+  const auto *profile = profileFor(segment);
+  if (!profile)
+    return 0;
+  const double potential = potentialDemand(segment, stayDay, modifiers);
+  if (potential <= 0.0)
+    return 0;
+  if (potential > static_cast<double>(std::numeric_limits<int>::max()))
+    throw std::overflow_error("potential market demand too large");
+  const int count = static_cast<int>(std::llround(potential));
+  for (int i = 0; i < count; ++i) {
+    BookingRequest request;
+    request.id = nextRequestId_++;
+    request.segment = segment;
+    request.arrivalDay = stayDay;
+    request.departureDay = stayDay + profile->medianStayNights;
+    request.budgetCents = profile->baseBudgetCents;
+    request.partySize = defaultPartySize(segment);
+    request.amenityPreference = static_cast<int>(nextRandom() % 101);
+    request.locationPreference = static_cast<int>(nextRandom() % 101);
+    request.brandPreference = static_cast<int>(nextRandom() % 101);
+    request.bookingDay = std::max(0, stayDay - profile->medianLeadTimeDays);
+    snapshot_.requests.push_back(request);
+    ++snapshot_.generatedRequests;
+    allocate(request);
+  }
+  return count;
 }
 
 std::uint64_t MarketDemandSystem::nextRandom() {
@@ -138,7 +217,11 @@ double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
 }
 
 void MarketDemandSystem::allocate(const BookingRequest &request) {
-  struct Candidate { std::uint64_t id{}; double weight{}; bool player{}; };
+  struct Candidate {
+    std::uint64_t id{};
+    double weight{};
+    bool player{};
+  };
   std::vector<Candidate> candidates;
   const double playerWeight = playerChoiceWeight(request, player_);
   if (playerWeight > 0.0)
@@ -191,7 +274,7 @@ void MarketDemandSystem::generateRequests(int firstArrivalDay, int lastArrivalDa
     request.id = nextRequestId_++;
     request.segment = segments[nextRandom() % 9];
     request.arrivalDay = firstArrivalDay +
-        static_cast<int>(nextRandom() % static_cast<std::uint64_t>(daySpan));
+                         static_cast<int>(nextRandom() % static_cast<std::uint64_t>(daySpan));
     request.departureDay = request.arrivalDay + 1 + static_cast<int>(nextRandom() % 4);
     request.budgetCents = baseBudget(request.segment) +
                           static_cast<std::int64_t>(nextRandom() % 8001) - 2000;
@@ -204,6 +287,10 @@ void MarketDemandSystem::generateRequests(int firstArrivalDay, int lastArrivalDa
     request.amenityPreference = static_cast<int>(nextRandom() % 101);
     request.locationPreference = static_cast<int>(nextRandom() % 101);
     request.brandPreference = static_cast<int>(nextRandom() % 101);
+    if (const auto *profile = profileFor(request.segment))
+      request.bookingDay = std::max(0, request.arrivalDay - profile->medianLeadTimeDays);
+    else
+      request.bookingDay = request.arrivalDay;
     snapshot_.requests.push_back(request);
     ++snapshot_.generatedRequests;
     allocate(request);
@@ -222,9 +309,8 @@ void MarketDemandSystem::refreshComparableMedian() {
   }
   std::sort(rates.begin(), rates.end());
   const auto middle = rates.size() / 2;
-  snapshot_.comparableMedianRateCents = rates.size() % 2
-      ? rates[middle]
-      : (rates[middle - 1] + rates[middle]) / 2;
+  snapshot_.comparableMedianRateCents =
+      rates.size() % 2 ? rates[middle] : (rates[middle - 1] + rates[middle]) / 2;
 }
 
 MarketSnapshot MarketDemandSystem::snapshot() const {
