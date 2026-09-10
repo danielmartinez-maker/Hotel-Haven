@@ -20,6 +20,7 @@ on:
       - 'game/tests/SimulationFinal05Tests.cpp'
       - 'game/data/fnb_recipes.json'
       - 'game/data/fnb_service_constants.json'
+      - 'game/data/amenities.json'
       - 'game/CMakeLists.txt'
       - '.github/workflows/final05-fnb-amenities-events-ci.yml'
   workflow_dispatch:
@@ -36,6 +37,7 @@ jobs:
           g++ $CXXFLAGS -c game/src/FoodService.cpp -o build/final05/FoodService.o
           g++ $CXXFLAGS -c game/src/RoomService.cpp -o build/final05/RoomService.o
           g++ $CXXFLAGS -c game/src/Events.cpp -o build/final05/Events.o
+          g++ $CXXFLAGS -c game/src/Amenities.cpp -o build/final05/Amenities.o
       - name: Run FINAL-05 behavior tests
         run: |
           CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
@@ -45,3 +47,5 @@ jobs:
           build/final05/FoodRoomServiceIntegrationTests
           g++ $CXXFLAGS game/tests/EventTests.cpp build/final05/Events.o -o build/final05/EventTests
           build/final05/EventTests
+          g++ $CXXFLAGS game/tests/AmenityTests.cpp build/final05/Amenities.o -o build/final05/AmenityTests
+          build/final05/AmenityTests
