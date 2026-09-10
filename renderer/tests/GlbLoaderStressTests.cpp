@@ -1,21 +1,20 @@
 #include "TestFramework.h"
+#include "StressScale.h"
 #include "hh/renderer/GlbLoader.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace {
 
 std::size_t mutationBudget() {
-    const char* scale = std::getenv("HH_STRESS_SCALE");
-    const std::string_view value = scale ? std::string_view{scale} : std::string_view{"pr"};
+    const auto value = hh::renderer::stress_test::scaleFromEnvironment();
     if (value == "pr") return 10'000;
     if (value == "extended") return 100'000;
     if (value == "exhaustive") return 1'000'000;
