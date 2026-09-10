@@ -1,0 +1,1 @@
+Inline execution selected by project owner. Verification is performed through isolated GitHub child branches and GitHub Actions because the current execution environment has no network-accessible local checkout.
