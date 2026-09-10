@@ -28,8 +28,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Configure Release
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - name: Build portable stress targets
-        run: cmake --build build --config Release --parallel 4 --target hh_stress_harness_tests hh_hospitality_stress_tests hh_economy_market_stress_tests hh_final07_catastrophe_stress_tests
+      - name: Build FINAL-05 and FINAL-06 baselines plus portable stress
+        run: cmake --build build --config Release --parallel 4
       - name: Run FINAL-05 and FINAL-06 baselines plus Tier A stress
         run: >-
           ctest --test-dir build -C Release --output-on-failure
