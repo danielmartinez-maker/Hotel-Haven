@@ -20,6 +20,8 @@ int main() {
       {2, "Comparable", 16000, 76, 4, 80, 80, 75},
       {3, "Premium", 22000, 88, 5, 92, 90, 88},
   });
+  require(authority.setOverbookingPolicy({"standard", 0, 25000, 2, 20}).ok,
+          "test fixture could not install authoritative overbooking policy");
 
   const auto beforeSnapshot = authority.save();
   hh::client::GameUiBridgeContext context;
@@ -53,6 +55,14 @@ int main() {
       hh::client::dispatchFinal06UiCommand(authority, overbooking);
   require(overbookingResult.ok,
           "overbooking command did not reach FINAL-06 authority");
+  const auto policies = authority.overbookingPolicies();
+  const auto standardPolicy = policies.find("standard");
+  require(standardPolicy != policies.end() && standardPolicy->second.allowance == 1,
+          "overbooking UI command did not update the requested allowance");
+  require(standardPolicy->second.relocationCompensationCents == 25000 &&
+              standardPolicy->second.startDay == 2 &&
+              standardPolicy->second.endDay == 20,
+          "overbooking UI command changed authority-owned recovery policy fields");
 
   const auto campaign = dashboard.startCampaignCommand("1");
   const auto campaignResult =
