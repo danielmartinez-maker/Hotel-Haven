@@ -100,6 +100,24 @@ int main() {
   auto restored = Simulation::load(encoded);
   require(restored.save() == encoded,
           "FINAL-05 state did not round-trip through Simulation save/load");
+
+  auto legacy = encoded;
+  legacy.replace(0, std::string("HHGS 9 ").size(), "HHGS 8 ");
+  const auto final05Offset = legacy.find("FINAL05_FOOD ");
+  require(final05Offset != std::string::npos,
+          "HHGS 9 save did not contain the FINAL-05 persistence section");
+  legacy.erase(final05Offset);
+  auto migrated = Simulation::load(legacy);
+  require(migrated.save().rfind("HHGS 9 ", 0) == 0,
+          "HHGS 8 save did not migrate forward to HHGS 9");
+  require(migrated.foodServiceSnapshot().elapsedSeconds ==
+              migrated.view().elapsedSeconds &&
+              migrated.eventsSnapshot().elapsedSeconds ==
+                  migrated.view().elapsedSeconds &&
+              migrated.amenitiesSnapshot().elapsedSeconds ==
+                  migrated.view().elapsedSeconds,
+          "migrated FINAL-05 subsystem clocks did not align with Simulation");
+
   sim.step(120);
   restored.step(120);
   require(restored.save() == sim.save(),
