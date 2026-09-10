@@ -26,4 +26,10 @@ text = replace_once(
     'R"({"baseDemand":100,"roomConditionLossPerDay":0,"initialLinen":200,"initialTowels":400,"initialAmenities":200,"initialChemicals":200})"',
     "layout-isolates-engineering-failures",
 )
+text = replace_once(
+    text,
+    'require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,\n          "layout benchmark steady demand rejected");',
+    'require(s.loadDefinitions(R"({"baseDemand":100})").ok,\n          "layout benchmark saturated demand rejected");',
+    "layout-saturated-throughput-demand",
+)
 simulation.write_text(text, encoding="utf-8")
