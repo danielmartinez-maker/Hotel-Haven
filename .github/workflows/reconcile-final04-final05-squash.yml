@@ -1,0 +1,123 @@
+name: FINAL-04 FINAL-05 Squash Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/final04-final05-squash-20260909
+    paths:
+      - '.github/workflows/reconcile-final04-final05-squash.yml'
+      - 'Tools/reconcile_final04_final05.py'
+      - 'Tools/reconcile_final04_authority.py'
+      - 'Tools/reconcile_physical_restock_test.py'
+      - 'Tools/reconcile_engineering_authority_test.py'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Squash FINAL-05 onto latest FINAL-04
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "hotel-haven-reconcile"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin feature/final-05-fnb-amenities-events
+
+          set +e
+          git merge --squash origin/feature/final-05-fnb-amenities-events
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            conflicts="$(git diff --name-only --diff-filter=U | sort)"
+            expected=$'game/CMakeLists.txt\ngame/src/Simulation.cpp'
+            if [ "$conflicts" != "$expected" ]; then
+              echo "Unexpected squash conflicts:"
+              printf '%s\n' "$conflicts"
+              exit 1
+            fi
+          fi
+
+          # Keep the FINAL-04 workflow tree unchanged. The source reconciliation
+          # is published as a single-parent squash commit so the Actions token
+          # does not introduce or rewrite workflow history.
+          git checkout HEAD -- .github/workflows
+
+          cat > game/CMakeLists.txt <<'CMAKE'
+          cmake_minimum_required(VERSION 3.20)
+          project(HotelHavenSimulation LANGUAGES CXX)
+          add_library(hh_game
+            src/Simulation.cpp
+            src/Housekeeping.cpp
+            src/Laundry.cpp
+            src/Logistics.cpp
+            src/Engineering.cpp
+            src/RoomService.cpp
+            src/ServiceLogistics.cpp
+            src/FoodService.cpp
+            src/Events.cpp
+            src/Amenities.cpp
+          )
+          target_include_directories(hh_game PUBLIC include)
+          target_link_libraries(hh_game PRIVATE hh_assets)
+          target_compile_features(hh_game PUBLIC cxx_std_20)
+          if(MSVC)
+            target_compile_options(hh_game PRIVATE /W4 /permissive-)
+          else()
+            target_compile_options(hh_game PRIVATE -Wall -Wextra -Wpedantic)
+          endif()
+          option(HH_GAME_BUILD_TESTS "Build simulation tests" ON)
+          if(HH_GAME_BUILD_TESTS)
+            enable_testing()
+            add_executable(hh_game_tests tests/SimulationTests.cpp)
+            target_link_libraries(hh_game_tests PRIVATE hh_game)
+            add_test(NAME hh_game_tests COMMAND hh_game_tests)
+
+            foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics ServiceLogisticsSoak SimulationServiceLogistics FoodService Event Amenity)
+              add_executable(hh_${service_test}_tests tests/${service_test}Tests.cpp)
+              target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
+              add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
+            endforeach()
+
+            add_executable(hh_FoodRoomServiceIntegration_tests tests/FoodRoomServiceIntegrationTests.cpp)
+            target_link_libraries(hh_FoodRoomServiceIntegration_tests PRIVATE hh_game)
+            add_test(NAME FoodRoomServiceIntegration COMMAND hh_FoodRoomServiceIntegration_tests)
+
+            add_executable(hh_SimulationFinal05_tests tests/SimulationFinal05Tests.cpp)
+            target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
+            add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
+          endif()
+          CMAKE
+
+          git checkout --ours game/src/Simulation.cpp
+          python Tools/reconcile_final04_final05.py
+          python Tools/reconcile_final04_authority.py
+          python Tools/reconcile_physical_restock_test.py
+          python Tools/reconcile_engineering_authority_test.py
+          git add game/CMakeLists.txt game/src/Simulation.cpp game/tests/SimulationTests.cpp .github/workflows
+
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            echo "Unresolved conflicts remain"
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+          grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' game && exit 1 || true
+
+      - name: Configure reconciled game
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build reconciled game
+        run: cmake --build build --config Release --parallel 4
+      - name: Run full reconciled CTest
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Publish verified squash source commit
+        shell: bash
+        run: |
+          rm Tools/reconcile_final04_final05.py Tools/reconcile_final04_authority.py Tools/reconcile_physical_restock_test.py Tools/reconcile_engineering_authority_test.py
+          git add -A
+          git commit -m "feat(game): reconcile FINAL-05 onto latest FINAL-04"
+          git push origin HEAD:reconcile/final04-final05-squash-20260909
