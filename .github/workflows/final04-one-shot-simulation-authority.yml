@@ -12,6 +12,7 @@ on:
       - tools/final04_reconcile_fixtures.py
       - game/include/hh/game/Engineering.h
       - game/src/Engineering.cpp
+      - game/tests/EngineeringTests.cpp
 
 permissions:
   contents: read
