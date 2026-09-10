@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
   src/Simulation.cpp
+  src/SimulationEconomyBridge.cpp
   src/Housekeeping.cpp
   src/Laundry.cpp
   src/Logistics.cpp
@@ -20,6 +21,7 @@ add_library(hh_game
   src/Overbooking.cpp
   src/CommercialDemand.cpp
   src/EconomyRuntime.cpp
+  src/EconomyRuntimeBridge.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
