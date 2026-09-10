@@ -1,4 +1,5 @@
 #include "hh/game/GuestGoals.h"
+#include "hh/game/GuestPsychology.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -58,6 +59,41 @@ void distance_and_wait_reduce_discretionary_utility() {
           "distance and expected wait did not reduce guest goal utility");
 }
 
+void business_preferences_materially_reorder_discretionary_goals() {
+  GuestPsychology psychology(701);
+  GuestProfileView profile;
+  profile.archetype = GuestArchetype::BusinessTraveler;
+  psychology.initializeGuest(5001, profile);
+  const auto state = psychology.snapshot(5001);
+  require(state.has_value(), "business goal preference fixture was not initialized");
+
+  GuestOpportunitySnapshot snapshot;
+  snapshot.opportunities = {opportunity(10, GuestGoalClass::Swim),
+                            opportunity(20, GuestGoalClass::Work)};
+  const auto neutral = chooseGuestGoal(5001, snapshot);
+  require(neutral.valid && neutral.goal == GuestGoalClass::Swim,
+          "neutral tie fixture did not begin with the stable-id winner");
+
+  const auto personalized = applyGuestPreferences(state->preferences, snapshot);
+  const auto selected = chooseGuestGoal(5001, personalized);
+  require(selected.valid && selected.goal == GuestGoalClass::Work,
+          "business preference vector did not materially favor work over swimming");
+}
+
+void preferences_do_not_weaken_mandatory_lifecycle_goals() {
+  GuestPreferenceState preferences;
+  preferences.pool = 0;
+  GuestOpportunitySnapshot snapshot;
+  auto work = opportunity(1, GuestGoalClass::Work, 0);
+  auto mandatory = opportunity(99, GuestGoalClass::Checkout, 100);
+  mandatory.mandatory = true;
+  snapshot.opportunities = {work, mandatory};
+  const auto personalized = applyGuestPreferences(preferences, snapshot);
+  const auto selected = chooseGuestGoal(5002, personalized);
+  require(selected.valid && selected.goal == GuestGoalClass::Checkout,
+          "preference weighting altered a mandatory lifecycle goal");
+}
+
 void group_proposal_uses_documented_thirty_percent_acceptance_band() {
   require(acceptsGroupProposal(10000, 7000),
           "proposal exactly 30 percent below best alternative was rejected");
@@ -97,6 +133,8 @@ int main() {
     equal_scores_use_stable_goal_id_tie_break();
     mandatory_lifecycle_goal_overrides_discretionary_utility();
     distance_and_wait_reduce_discretionary_utility();
+    business_preferences_materially_reorder_discretionary_goals();
+    preferences_do_not_weaken_mandatory_lifecycle_goals();
     group_proposal_uses_documented_thirty_percent_acceptance_band();
     critical_need_can_override_group_incompatibility();
     group_state_is_value_stable_and_tracks_shared_itinerary();
