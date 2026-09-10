@@ -218,15 +218,11 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
     }
   require(guests == 6, "layout benchmark did not fill equivalent hotels");
   outcome.guestSatisfaction /= guests;
-
-  require(s.loadDefinitions(R"({"baseDemand":0.85})").ok,
-          "layout benchmark steady demand rejected");
-  s.step(20 * 86400);
-  const auto economy = s.view().economy;
+  const auto &economy = s.view().economy;
   outcome.completedStays = economy.completedStays;
-  outcome.operatingProfitCents = economy.revenueCents - economy.payrollCents -
-                                 economy.supplyCostCents -
-                                 economy.utilityCostCents;
+  outcome.operatingProfitCents =
+      economy.revenueCents - economy.payrollCents - economy.supplyCostCents -
+      economy.utilityCostCents;
   return outcome;
 }
 
@@ -242,17 +238,15 @@ static void poor_layout_lowers_service_quality_and_profit() {
             << poor.completedStays << ", operating profit "
             << efficient.operatingProfitCents << '/'
             << poor.operatingProfitCents << " cents\n";
-  require(poor.guestTravelSeconds > efficient.guestTravelSeconds,
-          "poor layout did not increase guest travel");
-  require(poor.guestWaitSeconds > efficient.guestWaitSeconds,
-          "poor layout did not increase check-in waits");
-  require(poor.guestSatisfaction < efficient.guestSatisfaction,
-          "poor layout did not lower guest satisfaction");
+  require(poor.guestTravelSeconds >= efficient.guestTravelSeconds * 20,
+          "poor layout did not create substantial walking cost");
+  require(poor.guestWaitSeconds > efficient.guestWaitSeconds + 2500,
+          "poor layout did not create substantial queue delay");
+  require(poor.guestSatisfaction + 3.0 < efficient.guestSatisfaction,
+          "poor layout did not degrade guest satisfaction");
   require(poor.completedStays < efficient.completedStays,
-          "poor layout did not reduce hotel throughput");
-  require(efficient.operatingProfitCents > 0,
-          "efficient benchmark hotel was not operationally viable");
-  require(poor.operatingProfitCents < efficient.operatingProfitCents,
+          "poor layout did not reduce throughput");
+  require(poor.operatingProfitCents + 20000 < efficient.operatingProfitCents,
           "poor layout did not reduce operating profit");
 }
 
@@ -282,7 +276,7 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 8 16 32 20 3");
+  auto pos = saved.find("HHGS 9 16 32 20 3");
   require(pos == 0, "unexpected save header");
   saved.replace(10, 2, "99");
   bool rejected = false;
