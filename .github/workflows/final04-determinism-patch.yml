@@ -19,34 +19,36 @@ jobs:
           ref: feature/final-04-service-logistics
           fetch-depth: 0
       - name: Apply deterministic booking RNG adapters
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           from pathlib import Path
 
           path = Path("game/src/Simulation.cpp")
           text = path.read_text(encoding="utf-8")
-
           anchor = "template <class E> int ei(E e) { return static_cast<int>(e); }\n"
-          helpers = r'''template <class Engine>
-double deterministicUnitDouble(Engine &rng) {
-  // mt19937_64 is specified; map one draw to [0, 1) with a fixed 53-bit
-  // conversion so standard-library distribution implementations cannot alter
-  // the authoritative simulation stream across platforms.
-  constexpr double inverseTwoTo53 = 1.0 / 9007199254740992.0;
-  return static_cast<double>(rng() >> 11) * inverseTwoTo53;
-}
-
-template <class T, class Engine>
-void deterministicShuffle(std::vector<T> &values, Engine &rng) {
-  // Explicit Fisher-Yates. Index selection and engine consumption are fixed by
-  // this code rather than by std::shuffle's implementation.
-  for (std::size_t remaining = values.size(); remaining > 1; --remaining) {
-    const auto index = static_cast<std::size_t>(
-        rng() % static_cast<typename Engine::result_type>(remaining));
-    std::swap(values[remaining - 1], values[index]);
-  }
-}
-'''
+          helper_lines = [
+              "template <class Engine>",
+              "double deterministicUnitDouble(Engine &rng) {",
+              "  // mt19937_64 is specified; map one draw to [0, 1) with a fixed 53-bit",
+              "  // conversion so standard-library distribution implementations cannot alter",
+              "  // the authoritative simulation stream across platforms.",
+              "  constexpr double inverseTwoTo53 = 1.0 / 9007199254740992.0;",
+              "  return static_cast<double>(rng() >> 11) * inverseTwoTo53;",
+              "}",
+              "",
+              "template <class T, class Engine>",
+              "void deterministicShuffle(std::vector<T> &values, Engine &rng) {",
+              "  // Explicit Fisher-Yates. Index selection and engine consumption are fixed by",
+              "  // this code rather than by std::shuffle's implementation.",
+              "  for (std::size_t remaining = values.size(); remaining > 1; --remaining) {",
+              "    const auto index = static_cast<std::size_t>(",
+              "        rng() % static_cast<typename Engine::result_type>(remaining));",
+              "    std::swap(values[remaining - 1], values[index]);",
+              "  }",
+              "}",
+          ]
+          helpers = "\n".join(helper_lines) + "\n"
 
           if "double deterministicUnitDouble" not in text:
               if anchor not in text:
@@ -73,6 +75,7 @@ void deterministicShuffle(std::vector<T> &values, Engine &rng) {
               raise SystemExit("implementation-dependent booking draw remains")
 
           path.write_text(text, encoding="utf-8")
+          PY
       - name: Verify real profit assertion remains intact
         shell: bash
         run: |
