@@ -1,0 +1,30 @@
+name: FINAL-05 Apply Integration
+
+on:
+  push:
+    branches:
+      - feature/final-05-fnb-amenities-events
+    paths:
+      - 'Tools/final05_patch_simulation.py'
+      - '.github/workflows/final05-apply-integration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply deterministic Simulation integration transform
+        run: python Tools/final05_patch_simulation.py
+      - name: Remove one-shot integration machinery
+        run: rm Tools/final05_patch_simulation.py .github/workflows/final05-apply-integration.yml
+      - name: Commit integrated runtime
+        run: |
+          git config user.name "hotel-haven-ci"
+          git config user.email "hotel-haven-ci@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "feat(game): integrate FINAL-05 runtime"
+          git push origin HEAD:feature/final-05-fnb-amenities-events
