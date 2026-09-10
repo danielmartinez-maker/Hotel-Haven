@@ -32,7 +32,7 @@ void readReputationCategories(std::istringstream &in,
 std::string MarketDemandSystem::save() const {
   std::ostringstream out;
   out << std::setprecision(17);
-  out << "HHMARKET 4 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
+  out << "HHMARKET 5 " << seed_ << ' ' << rngState_ << ' ' << nextRequestId_ << ' '
       << player_.hotelId << ' ' << player_.nightlyRateCents << ' ' << player_.reputation << ' '
       << player_.stars << ' ' << player_.amenityScore << ' ' << player_.locationScore << ' '
       << player_.brandScore << ' ' << player_.sellable;
@@ -43,6 +43,14 @@ std::string MarketDemandSystem::save() const {
         << c.reputation << ' ' << c.stars << ' ' << c.amenityScore << ' '
         << c.locationScore << ' ' << c.brandScore;
     writeReputationCategories(out, c.reputationCategories);
+    out << ' ' << c.roomCount << ' ' << c.roomCategories.size();
+    for (const auto &category : c.roomCategories)
+      out << ' ' << std::quoted(category);
+    out << ' ' << c.inventoryWindows.size();
+    for (const auto &window : c.inventoryWindows)
+      out << ' ' << std::quoted(window.roomCategory) << ' ' << window.startDay << ' '
+          << window.endDay << ' ' << window.nightlyRateCents << ' '
+          << window.availableRooms;
   }
 
   out << ' ' << demandProfiles_.size();
@@ -66,7 +74,7 @@ std::string MarketDemandSystem::save() const {
     out << ' ' << r.id << ' ' << static_cast<int>(r.segment) << ' ' << r.arrivalDay << ' '
         << r.departureDay << ' ' << r.budgetCents << ' ' << r.partySize << ' '
         << r.amenityPreference << ' ' << r.locationPreference << ' ' << r.brandPreference << ' '
-        << r.bookingDay;
+        << r.bookingDay << ' ' << std::quoted(r.roomCategory);
   out << ' ' << snapshot_.choices.size();
   for (const auto &c : snapshot_.choices)
     out << ' ' << c.requestId << ' ' << c.hotelId << ' ' << c.playerWon;
@@ -80,7 +88,8 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   std::uint64_t seed{}, rngState{}, nextRequest{};
   in >> magic >> version >> seed >> rngState >> nextRequest;
   if (!in || magic != "HHMARKET" ||
-      (version != 1 && version != 2 && version != 3 && version != 4) ||
+      (version != 1 && version != 2 && version != 3 && version != 4 &&
+       version != 5) ||
       seed == 0 || nextRequest == 0)
     throw std::invalid_argument("invalid market save");
   MarketDemandSystem result(seed);
@@ -96,17 +105,43 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
   in >> count;
   if (!in || count > 10000)
     throw std::invalid_argument("invalid competitor count");
-  result.competitors_.clear();
+  std::vector<CompetitorOffer> loadedCompetitors;
+  loadedCompetitors.reserve(count);
   for (std::size_t i = 0; i < count; ++i) {
     CompetitorOffer c;
     in >> c.hotelId >> std::quoted(c.name) >> c.nightlyRateCents >> c.reputation >> c.stars >>
         c.amenityScore >> c.locationScore >> c.brandScore;
     if (version >= 4)
       readReputationCategories(in, c.reputationCategories);
+    if (version >= 5) {
+      std::size_t categoryCount{}, windowCount{};
+      in >> c.roomCount >> categoryCount;
+      if (!in || c.roomCount < 0 || categoryCount > 128)
+        throw std::invalid_argument("invalid saved competitor categories");
+      for (std::size_t j = 0; j < categoryCount; ++j) {
+        std::string category;
+        in >> std::quoted(category);
+        if (!in || category.empty())
+          throw std::invalid_argument("invalid saved competitor category");
+        c.roomCategories.push_back(std::move(category));
+      }
+      in >> windowCount;
+      if (!in || windowCount > 100000)
+        throw std::invalid_argument("invalid saved competitor calendar count");
+      for (std::size_t j = 0; j < windowCount; ++j) {
+        CompetitorInventoryWindow window;
+        in >> std::quoted(window.roomCategory) >> window.startDay >> window.endDay >>
+            window.nightlyRateCents >> window.availableRooms;
+        if (!in)
+          throw std::invalid_argument("invalid saved competitor calendar");
+        c.inventoryWindows.push_back(std::move(window));
+      }
+    }
     if (!in || c.hotelId == 0 || c.nightlyRateCents <= 0)
       throw std::invalid_argument("invalid saved competitor");
-    result.competitors_.push_back(std::move(c));
+    loadedCompetitors.push_back(std::move(c));
   }
+  result.setCompetitors(std::move(loadedCompetitors));
 
   if (version >= 2) {
     in >> count;
@@ -159,8 +194,10 @@ MarketDemandSystem MarketDemandSystem::load(std::string_view data) {
       in >> r.bookingDay;
     else
       r.bookingDay = r.arrivalDay;
+    if (version >= 5)
+      in >> std::quoted(r.roomCategory);
     if (!in || segment < static_cast<int>(MarketSegment::CoupleLeisure) ||
-        segment > static_cast<int>(MarketSegment::Wellness))
+        segment > static_cast<int>(MarketSegment::Wellness) || r.roomCategory.empty())
       throw std::invalid_argument("invalid saved booking request");
     r.segment = static_cast<MarketSegment>(segment);
     result.snapshot_.requests.push_back(std::move(r));
