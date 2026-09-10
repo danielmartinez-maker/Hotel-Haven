@@ -129,3 +129,4 @@ if text.count(old) != 1:
 text = text.replace(old, new)
 
 path.write_text(text, encoding="utf-8")
+# Touch marker: workflow trigger after the one-shot action was installed.
