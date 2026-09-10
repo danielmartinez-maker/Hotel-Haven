@@ -1,4 +1,5 @@
 #pragma once
+#include "SoundtrackPlayer.h"
 #include "WorldView.h"
 #include "d3d11/D3D11Renderer.h"
 #include "hh/game/Simulation.h"
@@ -41,6 +42,7 @@ struct Client {
   HWND window{}, viewport{};
   hh::renderer::D3D11Renderer renderer;
   hh::renderer::OrthoCamera camera;
+  hh::audio::SoundtrackPlayer soundtrack;
   std::filesystem::path directory, savePath;
   std::vector<Button> buttons;
   std::array<bool, 256> keys{};
