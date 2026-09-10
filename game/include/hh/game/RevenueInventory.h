@@ -25,6 +25,8 @@ struct BookingRequestInput {
   std::string roomCategory;
   std::int64_t rateCents{};
   BookingChannel channel{BookingChannel::Direct};
+  std::uint64_t sourceContractId{};
+  int paymentDelayDays{};
 };
 
 struct InventoryCommandResult {
@@ -43,6 +45,9 @@ struct BookingView {
   BookingState state{BookingState::Confirmed};
   int commissionBasisPoints{};
   std::int64_t commissionCents{};
+  std::uint64_t sourceContractId{};
+  int paymentDay{};
+  bool revenuePosted{};
   bool operator==(const BookingView &) const = default;
 };
 
@@ -73,6 +78,7 @@ public:
   [[nodiscard]] InventoryCommandResult book(const BookingRequestInput &request);
   [[nodiscard]] InventoryCommandResult cancel(std::uint64_t bookingId);
   void complete(std::uint64_t bookingId);
+  void markRevenuePosted(std::uint64_t bookingId);
   void processDay(int day);
 
   [[nodiscard]] RevenueInventorySnapshot snapshot() const;
