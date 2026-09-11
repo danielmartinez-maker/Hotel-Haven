@@ -46,3 +46,18 @@ TEST_CASE("Filtered operations lists virtualize before materializing rows") {
     EXPECT_EQ(page.front().id, static_cast<EntityId>(3000));
     EXPECT_EQ(page.back().id, static_cast<EntityId>(3189));
 }
+
+TEST_CASE("Zero-sized filtered operations windows materialize no rows") {
+    OperationsSnapshot source;
+    source.rows = {
+        {1, OperationArea::Housekeeping, "Room 1 turnover", "Ready", 1, "", 0},
+        {2, OperationArea::Housekeeping, "Room 2 turnover", "Ready", 1, "", 0},
+        {3, OperationArea::Engineering, "Boiler PM", "Ready", 1, "", 0}
+    };
+
+    OperationsDashboard dashboard;
+    dashboard.update(source);
+
+    const auto page = dashboard.filteredWindow(OperationArea::Housekeeping, 0, 0);
+    EXPECT_TRUE(page.empty());
+}
