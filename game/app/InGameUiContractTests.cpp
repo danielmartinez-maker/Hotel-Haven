@@ -25,6 +25,11 @@ int main() {
     require(hh::client::Final07PageLabels == expectedPages,
             "FINAL-07 client shell is missing a required management surface");
 
+    constexpr std::array<std::string_view, 5> expectedFinanceViews{
+        "Overview", "Revenue", "Market", "Controls", "Risk"};
+    require(hh::client::Final07FinanceViewLabels == expectedFinanceViews,
+            "FINAL-07 finance data must be split into reachable bounded views");
+
     constexpr std::array<std::array<int, 2>, 5> resolutions{{
         {1280, 720}, {1600, 900}, {1920, 1080}, {2560, 1440}, {2560, 1080}}};
     for (const int scale : hh::client::Final07UiScales) {
