@@ -1,3 +1,4 @@
+# Patch runner validated after correcting YAML block indentation.
 name: Core Room Reservation Fix
 
 on:
