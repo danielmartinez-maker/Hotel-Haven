@@ -137,6 +137,7 @@ void elevator_bank_selects_best_car_with_stable_tie_breaking() {
 
   const auto request = sim.requestElevator(ElevatorKind::Passenger, 6, 1);
   require(request.ok, "bank request was rejected");
+  sim.step(1);
   const auto snapshot = sim.buildingSystemsSnapshot();
   const auto highCar = std::find_if(snapshot.elevators.begin(), snapshot.elevators.end(),
                                     [&](const ElevatorSnapshot &e) { return e.id == high.id; });
