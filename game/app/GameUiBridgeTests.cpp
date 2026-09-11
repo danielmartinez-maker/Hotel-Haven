@@ -42,9 +42,13 @@ int main() {
             "created room turnover task disappeared before UI projection");
     const auto operation = std::find_if(
         source.operations.rows.begin(), source.operations.rows.end(),
-        [task](const auto& row) { return row.id == task->id; });
+        [task](const auto& row) {
+          return row.id == task->id &&
+                 row.area == hh::frontend::OperationArea::Housekeeping &&
+                 row.name == "Room turnover";
+        });
     require(operation != source.operations.rows.end(),
-            "authoritative task was omitted from operations dashboard");
+            "authoritative turnover task was omitted from operations dashboard");
     require(operation->assigneeId == task->employeeId,
             "operation assignee did not preserve authoritative employee id");
     require(operation->targetId == task->targetId,
