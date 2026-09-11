@@ -124,8 +124,8 @@ struct CompetitorOffer {
   int brandScore{};
   ReputationCategoryScores reputationCategories{};
   int roomCount{};
-  std::vector<std::string> roomCategories;
-  std::vector<CompetitorInventoryWindow> inventoryWindows;
+  std::vector<std::string> roomCategories{};
+  std::vector<CompetitorInventoryWindow> inventoryWindows{};
   bool operator==(const CompetitorOffer &) const = default;
 };
 
