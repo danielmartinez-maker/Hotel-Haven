@@ -49,6 +49,7 @@ TEST_CASE("Finance adjustments reject invalid indexes and numeric boundaries") {
     snapshot.pricingRules.push_back(
         {8, 4, 4, "suite", std::numeric_limits<std::int64_t>::max()});
     snapshot.overbookingPolicies.push_back({"standard", 0, 0, 0, 10});
+    snapshot.overbookingPolicies.push_back({"suite", 1, 0, 0, 10});
 
     EconomyDashboard dashboard;
     dashboard.update(snapshot);
@@ -57,6 +58,7 @@ TEST_CASE("Finance adjustments reject invalid indexes and numeric boundaries") {
     EXPECT_FALSE(dashboard.adjustPricingRuleCommand(0, 1).has_value());
     EXPECT_FALSE(dashboard.adjustPricingRuleCommand(0,
                  -std::numeric_limits<std::int64_t>::max()).has_value());
-    EXPECT_FALSE(dashboard.adjustOverbookingCommand(1, 1).has_value());
+    EXPECT_FALSE(dashboard.adjustOverbookingCommand(2, 1).has_value());
     EXPECT_FALSE(dashboard.adjustOverbookingCommand(0, -1).has_value());
+    EXPECT_FALSE(dashboard.adjustOverbookingCommand(1, 1).has_value());
 }
