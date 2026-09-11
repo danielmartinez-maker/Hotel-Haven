@@ -12,14 +12,14 @@ void require(bool value, const char* message) {
 int main() {
   try {
     hh::game::Simulation simulation = hh::game::Simulation::tutorial(20260909);
-    bool taskCreated = false;
+    hh::game::EntityId cleanedRoomId = 0;
     for (const auto& room : simulation.view().rooms) {
       if (simulation.requestClean(room.id).ok) {
-        taskCreated = true;
+        cleanedRoomId = room.id;
         break;
       }
     }
-    require(taskCreated, "test fixture could not create an authoritative room task");
+    require(cleanedRoomId != 0, "test fixture could not create an authoritative room task");
     const auto before = simulation.save();
     hh::client::GameUiBridgeContext context;
     context.simulationSpeed = 0;
@@ -33,20 +33,25 @@ int main() {
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
     require(source.entities.size() >= view.rooms.size(), "room inspectors were not composed");
 
-    require(!view.tasks.empty(), "authoritative task disappeared before UI projection");
-    const auto& task = view.tasks.front();
+    const auto task = std::find_if(view.tasks.begin(), view.tasks.end(),
+        [cleanedRoomId](const auto& candidate) {
+          return candidate.targetId == cleanedRoomId &&
+                 candidate.kind == hh::game::TaskKind::Turnover;
+        });
+    require(task != view.tasks.end(),
+            "created room turnover task disappeared before UI projection");
     const auto operation = std::find_if(
         source.operations.rows.begin(), source.operations.rows.end(),
-        [&task](const auto& row) { return row.id == task.id; });
+        [task](const auto& row) { return row.id == task->id; });
     require(operation != source.operations.rows.end(),
             "authoritative task was omitted from operations dashboard");
-    require(operation->assigneeId == task.employeeId,
+    require(operation->assigneeId == task->employeeId,
             "operation assignee did not preserve authoritative employee id");
-    require(operation->targetId == task.targetId,
+    require(operation->targetId == task->targetId,
             "operation target entity did not preserve authoritative target id");
-    require(operation->targetFloor == task.target.floor &&
-                operation->targetX == task.target.x &&
-                operation->targetY == task.target.y,
+    require(operation->targetFloor == task->target.floor &&
+                operation->targetX == task->target.x &&
+                operation->targetY == task->target.y,
             "operation location did not preserve authoritative task target");
 
     const auto cleanliness = std::find_if(source.overlays.begin(), source.overlays.end(), [](const auto& overlay) {
