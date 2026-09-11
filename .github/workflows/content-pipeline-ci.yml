@@ -66,19 +66,18 @@ jobs:
       - name: Verify cooked runtime-mesh count from generated asset types
         shell: pwsh
         run: |
-          $runtimeMeshTypes = @('StaticMeshAsset', 'SkinnedMeshAsset')
           $sidecars = @(Get-ChildItem Art/Exports -Recurse -Filter *.asset.json -File)
-          $expected = @(
-            $sidecars | Where-Object {
-              $metadata = Get-Content $_.FullName -Raw | ConvertFrom-Json
-              $runtimeMeshTypes -contains [string]$metadata.asset_type
-            }
-          ).Count
+          $metadata = @($sidecars | ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json })
+          $expectedStatic = @($metadata | Where-Object { [string]$_.asset_type -eq 'StaticMeshAsset' }).Count
+          $expectedSkinned = @($metadata | Where-Object { [string]$_.asset_type -eq 'SkinnedMeshAsset' }).Count
+          $expected = $expectedStatic + $expectedSkinned
           $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
           if ($assets.Count -ne $expected) {
             throw "Expected exactly $expected runtime mesh assets from generated sidecars; found $($assets.Count)"
           }
-          Write-Host "Verified $($assets.Count) cooked runtime mesh assets from $($sidecars.Count) generated records"
+          "HH_EXPECTED_STATIC=$expectedStatic" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "HH_EXPECTED_SKINNED=$expectedSkinned" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Verified $($assets.Count) cooked runtime mesh assets ($expectedStatic static, $expectedSkinned skinned) from $($sidecars.Count) generated records"
 
       - name: Configure renderer runtime audit
         run: cmake -S . -B runtime-audit-build -A x64
@@ -87,7 +86,8 @@ jobs:
         run: cmake --build runtime-audit-build --config Release --target hh_runtime_asset_library_audit
 
       - name: Load all cooked assets through renderer runtime
-        run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
+        shell: pwsh
+        run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets $env:HH_EXPECTED_STATIC $env:HH_EXPECTED_SKINNED
 
       - name: Upload generated and cooked asset package
         if: always()
