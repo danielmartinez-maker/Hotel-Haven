@@ -41,6 +41,33 @@ TEST_CASE("Cutaway presentation changes are not discarded by the revision cache"
     EXPECT_FALSE(runtime.snapshot().hud.cutaway);
 }
 
+TEST_CASE("Build preview and HUD presentation changes survive a stable simulation revision") {
+    GameUiRuntime runtime;
+    SimulationSnapshot source;
+    source.revision = 23;
+    source.hud.currentTool = "Inspect";
+    source.hud.activeFloor = 0;
+    runtime.update(source);
+    const auto firstBuilds = runtime.snapshotBuildCount();
+
+    source.hud.currentTool = "Guest room";
+    source.hud.activeFloor = 2;
+    source.buildPreview.requestId = 91;
+    source.buildPreview.itemId = "Guest room";
+    source.buildPreview.valid = true;
+    source.buildPreview.floor = 2;
+    source.buildPreview.x = 7;
+    source.buildPreview.y = 11;
+    runtime.update(source);
+
+    EXPECT_EQ(runtime.snapshotBuildCount(), firstBuilds + 1);
+    EXPECT_EQ(runtime.snapshot().hud.currentTool, std::string("Guest room"));
+    EXPECT_EQ(runtime.snapshot().hud.activeFloor, 2);
+    EXPECT_EQ(runtime.snapshot().buildPreview.requestId, static_cast<std::uint64_t>(91));
+    EXPECT_EQ(runtime.snapshot().buildPreview.x, 7);
+    EXPECT_EQ(runtime.snapshot().buildPreview.y, 11);
+}
+
 TEST_CASE("Stable FINAL-07 interfaces maintain UI-only navigation state") {
     GameUiRuntime runtime;
     runtime.setOverlay(OverlayId::Cleanliness);
