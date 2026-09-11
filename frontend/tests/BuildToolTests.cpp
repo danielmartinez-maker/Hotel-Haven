@@ -25,3 +25,19 @@ TEST_CASE("Build catalog searches and filters presentation metadata") {
     EXPECT_EQ(rows.size(), static_cast<std::size_t>(1));
     EXPECT_EQ(rows[0].id, std::string("service_elevator"));
 }
+
+TEST_CASE("Changing build selection invalidates a preview for the previous item") {
+    BuildToolController controller;
+    controller.selectItem("guest_room");
+
+    BuildPlacementPreview preview;
+    preview.requestId = 42;
+    preview.itemId = "guest_room";
+    preview.valid = true;
+    controller.applyAuthoritativePreview(preview);
+    EXPECT_TRUE(controller.canConfirm());
+
+    controller.selectItem("service_elevator");
+    EXPECT_FALSE(controller.canConfirm());
+    EXPECT_FALSE(controller.confirmCommand().has_value());
+}
