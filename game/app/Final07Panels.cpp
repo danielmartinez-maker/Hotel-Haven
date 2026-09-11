@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "LiveBuildCatalog.h"
 #include "hh/frontend/EconomyDashboard.h"
 #include "hh/frontend/OverlayModel.h"
 #include <algorithm>
@@ -263,22 +264,66 @@ void Client::paint(HDC output) {
 
   if (page == Page::Build) {
     heading(L"Build & construction");
-    paragraph(L"Move a selected tool over the hotel to request authoritative placement validation. Click confirms only the latest valid preview.", 64);
-    const std::array<const wchar_t *, 13> tools{
-        L"Inspect", L"Guest room", L"Floor", L"Wall", L"Door", L"Entrance",
-        L"Reception desk", L"Supply closet", L"Stairs", L"Remove tile",
-        L"Bathroom", L"Staff room", L"Lobby"};
-    for (int index = 0; index < 13; ++index) {
-      const int row = index / 2, column = index % 2;
-      button(left + column * 163, y + row * 35, 151, 30, tools[index],
-             [this, index] {
-               tool = static_cast<Tool>(index); buildPreview = {}; previewValid = false;
-               refreshUi(); notice = L"Move over the world to validate placement.";
-             }, static_cast<int>(tool) == index);
+    paragraph(L"Choose from the live construction catalog, move over the hotel for authoritative placement validation, then click to confirm the latest valid preview.", 64);
+
+    struct VisibleBuildTool {
+      Tool tool;
+      const hh::frontend::BuildCatalogItem *item;
+    };
+    std::vector<VisibleBuildTool> visibleTools;
+    visibleTools.reserve(gameUi.buildCatalog.size());
+    for (const auto &item : gameUi.buildCatalog) {
+      const auto mappedTool = liveBuildTool(item.id);
+      if (mappedTool)
+        visibleTools.push_back({*mappedTool, &item});
     }
-    y += 7 * 35; separator();
+
+    button(left, y, 151, 30, L"Inspect", [this] {
+      tool = Tool::Inspect;
+      buildPreview = {};
+      previewValid = false;
+      refreshUi();
+      notice = L"Inspection tool selected.";
+    }, tool == Tool::Inspect);
+    for (std::size_t index = 0; index < visibleTools.size(); ++index) {
+      const std::size_t slot = index + 1;
+      const int row = static_cast<int>(slot / 2);
+      const int column = static_cast<int>(slot % 2);
+      const auto mappedTool = visibleTools[index].tool;
+      const auto *item = visibleTools[index].item;
+      button(left + column * 163, y + row * 35, 151, 30, wide(item->name),
+             [this, mappedTool] {
+               tool = mappedTool;
+               buildPreview = {};
+               previewValid = false;
+               refreshUi();
+               notice = L"Move over the world to validate placement.";
+             }, tool == mappedTool);
+    }
+    const std::size_t slotCount = visibleTools.size() + 1;
+    y += static_cast<int>((slotCount + 1) / 2) * 35;
+    separator();
+
+    const hh::frontend::BuildCatalogItem *selectedBuildItem = nullptr;
+    if (tool != Tool::Inspect) {
+      for (const auto &item : gameUi.buildCatalog) {
+        const auto mappedTool = liveBuildTool(item.id);
+        if (mappedTool && *mappedTool == tool) {
+          selectedBuildItem = &item;
+          break;
+        }
+      }
+    }
+    if (selectedBuildItem != nullptr) {
+      label(L"Category", wide(selectedBuildItem->category));
+      label(L"Base build cost", money(selectedBuildItem->costCents));
+    }
+
     if (buildPreview.requestId == 0) {
-      paragraph(L"No preview yet. Cost/material/labor details stay unavailable until FINAL-01 exposes them through its authoritative preview seam.", 62, Muted);
+      paragraph(tool == Tool::Inspect
+                    ? L"Select a construction item to see its catalog cost and validate placement."
+                    : L"Move the selected construction item over the hotel to validate placement.",
+                52, Muted);
     } else {
       label(L"Preview", buildPreview.valid ? L"VALID" : L"REJECTED");
       if (!buildPreview.reasonCode.empty()) label(L"Reason", wide(buildPreview.reasonCode));
