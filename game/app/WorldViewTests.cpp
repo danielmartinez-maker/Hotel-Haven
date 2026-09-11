@@ -1,5 +1,6 @@
 #include "WorldView.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -22,6 +23,19 @@ bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
                      [handle](const MeshRenderItem &item) {
                        return item.asset == AssetHandle{handle};
                      });
+}
+bool hasDifferentDiagnosticColor(const RenderScene &baseline,
+                                 const RenderScene &candidate) {
+  if (candidate.items.size() != baseline.items.size() ||
+      candidate.meshes.size() != baseline.meshes.size())
+    return false;
+  for (std::size_t i = 0; i < baseline.items.size(); ++i) {
+    const auto &a = baseline.items[i].color;
+    const auto &b = candidate.items[i].color;
+    if (a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a)
+      return true;
+  }
+  return false;
 }
 } // namespace
 int main() {
@@ -121,10 +135,55 @@ int main() {
             "heatmap changed procedural diagnostic geometry");
     require(heatmap.meshes.size() == scene.meshes.size(),
             "heatmap changed asset-backed physical geometry");
-    bool changed = false;
-    for (std::size_t i = 0; i < scene.items.size(); ++i)
-      changed |= scene.items[i].color.r != heatmap.items[i].color.r;
-    require(changed, "cleanliness heatmap has no diagnostic colors");
+    require(hasDifferentDiagnosticColor(scene, heatmap),
+            "cleanliness heatmap has no diagnostic colors");
+
+    // The tutorial starts at 14:00 before its first simulation step, so its
+    // staff remain OffDuty and no guest/task samples exist yet. Exercise the
+    // renderer seam with explicit snapshot data instead of assuming unavailable
+    // authority exists at campaign creation.
+    auto diagnosticSnapshot = snapshot;
+    hh::game::PersonView guest;
+    guest.id = 900001;
+    guest.name = "Overlay guest";
+    guest.kind = hh::game::PersonKind::Guest;
+    guest.state = hh::game::PersonState::Waiting;
+    guest.position = {0, 1, 8};
+    guest.satisfaction = 20.0;
+    guest.queueWaitSeconds = 300;
+    diagnosticSnapshot.people.push_back(guest);
+
+    hh::game::PersonView employee;
+    employee.id = 900002;
+    employee.name = "Overlay employee";
+    employee.kind = hh::game::PersonKind::Housekeeper;
+    employee.state = hh::game::PersonState::Working;
+    employee.position = {0, 3, 8};
+    employee.onShift = true;
+    diagnosticSnapshot.people.push_back(employee);
+
+    hh::game::TaskView task;
+    task.id = 900003;
+    task.kind = hh::game::TaskKind::Turnover;
+    task.status = hh::game::TaskStatus::Blocked;
+    task.targetId = diagnosticSnapshot.rooms.front().id;
+    task.target = diagnosticSnapshot.rooms.front().door;
+    diagnosticSnapshot.tasks.push_back(task);
+
+    options.overlay = Overlay::Natural;
+    const auto diagnosticBaseline = worldScene(diagnosticSnapshot, options, &assets);
+    for (const auto mode : std::array{
+             Overlay::GuestSatisfaction, Overlay::StaffUtilization,
+             Overlay::QueueWait, Overlay::OpenTaskDensity}) {
+      options.overlay = mode;
+      const auto diagnostic = worldScene(diagnosticSnapshot, options, &assets);
+      require(diagnostic.items.size() == diagnosticBaseline.items.size(),
+              "management overlay changed procedural geometry");
+      require(diagnostic.meshes.size() == diagnosticBaseline.meshes.size(),
+              "management overlay changed asset-backed geometry");
+      require(hasDifferentDiagnosticColor(diagnosticBaseline, diagnostic),
+              "available management overlay has no world diagnostic colors");
+    }
 
     options.showPreview = true;
     options.previewSize = 6;

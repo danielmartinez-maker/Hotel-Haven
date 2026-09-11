@@ -6,7 +6,16 @@
 #include <string_view>
 
 namespace hh::client {
-enum class Overlay { Natural, Status, Cleanliness, Condition };
+enum class Overlay {
+  Natural,
+  Status,
+  Cleanliness,
+  Condition,
+  GuestSatisfaction,
+  StaffUtilization,
+  QueueWait,
+  OpenTaskDensity
+};
 
 struct WorldAssetVisual {
   hh::renderer::AssetHandle handle;

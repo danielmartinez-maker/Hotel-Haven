@@ -102,6 +102,8 @@ public:
   [[nodiscard]] FinancialSnapshot financialSnapshot() const;
   [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
   [[nodiscard]] EconomyDiagnostics diagnostics() const;
+  [[nodiscard]] const std::map<std::string, OverbookingPolicy> &
+  overbookingPolicies() const noexcept { return overbooking_.policies(); }
   [[nodiscard]] int currentDay() const noexcept;
 
   [[nodiscard]] std::string save() const;

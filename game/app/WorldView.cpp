@@ -145,12 +145,26 @@ Color statusColor(RoomStatus st) {
     return {.72f, .24f, .27f, 1};
   }
 }
+
+Color diagnosticGoodness(float value) {
+  const float v = std::clamp(value, 0.0f, 1.0f);
+  return {.85f - .55f * v, .28f + .40f * v, .22f + .22f * v, 1};
+}
 } // namespace
 
 RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c,
                        const WorldAssetSet *assets) {
   RenderScene s;
   s.activeFloor = c.floor;
+
+  std::map<EntityId, int> openTaskCount;
+  if (c.overlay == Overlay::OpenTaskDensity) {
+    for (const auto &task : snapshot.tasks) {
+      if (task.status != TaskStatus::Completed && task.targetId != 0)
+        ++openTaskCount[task.targetId];
+    }
+  }
+
   // The garden is presentation scenery; construction remains inside map bounds.
   box(s, 0, static_cast<float>(snapshot.width) * .5f,
       static_cast<float>(snapshot.height) * .5f, -.20f,
@@ -219,13 +233,14 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
     Color rug{.67f, .52f, .35f, 1};
     if (c.overlay == Overlay::Status)
       rug = statusColor(r.status);
-    if (c.overlay == Overlay::Cleanliness) {
-      const float v = static_cast<float>(r.cleanliness) / 100;
-      rug = {.85f - .55f * v, .28f + .4f * v, .22f + .22f * v, 1};
-    }
-    if (c.overlay == Overlay::Condition) {
-      const float v = static_cast<float>(r.condition) / 100;
-      rug = {.85f - .55f * v, .28f + .4f * v, .22f + .22f * v, 1};
+    if (c.overlay == Overlay::Cleanliness)
+      rug = diagnosticGoodness(static_cast<float>(r.cleanliness) / 100.0f);
+    if (c.overlay == Overlay::Condition)
+      rug = diagnosticGoodness(static_cast<float>(r.condition) / 100.0f);
+    if (c.overlay == Overlay::OpenTaskDensity) {
+      const int count = openTaskCount[r.id];
+      const float goodness = 1.0f - std::min(1.0f, static_cast<float>(count) / 4.0f);
+      rug = diagnosticGoodness(goodness);
     }
     box(s, f, x + w * .5f, z + d * .5f, .07f, std::max(1.f, w - 2.1f),
         std::max(1.f, d - 2.1f), .05f, rug);
@@ -303,6 +318,17 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
       shirt = {.70f, .71f, .86f, 1};
     if (p.kind == PersonKind::Maintenance)
       shirt = {.85f, .63f, .22f, 1};
+    if (c.overlay == Overlay::GuestSatisfaction && p.kind == PersonKind::Guest)
+      shirt = diagnosticGoodness(static_cast<float>(p.satisfaction) / 100.0f);
+    if (c.overlay == Overlay::StaffUtilization && p.kind != PersonKind::Guest) {
+      const bool active = p.state == PersonState::Working ||
+                          p.state == PersonState::Traveling;
+      shirt = diagnosticGoodness(active ? 1.0f : 0.0f);
+    }
+    if (c.overlay == Overlay::QueueWait) {
+      const float pressure = std::min(1.0f, static_cast<float>(p.queueWaitSeconds) / 300.0f);
+      shirt = diagnosticGoodness(1.0f - pressure);
+    }
     const float stride =
         p.state == PersonState::Traveling
             ? .10f *

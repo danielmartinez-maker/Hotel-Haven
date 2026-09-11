@@ -19,8 +19,14 @@ target_link_libraries(hh_world_view PUBLIC hh_game)
 add_executable(hh_world_view_tests game/app/WorldViewTests.cpp)
 target_link_libraries(hh_world_view_tests PRIVATE hh_world_view)
 add_test(NAME hh_world_view_tests COMMAND hh_world_view_tests)
+
+add_executable(hh_final07_client_contract_tests game/app/InGameUiContractTests.cpp)
+target_include_directories(hh_final07_client_contract_tests PRIVATE game/app)
+add_test(NAME hh_final07_client_contract_tests COMMAND hh_final07_client_contract_tests)
+
 if(WIN32)
     add_subdirectory(renderer)
+    add_subdirectory(frontend)
 
     add_library(hh_runtime_world_assets STATIC game/app/RuntimeWorldAssets.cpp)
     target_include_directories(hh_runtime_world_assets PUBLIC game/app renderer/include)
@@ -38,18 +44,41 @@ if(WIN32)
     target_link_libraries(hh_frame_pipeline_tests PRIVATE hh_frame_pipeline)
     add_test(NAME hh_frame_pipeline_tests COMMAND hh_frame_pipeline_tests)
 
-    add_executable(hotel_haven WIN32 game/app/GameMain.cpp game/app/Panels.cpp)
+    add_library(hh_game_ui_bridge STATIC
+        game/app/GameUiBridge.cpp
+        game/app/GameUiEconomyBridge.cpp
+        game/app/GameUiCommandRouter.cpp
+        game/app/Final06UiCommandAdapter.cpp)
+    target_include_directories(hh_game_ui_bridge PUBLIC game/app)
+    target_link_libraries(hh_game_ui_bridge PUBLIC hh_game hh_frontend_core)
+    add_executable(hh_game_ui_bridge_tests game/app/GameUiBridgeTests.cpp)
+    target_link_libraries(hh_game_ui_bridge_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_bridge_tests COMMAND hh_game_ui_bridge_tests)
+    add_executable(hh_game_ui_command_router_tests game/app/GameUiCommandRouterTests.cpp)
+    target_link_libraries(hh_game_ui_command_router_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_command_router_tests COMMAND hh_game_ui_command_router_tests)
+    add_executable(hh_game_ui_economy_integration_tests game/app/GameUiEconomyIntegrationTests.cpp)
+    target_link_libraries(hh_game_ui_economy_integration_tests PRIVATE hh_game_ui_bridge)
+    add_test(NAME hh_game_ui_economy_integration_tests COMMAND hh_game_ui_economy_integration_tests)
+
+    add_executable(hotel_haven WIN32
+        game/app/GameMain.cpp
+        game/app/ClientUi.cpp
+        game/app/Final07Panels.cpp)
     target_compile_definitions(hotel_haven PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
     target_link_libraries(hotel_haven PRIVATE
         hh_game
         hh_world_view
         hh_runtime_world_assets
         hh_frame_pipeline
+        hh_game_ui_bridge
+        hh_frontend_core
         hh_renderer_core
         hh_renderer_d3d11
         user32
         gdi32
-        shell32)
+        shell32
+        xinput9_1_0)
     target_include_directories(hotel_haven PRIVATE game/app)
     if(MSVC)
         target_compile_options(hotel_haven PRIVATE /W4 /permissive- /utf-8)

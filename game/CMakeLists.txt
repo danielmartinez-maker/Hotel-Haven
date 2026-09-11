@@ -27,6 +27,14 @@ add_library(hh_game
   src/EconomyRuntimeBridge.cpp
   src/EconomyDiagnostics.cpp
 )
+# FINAL-06 can add definition loaders independently of FINAL-07. Keep this
+# branch buildable before that lineage is present while ensuring PR merge builds
+# compile and link the authoritative implementations when the files exist.
+foreach(optional_final06_source MarketDemandDefinitions EconomyRuntimeDefinitions)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/${optional_final06_source}.cpp")
+    target_sources(hh_game PRIVATE src/${optional_final06_source}.cpp)
+  endif()
+endforeach()
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
 target_compile_features(hh_game PUBLIC cxx_std_20)
