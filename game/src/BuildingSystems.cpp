@@ -1,10 +1,84 @@
 #include "hh/game/BuildingSystems.h"
 #include <algorithm>
+#include <cstdlib>
+#include <limits>
 #include <queue>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
 namespace hh::game::detail {
+namespace {
+ElevatorDirection requestDirection(const ElevatorRequestSnapshot &request) noexcept {
+  if (request.destinationFloor > request.pickupFloor)
+    return ElevatorDirection::Up;
+  if (request.destinationFloor < request.pickupFloor)
+    return ElevatorDirection::Down;
+  return ElevatorDirection::Idle;
+}
+
+bool directionCompatible(const ElevatorRequestSnapshot &request,
+                         ElevatorDirection direction) noexcept {
+  return direction == ElevatorDirection::Idle ||
+         requestDirection(request) == direction;
+}
+
+int onboardCount(const ElevatorSnapshot &elevator) noexcept {
+  return static_cast<int>(std::count_if(
+      elevator.requests.begin(), elevator.requests.end(),
+      [](const ElevatorRequestSnapshot &request) { return request.boarded; }));
+}
+
+std::vector<ElevatorRequestSnapshot>::iterator
+oldestWaiting(ElevatorSnapshot &elevator) noexcept {
+  return std::min_element(
+      elevator.requests.begin(), elevator.requests.end(),
+      [](const ElevatorRequestSnapshot &a, const ElevatorRequestSnapshot &b) {
+        if (a.boarded != b.boarded)
+          return !a.boarded && b.boarded;
+        return a.id < b.id;
+      });
+}
+
+std::vector<ElevatorRequestSnapshot>::iterator
+nextOnboardStop(ElevatorSnapshot &elevator) noexcept {
+  auto best = elevator.requests.end();
+  for (auto it = elevator.requests.begin(); it != elevator.requests.end(); ++it) {
+    if (!it->boarded)
+      continue;
+    if (elevator.direction == ElevatorDirection::Up &&
+        it->destinationFloor < elevator.currentFloor)
+      continue;
+    if (elevator.direction == ElevatorDirection::Down &&
+        it->destinationFloor > elevator.currentFloor)
+      continue;
+    if (best == elevator.requests.end()) {
+      best = it;
+      continue;
+    }
+    const int distance = std::abs(it->destinationFloor - elevator.currentFloor);
+    const int bestDistance =
+        std::abs(best->destinationFloor - elevator.currentFloor);
+    if (std::tie(distance, it->id) < std::tie(bestDistance, best->id))
+      best = it;
+  }
+  if (best != elevator.requests.end())
+    return best;
+  for (auto it = elevator.requests.begin(); it != elevator.requests.end(); ++it)
+    if (it->boarded &&
+        (best == elevator.requests.end() || it->id < best->id))
+      best = it;
+  return best;
+}
+
+void refreshDerivedState(ElevatorSnapshot &elevator) noexcept {
+  for (auto &request : elevator.requests)
+    if (request.assignedElevatorId == 0)
+      request.assignedElevatorId = elevator.id;
+  elevator.onboardCount = onboardCount(elevator);
+}
+} // namespace
+
 bool utilityConnected(const BuildingSystemsSnapshot &systems, EntityId roomId,
                       UtilityKind kind) noexcept {
   std::unordered_map<EntityId, const UtilityNodeSnapshot *> nodes;
@@ -62,22 +136,54 @@ void refreshRoomUtilityFlags(BuildingSystemsSnapshot &systems) noexcept {
   }
 }
 
+EntityId selectElevatorForRequest(const BuildingSystemsSnapshot &systems,
+                                  ElevatorKind kind, int pickupFloor,
+                                  int destinationFloor) noexcept {
+  if (pickupFloor == destinationFloor)
+    return 0;
+  EntityId bestId = 0;
+  std::tuple<std::int64_t, std::size_t, EntityId> bestKey{
+      std::numeric_limits<std::int64_t>::max(),
+      std::numeric_limits<std::size_t>::max(),
+      std::numeric_limits<EntityId>::max()};
+  for (const auto &elevator : systems.elevators) {
+    if (elevator.kind != kind || pickupFloor < elevator.minFloor ||
+        pickupFloor > elevator.maxFloor || destinationFloor < elevator.minFloor ||
+        destinationFloor > elevator.maxFloor)
+      continue;
+    const int projectedFloor = elevator.state == ElevatorState::Idle
+                                   ? elevator.currentFloor
+                                   : elevator.targetFloor;
+    const std::int64_t eta =
+        std::max(0, elevator.phaseSecondsRemaining) +
+        static_cast<std::int64_t>(std::abs(projectedFloor - pickupFloor)) *
+            elevator.travelSecondsPerFloor +
+        static_cast<std::int64_t>(elevator.requests.size()) *
+            elevator.doorSeconds;
+    const auto key = std::make_tuple(eta, elevator.requests.size(), elevator.id);
+    if (key < bestKey) {
+      bestKey = key;
+      bestId = elevator.id;
+    }
+  }
+  return bestId;
+}
+
 void tickElevator(ElevatorSnapshot &elevator) noexcept {
-  const auto startNext = [&]() {
-    if (elevator.requests.empty()) {
+  refreshDerivedState(elevator);
+
+  const auto beginPickup = [&]() {
+    auto request = oldestWaiting(elevator);
+    if (request == elevator.requests.end() || request->boarded) {
       elevator.state = ElevatorState::Idle;
       elevator.activeRequestId = 0;
       elevator.targetFloor = elevator.currentFloor;
+      elevator.direction = ElevatorDirection::Idle;
       elevator.phaseSecondsRemaining = 0;
       return;
     }
-    auto request = std::min_element(
-        elevator.requests.begin(), elevator.requests.end(),
-        [](const ElevatorRequestSnapshot &a, const ElevatorRequestSnapshot &b) {
-          return a.id < b.id;
-        });
     elevator.activeRequestId = request->id;
-    request->boarded = false;
+    elevator.direction = requestDirection(*request);
     if (elevator.currentFloor == request->pickupFloor) {
       elevator.state = ElevatorState::Boarding;
       elevator.targetFloor = elevator.currentFloor;
@@ -91,35 +197,19 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
     }
   };
 
-  if (elevator.state == ElevatorState::Idle) {
-    startNext();
-    return;
-  }
-  if (elevator.phaseSecondsRemaining > 0)
-    --elevator.phaseSecondsRemaining;
-  if (elevator.phaseSecondsRemaining > 0)
-    return;
-
-  auto active = std::find_if(
-      elevator.requests.begin(), elevator.requests.end(),
-      [&](const ElevatorRequestSnapshot &request) {
-        return request.id == elevator.activeRequestId;
-      });
-  if (active == elevator.requests.end()) {
-    elevator.state = ElevatorState::Idle;
-    startNext();
-    return;
-  }
-
-  switch (elevator.state) {
-  case ElevatorState::MovingToPickup:
-    elevator.currentFloor = elevator.targetFloor;
-    elevator.state = ElevatorState::Boarding;
-    elevator.phaseSecondsRemaining = elevator.doorSeconds;
-    break;
-  case ElevatorState::Boarding:
-    active->boarded = true;
-    elevator.targetFloor = active->destinationFloor;
+  const auto beginDestination = [&]() {
+    auto next = nextOnboardStop(elevator);
+    if (next == elevator.requests.end()) {
+      elevator.state = ElevatorState::Idle;
+      elevator.activeRequestId = 0;
+      elevator.targetFloor = elevator.currentFloor;
+      elevator.direction = ElevatorDirection::Idle;
+      elevator.phaseSecondsRemaining = 0;
+      beginPickup();
+      return;
+    }
+    elevator.activeRequestId = next->id;
+    elevator.targetFloor = next->destinationFloor;
     if (elevator.currentFloor == elevator.targetFloor) {
       elevator.state = ElevatorState::Alighting;
       elevator.phaseSecondsRemaining = elevator.doorSeconds;
@@ -129,21 +219,82 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
           std::abs(elevator.targetFloor - elevator.currentFloor) *
           elevator.travelSecondsPerFloor;
     }
+  };
+
+  if (elevator.state == ElevatorState::Idle) {
+    beginPickup();
+    return;
+  }
+  if (elevator.phaseSecondsRemaining > 0)
+    --elevator.phaseSecondsRemaining;
+  if (elevator.phaseSecondsRemaining > 0)
+    return;
+
+  switch (elevator.state) {
+  case ElevatorState::MovingToPickup:
+    elevator.currentFloor = elevator.targetFloor;
+    elevator.state = ElevatorState::Boarding;
+    elevator.phaseSecondsRemaining = elevator.doorSeconds;
     break;
+  case ElevatorState::Boarding: {
+    auto active = std::find_if(elevator.requests.begin(), elevator.requests.end(),
+                               [&](const ElevatorRequestSnapshot &request) {
+                                 return request.id == elevator.activeRequestId;
+                               });
+    if (active == elevator.requests.end() || active->boarded) {
+      elevator.state = ElevatorState::Idle;
+      beginPickup();
+      break;
+    }
+    elevator.direction = requestDirection(*active);
+    std::vector<ElevatorRequestSnapshot *> candidates;
+    for (auto &request : elevator.requests)
+      if (!request.boarded && request.pickupFloor == elevator.currentFloor &&
+          directionCompatible(request, elevator.direction))
+        candidates.push_back(&request);
+    std::sort(candidates.begin(), candidates.end(),
+              [](const ElevatorRequestSnapshot *a,
+                 const ElevatorRequestSnapshot *b) { return a->id < b->id; });
+    int available = std::max(0, elevator.capacity - onboardCount(elevator));
+    for (auto *request : candidates) {
+      if (available == 0)
+        break;
+      request->boarded = true;
+      --available;
+    }
+    refreshDerivedState(elevator);
+    beginDestination();
+    break;
+  }
   case ElevatorState::MovingToDestination:
     elevator.currentFloor = elevator.targetFloor;
     elevator.state = ElevatorState::Alighting;
     elevator.phaseSecondsRemaining = elevator.doorSeconds;
     break;
-  case ElevatorState::Alighting:
-    elevator.requests.erase(active);
-    elevator.activeRequestId = 0;
-    elevator.state = ElevatorState::Idle;
-    elevator.targetFloor = elevator.currentFloor;
-    startNext();
+  case ElevatorState::Alighting: {
+    const auto before = elevator.requests.size();
+    elevator.requests.erase(
+        std::remove_if(elevator.requests.begin(), elevator.requests.end(),
+                       [&](const ElevatorRequestSnapshot &request) {
+                         return request.boarded &&
+                                request.destinationFloor == elevator.currentFloor;
+                       }),
+        elevator.requests.end());
+    elevator.completedTrips += before - elevator.requests.size();
+    refreshDerivedState(elevator);
+    if (elevator.onboardCount > 0)
+      beginDestination();
+    else {
+      elevator.direction = ElevatorDirection::Idle;
+      elevator.state = ElevatorState::Idle;
+      elevator.activeRequestId = 0;
+      elevator.targetFloor = elevator.currentFloor;
+      beginPickup();
+    }
     break;
+  }
   case ElevatorState::Idle:
-    startNext();
+    beginPickup();
     break;
   }
 }
