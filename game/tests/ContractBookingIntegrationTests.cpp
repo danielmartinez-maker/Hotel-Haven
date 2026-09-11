@@ -64,6 +64,7 @@ int main() {
   impossible.startDay = 1;
   impossible.endDay = 2;
   impossible.minimumRoomNights = 5;
+  impossible.maximumRoomNights = 5;
   require(!risky.acceptCommercialContract(
                impossible, ContractFeasibility{5, 0, 0}, false)
                .ok,
