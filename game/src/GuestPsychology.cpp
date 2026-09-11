@@ -400,6 +400,17 @@ void GuestPsychology::recordExperience(GuestId guestId,
   recalculateOverall(state.satisfaction, state.profile);
 
   if (magnitude > 0 && event.memorySalience > 0) {
+    constexpr double kMemoryRetentionContributionFloor = 0.01;
+    state.memories.erase(
+        std::remove_if(state.memories.begin(), state.memories.end(),
+                       [&](const GuestMemory &existing) {
+                         return existing.halfLifeHours > 0 &&
+                                std::abs(memoryContribution(
+                                    existing, event.timestampSeconds)) <
+                                    kMemoryRetentionContributionFloor;
+                       }),
+        state.memories.end());
+
     GuestMemory memory;
     memory.type = event.type;
     memory.timestampSeconds = event.timestampSeconds;
