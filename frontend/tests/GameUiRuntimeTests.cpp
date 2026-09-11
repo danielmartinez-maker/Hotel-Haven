@@ -26,6 +26,21 @@ TEST_CASE("Game UI runtime caches unchanged snapshots and never advances simulat
     EXPECT_EQ(last.type, UiCommandType::SaveGame);
 }
 
+TEST_CASE("Cutaway presentation changes are not discarded by the revision cache") {
+    GameUiRuntime runtime;
+    SimulationSnapshot source;
+    source.revision = 22;
+    source.hud.cutaway = true;
+    runtime.update(source);
+    const auto firstBuilds = runtime.snapshotBuildCount();
+
+    source.hud.cutaway = false;
+    runtime.update(source);
+
+    EXPECT_EQ(runtime.snapshotBuildCount(), firstBuilds + 1);
+    EXPECT_FALSE(runtime.snapshot().hud.cutaway);
+}
+
 TEST_CASE("Stable FINAL-07 interfaces maintain UI-only navigation state") {
     GameUiRuntime runtime;
     runtime.setOverlay(OverlayId::Cleanliness);
