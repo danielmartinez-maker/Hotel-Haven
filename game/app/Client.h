@@ -1,4 +1,5 @@
 #pragma once
+#include "BuildTool.h"
 #include "GameUiBridge.h"
 #include "GameUiCommandRouter.h"
 #include "InGameUiContract.h"
@@ -44,21 +45,6 @@ inline void applyClientUiScale(int scalePercent) noexcept {
   SidebarWidth = final07ScalePixel(356, scalePercent);
 }
 
-enum class Tool {
-  Inspect,
-  Bedroom,
-  Floor,
-  Wall,
-  Door,
-  Entrance,
-  Desk,
-  Closet,
-  Stairs,
-  Erase,
-  Bathroom,
-  StaffRoom,
-  Lobby
-};
 struct Button {
   RECT rect{};
   std::wstring label;
