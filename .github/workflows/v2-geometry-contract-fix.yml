@@ -33,70 +33,22 @@ jobs:
               path.write_text(text, encoding='utf-8')
 
           common = Path('Tools/ArtGeneration/v2_asset_common.py')
-          replace_once(
-              common,
-              "    for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):\n        add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')\n    return scene\n\n\ndef table",
-              "    for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):\n        add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')\n    for i, (x, y) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):\n        add(scene, box((0.08, 0.08, 0.37),\n                       (x * width * 0.40, y * 0.70 * 0.34, 0.185),\n                       'MAT_BLACKENED_STEEL'), f'Leg_{i}')\n    return scene\n\n\ndef table",
-              'sofa floor supports',
-          )
-          replace_once(
-              common,
-              "        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), 'DoorLeft')\n        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), 'DoorRight')",
-              "        moving = 'Landing Doors' in name or 'Freight Elevator Gate' in name\n        left_node = 'MOV_ElevatorDoor_L' if moving else 'DoorLeft'\n        right_node = 'MOV_ElevatorDoor_R' if moving else 'DoorRight'\n        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), left_node)\n        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), right_node)",
-              'elevator moving nodes',
-          )
-          replace_once(
-              common,
-              "        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{i}')",
-              "        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{i}')",
-              'common cart moving wheels',
-          )
-          replace_once(
-              common,
-              "    if 'Wheelchair' in name:\n        for side, x in (('L', -0.32), ('R', 0.32)):\n            add(scene, cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28), f'Wheel_{side}')",
-              "    if 'Wheelchair' in name:\n        for side, x in (('L', -0.32), ('R', 0.32)):\n            wheel = cyl(0.31, 0.045, (x, 0, 0.31), 'MAT_BLACKENED_STEEL', 28)\n            wheel.apply_transform(trimesh.transformations.rotation_matrix(\n                np.pi / 2, [0, 1, 0], [x, 0, 0.31]))\n            add(scene, wheel, f'MOV_Wheel_{side}')",
-              'wheelchair wheel geometry',
-          )
-          replace_once(
-              common,
-              "            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{side}')",
-              "            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{side}')",
-              'walker moving wheels',
-          )
+          replace_once(common, "    for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):\n        add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')\n    return scene\n\n\ndef table", "    for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):\n        add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')\n    for i, (x, y) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):\n        add(scene, box((0.08, 0.08, 0.37),\n                       (x * width * 0.40, y * 0.70 * 0.34, 0.185),\n                       'MAT_BLACKENED_STEEL'), f'Leg_{i}')\n    return scene\n\n\ndef table", 'sofa floor supports')
+          replace_once(common, "        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), 'DoorLeft')\n        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), 'DoorRight')", "        moving = 'Landing Doors' in name or 'Freight Elevator Gate' in name\n        left_node = 'MOV_ElevatorDoor_L' if moving else 'DoorLeft'\n        right_node = 'MOV_ElevatorDoor_R' if moving else 'DoorRight'\n        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), left_node)\n        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), right_node)", 'elevator moving nodes')
+          replace_once(common, "        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{i}')", "        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{i}')", 'common cart moving wheels')
+          replace_once(common, "    if 'Wheelchair' in name:\n        for side, x in (('L', -0.32), ('R', 0.32)):\n            add(scene, cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28), f'Wheel_{side}')", "    if 'Wheelchair' in name:\n        for side, x in (('L', -0.32), ('R', 0.32)):\n            wheel = cyl(0.31, 0.045, (x, 0, 0.31), 'MAT_BLACKENED_STEEL', 28)\n            wheel.apply_transform(trimesh.transformations.rotation_matrix(\n                np.pi / 2, [0, 1, 0], [x, 0, 0.31]))\n            add(scene, wheel, f'MOV_Wheel_{side}')", 'wheelchair wheel geometry')
+          replace_once(common, "            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{side}')", "            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{side}')", 'walker moving wheels')
 
           service = Path('Tools/ArtGeneration/service_v2_factory.py')
           text = service.read_text(encoding='utf-8')
-          text = text.replace(
-              'from service_asset_factory import box as legacy_box\nfrom service_asset_factory import build_asset as build_legacy_service',
-              'from service_asset_factory import box as legacy_box\nfrom service_asset_factory import cyl as legacy_cyl\nfrom service_asset_factory import build_asset as build_legacy_service',
-              1,
-          )
+          text = text.replace('from service_asset_factory import box as legacy_box\nfrom service_asset_factory import build_asset as build_legacy_service', 'from service_asset_factory import box as legacy_box\nfrom service_asset_factory import cyl as legacy_cyl\nfrom service_asset_factory import build_asset as build_legacy_service', 1)
           helper_anchor = "\n\ndef build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n"
-          helper = (
-              "\n\ndef _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:\n"
-              "    if any(str(node).startswith('MOV_Wheel') for node in scene.graph.nodes_geometry):\n"
-              "        return scene\n"
-              "    bounds = scene.bounds\n"
-              "    width = max(float(bounds[1][0] - bounds[0][0]), 0.30)\n"
-              "    depth = max(float(bounds[1][1] - bounds[0][1]), 0.24)\n"
-              "    radius = 0.055\n"
-              "    for i, (sx, sy) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):\n"
-              "        x = sx * min(width * 0.34, 0.22)\n"
-              "        y = sy * min(depth * 0.34, 0.22)\n"
-              "        legacy_add(scene, legacy_cyl(radius, 0.035, (x, y, radius),\n"
-              "                                     'MAT_BLACKENED_STEEL', 14),\n"
-              "                   f'MOV_Wheel_{i}')\n"
-              "    return scene\n"
-          )
+          helper = ("\n\ndef _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:\n" "    if any(str(node).startswith('MOV_Wheel') for node in scene.graph.nodes_geometry):\n" "        return scene\n" "    bounds = scene.bounds\n" "    width = max(float(bounds[1][0] - bounds[0][0]), 0.30)\n" "    depth = max(float(bounds[1][1] - bounds[0][1]), 0.24)\n" "    radius = 0.055\n" "    for i, (sx, sy) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):\n" "        x = sx * min(width * 0.34, 0.22)\n" "        y = sy * min(depth * 0.34, 0.22)\n" "        legacy_add(scene, legacy_cyl(radius, 0.035, (x, y, radius),\n" "                                     'MAT_BLACKENED_STEEL', 14),\n" "                   f'MOV_Wheel_{i}')\n" "    return scene\n")
           if '_ensure_service_wheels' not in text:
               if helper_anchor not in text:
                   raise SystemExit('service wheel helper anchor not found')
               text = text.replace(helper_anchor, helper + helper_anchor, 1)
-          replacements = [
-              ("        return cart(name, mat)", "        return _ensure_service_wheels(cart(name, mat))"),
-              ("        return _semantic_mop_bucket(mat)", "        return _ensure_service_wheels(_semantic_mop_bucket(mat))"),
-              ("        return semantic_composite(name, mat, asset_id)\n    return scene\n", "        scene = semantic_composite(name, mat, asset_id)\n    if profile == 'P_SERVICE_PROP_ANIMATED':\n        scene = _ensure_service_wheels(scene)\n    return scene\n"),
-          ]
+          replacements = [("        return cart(name, mat)", "        return _ensure_service_wheels(cart(name, mat))"), ("        return _semantic_mop_bucket(mat)", "        return _ensure_service_wheels(_semantic_mop_bucket(mat))"), ("        return semantic_composite(name, mat, asset_id)\n    return scene\n", "        scene = semantic_composite(name, mat, asset_id)\n    if profile == 'P_SERVICE_PROP_ANIMATED':\n        scene = _ensure_service_wheels(scene)\n    return scene\n")]
           for old, new in replacements:
               if old in text:
                   text = text.replace(old, new, 1)
@@ -113,18 +65,7 @@ jobs:
           elif new not in text:
               raise SystemExit('stationary bike support anchor not found')
           helper_anchor = "\n\ndef build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n"
-          helper = (
-              "\n\ndef _mobile_whiteboard(mat: str) -> trimesh.Scene:\n"
-              "    scene = trimesh.Scene()\n"
-              "    add(scene, box((1.90, 0.055, 1.15), (0, 0, 0.92), mat), 'Panel')\n"
-              "    add(scene, box((1.92, 0.09, 0.06), (0, 0, 0.31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')\n"
-              "    for i, x in enumerate((-0.78, 0.78)):\n"
-              "        add(scene, box((0.055, 0.055, 0.62), (x, 0, 0.31), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')\n"
-              "    add(scene, box((1.75, 0.42, 0.06), (0, 0, 0.08), 'MAT_BLACKENED_STEEL'), 'Base')\n"
-              "    for i, (x, y) in enumerate(((-0.72, -0.15), (0.72, -0.15), (-0.72, 0.15), (0.72, 0.15))):\n"
-              "        add(scene, cyl(0.055, 0.035, (x, y, 0.055), 'MAT_BLACKENED_STEEL', 14), f'MOV_Wheel_{i}')\n"
-              "    return scene\n"
-          )
+          helper = ("\n\ndef _mobile_whiteboard(mat: str) -> trimesh.Scene:\n" "    scene = trimesh.Scene()\n" "    add(scene, box((1.90, 0.055, 1.15), (0, 0, 0.92), mat), 'Panel')\n" "    add(scene, box((1.92, 0.09, 0.06), (0, 0, 0.31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')\n" "    for i, x in enumerate((-0.78, 0.78)):\n" "        add(scene, box((0.055, 0.055, 0.62), (x, 0, 0.31), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')\n" "    add(scene, box((1.75, 0.42, 0.06), (0, 0, 0.08), 'MAT_BLACKENED_STEEL'), 'Base')\n" "    for i, (x, y) in enumerate(((-0.72, -0.15), (0.72, -0.15), (-0.72, 0.15), (0.72, 0.15))):\n" "        add(scene, cyl(0.055, 0.035, (x, y, 0.055), 'MAT_BLACKENED_STEEL', 14), f'MOV_Wheel_{i}')\n" "    return scene\n")
           if '_mobile_whiteboard' not in text:
               if helper_anchor not in text:
                   raise SystemExit('mobile whiteboard helper anchor not found')
@@ -139,14 +80,7 @@ jobs:
 
           validator = Path('Tools/ArtGeneration/validate_generated_geometry.py')
           text = validator.read_text(encoding='utf-8')
-          replacements = [
-              ("    if gameplay != 500:\n        unresolved += 1", "    target_assets = int(summary.get('declared_gameplay_asset_count', gameplay))\n    if gameplay != target_assets:\n        unresolved += 1"),
-              ("        '# Hotel Haven 500-Asset Library Release Audit V1',", "        '# Hotel Haven Asset Library Release Audit V1',"),
-              ("        f'- Gameplay-facing assets: **{gameplay} / 500**',", "        f'- Gameplay-facing assets: **{gameplay} / {target_assets}**',"),
-              ("    for batch in range(1, 11):", "    for batch in range(1, int(summary.get('declared_batch_count', len(batch_statuses))) + 1):"),
-              ("    paths = sorted(exports.glob('Batch*/*.glb'))\n    if len(paths) != 500:\n        failures.append(f'expected 500 GLBs, found {len(paths)}')", "    paths = sorted(exports.glob('Batch*/*.glb'))\n    expected_asset_count = len(manifests)\n    if len(paths) != expected_asset_count:\n        failures.append(f'expected {expected_asset_count} GLBs, found {len(paths)}')"),
-              ("            for i in range(1, 11)\n", "            for i in range(1, int(summary.get('declared_batch_count', len(counts))) + 1)\n"),
-          ]
+          replacements = [("    if gameplay != 500:\n        unresolved += 1", "    target_assets = int(summary.get('declared_gameplay_asset_count', gameplay))\n    if gameplay != target_assets:\n        unresolved += 1"), ("        '# Hotel Haven 500-Asset Library Release Audit V1',", "        f'# Hotel Haven {target_assets}-Asset Library Release Audit V1',"), ("        f'- Gameplay-facing assets: **{gameplay} / 500**',", "        f'- Gameplay-facing assets: **{gameplay} / {target_assets}**',"), ("    for batch in range(1, 11):", "    for batch in range(1, int(summary.get('declared_batch_count', len(batch_statuses))) + 1):"), ("    paths = sorted(exports.glob('Batch*/*.glb'))\n    if len(paths) != 500:\n        failures.append(f'expected 500 GLBs, found {len(paths)}')", "    paths = sorted(exports.glob('Batch*/*.glb'))\n    expected_asset_count = len(manifests)\n    if len(paths) != expected_asset_count:\n        failures.append(f'expected {expected_asset_count} GLBs, found {len(paths)}')"), ("            for i in range(1, 11)\n", "            for i in range(1, int(summary.get('declared_batch_count', len(counts))) + 1)\n")]
           for old, new in replacements:
               if old in text:
                   text = text.replace(old, new, 1)
@@ -157,22 +91,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
       - name: Install asset dependencies
         run: python -m pip install -r Tools/ArtGeneration/requirements.txt
-
       - name: Run full generator regression suite
         run: python -m pytest Tools/ArtGeneration/tests -q
-
       - name: Validate 800-asset manifest
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
-
       - name: Generate all V2 assets
         run: python Tools/ArtGeneration/generate_all_assets.py .
-
       - name: Validate generated geometry and animation contracts
         run: python Tools/ArtGeneration/validate_generated_geometry.py .
-
       - name: Commit verified production fixes
         shell: bash
         run: |
