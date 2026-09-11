@@ -41,3 +41,17 @@ TEST_CASE("Changing build selection invalidates a preview for the previous item"
     EXPECT_FALSE(controller.canConfirm());
     EXPECT_FALSE(controller.confirmCommand().has_value());
 }
+
+TEST_CASE("Late authoritative preview for an old build selection cannot confirm") {
+    BuildToolController controller;
+    controller.selectItem("guest_room");
+
+    BuildPlacementPreview stale;
+    stale.requestId = 43;
+    stale.itemId = "service_elevator";
+    stale.valid = true;
+    controller.applyAuthoritativePreview(stale);
+
+    EXPECT_FALSE(controller.canConfirm());
+    EXPECT_FALSE(controller.confirmCommand().has_value());
+}
