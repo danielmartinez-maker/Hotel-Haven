@@ -56,6 +56,21 @@ def _semantic_ladder(name: str, mat: str) -> trimesh.Scene:
     return scene
 
 
+def _semantic_time_clock(mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    legacy_add(
+        scene,
+        legacy_box((0.38, 0.20, 0.55), (0, 0, 0.275), 'MAT_ELECTRONICS'),
+        'PrimaryTimeClockBody',
+    )
+    legacy_add(
+        scene,
+        legacy_box((0.24, 0.025, 0.16), (0, -0.115, 0.39), 'MAT_GLASS_CLEAR'),
+        'Screen',
+    )
+    return scene
+
+
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
     if any(k in name for k in ('Cart', 'Trolley', 'Hand Truck')):
         return cart(name, mat)
@@ -67,6 +82,8 @@ def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: s
         return _semantic_mop_bucket(mat)
     if 'Ladder' in name:
         return _semantic_ladder(name, mat)
+    if 'Time Clock' in name:
+        return _semantic_time_clock(mat)
     scene = build_legacy_service(name, mat)
     names = set(scene.graph.nodes_geometry)
     if len(scene.geometry) < 2 or names == {'Body'}:
