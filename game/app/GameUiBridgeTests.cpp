@@ -42,7 +42,7 @@ int main() {
             "authoritative task was omitted from operations dashboard");
     require(operation->assigneeId == task.employeeId,
             "operation assignee did not preserve authoritative employee id");
-    require(operation->targetEntityId == task.targetId,
+    require(operation->targetId == task.targetId,
             "operation target entity did not preserve authoritative target id");
     require(operation->targetFloor == task.target.floor &&
                 operation->targetX == task.target.x &&
