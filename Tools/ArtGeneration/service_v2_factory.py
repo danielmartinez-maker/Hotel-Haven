@@ -30,6 +30,17 @@ def _semantic_caddy(mat: str) -> trimesh.Scene:
     return scene
 
 
+def _semantic_mop_bucket(mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    legacy_add(scene, legacy_box((0.48, 0.34, 0.38), (0, 0, 0.19), mat), 'PrimaryBucket')
+    legacy_add(
+        scene,
+        legacy_box((0.20, 0.30, 0.24), (0.18, 0, 0.48), 'MAT_BLACKENED_STEEL'),
+        'Wringer',
+    )
+    return scene
+
+
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
     if any(k in name for k in ('Cart', 'Trolley', 'Hand Truck')):
         return cart(name, mat)
@@ -37,6 +48,8 @@ def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: s
         return _semantic_hamper(mat)
     if 'Caddy' in name or 'Toolbox' in name:
         return _semantic_caddy(mat)
+    if 'Mop Bucket' in name:
+        return _semantic_mop_bucket(mat)
     scene = build_legacy_service(name, mat)
     names = set(scene.graph.nodes_geometry)
     if len(scene.geometry) < 2 or names == {'Body'}:
