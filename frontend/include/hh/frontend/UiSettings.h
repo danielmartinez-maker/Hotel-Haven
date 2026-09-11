@@ -1,5 +1,7 @@
 #pragma once
 #include "hh/frontend/GameUiTypes.h"
+#include <array>
+#include <cstddef>
 namespace hh::frontend {
 class UiSettings {
 public:
@@ -8,6 +10,16 @@ public:
     void setInputModality(InputModality value) noexcept { inputModality_ = value; } [[nodiscard]] InputModality inputModality() const noexcept { return inputModality_; }
     [[nodiscard]] bool visibleFocusRequired() const noexcept; [[nodiscard]] bool requiresTextOrSymbolAlongsideColor() const noexcept { return true; }
     [[nodiscard]] float localizationExpansionFactor() const noexcept { return 1.40f; }
-private: int scalePercent_{100}; bool reducedMotion_{}; InputModality inputModality_{InputModality::Mouse};
+    [[nodiscard]] int keyboardBinding(UiAction action) const noexcept;
+    [[nodiscard]] bool setKeyboardBinding(UiAction action, int keyCode) noexcept;
+    void resetKeyboardBindings() noexcept;
+private:
+    static constexpr std::size_t KeyboardActionCount = 7;
+    static constexpr std::array<int, KeyboardActionCount> DefaultKeyboardBindings{
+        38, 40, 13, 27, 189, 187, 32};
+    int scalePercent_{100};
+    bool reducedMotion_{};
+    InputModality inputModality_{InputModality::Mouse};
+    std::array<int, KeyboardActionCount> keyboardBindings_{DefaultKeyboardBindings};
 };
 } // namespace hh::frontend
