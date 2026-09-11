@@ -72,24 +72,22 @@ jobs:
               1,
           )
           helper_anchor = "\n\ndef build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n"
-          helper = """
-
-
-def _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:
-    if any(str(node).startswith('MOV_Wheel') for node in scene.graph.nodes_geometry):
-        return scene
-    bounds = scene.bounds
-    width = max(float(bounds[1][0] - bounds[0][0]), 0.30)
-    depth = max(float(bounds[1][1] - bounds[0][1]), 0.24)
-    radius = 0.055
-    for i, (sx, sy) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
-        x = sx * min(width * 0.34, 0.22)
-        y = sy * min(depth * 0.34, 0.22)
-        legacy_add(scene, legacy_cyl(radius, 0.035, (x, y, radius),
-                                     'MAT_BLACKENED_STEEL', 14),
-                   f'MOV_Wheel_{i}')
-    return scene
-"""
+          helper = (
+              "\n\ndef _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:\n"
+              "    if any(str(node).startswith('MOV_Wheel') for node in scene.graph.nodes_geometry):\n"
+              "        return scene\n"
+              "    bounds = scene.bounds\n"
+              "    width = max(float(bounds[1][0] - bounds[0][0]), 0.30)\n"
+              "    depth = max(float(bounds[1][1] - bounds[0][1]), 0.24)\n"
+              "    radius = 0.055\n"
+              "    for i, (sx, sy) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):\n"
+              "        x = sx * min(width * 0.34, 0.22)\n"
+              "        y = sy * min(depth * 0.34, 0.22)\n"
+              "        legacy_add(scene, legacy_cyl(radius, 0.035, (x, y, radius),\n"
+              "                                     'MAT_BLACKENED_STEEL', 14),\n"
+              "                   f'MOV_Wheel_{i}')\n"
+              "    return scene\n"
+          )
           if '_ensure_service_wheels' not in text:
               if helper_anchor not in text:
                   raise SystemExit('service wheel helper anchor not found')
@@ -115,21 +113,21 @@ def _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:
           elif new not in text:
               raise SystemExit('stationary bike support anchor not found')
           helper_anchor = "\n\ndef build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n"
-          helper = """
-
-
-def _mobile_whiteboard(mat: str) -> trimesh.Scene:
-    scene = trimesh.Scene()
-    add(scene, box((1.90, 0.055, 1.15), (0, 0, 0.92), mat), 'Panel')
-    add(scene, box((1.92, 0.09, 0.06), (0, 0, 0.31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')
-    for i, x in enumerate((-0.78, 0.78)):
-        add(scene, box((0.055, 0.055, 0.62), (x, 0, 0.31), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')
-    add(scene, box((1.75, 0.42, 0.06), (0, 0, 0.08), 'MAT_BLACKENED_STEEL'), 'Base')
-    for i, (x, y) in enumerate(((-0.72, -0.15), (0.72, -0.15), (-0.72, 0.15), (0.72, 0.15))):
-        add(scene, cyl(0.055, 0.035, (x, y, 0.055), 'MAT_BLACKENED_STEEL', 14), f'MOV_Wheel_{i}')
-    return scene
-"""
+          helper = (
+              "\n\ndef _mobile_whiteboard(mat: str) -> trimesh.Scene:\n"
+              "    scene = trimesh.Scene()\n"
+              "    add(scene, box((1.90, 0.055, 1.15), (0, 0, 0.92), mat), 'Panel')\n"
+              "    add(scene, box((1.92, 0.09, 0.06), (0, 0, 0.31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')\n"
+              "    for i, x in enumerate((-0.78, 0.78)):\n"
+              "        add(scene, box((0.055, 0.055, 0.62), (x, 0, 0.31), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')\n"
+              "    add(scene, box((1.75, 0.42, 0.06), (0, 0, 0.08), 'MAT_BLACKENED_STEEL'), 'Base')\n"
+              "    for i, (x, y) in enumerate(((-0.72, -0.15), (0.72, -0.15), (-0.72, 0.15), (0.72, 0.15))):\n"
+              "        add(scene, cyl(0.055, 0.035, (x, y, 0.055), 'MAT_BLACKENED_STEEL', 14), f'MOV_Wheel_{i}')\n"
+              "    return scene\n"
+          )
           if '_mobile_whiteboard' not in text:
+              if helper_anchor not in text:
+                  raise SystemExit('mobile whiteboard helper anchor not found')
               text = text.replace(helper_anchor, helper + helper_anchor, 1)
           route = "def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n    if subcategory in {'luggage', 'accessible'}:"
           route_new = "def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:\n    if 'Mobile Whiteboard' in name:\n        return _mobile_whiteboard(mat)\n    if subcategory in {'luggage', 'accessible'}:"
