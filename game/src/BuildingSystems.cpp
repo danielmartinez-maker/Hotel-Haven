@@ -89,9 +89,10 @@ nextOnboardStop(ElevatorSnapshot &elevator) noexcept {
 struct DispatchProjection {
   int floor{};
   std::int64_t seconds{};
+  std::size_t committedWaitingRequests{};
 };
 
-DispatchProjection projectAfterOnboardSweep(
+DispatchProjection projectAfterCommittedWork(
     const ElevatorSnapshot &elevator) noexcept {
   DispatchProjection projection;
   projection.floor = elevator.state == ElevatorState::Idle
@@ -99,35 +100,60 @@ DispatchProjection projectAfterOnboardSweep(
                          : elevator.targetFloor;
   projection.seconds = std::max(0, elevator.phaseSecondsRemaining);
 
-  const auto direction = sweepDirection(elevator);
-  if (direction == Direction::Idle || onboardCount(elevator) == 0)
+  const auto boarded = onboardCount(elevator);
+  if (boarded > 0) {
+    const auto direction = sweepDirection(elevator);
+    if (direction == Direction::Idle)
+      return projection;
+
+    int sweepEnd = projection.floor;
+    std::vector<int> stops;
+    for (const auto &request : elevator.requests) {
+      if (!request.boarded)
+        continue;
+      if (std::find(stops.begin(), stops.end(), request.destinationFloor) ==
+          stops.end())
+        stops.push_back(request.destinationFloor);
+      if (direction == Direction::Up)
+        sweepEnd = std::max(sweepEnd, request.destinationFloor);
+      else
+        sweepEnd = std::min(sweepEnd, request.destinationFloor);
+    }
+
+    projection.seconds +=
+        static_cast<std::int64_t>(std::abs(sweepEnd - projection.floor)) *
+        elevator.travelSecondsPerFloor;
+    for (const int stop : stops) {
+      const bool currentAlightingStop =
+          elevator.state == ElevatorState::Alighting &&
+          stop == elevator.currentFloor;
+      if (!currentAlightingStop)
+        projection.seconds += elevator.doorSeconds;
+    }
+    projection.floor = sweepEnd;
+    return projection;
+  }
+
+  if (elevator.state != ElevatorState::MovingToPickup &&
+      elevator.state != ElevatorState::Boarding)
+    return projection;
+  const auto active = std::find_if(
+      elevator.requests.begin(), elevator.requests.end(),
+      [&](const ElevatorRequestSnapshot &request) {
+        return request.id == elevator.activeRequestId && !request.boarded;
+      });
+  if (active == elevator.requests.end())
     return projection;
 
-  int sweepEnd = projection.floor;
-  std::vector<int> stops;
-  for (const auto &request : elevator.requests) {
-    if (!request.boarded)
-      continue;
-    if (std::find(stops.begin(), stops.end(), request.destinationFloor) ==
-        stops.end())
-      stops.push_back(request.destinationFloor);
-    if (direction == Direction::Up)
-      sweepEnd = std::max(sweepEnd, request.destinationFloor);
-    else
-      sweepEnd = std::min(sweepEnd, request.destinationFloor);
-  }
-
+  if (elevator.state == ElevatorState::MovingToPickup)
+    projection.seconds += elevator.doorSeconds;
   projection.seconds +=
-      static_cast<std::int64_t>(std::abs(sweepEnd - projection.floor)) *
-      elevator.travelSecondsPerFloor;
-  for (const int stop : stops) {
-    const bool currentAlightingStop =
-        elevator.state == ElevatorState::Alighting &&
-        stop == elevator.currentFloor;
-    if (!currentAlightingStop)
-      projection.seconds += elevator.doorSeconds;
-  }
-  projection.floor = sweepEnd;
+      static_cast<std::int64_t>(
+          std::abs(active->destinationFloor - projection.floor)) *
+          elevator.travelSecondsPerFloor +
+      elevator.doorSeconds;
+  projection.floor = active->destinationFloor;
+  projection.committedWaitingRequests = 1;
   return projection;
 }
 } // namespace
@@ -204,15 +230,19 @@ EntityId selectElevatorForRequest(const BuildingSystemsSnapshot &systems,
         pickupFloor > elevator.maxFloor || destinationFloor < elevator.minFloor ||
         destinationFloor > elevator.maxFloor)
       continue;
-    const auto projection = projectAfterOnboardSweep(elevator);
+    const auto projection = projectAfterCommittedWork(elevator);
     const auto waitingRequests = static_cast<std::size_t>(std::count_if(
         elevator.requests.begin(), elevator.requests.end(),
         [](const ElevatorRequestSnapshot &request) { return !request.boarded; }));
+    const auto uncommittedWaiting =
+        waitingRequests > projection.committedWaitingRequests
+            ? waitingRequests - projection.committedWaitingRequests
+            : 0;
     const std::int64_t eta =
         projection.seconds +
         static_cast<std::int64_t>(std::abs(projection.floor - pickupFloor)) *
             elevator.travelSecondsPerFloor +
-        static_cast<std::int64_t>(waitingRequests) * elevator.doorSeconds;
+        static_cast<std::int64_t>(uncommittedWaiting) * elevator.doorSeconds;
     const auto key = std::make_tuple(eta, elevator.requests.size(), elevator.id);
     if (key < bestKey) {
       bestKey = key;
