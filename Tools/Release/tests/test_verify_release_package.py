@@ -60,6 +60,10 @@ class ReleasePackageIntegrityTests(unittest.TestCase):
         errors = self.validate(extras={"../escape.txt": b"bad"})
         self.assertTrue(any("unsafe" in error.lower() for error in errors))
 
+    def test_rejects_windows_drive_archive_path(self):
+        errors = self.validate(extras={"C:/escape.txt": b"bad"})
+        self.assertTrue(any("unsafe" in error.lower() for error in errors))
+
     def test_rejects_development_only_artifacts(self):
         errors = self.validate(extras={"debug/hotel_haven.pdb": b"symbols"})
         self.assertTrue(any("development" in error.lower() for error in errors))
