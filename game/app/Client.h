@@ -15,6 +15,7 @@
 #include "hh/renderer/Camera.h"
 #include "hh/renderer/RenderScene.h"
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -96,6 +97,8 @@ struct Client {
   bool uiConfigured{};
   std::uint64_t previewRequestSerial{};
   std::uint64_t selectedAlertId{};
+  std::size_t financeRuleIndex{};
+  std::size_t financeOverbookingIndex{};
   hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
