@@ -4,6 +4,7 @@ import trimesh
 
 from service_asset_factory import add as legacy_add
 from service_asset_factory import box as legacy_box
+from service_asset_factory import cyl as legacy_cyl
 from service_asset_factory import build_asset as build_legacy_service
 from v2_asset_common import cart, semantic_composite
 
@@ -71,15 +72,31 @@ def _semantic_time_clock(mat: str) -> trimesh.Scene:
     return scene
 
 
+def _ensure_service_wheels(scene: trimesh.Scene) -> trimesh.Scene:
+    if any(str(node).startswith('MOV_Wheel') for node in scene.graph.nodes_geometry):
+        return scene
+    bounds = scene.bounds
+    width = max(float(bounds[1][0] - bounds[0][0]), 0.30)
+    depth = max(float(bounds[1][1] - bounds[0][1]), 0.24)
+    radius = 0.055
+    for i, (sx, sy) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
+        x = sx * min(width * 0.34, 0.22)
+        y = sy * min(depth * 0.34, 0.22)
+        legacy_add(scene, legacy_cyl(radius, 0.035, (x, y, radius),
+                                     'MAT_BLACKENED_STEEL', 14),
+                   f'MOV_Wheel_{i}')
+    return scene
+
+
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
     if any(k in name for k in ('Cart', 'Trolley', 'Hand Truck')):
-        return cart(name, mat)
+        return _ensure_service_wheels(cart(name, mat))
     if 'Hamper' in name:
         return _semantic_hamper(mat)
     if 'Caddy' in name or 'Toolbox' in name:
         return _semantic_caddy(mat)
     if 'Mop Bucket' in name:
-        return _semantic_mop_bucket(mat)
+        return _ensure_service_wheels(_semantic_mop_bucket(mat))
     if 'Ladder' in name:
         return _semantic_ladder(name, mat)
     if 'Time Clock' in name:
@@ -87,5 +104,7 @@ def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: s
     scene = build_legacy_service(name, mat)
     names = set(scene.graph.nodes_geometry)
     if len(scene.geometry) < 2 or names == {'Body'}:
-        return semantic_composite(name, mat, asset_id)
+        scene = semantic_composite(name, mat, asset_id)
+    if profile == 'P_SERVICE_PROP_ANIMATED':
+        scene = _ensure_service_wheels(scene)
     return scene

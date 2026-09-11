@@ -30,10 +30,28 @@ def _semantic_gym(name: str, mat: str) -> trimesh.Scene:
         for i, x in enumerate((-0.48, 0.48)):
             add(scene, box((0.08, 0.32, 0.46), (x, 0, 0.23), 'MAT_BLACKENED_STEEL'), f'Leg_{i}')
         return scene
-    return build_gym(name, mat)
+    scene = build_gym(name, mat)
+    if 'Stationary Bike' in name:
+        add(scene, box((0.62, 0.12, 0.06), (0, -0.24, 0.03), 'MAT_BLACKENED_STEEL'), 'Base_Front')
+        add(scene, box((0.62, 0.12, 0.06), (0, 0.24, 0.03), 'MAT_BLACKENED_STEEL'), 'Base_Rear')
+    return scene
+
+
+def _mobile_whiteboard(mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    add(scene, box((1.90, 0.055, 1.15), (0, 0, 0.92), mat), 'Panel')
+    add(scene, box((1.92, 0.09, 0.06), (0, 0, 0.31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')
+    for i, x in enumerate((-0.78, 0.78)):
+        add(scene, box((0.055, 0.055, 0.62), (x, 0, 0.31), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')
+    add(scene, box((1.75, 0.42, 0.06), (0, 0, 0.08), 'MAT_BLACKENED_STEEL'), 'Base')
+    for i, (x, y) in enumerate(((-0.72, -0.15), (0.72, -0.15), (-0.72, 0.15), (0.72, 0.15))):
+        add(scene, cyl(0.055, 0.035, (x, y, 0.055), 'MAT_BLACKENED_STEEL', 14), f'MOV_Wheel_{i}')
+    return scene
 
 
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
+    if 'Mobile Whiteboard' in name:
+        return _mobile_whiteboard(mat)
     if subcategory in {'luggage', 'accessible'}:
         return luggage_or_accessibility(name, mat)
     if subcategory == 'gym':
