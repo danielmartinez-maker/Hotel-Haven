@@ -146,6 +146,20 @@ void elevator_bank_selects_best_car_with_stable_tie_breaking() {
               highCar->requests.front().id == request.id &&
               highCar->requests.front().assignedElevatorId == high.id,
           "bank request did not select the nearest deterministic car");
+
+  Simulation tie(3013, 8, 8, 8);
+  spec.startFloor = 3;
+  const auto first = tie.installElevator(spec);
+  const auto second = tie.installElevator(spec);
+  require(first.ok && second.ok, "tie-break fixture install failed");
+  const auto tiedRequest = tie.requestElevator(ElevatorKind::Passenger, 3, 7);
+  require(tiedRequest.ok, "tie-break bank request failed");
+  tie.step(1);
+  const auto tied = tie.buildingSystemsSnapshot();
+  require(tied.elevators[0].id == first.id &&
+              tied.elevators[0].requests.size() == 1 &&
+              tied.elevators[1].requests.empty(),
+          "equal-ETA elevator dispatch did not use the stable lowest car ID");
 }
 
 void elevator_capacity_batches_same_floor_same_direction_requests() {
@@ -175,6 +189,30 @@ void elevator_capacity_batches_same_floor_same_direction_requests() {
           "elevator did not board up to capacity in one door cycle");
   require(car.requests.size() == 3,
           "capacity-saturated rider was lost instead of remaining queued");
+}
+
+void elevator_batch_defers_opposite_direction_riders() {
+  Simulation sim(3014, 8, 8, 6);
+  ElevatorSpec spec;
+  spec.minFloor = 0;
+  spec.maxFloor = 5;
+  spec.startFloor = 2;
+  spec.capacity = 3;
+  spec.doorSeconds = 1;
+  const auto elevator = sim.installElevator(spec);
+  require(elevator.ok, "direction fixture install failed");
+  require(sim.requestElevator(ElevatorKind::Passenger, 2, 5).ok &&
+              sim.requestElevator(ElevatorKind::Passenger, 2, 4).ok &&
+              sim.requestElevator(ElevatorKind::Passenger, 2, 0).ok,
+          "direction fixture requests failed");
+  sim.step(2);
+  const auto &car = sim.buildingSystemsSnapshot().elevators.front();
+  const auto boarded = std::count_if(car.requests.begin(), car.requests.end(),
+                                     [](const ElevatorRequestSnapshot &request) {
+                                       return request.boarded;
+                                     });
+  require(boarded == 2 && car.onboardCount == 2 && car.requests.size() == 3,
+          "opposite-direction rider boarded into the active upward sweep");
 }
 
 void elevator_banks_are_kind_isolated_and_validate_requests() {
@@ -215,6 +253,7 @@ int main() {
     elevator_dispatch_is_deterministic_for_equal_requests();
     elevator_bank_selects_best_car_with_stable_tie_breaking();
     elevator_capacity_batches_same_floor_same_direction_requests();
+    elevator_batch_defers_opposite_direction_riders();
     elevator_banks_are_kind_isolated_and_validate_requests();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
