@@ -60,10 +60,12 @@ struct ElevatorRequestSnapshot {
   int pickupFloor{};
   int destinationFloor{};
   bool boarded{};
+  // Derived from containment in the authoritative elevator request vector.
   EntityId assignedElevatorId{};
-  std::int64_t requestedAtSeconds{};
-  std::int64_t boardedAtSeconds{};
-  bool operator==(const ElevatorRequestSnapshot &) const = default;
+  bool operator==(const ElevatorRequestSnapshot &other) const noexcept {
+    return id == other.id && pickupFloor == other.pickupFloor &&
+           destinationFloor == other.destinationFloor && boarded == other.boarded;
+  }
 };
 
 struct ElevatorSnapshot {
@@ -80,23 +82,21 @@ struct ElevatorSnapshot {
   int phaseSecondsRemaining{};
   EntityId activeRequestId{};
   std::vector<ElevatorRequestSnapshot> requests;
+  // Direction/count/counter fields are deterministic diagnostics derived from
+  // the HHGS 11 authoritative car/request state and are intentionally omitted
+  // from persistence equality.
   ElevatorDirection direction{ElevatorDirection::Idle};
   int onboardCount{};
   std::uint64_t completedTrips{};
-  std::int64_t cumulativeWaitSeconds{};
-  std::int64_t cumulativeRideSeconds{};
-  bool operator==(const ElevatorSnapshot &) const = default;
-};
-
-struct ElevatorTripSnapshot {
-  EntityId requestId{};
-  EntityId elevatorId{};
-  ElevatorKind kind{ElevatorKind::Passenger};
-  int pickupFloor{};
-  int destinationFloor{};
-  std::int64_t waitSeconds{};
-  std::int64_t rideSeconds{};
-  bool operator==(const ElevatorTripSnapshot &) const = default;
+  bool operator==(const ElevatorSnapshot &other) const noexcept {
+    return id == other.id && kind == other.kind && minFloor == other.minFloor &&
+           maxFloor == other.maxFloor && currentFloor == other.currentFloor &&
+           targetFloor == other.targetFloor && capacity == other.capacity &&
+           travelSecondsPerFloor == other.travelSecondsPerFloor &&
+           doorSeconds == other.doorSeconds && state == other.state &&
+           phaseSecondsRemaining == other.phaseSecondsRemaining &&
+           activeRequestId == other.activeRequestId && requests == other.requests;
+  }
 };
 
 struct ElevatorSpec {
@@ -114,7 +114,6 @@ struct BuildingSystemsSnapshot {
   std::vector<UtilityEdgeSnapshot> utilityEdges;
   std::vector<RoomSystemSnapshot> rooms;
   std::vector<ElevatorSnapshot> elevators;
-  std::vector<ElevatorTripSnapshot> completedElevatorTrips;
   bool operator==(const BuildingSystemsSnapshot &) const = default;
 };
 
