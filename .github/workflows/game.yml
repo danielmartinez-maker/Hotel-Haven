@@ -74,25 +74,13 @@ jobs:
         if: runner.os == 'Windows'
         run: cpack --config build/CPackConfig.cmake -C Release -B build/package
 
-      - name: Verify packaged cooked assets
+      - name: Verify complete release package integrity
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = Get-ChildItem build/package/*.zip | Select-Object -First 1
           if (-not $zip) { throw "Packaged Hotel Haven zip not found" }
-          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
-          try {
-            $assets = @($archive.Entries | Where-Object {
-              $_.FullName -match '(^|/)data/assets/HH_A\d{3}\.hasset$'
-            })
-            if ($assets.Count -ne 500) {
-              throw "Expected 500 packaged cooked assets; found $($assets.Count)"
-            }
-            Write-Host "Verified 500 cooked runtime assets in $($zip.Name)"
-          } finally {
-            $archive.Dispose()
-          }
+          python Tools/Release/verify_release_package.py $zip.FullName
 
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
