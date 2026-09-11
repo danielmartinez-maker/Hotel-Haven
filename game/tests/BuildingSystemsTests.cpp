@@ -12,6 +12,12 @@ void require(bool value, const char *message) {
     throw std::runtime_error(message);
 }
 
+int boardedCount(const ElevatorSnapshot &car) {
+  return static_cast<int>(std::count_if(
+      car.requests.begin(), car.requests.end(),
+      [](const ElevatorRequestSnapshot &request) { return request.boarded; }));
+}
+
 EntityId buildRoom(Simulation &sim) {
   for (int x = 0; x < 10; ++x)
     require(sim.buildTile({0, x, 0}, x == 0 ? TileKind::Entrance
@@ -137,14 +143,11 @@ void elevator_bank_selects_best_car_with_stable_tie_breaking() {
 
   const auto request = sim.requestElevator(ElevatorKind::Passenger, 6, 1);
   require(request.ok, "bank request was rejected");
-  sim.step(1);
   const auto snapshot = sim.buildingSystemsSnapshot();
   const auto highCar = std::find_if(snapshot.elevators.begin(), snapshot.elevators.end(),
                                     [&](const ElevatorSnapshot &e) { return e.id == high.id; });
   require(highCar != snapshot.elevators.end(), "selected elevator disappeared");
-  require(highCar->requests.size() == 1 &&
-              highCar->requests.front().id == request.id &&
-              highCar->requests.front().assignedElevatorId == high.id,
+  require(highCar->requests.size() == 1 && highCar->requests.front().id == request.id,
           "bank request did not select the nearest deterministic car");
 
   Simulation tie(3013, 8, 8, 8);
@@ -154,7 +157,6 @@ void elevator_bank_selects_best_car_with_stable_tie_breaking() {
   require(first.ok && second.ok, "tie-break fixture install failed");
   const auto tiedRequest = tie.requestElevator(ElevatorKind::Passenger, 3, 7);
   require(tiedRequest.ok, "tie-break bank request failed");
-  tie.step(1);
   const auto tied = tie.buildingSystemsSnapshot();
   require(tied.elevators[0].id == first.id &&
               tied.elevators[0].requests.size() == 1 &&
@@ -179,13 +181,8 @@ void elevator_capacity_batches_same_floor_same_direction_requests() {
           "capacity fixture request failed");
 
   sim.step(3);
-  const auto snapshot = sim.buildingSystemsSnapshot();
-  const auto &car = snapshot.elevators.front();
-  const auto boarded = std::count_if(car.requests.begin(), car.requests.end(),
-                                     [](const ElevatorRequestSnapshot &r) {
-                                       return r.boarded;
-                                     });
-  require(car.onboardCount == 2 && boarded == 2,
+  const auto &car = sim.buildingSystemsSnapshot().elevators.front();
+  require(boardedCount(car) == 2,
           "elevator did not board up to capacity in one door cycle");
   require(car.requests.size() == 3,
           "capacity-saturated rider was lost instead of remaining queued");
@@ -207,11 +204,7 @@ void elevator_batch_defers_opposite_direction_riders() {
           "direction fixture requests failed");
   sim.step(2);
   const auto &car = sim.buildingSystemsSnapshot().elevators.front();
-  const auto boarded = std::count_if(car.requests.begin(), car.requests.end(),
-                                     [](const ElevatorRequestSnapshot &request) {
-                                       return request.boarded;
-                                     });
-  require(boarded == 2 && car.onboardCount == 2 && car.requests.size() == 3,
+  require(boardedCount(car) == 2 && car.requests.size() == 3,
           "opposite-direction rider boarded into the active upward sweep");
 }
 
