@@ -63,3 +63,34 @@ TEST_CASE("Zero-sized filtered operations windows materialize no rows") {
     const auto page = dashboard.filteredWindow(OperationArea::Housekeeping, 0, 0);
     EXPECT_TRUE(page.empty());
 }
+
+TEST_CASE("Operations filter matrix uses only authoritative row fields") {
+    OperationsSnapshot source;
+    source.rows = {
+        {11, OperationArea::Housekeeping, "Room turnover", "Blocked", 4,
+         "HK_NO_LINEN", 0, 501, 101, 2, 7, 9},
+        {12, OperationArea::Housekeeping, "Room turnover", "Working", 2,
+         "", 0, 502, 102, 2, 8, 9},
+        {13, OperationArea::Engineering, "Repair", "Blocked", 5,
+         "AWAITING_PART", 0, 501, 103, 1, 7, 9}
+    };
+    OperationsDashboard dashboard;
+    dashboard.update(source);
+
+    OperationsFilter filter;
+    filter.area = OperationArea::Housekeeping;
+    filter.taskType = "Room turnover";
+    filter.minimumPriority = 3;
+    filter.state = "Blocked";
+    filter.reasonCode = "HK_NO_LINEN";
+    filter.assigneeId = 501;
+    filter.floor = 2;
+    filter.x = 7;
+    filter.y = 9;
+
+    EXPECT_EQ(dashboard.filteredCount(filter), static_cast<std::size_t>(1));
+    const auto page = dashboard.filteredWindow(filter, 0, 8);
+    EXPECT_EQ(page.size(), static_cast<std::size_t>(1));
+    EXPECT_EQ(page.front().id, static_cast<EntityId>(11));
+    EXPECT_EQ(source.rows[0].id, static_cast<EntityId>(11));
+}
