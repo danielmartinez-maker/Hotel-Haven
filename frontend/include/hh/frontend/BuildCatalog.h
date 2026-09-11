@@ -15,7 +15,11 @@ private: std::vector<BuildCatalogItem> items_;
 };
 class BuildToolController {
 public:
-    void selectItem(std::string itemId) { selectedItemId_ = std::move(itemId); }
+    void selectItem(std::string itemId) {
+        if (itemId != selectedItemId_)
+            preview_ = {};
+        selectedItemId_ = std::move(itemId);
+    }
     [[nodiscard]] const std::string& selectedItem() const noexcept { return selectedItemId_; }
     void applyAuthoritativePreview(const BuildPlacementPreview& preview) { preview_ = preview; }
     [[nodiscard]] bool canConfirm() const noexcept { return preview_.valid && !preview_.itemId.empty(); }
