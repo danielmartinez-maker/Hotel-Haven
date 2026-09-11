@@ -1,0 +1,17 @@
+name: FINAL-10 Release Integrity CI
+
+on:
+  pull_request:
+    paths:
+      - 'Tools/Release/**'
+      - '.github/workflows/final10-release-integrity-ci.yml'
+      - '.github/workflows/game.yml'
+  workflow_dispatch:
+
+jobs:
+  package-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run release package integrity tests
+        run: python -m unittest discover -s Tools/Release/tests -p 'test_*.py' -v
