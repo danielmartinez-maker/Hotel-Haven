@@ -19,7 +19,9 @@ std::optional<UiCommand> EconomyDashboard::adjustPricingRuleCommand(std::size_t 
 }
 std::optional<UiCommand> EconomyDashboard::adjustOverbookingCommand(std::size_t index, int delta) const {
     if (index >= snapshot_.overbookingPolicies.size()) return std::nullopt;
-    const auto allowance = snapshot_.overbookingPolicies[index].allowance;
+    const auto& policy = snapshot_.overbookingPolicies[index];
+    if (policy.roomCategory != "standard") return std::nullopt;
+    const auto allowance = policy.allowance;
     if ((delta > 0 && allowance > std::numeric_limits<int>::max() - delta) ||
         (delta < 0 && allowance < std::numeric_limits<int>::min() - delta)) return std::nullopt;
     const int adjusted = allowance + delta;
