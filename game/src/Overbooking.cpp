@@ -55,19 +55,21 @@ int OverbookingSystem::allowance(std::string_view category, int day,
 
 RecoveryDecision OverbookingSystem::chooseRecovery(const RecoveryContext &context) const {
   if (context.categoryEquivalentAvailable)
-    return {RecoveryAction::CategoryEquivalentRoom, 0, "CATEGORY_EQUIVALENT_ROOM"};
+    return {RecoveryAction::CategoryEquivalentRoom, 0, "CATEGORY_EQUIVALENT_ROOM",
+            false, ""};
   if (context.freeUpgradeAvailable)
-    return {RecoveryAction::FreeUpgrade, 0, "FREE_UPGRADE"};
+    return {RecoveryAction::FreeUpgrade, 0, "FREE_UPGRADE", false, ""};
   if (context.paidUpgradeAvailable && context.guestAcceptsPaidUpgrade)
-    return {RecoveryAction::PaidUpgrade, 0, "PAID_UPGRADE_ACCEPTED"};
+    return {RecoveryAction::PaidUpgrade, 0, "PAID_UPGRADE_ACCEPTED", false, ""};
   if (context.accelerationFeasible)
-    return {RecoveryAction::AccelerateRoomRecovery, 0, "ACCELERATE_OWNING_SYSTEM"};
+    return {RecoveryAction::AccelerateRoomRecovery, 0, "ACCELERATE_OWNING_SYSTEM",
+            false, ""};
   if (context.competitorRelocationAvailable) {
     const auto it = policies_.find(context.roomCategory);
     const auto compensation =
         it == policies_.end() ? 0 : it->second.relocationCompensationCents;
     return {RecoveryAction::CompetitorRelocation, compensation,
-            "COMPETITOR_RELOCATION_AND_COMPENSATION"};
+            "COMPETITOR_RELOCATION_AND_COMPENSATION", false, ""};
   }
   return {RecoveryAction::Unresolved, 0, "NO_FEASIBLE_RECOVERY", true,
           "OVERBOOKING_UNRESOLVED_SEVERE"};

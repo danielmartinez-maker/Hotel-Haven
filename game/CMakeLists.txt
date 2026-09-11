@@ -13,6 +13,7 @@ add_library(hh_game
   src/Events.cpp
   src/Amenities.cpp
   src/MarketDemand.cpp
+  src/MarketDemandDefinitions.cpp
   src/MarketDemandPersistence.cpp
   src/RevenueInventory.cpp
   src/RevenueManagement.cpp
@@ -22,6 +23,7 @@ add_library(hh_game
   src/CommercialDemand.cpp
   src/CommercialDemandProfile.cpp
   src/EconomyRuntime.cpp
+  src/EconomyRuntimeDefinitions.cpp
   src/EconomyRuntimeBridge.cpp
   src/EconomyDiagnostics.cpp
 )

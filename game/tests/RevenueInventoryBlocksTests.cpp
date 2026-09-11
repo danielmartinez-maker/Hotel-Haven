@@ -51,7 +51,7 @@ int main() {
   require(snapshot.inventoryBlocks.size() == 2,
           "inventory snapshot omitted active owner/scenario blocks");
   const auto saved = inventory.save();
-  const auto restored = RevenueInventory::load(saved);
+  auto restored = RevenueInventory::load(saved);
   require(restored.save() == saved, "inventory blocks did not round-trip");
   require(restored.snapshot() == snapshot,
           "inventory block state changed across save/load");
