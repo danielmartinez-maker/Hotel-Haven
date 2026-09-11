@@ -138,16 +138,50 @@ int main() {
     require(hasDifferentDiagnosticColor(scene, heatmap),
             "cleanliness heatmap has no diagnostic colors");
 
+    // The tutorial starts at 14:00 before its first simulation step, so its
+    // staff remain OffDuty and no guest/task samples exist yet. Exercise the
+    // renderer seam with explicit snapshot data instead of assuming unavailable
+    // authority exists at campaign creation.
+    auto diagnosticSnapshot = snapshot;
+    hh::game::PersonView guest;
+    guest.id = 900001;
+    guest.name = "Overlay guest";
+    guest.kind = hh::game::PersonKind::Guest;
+    guest.state = hh::game::PersonState::Waiting;
+    guest.position = {0, 1, 8};
+    guest.satisfaction = 20.0;
+    guest.queueWaitSeconds = 300;
+    diagnosticSnapshot.people.push_back(guest);
+
+    hh::game::PersonView employee;
+    employee.id = 900002;
+    employee.name = "Overlay employee";
+    employee.kind = hh::game::PersonKind::Housekeeper;
+    employee.state = hh::game::PersonState::Working;
+    employee.position = {0, 3, 8};
+    employee.onShift = true;
+    diagnosticSnapshot.people.push_back(employee);
+
+    hh::game::TaskView task;
+    task.id = 900003;
+    task.kind = hh::game::TaskKind::Turnover;
+    task.status = hh::game::TaskStatus::Blocked;
+    task.targetId = diagnosticSnapshot.rooms.front().id;
+    task.target = diagnosticSnapshot.rooms.front().door;
+    diagnosticSnapshot.tasks.push_back(task);
+
+    options.overlay = Overlay::Natural;
+    const auto diagnosticBaseline = worldScene(diagnosticSnapshot, options, &assets);
     for (const auto mode : std::array{
              Overlay::GuestSatisfaction, Overlay::StaffUtilization,
              Overlay::QueueWait, Overlay::OpenTaskDensity}) {
       options.overlay = mode;
-      const auto diagnostic = worldScene(snapshot, options, &assets);
-      require(diagnostic.items.size() == scene.items.size(),
+      const auto diagnostic = worldScene(diagnosticSnapshot, options, &assets);
+      require(diagnostic.items.size() == diagnosticBaseline.items.size(),
               "management overlay changed procedural geometry");
-      require(diagnostic.meshes.size() == scene.meshes.size(),
+      require(diagnostic.meshes.size() == diagnosticBaseline.meshes.size(),
               "management overlay changed asset-backed geometry");
-      require(hasDifferentDiagnosticColor(scene, diagnostic),
+      require(hasDifferentDiagnosticColor(diagnosticBaseline, diagnostic),
               "available management overlay has no world diagnostic colors");
     }
 
