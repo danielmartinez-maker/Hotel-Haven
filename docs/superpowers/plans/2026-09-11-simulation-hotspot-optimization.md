@@ -54,4 +54,4 @@
 - [x] Run save/load round trips, the 365-day deterministic campaign, the existing stress scenarios, and memory/RSS checks.
 - [x] Update `docs/performance/baseline-2026-09-10.json` only if the benchmark schema supports the new evidence; otherwise add a dated comparison artifact without rewriting prior baseline data.
 - [x] Update `docs/reports/2026-09-10-hotel-haven-optimization-debugging-report.md` with confirmed measurements, limitations, files changed, exact final commands, and unresolved risks.
-- [ ] Review `git diff`, confirm no tests or assertions were weakened, commit the coherent milestone, mirror it to PR #24 through GitHub, and poll GitHub CI without merging.
+- [x] Review `git diff`, confirm no tests or assertions were weakened, commit the coherent milestone, mirror it to PR #24 through GitHub, and poll GitHub CI without merging.
