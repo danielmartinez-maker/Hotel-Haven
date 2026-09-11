@@ -22,7 +22,7 @@ public:
     }
     [[nodiscard]] const std::string& selectedItem() const noexcept { return selectedItemId_; }
     void applyAuthoritativePreview(const BuildPlacementPreview& preview) { preview_ = preview; }
-    [[nodiscard]] bool canConfirm() const noexcept { return preview_.valid && !preview_.itemId.empty(); }
+    [[nodiscard]] bool canConfirm() const noexcept { return preview_.valid && !selectedItemId_.empty() && preview_.itemId == selectedItemId_; }
     [[nodiscard]] const std::string& rejectionCode() const noexcept { return preview_.reasonCode; }
     [[nodiscard]] const std::string& rejectionText() const noexcept { return preview_.reasonText; }
     [[nodiscard]] const BuildPlacementPreview& preview() const noexcept { return preview_; }
