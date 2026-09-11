@@ -22,3 +22,41 @@ TEST_CASE("Revenue controls emit typed FINAL-06 commands") {
     dashboard.applyCommandResult({false, "RATE_RULE_CONTRACTED", "Contracted rate is protected"});
     EXPECT_EQ(dashboard.lastRejectionCode(), std::string("RATE_RULE_CONTRACTED"));
 }
+
+TEST_CASE("Finance adjustments derive only from authoritative rule snapshots") {
+    EconomySnapshot snapshot;
+    snapshot.pricingRules.push_back({7, 21, 23, "deluxe", 18'999});
+    snapshot.overbookingPolicies.push_back({"standard", 2, 45'000, 20, 40});
+
+    EconomyDashboard dashboard;
+    dashboard.update(snapshot);
+
+    const auto rate = dashboard.adjustPricingRuleCommand(0, 1'000);
+    EXPECT_TRUE(rate.has_value());
+    EXPECT_EQ(rate->type, UiCommandType::SetFutureRate);
+    EXPECT_EQ(rate->integerValue, static_cast<std::int64_t>(19'999));
+    EXPECT_EQ(rate->secondaryIntegerValue, static_cast<std::int64_t>(21));
+    EXPECT_EQ(rate->textValue, std::string("deluxe"));
+
+    const auto overbooking = dashboard.adjustOverbookingCommand(0, -1);
+    EXPECT_TRUE(overbooking.has_value());
+    EXPECT_EQ(overbooking->type, UiCommandType::SetOverbookingPolicy);
+    EXPECT_EQ(overbooking->integerValue, static_cast<std::int64_t>(1));
+}
+
+TEST_CASE("Finance adjustments reject invalid indexes and numeric boundaries") {
+    EconomySnapshot snapshot;
+    snapshot.pricingRules.push_back(
+        {8, 4, 4, "suite", std::numeric_limits<std::int64_t>::max()});
+    snapshot.overbookingPolicies.push_back({"standard", 0, 0, 0, 10});
+
+    EconomyDashboard dashboard;
+    dashboard.update(snapshot);
+
+    EXPECT_FALSE(dashboard.adjustPricingRuleCommand(1, 100).has_value());
+    EXPECT_FALSE(dashboard.adjustPricingRuleCommand(0, 1).has_value());
+    EXPECT_FALSE(dashboard.adjustPricingRuleCommand(0,
+                 -std::numeric_limits<std::int64_t>::max()).has_value());
+    EXPECT_FALSE(dashboard.adjustOverbookingCommand(1, 1).has_value());
+    EXPECT_FALSE(dashboard.adjustOverbookingCommand(0, -1).has_value());
+}
