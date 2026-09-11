@@ -1,6 +1,6 @@
 # Hotel Haven Elevator Bank Dispatch Design
 
-**Status:** Approved 2026-09-10
+**Status:** Approved and implemented 2026-09-10
 
 ## Goal
 
@@ -8,7 +8,7 @@ Extend FINAL-01's existing authoritative building/elevator model into determinis
 
 ## Existing seam
 
-FINAL-01 already owns `ElevatorKind`, `ElevatorState`, `ElevatorSpec`, `ElevatorSnapshot`, request persistence, car timing, floor ranges, construction/accessibility state, and one-second simulation ticks. The current `tickElevator()` selects the smallest request ID and serves that request alone; car capacity is not used for batching and cars do not coordinate.
+FINAL-01 already owns `ElevatorKind`, `ElevatorState`, `ElevatorSpec`, `ElevatorSnapshot`, request persistence, car timing, floor ranges, construction/accessibility state, and one-second simulation ticks. The baseline `tickElevator()` selected the smallest request ID and served that request alone; car capacity was not used for batching and cars did not coordinate.
 
 ## Authority and boundaries
 
@@ -16,22 +16,10 @@ FINAL-01 already owns `ElevatorKind`, `ElevatorState`, `ElevatorSpec`, `Elevator
 - HMG-020 remains authoritative for shaft/landing/accessibility rules.
 - Elevators never count as fire egress.
 - Existing direct `requestElevator(elevatorId, ...)` remains supported for compatibility and explicit-car diagnostics/tests.
-- New bank requests select an `ElevatorKind` rather than a car. They are deterministically assigned to one compatible installed car.
+- New bank requests use `requestElevator(ElevatorKind, pickupFloor, destinationFloor)` and deterministically select one compatible installed car.
 - Rendering remains snapshot-driven and non-authoritative.
-- No speculative escalator, destination-control UI, or physical passenger animation system is added.
-
-## Request model
-
-`ElevatorRequestSnapshot` gains:
-
-- `requestedAtSeconds`: authoritative request timestamp.
-- `assignedElevatorId`: selected car ID; zero only before bank assignment.
-- `boardedAtSeconds`: zero until boarding.
-- `completedAtSeconds`: zero until alighting/removal from the active queue.
-
-`boarded` remains for backward-readable state and explicit state inspection.
-
-`BuildingSystemsSnapshot` gains bounded completed-trip diagnostics rather than retaining an unbounded active-request history. A completed trip records request ID, elevator ID, pickup/destination floors, request/board/complete timestamps, derived wait seconds and ride seconds.
+- Guest/staff pathfinding is not automatically routed through elevator calls in this scope. This subsystem supplies deterministic car/request behavior for that later integration.
+- No escalator, destination-control UI, or physical passenger animation system is added.
 
 ## Deterministic bank assignment
 
@@ -41,74 +29,67 @@ A bank request is eligible for a car only when:
 2. pickup and destination are within the car's served floor range;
 3. the request is non-degenerate (`pickup != destination`).
 
-Each compatible car receives an integer ETA score computed only from authoritative snapshot state:
+Each compatible car receives an integer ETA derived only from authoritative snapshot state:
 
-- seconds remaining in the current phase;
-- floor-distance travel time from the car's projected service end to the new pickup;
-- door-cycle cost for stops already committed ahead of the request;
-- queued compatible pickup batching credit when the car will naturally pass/stop at the pickup in its current direction.
+- current phase seconds remaining;
+- travel time from current/projected target floor to the requested pickup;
+- a deterministic door-cycle charge for already queued requests.
 
-Selection key is `(etaSeconds, queuedRequestCount, elevatorId)`. No RNG, wall-clock time, floating-point comparison, or container iteration order participates in dispatch.
+Selection key is `(etaSeconds, queuedRequestCount, elevatorId)`. No RNG, wall-clock time, floating-point comparison, or unordered-container iteration order participates in dispatch.
 
-## Capacity and batching
+## Capacity and directional batching
 
-A car may carry at most `capacity` boarded requests. At a boarding stop it boards the oldest compatible waiting requests for that floor, ordered by `(requestedAtSeconds, requestId)`, up to available capacity.
+A car may carry at most `capacity` boarded requests. At a boarding stop it collects waiting requests for the same pickup floor and active direction in stable request-ID order until capacity is exhausted.
 
-A compatible request is one whose destination continues in the active travel direction. When a car is empty, the oldest boarded/boarding request establishes direction. Requests requiring the opposite direction remain queued for a later sweep.
-
-Multiple riders with the same pickup/direction may therefore share one door cycle. Multiple onboard riders with the same destination alight in the same door cycle.
+The first waiting request establishes the sweep direction. Same-floor requests whose destinations continue in that direction may share the door cycle. Opposite-direction requests remain waiting for a later sweep. Multiple onboard riders sharing a destination alight in the same door cycle.
 
 ## Car state machine
 
-Keep the existing public states (`Idle`, `MovingToPickup`, `Boarding`, `MovingToDestination`, `Alighting`) to preserve compatibility. Internally, each transition chooses the next deterministic stop from assigned requests:
+The existing public states remain unchanged: `Idle`, `MovingToPickup`, `Boarding`, `MovingToDestination`, `Alighting`.
 
-- Idle: select the oldest assigned waiting request and travel to its pickup.
-- Boarding: board every capacity-compatible request at this floor; then select the nearest destination in the active direction.
-- MovingToDestination: arrive at the selected destination.
-- Alighting: complete every onboard request for this floor; then continue the current directional sweep if possible, otherwise reverse/serve the oldest remaining assigned request.
+- Idle: select the oldest waiting request and travel to its pickup.
+- Boarding: batch compatible riders up to capacity and choose the nearest onboard destination in the current direction.
+- MovingToDestination: travel using the existing integer `travelSecondsPerFloor` timing.
+- Alighting: remove all onboard requests for the current floor in one door cycle; continue the sweep if riders remain, otherwise service the oldest waiting request.
 
-Movement stays floor-discrete with `travelSecondsPerFloor`; doors remain `doorSeconds`.
+Doors continue to use `doorSeconds`. Car movement remains floor-discrete and simulation-authoritative.
 
-## Diagnostics
+## Live diagnostics
 
-`BuildingSystemsSnapshot` exposes per-car queue depth, onboard count, total completed trips, cumulative wait seconds, and cumulative ride seconds. Derived average values are computed by UI/diagnostics rather than stored as floating-point authority.
+The immutable elevator snapshot exposes derived `direction`, `onboardCount`, and per-request `assignedElevatorId`. Queue depth is the active request-vector size. These fields are diagnostic views of existing authoritative HHGS 11 car/request state; they do not create a second persistence authority.
 
-Completed-trip history is bounded to the newest 128 entries so long-running hotels do not accumulate transport diagnostics indefinitely.
+Historical wait/ride telemetry is intentionally deferred. Adding behavior-irrelevant historical state would require a save-format migration without improving dispatch correctness.
 
 ## Save compatibility
 
-Bump the save format from HHGS 11 to HHGS 12.
+The implementation deliberately keeps **HHGS 11** unchanged.
 
-- HHGS 12 serializes all new request timestamps/assignment data and per-car/bounded-trip metrics.
-- HHGS 2-11 continue to load.
-- Legacy FINAL-01 elevator requests are treated as directly assigned to their containing elevator.
-- Legacy requests receive deterministic timestamps based on load-time simulation elapsed seconds and stable request-ID order; this migration changes no RNG state.
-- Save/load in the middle of movement, boarding, or alighting must produce byte-identical continuation to an uninterrupted simulation.
+The existing save already persists every behavior-critical dispatch field: containing elevator/car identity, floor range, current/target floors, capacity, travel/door timing, public state, phase time, active request ID, each request's pickup/destination, and whether it has boarded. `assignedElevatorId`, direction, and onboard count are reconstructed deterministically from that state.
 
-## Validation
+This avoids an unnecessary HHGS 12 migration and preserves FINAL-01's existing v2-v11 loading behavior. A dedicated regression saves during a two-rider trip, reloads, continues both simulations, and requires byte-identical final saves plus equal authoritative building-system snapshots.
 
-Load-time validation rejects:
+## Validation and rejection
 
-- request references to the wrong/nonexistent elevator;
-- timestamp ordering violations;
-- boarded requests exceeding car capacity;
-- boarded requests outside served floors;
-- impossible active request references;
-- negative counters or cumulative times;
-- duplicate IDs across active and completed trip records.
+Bank commands reject:
 
-## Tests
+- invalid elevator kind;
+- pickup equal to destination;
+- floors not jointly served by a compatible car;
+- absence of a passenger/service car of the requested kind.
 
-RED->GREEN tests cover:
+Existing FINAL-01 load validation remains authoritative for saved elevator ranges, state enum, timing, request floors, active request references and entity-ID uniqueness.
 
-1. capacity saturation and deferred riders;
-2. same-floor/same-direction batching;
-3. deterministic selection between multiple cars;
-4. stable car-ID tie breaking;
-5. passenger/service bank isolation;
-6. out-of-range/no-compatible-car rejection;
-7. wait/ride diagnostics;
-8. bounded completed-trip history;
-9. mid-trip save/load deterministic continuation;
-10. legacy HHGS 11 migration;
-11. sustained burst/soak dispatch invariants.
+## Verification contracts
+
+Tests cover:
+
+1. deterministic nearest-car assignment;
+2. stable `(ETA, queue depth, elevator ID)` tie breaking;
+3. capacity saturation with deferred riders;
+4. same-floor/same-direction batching;
+5. opposite-direction deferral;
+6. passenger/service bank isolation;
+7. degenerate/unserved request rejection;
+8. mid-trip HHGS 11 save/load continuation;
+9. same-seed deterministic behavior;
+10. a four-car, sixteen-floor, 400-request burst followed by a 20,000-second drain soak with continuous capacity checks and byte-identical same-seed final saves.
