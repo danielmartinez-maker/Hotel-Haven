@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hh/frontend/GameUiTypes.h"
 #include <array>
 #include <string_view>
 
@@ -27,6 +28,30 @@ enum class FinanceView {
   Controls,
   Risk
 };
+
+enum class ClientUiIntent {
+  None,
+  FocusPrevious,
+  FocusNext,
+  Activate,
+  Cancel,
+  HudCommand
+};
+
+[[nodiscard]] constexpr ClientUiIntent
+clientUiIntent(hh::frontend::UiAction action) noexcept {
+  using hh::frontend::UiAction;
+  switch (action) {
+  case UiAction::NavigatePrevious: return ClientUiIntent::FocusPrevious;
+  case UiAction::NavigateNext: return ClientUiIntent::FocusNext;
+  case UiAction::Activate: return ClientUiIntent::Activate;
+  case UiAction::Cancel: return ClientUiIntent::Cancel;
+  case UiAction::SpeedDown:
+  case UiAction::SpeedUp:
+  case UiAction::PauseToggle: return ClientUiIntent::HudCommand;
+  }
+  return ClientUiIntent::None;
+}
 
 inline constexpr std::array<int, 5> Final07SpeedButtons{0, 1, 2, 4, 8};
 inline constexpr std::array<std::string_view, 12> Final07PageLabels{
