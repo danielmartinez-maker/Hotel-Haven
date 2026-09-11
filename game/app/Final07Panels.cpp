@@ -441,11 +441,11 @@ void Client::paint(HDC output) {
         label(L"Days", std::to_wstring(rule.startDay) + L"–" + std::to_wstring(rule.endDay));
         label(L"Rate", money(rule.rateCents));
         if (y + 38 < bottom) {
-          button(left, y, 151, 32, L"Rate − $5", [this] {
+          button(left, y, 151, 32, L"Rate − $5", [this, dispatchFinance] {
             dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, -500),
                             L"This pricing rule cannot be reduced safely.");
           });
-          button(left + 163, y, 151, 32, L"Rate + $5", [this] {
+          button(left + 163, y, 151, 32, L"Rate + $5", [this, dispatchFinance] {
             dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, 500),
                             L"This pricing rule cannot be increased safely.");
           });
@@ -468,11 +468,11 @@ void Client::paint(HDC output) {
         label(L"Relocation", money(policy.relocationCompensationCents));
         label(L"Days", std::to_wstring(policy.startDay) + L"–" + std::to_wstring(policy.endDay));
         if (policy.roomCategory == "standard" && y + 38 < bottom) {
-          button(left, y, 151, 32, L"Allowance − 1", [this] {
+          button(left, y, 151, 32, L"Allowance − 1", [this, dispatchFinance] {
             dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, -1),
                             L"Overbooking allowance cannot be reduced further.");
           });
-          button(left + 163, y, 151, 32, L"Allowance + 1", [this] {
+          button(left + 163, y, 151, 32, L"Allowance + 1", [this, dispatchFinance] {
             dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, 1),
                             L"Overbooking allowance cannot be increased safely.");
           });
