@@ -1,5 +1,6 @@
 #include "hh/frontend/AlertCenter.h"
 #include <algorithm>
+#include <unordered_map>
 #include <unordered_set>
 namespace hh::frontend {
 void AlertCenter::ingest(const std::vector<AlertSnapshot>& alerts) {
@@ -19,27 +20,43 @@ void AlertCenter::ingest(const std::vector<AlertSnapshot>& alerts) {
         pruneResolvedHistory();
     };
 
-    std::unordered_set<std::uint64_t> incomingIds;
-    incomingIds.reserve(alerts.size());
-    for (const auto& alert : alerts) incomingIds.insert(alert.id);
+    std::unordered_set<std::uint64_t> currentIds;
+    std::unordered_set<std::uint64_t> explicitResolvedIds;
+    currentIds.reserve(alerts.size());
+    explicitResolvedIds.reserve(alerts.size());
+    for (const auto& alert : alerts) {
+        if (alert.resolved)
+            explicitResolvedIds.insert(alert.id);
+        else
+            currentIds.insert(alert.id);
+    }
 
     std::vector<AlertSnapshot> disappeared;
     for (const auto& active : active_) {
-        if (!incomingIds.contains(active.id)) disappeared.push_back(active);
+        if (!currentIds.contains(active.id) && !explicitResolvedIds.contains(active.id))
+            disappeared.push_back(active);
     }
-    if (!disappeared.empty()) {
-        active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return !incomingIds.contains(row.id); }), active_.end());
-        for (auto& alert : disappeared) storeResolved(std::move(alert));
-    }
+    active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return !currentIds.contains(row.id); }), active_.end());
+    for (auto& alert : disappeared)
+        storeResolved(std::move(alert));
+
+    std::unordered_map<std::uint64_t, std::size_t> activeIndex;
+    activeIndex.reserve(active_.size() + alerts.size());
+    for (std::size_t index = 0; index < active_.size(); ++index)
+        activeIndex.emplace(active_[index].id, index);
 
     for (const auto& alert : alerts) {
         if (alert.resolved) {
-            active_.erase(std::remove_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; }), active_.end());
             storeResolved(alert);
+            continue;
+        }
+        known_[alert.id] = alert;
+        const auto existing = activeIndex.find(alert.id);
+        if (existing == activeIndex.end()) {
+            activeIndex.emplace(alert.id, active_.size());
+            active_.push_back(alert);
         } else {
-            known_[alert.id] = alert;
-            const auto existing = std::find_if(active_.begin(), active_.end(), [&](const AlertSnapshot& row) { return row.id == alert.id; });
-            if (existing == active_.end()) active_.push_back(alert); else *existing = alert;
+            active_[existing->second] = alert;
         }
     }
 }
