@@ -37,6 +37,13 @@ inline constexpr std::array<std::string_view, 5> Final07FinanceViewLabels{
     "Overview", "Revenue", "Market", "Controls", "Risk"};
 inline constexpr std::array<int, 5> Final07UiScales{90, 100, 110, 125, 150};
 
+[[nodiscard]] constexpr bool
+shouldRefreshClientSnapshot(bool firstFrame, int simulationSpeed,
+                            double elapsedSinceRefreshSeconds) noexcept {
+  return firstFrame ||
+         (simulationSpeed > 0 && elapsedSinceRefreshSeconds >= 0.100);
+}
+
 struct Final07Layout {
   int headerPixels{};
   int footerPixels{};
