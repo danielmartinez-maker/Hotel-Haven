@@ -1,4 +1,5 @@
 #include "GameUiBridge.h"
+#include "LiveBuildCatalog.h"
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
@@ -26,7 +27,8 @@ int main() {
     context.activeFloor = 0;
     context.cutaway = true;
     context.currentTool = "Inspect";
-    const auto source = hh::client::makeGameUiSnapshotSource(simulation, context);
+    auto source = hh::client::makeGameUiSnapshotSource(simulation, context);
+    hh::client::attachLiveBuildCatalog(source);
     const auto view = simulation.view();
     require(source.hud.cashCents == view.economy.cashCents, "HUD cash was not snapshot-bound");
     require(source.hud.day == view.day && source.hud.hour == view.hour, "HUD clock was not snapshot-bound");
