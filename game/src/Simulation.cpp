@@ -896,6 +896,7 @@ struct Simulation::Impl {
     }
     job->state = BuildJobState::Completed;
     job->blockedReason.clear();
+    job->taskId = 0;
   }
 
   void hourlyBookings(int day, int hour) {
@@ -2070,6 +2071,7 @@ CommandResult Simulation::cancelBuild(EntityId jobId) {
     impl_->economy.cashCents += job->reservedCashCents;
     impl_->economy.constructionCostCents -= job->reservedCashCents;
   }
+  job->taskId = 0;
   job->state = BuildJobState::Cancelled;
   return {true, "Build job cancelled", jobId};
 }
