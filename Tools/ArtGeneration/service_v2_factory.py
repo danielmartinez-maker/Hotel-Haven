@@ -41,6 +41,21 @@ def _semantic_mop_bucket(mat: str) -> trimesh.Scene:
     return scene
 
 
+def _semantic_ladder(name: str, mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    h = 1.65 if 'Portable' in name else 1.20
+    w = 0.48
+    for i, x in enumerate((-w / 2, w / 2)):
+        node = 'PrimaryRail' if i == 0 else 'Rail_1'
+        legacy_add(scene, legacy_box((0.045, 0.05, h), (x, 0, h / 2), mat), node)
+    step_start = 0.20
+    step_end = h - 0.18
+    for i in range(6):
+        z = step_start + (step_end - step_start) * i / 5
+        legacy_add(scene, legacy_box((w, 0.12, 0.045), (0, 0, z), mat), f'Step_{i}')
+    return scene
+
+
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
     if any(k in name for k in ('Cart', 'Trolley', 'Hand Truck')):
         return cart(name, mat)
@@ -50,6 +65,8 @@ def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: s
         return _semantic_caddy(mat)
     if 'Mop Bucket' in name:
         return _semantic_mop_bucket(mat)
+    if 'Ladder' in name:
+        return _semantic_ladder(name, mat)
     scene = build_legacy_service(name, mat)
     names = set(scene.graph.nodes_geometry)
     if len(scene.geometry) < 2 or names == {'Body'}:
