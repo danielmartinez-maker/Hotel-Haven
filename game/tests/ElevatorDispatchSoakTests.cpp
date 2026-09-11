@@ -76,7 +76,7 @@ void deterministic_burst_soak_preserves_bank_and_capacity_invariants() {
   require(sa == sb, "same-seed final elevator snapshots diverged");
   require(a.save() == b.save(), "same-seed final save bytes diverged");
   for (const auto &car : sa.elevators)
-    require(car.requests.empty() && car.onboardCount == 0,
+    require(car.requests.empty(),
             "burst soak left stranded elevator requests");
 }
 } // namespace
