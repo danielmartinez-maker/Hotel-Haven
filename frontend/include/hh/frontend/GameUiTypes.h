@@ -72,6 +72,7 @@ struct OverlaySnapshot {
 struct OperationRow {
     EntityId id{}; OperationArea area{OperationArea::Staffing}; std::string name; std::string state;
     int priority{}; std::string reasonCode; std::int64_t ageSeconds{};
+    EntityId assigneeId{}; EntityId targetId{}; int targetFloor{}; int targetX{}; int targetY{};
 };
 struct OperationsSnapshot {
     std::vector<OperationRow> rows; int scheduledStaff{}; int activeStaff{}; int fatiguedStaff{};
