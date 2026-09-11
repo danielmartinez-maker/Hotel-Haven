@@ -91,6 +91,7 @@ struct Client {
   hh::frontend::AlertCenter alertCenter{200};
   hh::frontend::ObjectiveUi objectiveUi;
   hh::frontend::OperationsDashboard operationsDashboard;
+  hh::frontend::OperationSort operationsSort{hh::frontend::OperationSort::SchedulerOrder};
   hh::frontend::EconomyDashboard economyDashboard;
   hh::frontend::UiSettings uiSettings;
   hh::frontend::BuildPlacementPreview buildPreview;
