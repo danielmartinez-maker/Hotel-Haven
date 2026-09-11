@@ -168,15 +168,23 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
       rendererOverlay = Overlay::Condition;
       break;
     case OverlayId::GuestSatisfaction:
+      rendererOverlay = Overlay::GuestSatisfaction;
+      break;
+    case OverlayId::OpenTaskDensity:
+      rendererOverlay = Overlay::OpenTaskDensity;
+      break;
+    case OverlayId::StaffUtilization:
+      rendererOverlay = Overlay::StaffUtilization;
+      break;
+    case OverlayId::QueueWait:
+      rendererOverlay = Overlay::QueueWait;
+      break;
     case OverlayId::GuestTraffic:
     case OverlayId::StaffTraffic:
     case OverlayId::Noise:
     case OverlayId::Temperature:
     case OverlayId::ElectricalLoad:
     case OverlayId::WaterDemand:
-    case OverlayId::OpenTaskDensity:
-    case OverlayId::StaffUtilization:
-    case OverlayId::QueueWait:
     case OverlayId::ElevatorCongestion:
     case OverlayId::FireSafety:
     case OverlayId::SecurityCoverage:
