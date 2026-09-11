@@ -1,4 +1,5 @@
 #include "InGameUiContract.h"
+#include "hh/frontend/GameUiTypes.h"
 
 #include <array>
 #include <iostream>
@@ -40,6 +41,22 @@ int main() {
             "running simulation must refresh at the 100 ms boundary");
     require(hh::client::shouldRefreshClientSnapshot(false, 8, 0.250),
             "accelerated simulation must continue publishing snapshots");
+
+    using hh::client::ClientUiIntent;
+    using hh::client::clientUiIntent;
+    using hh::frontend::UiAction;
+    require(clientUiIntent(UiAction::NavigatePrevious) == ClientUiIntent::FocusPrevious,
+            "remapped previous action must route to previous focus");
+    require(clientUiIntent(UiAction::NavigateNext) == ClientUiIntent::FocusNext,
+            "remapped next action must route to next focus");
+    require(clientUiIntent(UiAction::Activate) == ClientUiIntent::Activate,
+            "remapped activate action must route to activation");
+    require(clientUiIntent(UiAction::Cancel) == ClientUiIntent::Cancel,
+            "remapped cancel action must route to cancellation");
+    require(clientUiIntent(UiAction::SpeedDown) == ClientUiIntent::HudCommand &&
+                clientUiIntent(UiAction::SpeedUp) == ClientUiIntent::HudCommand &&
+                clientUiIntent(UiAction::PauseToggle) == ClientUiIntent::HudCommand,
+            "remapped speed/pause actions must route through HUD commands");
 
     constexpr std::array<std::array<int, 2>, 5> resolutions{{
         {1280, 720}, {1600, 900}, {1920, 1080}, {2560, 1440}, {2560, 1080}}};
