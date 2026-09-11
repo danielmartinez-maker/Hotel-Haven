@@ -332,10 +332,11 @@ Local Linux CI-equivalent portable verification is green. Repository workflows d
 
 ## Final commit and working-tree record
 
-The source snapshot tested before report-only files were added was `a18b7b6278605ec386325ad3a62cc90c87bae97b`. The final local documentation commit and remote draft-PR head are recorded below. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector published the equivalent tree and PR head.
+The source snapshot tested before report-only files were added was `a18b7b6278605ec386325ad3a62cc90c87bae97b`. The local report handoff was first committed as `af4ec05` before the authenticated GitHub mirror update. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector published the equivalent tree and report-only update.
 
-- final local working-tree commit containing the report: `a9f3087b6482f8e1d68b8f20bf5feb2bedb1a56e`;
-- remote branch: `hardening/extensive-optimization-2026-09-10` at `dbdd8d1af616ec4a241818e46826cd87412f4d3f`; and
+- local report handoff commit before the mirror-only update: `af4ec05`;
+- remote branch initial code/report head: `hardening/extensive-optimization-2026-09-10` at `dbdd8d1af616ec4a241818e46826cd87412f4d3f`;
+- first remote report-only mirror commit: `a543b57218bbadbeaa3f524f10312c8571b27f29`; and
 - draft PR: [#24](https://github.com/danielmartinez-maker/Hotel-Haven/pull/24), open against `main`, with no merge performed.
 
 ## RECOMMENDED NEXT OPTIMIZATION TARGETS
