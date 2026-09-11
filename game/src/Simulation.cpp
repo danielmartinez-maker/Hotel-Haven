@@ -1,6 +1,7 @@
 #include "hh/game/Simulation.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iomanip>
 #include <limits>
@@ -106,6 +107,52 @@ struct Simulation::Impl {
   int consumedApplicantDay{-1};
   std::vector<ApplicantId> consumedApplicantIds;
   bool transientStateDirty{};
+  std::unordered_map<EntityId, std::size_t> roomIndexById;
+  std::unordered_map<EntityId, std::size_t> personIndexById;
+  std::unordered_map<EntityId, std::size_t> reservationIndexById;
+  std::vector<std::size_t> staffIndices;
+  std::array<std::vector<std::size_t>, 3> staffByRole;
+  std::vector<std::size_t> guestIndices;
+  std::array<std::vector<std::size_t>, 3> readyTaskIndices;
+  bool entityIndicesDirty{true};
+  int staffScheduleHour{-1};
+
+  void markEntityIndicesDirty() noexcept { entityIndicesDirty = true; }
+  void rebuildEntityIndices() {
+    roomIndexById.clear();
+    personIndexById.clear();
+    reservationIndexById.clear();
+    staffIndices.clear();
+    guestIndices.clear();
+    for (auto &role : staffByRole)
+      role.clear();
+
+    roomIndexById.reserve(rooms.size());
+    personIndexById.reserve(people.size());
+    reservationIndexById.reserve(reservations.size());
+    staffIndices.reserve(people.size());
+    guestIndices.reserve(people.size());
+    for (std::size_t index = 0; index < rooms.size(); ++index)
+      roomIndexById.emplace(rooms[index].id, index);
+    for (std::size_t index = 0; index < people.size(); ++index) {
+      personIndexById.emplace(people[index].id, index);
+      if (people[index].kind == PersonKind::Guest) {
+        guestIndices.push_back(index);
+      } else {
+        staffIndices.push_back(index);
+        staffByRole[static_cast<std::size_t>(
+                        ei(staffRole(people[index].kind)))]
+            .push_back(index);
+      }
+    }
+    for (std::size_t index = 0; index < reservations.size(); ++index)
+      reservationIndexById.emplace(reservations[index].id, index);
+    entityIndicesDirty = false;
+  }
+  void ensureEntityIndices() {
+    if (entityIndicesDirty)
+      rebuildEntityIndices();
+  }
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
   bool inside(Position p) const {
@@ -117,23 +164,21 @@ struct Simulation::Impl {
       return false;
     return passableKind(map[index(p)]);
   }
-  std::vector<Position> neighbors(Position p) const {
-    std::vector<Position> n{{p.floor, p.x + 1, p.y},
-                            {p.floor, p.x - 1, p.y},
-                            {p.floor, p.x, p.y + 1},
-                            {p.floor, p.x, p.y - 1}};
+  template <typename Visitor>
+  void forEachNeighbor(Position p, Visitor &&visit) const {
+    const auto tryNeighbor = [&](Position q) {
+      if (passable(q) &&
+          (q.floor == p.floor || map[index(q)] == TileKind::Stairs))
+        visit(q);
+    };
+    tryNeighbor({p.floor, p.x + 1, p.y});
+    tryNeighbor({p.floor, p.x - 1, p.y});
+    tryNeighbor({p.floor, p.x, p.y + 1});
+    tryNeighbor({p.floor, p.x, p.y - 1});
     if (inside(p) && map[index(p)] == TileKind::Stairs) {
-      n.push_back({p.floor + 1, p.x, p.y});
-      n.push_back({p.floor - 1, p.x, p.y});
+      tryNeighbor({p.floor + 1, p.x, p.y});
+      tryNeighbor({p.floor - 1, p.x, p.y});
     }
-    n.erase(std::remove_if(n.begin(), n.end(),
-                           [&](auto q) {
-                             return !passable(q) ||
-                                    (q.floor != p.floor &&
-                                     map[index(q)] != TileKind::Stairs);
-                           }),
-            n.end());
-    return n;
   }
   std::vector<Position> path(Position from, Position to) const {
     if (!passable(from) || !passable(to))
@@ -147,11 +192,12 @@ struct Simulation::Impl {
       q.pop();
       if (same(p, to))
         break;
-      for (auto n : neighbors(p))
+      forEachNeighbor(p, [&](Position n) {
         if (prev[index(n)] < 0) {
           prev[index(n)] = index(p);
           q.push(n);
         }
+      });
     }
     if (prev[index(to)] < 0)
       return {};
@@ -166,22 +212,21 @@ struct Simulation::Impl {
     return out;
   }
   Room *getRoom(EntityId id) {
-    for (auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    ensureEntityIndices();
+    const auto found = roomIndexById.find(id);
+    return found == roomIndexById.end() ? nullptr : &rooms[found->second];
   }
   Person *getPerson(EntityId id) {
-    for (auto &x : people)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    ensureEntityIndices();
+    const auto found = personIndexById.find(id);
+    return found == personIndexById.end() ? nullptr : &people[found->second];
   }
   Reservation *getReservation(EntityId id) {
-    for (auto &x : reservations)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    ensureEntityIndices();
+    const auto found = reservationIndexById.find(id);
+    return found == reservationIndexById.end()
+               ? nullptr
+               : &reservations[found->second];
   }
   Position locate(TileKind kind) const {
     for (int i = 0; i < (int)map.size(); ++i)
@@ -226,6 +271,7 @@ struct Simulation::Impl {
     std::shuffle(free.begin(), free.end(), rng);
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
+    bool addedReservation = false;
     for (Room *r : free) {
       const double priceRatio = r->nightlyRateCents / 16000.0;
       double priceUtility = 0;
@@ -253,13 +299,17 @@ struct Simulation::Impl {
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
+      addedReservation = true;
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
     }
+    if (addedReservation)
+      markEntityIndicesDirty();
   }
   void arrivals(int day) {
     if (!has(TileKind::FrontDesk))
       return;
+    bool addedGuest = false;
     for (auto &z : reservations)
       if (!z.arrived && !z.completed && z.arrivalDay <= day) {
         auto *r = getRoom(z.roomId);
@@ -280,7 +330,10 @@ struct Simulation::Impl {
         p.goal = "Reach front desk";
         p.reservation = z.id;
         people.push_back(p);
+        addedGuest = true;
       }
+    if (addedGuest)
+      markEntityIndicesDirty();
   }
   void beginDepartures(int day) {
     if (!has(TileKind::FrontDesk))
@@ -349,13 +402,46 @@ struct Simulation::Impl {
       --startDay;
     return static_cast<std::int64_t>(startDay) * 24 + p.shiftStartHour;
   }
-  bool eligible(const Person &p, const Task &task) const {
-    if (task.kind == TaskKind::Break || task.kind == TaskKind::Training)
-      return p.id == task.targetId;
-    return (task.kind == TaskKind::Turnover || task.kind == TaskKind::Restock)
-               ? p.kind == PersonKind::Housekeeper
-           : task.kind == TaskKind::Repair ? p.kind == PersonKind::Maintenance
-                                           : p.kind == PersonKind::Receptionist;
+  void refreshStaffSchedule(int day, int hour) {
+    ensureEntityIndices();
+    for (const auto personIndex : staffIndices) {
+      auto &p = people[personIndex];
+      if (!shiftActive(p, hour)) {
+        p.onShift = false;
+        p.absent = false;
+        p.onBreak = false;
+        p.inTraining = false;
+        p.state = PersonState::OffDuty;
+        p.task = 0;
+        continue;
+      }
+
+      const auto key = shiftInstanceKey(p, day, hour);
+      if (p.shiftInstanceKey != key) {
+        for (auto &task : tasks)
+          if (task.kind == TaskKind::Break && task.targetId == p.id &&
+              task.status != TaskStatus::Completed) {
+            task.employeeId = 0;
+            task.status = TaskStatus::Completed;
+            markTransientStateDirty();
+          }
+        p.shiftInstanceKey = key;
+        p.shiftWorkedSeconds = 0;
+        p.breakMinutesTakenToday = 0;
+        p.breakTaskCreated = false;
+        p.onBreak = false;
+        p.absent = Workforce::absentForShift(seed, p.id, key, p.reliability);
+      }
+
+      p.onShift = !p.absent;
+      if (!p.onShift) {
+        p.state = PersonState::OffDuty;
+        p.onBreak = false;
+        p.inTraining = false;
+        p.task = 0;
+      }
+    }
+    staffScheduleHour = hour;
   }
   void postAccruedWage(Person &person) {
     const std::int64_t cents = person.accruedWageUnits / 3600;
@@ -367,48 +453,22 @@ struct Simulation::Impl {
   void staffAndTasks() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
     const int day = static_cast<int>(elapsed / 86400);
+    ensureEntityIndices();
+    if (staffScheduleHour != hour)
+      refreshStaffSchedule(day, hour);
     std::vector<EntityId> repairedRooms;
     std::vector<EntityId> failedRooms;
 
-    for (auto &p : people) {
-      if (p.kind == PersonKind::Guest)
-        continue;
-
-      const bool scheduled = shiftActive(p, hour);
-      if (scheduled) {
-        const auto key = shiftInstanceKey(p, day, hour);
-        if (p.shiftInstanceKey != key) {
-          for (auto &task : tasks)
-            if (task.kind == TaskKind::Break && task.targetId == p.id &&
-                task.status != TaskStatus::Completed) {
-              task.employeeId = 0;
-              task.status = TaskStatus::Completed;
-              markTransientStateDirty();
-            }
-          p.shiftInstanceKey = key;
-          p.shiftWorkedSeconds = 0;
-          p.breakMinutesTakenToday = 0;
-          p.breakTaskCreated = false;
-          p.onBreak = false;
-          p.absent = Workforce::absentForShift(seed, p.id, key, p.reliability);
-        }
-
-        p.onShift = !p.absent;
-        if (!p.onShift) {
-          p.state = PersonState::OffDuty;
-          p.onBreak = false;
-          p.inTraining = false;
-          p.task = 0;
-          continue;
-        }
-
+    const int breakDueSeconds = staffBreakAfterMinutes * 60;
+    for (const auto personIndex : staffIndices) {
+      auto &p = people[personIndex];
+      if (p.onShift) {
         p.accruedWageUnits += p.hourlyWageCents;
         if (p.state == PersonState::OffDuty)
           p.state = PersonState::Idle;
         if (!p.onBreak && !p.inTraining)
           ++p.shiftWorkedSeconds;
 
-        const int breakDueSeconds = staffBreakAfterMinutes * 60;
         if (staffBreakAfterMinutes > 0 &&
             p.shiftWorkedSeconds >= breakDueSeconds &&
             p.breakMinutesTakenToday == 0 && !p.breakTaskCreated) {
@@ -431,9 +491,14 @@ struct Simulation::Impl {
           p.morale = std::max(
               0.0, p.morale - missedBreakMoralePerHour / 3600.0);
         }
+      } else if (p.absent) {
+        p.onShift = false;
+        p.onBreak = false;
+        p.inTraining = false;
+        p.state = PersonState::OffDuty;
+        p.task = 0;
       } else {
         p.onShift = false;
-        p.absent = false;
         p.onBreak = false;
         p.inTraining = false;
         p.state = PersonState::OffDuty;
@@ -442,12 +507,24 @@ struct Simulation::Impl {
       }
     }
 
-    auto assignReady = [&](int priority) {
-      for (auto &task : tasks) {
-        const int taskPriority = task.kind == TaskKind::Break
-                                     ? 0
-                                     : task.kind == TaskKind::Training ? 1 : 2;
-        if (taskPriority != priority || elapsed < task.notBeforeSecond ||
+    for (auto &readyTasks : readyTaskIndices)
+      readyTasks.clear();
+    for (std::size_t taskIndex = 0; taskIndex < tasks.size(); ++taskIndex) {
+      const auto &task = tasks[taskIndex];
+      if (elapsed < task.notBeforeSecond ||
+          (task.status != TaskStatus::Ready &&
+           task.status != TaskStatus::Blocked))
+        continue;
+      const int priority = task.kind == TaskKind::Break
+                               ? 0
+                               : task.kind == TaskKind::Training ? 1 : 2;
+      readyTaskIndices[static_cast<std::size_t>(priority)].push_back(taskIndex);
+    }
+
+    auto assignReady = [&](const std::vector<std::size_t> &readyTasks) {
+      for (const auto taskIndex : readyTasks) {
+        auto &task = tasks[taskIndex];
+        if (elapsed < task.notBeforeSecond ||
             (task.status != TaskStatus::Ready &&
              task.status != TaskStatus::Blocked))
           continue;
@@ -493,14 +570,29 @@ struct Simulation::Impl {
 
         Person *best = nullptr;
         int dist = std::numeric_limits<int>::max();
-        for (auto &p : people)
-          if (p.onShift && !p.absent && p.task == 0 && eligible(p, task)) {
-            const int d = manhattan(p.position, task.target);
-            if (d < dist || (d == dist && (!best || p.id < best->id))) {
-              dist = d;
-              best = &p;
+        if (task.kind == TaskKind::Break || task.kind == TaskKind::Training) {
+          auto *owner = getPerson(task.targetId);
+          if (owner && owner->onShift && owner->task == 0)
+            best = owner;
+        } else {
+          const auto role = task.kind == TaskKind::Turnover ||
+                                    task.kind == TaskKind::Restock
+                                ? StaffRole::Housekeeper
+                                : task.kind == TaskKind::Repair
+                                      ? StaffRole::Maintenance
+                                      : StaffRole::Receptionist;
+          for (const auto personIndex :
+               staffByRole[static_cast<std::size_t>(ei(role))]) {
+            auto &p = people[personIndex];
+            if (p.onShift && p.task == 0) {
+              const int d = manhattan(p.position, task.target);
+              if (d < dist || (d == dist && (!best || p.id < best->id))) {
+                dist = d;
+                best = &p;
+              }
             }
           }
+        }
         if (!best)
           continue;
 
@@ -522,9 +614,8 @@ struct Simulation::Impl {
       }
     };
 
-    assignReady(0);
-    assignReady(1);
-    assignReady(2);
+    for (const auto &readyTasks : readyTaskIndices)
+      assignReady(readyTasks);
 
     for (auto &task : tasks) {
       if (!task.employeeId || task.status == TaskStatus::Completed ||
@@ -651,16 +742,15 @@ struct Simulation::Impl {
       }
       if (task.kind == TaskKind::CheckIn) {
         if (auto *guest = getPerson(task.targetId)) {
-          for (auto &reservation : reservations)
-            if (reservation.id == guest->reservation) {
-              if (auto *room = getRoom(reservation.roomId)) {
-                guest->destination = room->door;
-                guest->state = PersonState::Traveling;
-                guest->goal = "Reach assigned room";
-                reservation.checkedIn = true;
-                room->status = RoomStatus::Occupied;
-              }
+          if (auto *reservation = getReservation(guest->reservation)) {
+            if (auto *room = getRoom(reservation->roomId)) {
+              guest->destination = room->door;
+              guest->state = PersonState::Traveling;
+              guest->goal = "Reach assigned room";
+              reservation->checkedIn = true;
+              room->status = RoomStatus::Occupied;
             }
+          }
         }
       }
       if (task.kind == TaskKind::CheckOut)
@@ -696,8 +786,10 @@ struct Simulation::Impl {
   }
   void guests() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
-    for (auto &p : people)
-      if (p.kind == PersonKind::Guest && p.state != PersonState::CheckedOut) {
+    ensureEntityIndices();
+    for (const auto personIndex : guestIndices) {
+      auto &p = people[personIndex];
+      if (p.state != PersonState::CheckedOut) {
         if (p.state == PersonState::Sleeping && hour >= 7 && hour < 22) {
           p.state = PersonState::Idle;
           p.goal = "Relax in room";
@@ -749,19 +841,21 @@ struct Simulation::Impl {
           if (p.queueWaitSeconds > 8 * 60)
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation)
-            z.satisfaction = p.satisfaction;
+        if (auto *reservation = getReservation(p.reservation))
+          reservation->satisfaction = p.satisfaction;
       }
+    }
   }
   void compactTransientState() {
     if (!transientStateDirty)
       return;
-    people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
-                   return p.kind == PersonKind::Guest &&
-                          p.state == PersonState::CheckedOut;
-                 }),
-                 people.end());
+    const auto peopleEnd = std::remove_if(
+        people.begin(), people.end(), [](const auto &p) {
+          return p.kind == PersonKind::Guest &&
+                 p.state == PersonState::CheckedOut;
+        });
+    const bool peopleChanged = peopleEnd != people.end();
+    people.erase(peopleEnd, people.end());
 
     for (auto &task : tasks)
       if (task.status == TaskStatus::Completed)
@@ -780,13 +874,15 @@ struct Simulation::Impl {
     for (auto &reservation : reservations)
       if (reservation.completed)
         completedReservationHistory.push_back(std::move(reservation));
-    reservations.erase(
-        std::remove_if(reservations.begin(), reservations.end(),
-                       [](const auto &reservation) {
-                         return reservation.completed;
-                       }),
-        reservations.end());
+    const auto reservationsEnd = std::remove_if(
+        reservations.begin(), reservations.end(),
+        [](const auto &reservation) { return reservation.completed; });
+    const bool reservationsChanged = reservationsEnd != reservations.end();
+    reservations.erase(reservationsEnd, reservations.end());
+    if (peopleChanged || reservationsChanged)
+      markEntityIndicesDirty();
     transientStateDirty = false;
+    ensureEntityIndices();
   }
   void minute() {
     elapsed += 1;
@@ -1006,6 +1102,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->markEntityIndicesDirty();
   impl_->economy.cashCents -= cost;
   impl_->economy.constructionCostCents += cost;
   return {true,
@@ -1038,6 +1135,8 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   p.contract = {0, staffRole(h.role), p.hourlyWageCents, 0,
                 h.shiftStartHour, h.shiftEndHour};
   impl_->people.push_back(p);
+  impl_->markEntityIndicesDirty();
+  impl_->staffScheduleHour = -1;
   return {true, "Staff hired", p.id};
 }
 std::vector<Applicant> Simulation::applicants() const {
@@ -1090,6 +1189,8 @@ HireResult Simulation::hireApplicant(ApplicantId applicantId) {
                 impl_->onboardingCostCents, found->shiftStartHour,
                 found->shiftEndHour};
   impl_->people.push_back(p);
+  impl_->markEntityIndicesDirty();
+  impl_->staffScheduleHour = -1;
   impl_->consumedApplicantIds.push_back(found->id);
   impl_->economy.cashCents -= impl_->onboardingCostCents;
   return {true, "Applicant hired", p.id, found->id};
@@ -1117,6 +1218,8 @@ CommandResult Simulation::fireStaff(EntityId id) {
     }
   impl_->postAccruedWage(*it);
   impl_->people.erase(it);
+  impl_->markEntityIndicesDirty();
+  impl_->staffScheduleHour = -1;
   impl_->managers.erase(
       std::remove_if(impl_->managers.begin(), impl_->managers.end(),
                      [&](const ManagerAssignment &assignment) {
@@ -1133,6 +1236,7 @@ CommandResult Simulation::setStaffShift(EntityId id, int a, int b) {
   p->shiftEndHour = b;
   p->contract.shiftStartHour = a;
   p->contract.shiftEndHour = b;
+  impl_->staffScheduleHour = -1;
   return {true, "Shift updated", id};
 }
 CommandResult Simulation::scheduleTraining(EntityId id,
@@ -1569,6 +1673,7 @@ CommandResult Simulation::removeRoom(EntityId id) {
     for (int x = it->x; x < it->x + it->width; ++x)
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
   impl_->rooms.erase(it);
+  impl_->markEntityIndicesDirty();
   impl_->refreshReachability();
   return {true, "Room removed", id};
 }
@@ -2226,6 +2331,9 @@ Simulation Simulation::load(std::string_view data) {
   }
   d.transientStateDirty = true;
   d.compactTransientState();
+  d.markEntityIndicesDirty();
+  d.rebuildEntityIndices();
+  d.staffScheduleHour = -1;
   return s;
 }
 

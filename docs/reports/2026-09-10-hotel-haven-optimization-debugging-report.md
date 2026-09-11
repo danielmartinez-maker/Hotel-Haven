@@ -2,19 +2,21 @@
 
 ## Repository and verification status
 
-Repository: `danielmartinez-maker/Hotel-Haven`  
-Branch: `hardening/extensive-optimization-2026-09-10`  
-Code-under-test commit: `a18b7b6278605ec386325ad3a62cc90c87bae97b`  
-Baseline commit: `17703b9935d48bb20c55b74e62e3d824bc876cf2`  
+Repository: `danielmartinez-maker/Hotel-Haven`
+Branch: `hardening/extensive-optimization-2026-09-10`
+Code-under-test commit: `e45b385c6bf7c3a32ffff5d3afcdb732414ab104`
+Historical first-pass source commit: `a18b7b6278605ec386325ad3a62cc90c87bae97b`
+Baseline commit: `17703b9935d48bb20c55b74e62e3d824bc876cf2`
+Continuation benchmark baseline commit: `2ce42ec356f884729843aef356087bb101c5945e`
 Final status at the verified source snapshot: **PARTIALLY GREEN**.
 
 The portable authoritative simulation, content pipeline, frontend-core, renderer-core, Release, warning-clean, ASan+UBSan, debug-iterator, save/load, deterministic campaign, and asset-library checks are green. The native Windows client and Direct3D 11 renderer are not buildable in this Linux runner because their repository targets are explicitly `WIN32`-gated and `DirectXMath.h` is unavailable. Consequently, GPU frame time, average FPS, 1% lows, draw calls, native asset-buffer creation, and screenshot/WARP evidence remain unverified. LeakSanitizer is also unavailable under the runner's ptrace restriction; address and undefined-behavior checks pass with leak detection disabled.
 
-No branch was merged and no existing pull request was modified.
+No branch was merged; PR #24 remains a draft and is updated only with this branch's final tree.
 
 ## Executive summary
 
-This pass produced nine focused changes supported by regression tests or deterministic measurements:
+This pass produced ten focused changes supported by regression tests or deterministic measurements:
 
 - prevented closed-room turnover work from being lost or completed against an unavailable room;
 - excluded `OutOfOrder` rooms from the occupancy denominator;
@@ -24,7 +26,8 @@ This pass produced nine focused changes supported by regression tests or determi
 - bounded hostile `.hasset` dependency counts before allocation;
 - made multi-asset cooker state publication one atomic publication after all outputs succeed;
 - corrected the documented Hotel Haven Z-up asset-space to renderer-space GLB conversion; and
-- removed redundant menu transition retargets and double-applied idle camera offsets.
+- removed redundant menu transition retargets and double-applied idle camera offsets; and
+- reduced the authoritative simulation's staff/guest hot-loop work with invalidation-safe entity indices, hourly shift refresh, one-pass ready-task grouping, and allocation-free ordered neighbor traversal.
 
 The most repeatable performance result is the scheduler optimization: with identical plan checksums and assignment counts, the measured fallback-planner time improved by 83.54% at 64 employees/tasks, 94.24% at 256, and 96.31% at 512. The simulation cleanup change removed the profiled `compactTransientState` hot function from the post-change profile; its end-to-end Release timing improvement is positive in the paired measurements but not statistically conclusive for the largest portable tiers on the final rerun.
 
@@ -120,6 +123,32 @@ The baseline benchmark record is preserved in [`docs/performance/baseline-2026-0
 
 ## Performance measurements and optimizations
 
+### Continuation: 2026-09-11 simulation hotspot pass
+
+This continuation started from clean local `HEAD` `2ce42ec356f884729843aef356087bb101c5945e` after the first pass. A fresh profile reproduced the native scheduler and heterogeneous actor scans as the dominant live work:
+
+| Function | Baseline self time | Final self time | Interpretation |
+| --- | ---: | ---: | --- |
+| `Simulation::Impl::staffAndTasks` | 55.26% | 78.57% | Still dominant after guest work was removed; remaining cost is the required 300-staff per-second state update |
+| `Simulation::Impl::guests` | 37.72% | 10.00% | Large reduction from scanning employees and live reservations on every guest tick |
+| `Simulation::Impl::path` | 0.00% sampled self | 0.00% sampled self | No route-cache rewrite justified; neighbor allocation work was removed as a low-risk micro-optimization |
+| `Simulation::Impl::neighbors` | 0.88% | 0.00% sampled self | Replaced temporary vectors with ordered visitor traversal |
+
+The implementation keeps authoritative vector order and invalidates derived indices after room/person/reservation structural changes, arrivals, hiring, firing, guest compaction, and load. Break/Training tasks retain owner-specific assignment semantics; service tasks scan only the required role while preserving distance and employee-ID tie breaks. Shift activity is refreshed at hour boundaries or explicit shift/hire invalidation, without changing one-second wage, fatigue, break, task, or movement cadence.
+
+The first corrected run exposed a real regression under ASan: Break/Training assignment was incorrectly routed through the Receptionist role list and remained `Ready`. The smallest fix restored owner-specific candidate selection. Release and ASan/UBSan workforce tests then passed. This RED → root cause → GREEN event is retained as verification evidence rather than hidden.
+
+The machine-readable comparison is [`docs/performance/simulation-hotspot-pass-2026-09-11.json`](../performance/simulation-hotspot-pass-2026-09-11.json). Fresh three-process medians are:
+
+| Scenario | Metric | Baseline | Final | Change | Result |
+| --- | --- | ---: | ---: | ---: | --- |
+| Small: 6 rooms / 3 staff | `Simulation::step`, 86,400 s | 10.076 ms | 8.983 ms | -10.85% | Noise-sensitive; no strong claim |
+| Normal: 12 rooms / 12 staff | `Simulation::step`, 86,400 s | 24.938 ms | 14.027 ms | -43.76% | Material; checksum unchanged |
+| Large: 18 rooms / 100 staff | `Simulation::step`, 86,400 s | 95.586 ms | 42.668 ms | -55.36% | Material; checksum unchanged |
+| Stress: 18 rooms / 300 staff | `Simulation::step`, 86,400 s | 217.714 ms | 150.901 ms | -30.69% | Material; checksum unchanged |
+
+Baseline and final raw samples, exact checksums, profile shares, and the workload caveat are preserved in the JSON artifact. The small tier is explicitly not used to claim a stable improvement; the larger tiers are supported by both the measured wall-time reduction and profile attribution.
+
 ### Portable simulation tiers
 
 The new benchmark target uses fixed seeds, 86,400 simulated seconds, three repetitions per process, and times `Simulation::step` only. Public API constraints intentionally limit the tiers to 6/12/18 rooms and 3/12/100/300 staff; it does not mutate private or serialized authority to fabricate a 500-room/1,000-guest scenario.
@@ -145,7 +174,7 @@ This is the clearest repeatable optimization. Old timings were collected from th
 | 256 employees / 256 tasks | fallback planner | 5.608 ms | 0.323 ms | -94.24% | pass; checksum `0x6101ecc6c1dcdb4a` |
 | 512 employees / 512 tasks | fallback planner | 36.009 ms | 1.328 ms | -96.31% | pass; checksum `0x5752b5cb18840828` |
 
-The post-change `gprof` run measured `compactTransientState` at 0.00% self time. `staffAndTasks` remained the dominant benchmark region at 53.45%, followed by `guests` at 41.38%; the total sampled profile time was effectively unchanged within profiler noise. This is why no unrelated cadence or simulation-fidelity change was made.
+The first-pass post-change `gprof` run measured `compactTransientState` at 0.00% self time. The continuation profile supersedes its hot-loop percentages: after indexing, `guests` fell to 10.00% self time and `staffAndTasks` remained dominant at 78.57% because the authoritative per-second staff state update is still required. No simulation cadence or fidelity was reduced.
 
 ### Campaign result
 
@@ -154,6 +183,7 @@ The final Release campaign ran twice at 2.12 s and 2.11 s, compared with the bas
 ## Memory, lifetime, and diagnostics
 
 - Final child maximum RSS was 8448 KiB for the 365-day campaign, matching the baseline measurement.
+- The continuation benchmark process reported 8576 KiB maximum RSS; this is a different workload from the prior 365-day campaign and is not treated as a memory regression.
 - Repeated campaign output and save/load checks showed no state or output growth visible through the available process-level measurement.
 - ASan+UBSan completed 8/8 CTest tests with `ASAN_OPTIONS=detect_leaks=0:halt_on_error=1` and `UBSAN_OPTIONS=halt_on_error=1`; no address or undefined-behavior diagnostic was emitted.
 - LeakSanitizer with default leak detection failed before test execution in the baseline environment because it cannot operate under ptrace. No leak-free claim is made.
@@ -164,13 +194,13 @@ The final Release campaign ran twice at 2.12 s and 2.11 s, compared with the bas
 
 The authoritative simulation remained one-second deterministic. The fixed-seed 365-day campaign produced identical bytes across repeated runs, and the 14-day save + 7-day load sequence matched a direct 21-day sequence byte-for-byte at the CSV output level and final state.
 
-The layout acceptance test exercised movement and service consequences: efficient versus poor layout produced travel `150/5982` seconds, wait `5124/8172` seconds, satisfaction `65.8667/61.18`, completed stays `40/38`, and operating profit `30000/2000` cents. The benchmark stress tier exercised 300 staff and 86,400 simulated seconds, but the public API does not expose direct large guest-population injection. Therefore no unsupported claim is made for 500 rooms, 1,000 guests, or a GPU-backed navigation workload.
+The layout acceptance test exercised movement and service consequences: efficient versus poor layout produced travel `150/5982` seconds, wait `5124/8172` seconds, satisfaction `65.8667/61.18`, completed stays `40/38`, and operating profit `30000/2000` cents. The continuation benchmark stress tier exercised 300 staff and 86,400 simulated seconds. The public API still does not expose direct large guest-population injection, so no unsupported claim is made for 500 rooms, 1,000 guests, or a GPU-backed navigation workload. The supported evidence does show that indexing heterogeneous actor lists removes the dominant guest-scan waste without changing guest state bytes.
 
-No AI behavior was homogenized, no decision fidelity was reduced, and no navigation timeout was increased. The observed post-change `guests` profile share of 41.38% is a supported next profiling target, not an implemented optimization.
+No AI behavior was homogenized, no decision fidelity was reduced, and no navigation timeout was increased. The continuation profile leaves `guests` at 10.00% self time; the remaining staff state-update work is the supported next profiling target, not an implemented optimization.
 
 ## Renderer and UI findings
 
-The strict portable renderer-core suite passed 18/18 tests covering floor visibility, occlusion, scene composition, asset-format linkage, GLB transforms/material alpha/malformed accessors, and runtime registry handles. The strict portable frontend-core suite passed 34/34 tests covering menu state, transitions, input, stress navigation, layout, and deterministic scene-controller motion.
+The strict portable renderer-core suite passed 18/18 tests covering floor visibility, occlusion, scene composition, asset-format linkage, GLB transforms/material alpha/malformed accessors, and runtime registry handles. The continuation rerun of the strict portable frontend-core suite passed 36/36 tests covering menu state, transitions, input, stress navigation, layout, and deterministic scene-controller motion.
 
 The native CMake targets are intentionally Windows-only. The Linux runner lacks `DirectXMath.h`, so the full renderer/frontend CMake targets and D3D11 smoke tests could not be configured. No graphical quality, default visibility, animation, shadow, batching, or draw behavior was reduced to obtain the portable results. Native frame time, GPU time, draw-call count, visible-object count, rapid camera movement, WARP buffer creation, and screenshot checks remain open verification items.
 
@@ -211,6 +241,8 @@ All three commands exited 0. The split sequence matched the direct sequence, bot
 | Native renderer/GPU/rapid camera | Windows/D3D11 target unavailable here | Unverified |
 | 500 rooms / 1,000 guests | No supported public fixture injection | Unverified; no unsupported claim |
 | Leak sanitizer / external static analyzers | LSan blocked by ptrace; tools absent | Unverified |
+
+The continuation also exercised post-mutation index invalidation: high-demand guest arrival, staff hiring, staff dismissal, save/load, guest compaction, repeated topology queries, construction blocking/unblocking, break priority, training, and 300-employee workforce soak paths. Release and ASan/UBSan behavior/benchmark suites were green after the owner-task regression was corrected.
 
 ## Tests and final verification commands
 
@@ -280,13 +312,48 @@ cmp -s /tmp/hh-final-campaign-1.csv /tmp/hh-final-campaign-2.csv
 
 Result: exit 0, identical SHA-256 `20160db34e021c59f69e0d7077c382cec3efe2fbf64dc492b4d6b57698bcac1d`, final row `365,7839802,27950000,17273198,0.333333,74.0842,954,26,0`, times 2.12 s and 2.11 s.
 
+Continuation commands from the corrected source tree were:
+
+```bash
+/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages/cmake/data/bin/cmake \
+  --build build-hardening-final-clean -j2
+/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages/cmake/data/bin/ctest \
+  --test-dir build-hardening-final-clean \
+  -R '^(hh_game_tests|Workforce|Department|Optimizer|SimulationBenchmarks)$' \
+  --output-on-failure
+```
+
+Result: 5/5 relevant tests passed. The full corrected ASan/UBSan command was:
+
+```bash
+/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages/cmake/data/bin/cmake \
+  --build build-hardening-asan-final -j2
+ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 \
+UBSAN_OPTIONS=halt_on_error=1 \
+/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages/cmake/data/bin/ctest \
+  --test-dir build-hardening-asan-final --output-on-failure
+```
+
+Result: 8/8 passed in 83.14 s, including the previously RED workforce case; no ASan/UBSan diagnostics were emitted. The fresh profile command was:
+
+```bash
+profile_dir=$(mktemp -d /tmp/hh-gprof-final-XXXXXX)
+(cd "$profile_dir" && \
+  /workspace/scratch/f963ff515fab/Hotel-Haven/build-hardening-profile-working/game/hh_simulation_benchmarks \
+  > benchmark.json)
+gprof /workspace/scratch/f963ff515fab/Hotel-Haven/build-hardening-profile-working/game/hh_simulation_benchmarks \
+  "$profile_dir/gmon.out" -b > "$profile_dir/gprof.txt"
+```
+
+The final campaign and save/load commands used `build-hardening-final-clean/hotel_haven_headless` with `--days 365 --restock`, `--days 14 --restock --save`, `--load ... --days 7 --restock`, and a direct `--days 21 --restock`. Both 365-day outputs were byte-identical; split/direct day-21 rows matched exactly. The final campaign SHA-256 was `20160db34e021c59f69e0d7077c382cec3efe2fbf64dc492b4d6b57698bcac1d` and save SHA-256 remained `4003a8690e800b8ca2def7eae1be339b9a74f7a644693190303eab34cef71a4c`.
+
 ```bash
 git diff --check
 git status --short --branch
 git diff --stat 17703b9935d48bb20c55b74e62e3d824bc876cf2
 ```
 
-The portable frontend and renderer-core strict commands were also run directly with `/usr/bin/c++ -std=c++20 -Wall -Wextra -Wpedantic -Werror`; results were 34/34 and 18/18 respectively. The Python art-generation command was `PYTHONPATH=/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages python3 -m pytest Tools/ArtGeneration/tests -q`; it passed 69 tests.
+The portable frontend and renderer-core strict commands were also run directly with `/usr/bin/c++ -std=c++20 -Wall -Wextra -Wpedantic -Werror`; the continuation results were 36/36 and 18/18 respectively. The Python art-generation command was `PYTHONPATH=/workspace/scratch/6e1d6f1acb1d/hh-tools/lib/python3.12/site-packages python3 -m pytest Tools/ArtGeneration/tests -q`; it passed 69 tests.
 
 No tests were disabled or weakened. `HH_SKIP_LONG_WORKFORCE_GATES` was not set for the CTest runs.
 
@@ -310,6 +377,8 @@ No tests were disabled or weakened. `HH_SKIP_LONG_WORKFORCE_GATES` was not set f
 | `frontend/app/MainMenuDemo.cpp` | transition guard and composed camera application |
 | `frontend/tests/MenuSceneControllerTests.cpp` | composed yaw/zoom regressions |
 | `docs/performance/baseline-2026-09-10.json` | machine-readable baseline measurements |
+| `docs/performance/simulation-hotspot-pass-2026-09-11.json` | machine-readable continuation benchmark/profile comparison |
+| `docs/superpowers/plans/2026-09-11-simulation-hotspot-optimization.md` | evidence-gated continuation plan |
 | `README.md` | v8 save/migration and benchmark documentation |
 | `docs/IMPLEMENTATION_STATUS.md` | verified campaign and benchmark scope |
 | `docs/reports/2026-09-10-hotel-haven-optimization-debugging-report.md` | this report |
@@ -321,10 +390,10 @@ No tests were disabled or weakened. `HH_SKIP_LONG_WORKFORCE_GATES` was not set f
 | P0 | Native D3D11 client, WARP smoke, screenshots, GPU/frame metrics not run | Renderer/frontend | High | Open | Linux configure is platform-gated; `DirectXMath.h` unavailable | Run Windows CI and a fixed-hardware GPU capture; record CPU/GPU frame time, 1% lows, draw calls, visible objects, and native asset audit |
 | P1 | No supported 500-room/1,000-guest benchmark fixture | Simulation/AI/navigation | High | Open | Public API cannot inject initial cash or guest population without mutating authority | Add a documented, authoritative stress-fixture seam only if the product specification permits it, then profile guests/pathfinding at scale |
 | P1 | Leak detection not available | Lifetime/memory | Medium | Open | LSan fails under ptrace before tests; Valgrind unavailable | Run ASan+LSan and a heap profiler in a non-ptraced Linux/Windows CI environment |
-| P1 | Guest and staff hot paths still dominate | Simulation/AI | Medium | Confirmed hotspot | Post-change `staffAndTasks` 53.45%, `guests` 41.38% in gprof benchmark profile | Capture a supported high-population profile before selecting indexing or cadence changes |
+| P1 | Staff per-second state update remains dominant after scan/index reduction | Simulation/AI | Medium | Confirmed remaining hotspot | Continuation `gprof`: `staffAndTasks` 78.57% self time; the guest loop fell to 10.00% | Profile task-heavy and break-heavy fixtures separately before considering any event/batch design |
 | P2 | Full all-asset native registry/GPU-buffer audit not run | Asset/runtime renderer | Medium | Portable pipeline green; native open | 500 generated GLBs and 591 cooked records pass portable validation; native audit is Windows-only | Run `hh_runtime_asset_library_audit.exe` in the existing Windows workflow and retain logs/artifacts |
 | P2 | Static analyzers unavailable in runner | Tooling | Low/Medium | Open | `clang-tidy`, `cppcheck`, and `valgrind` not installed | Add them to CI or run their repository-equivalent configurations on a toolchain host |
-| P2 | Final large/stress simulation timing is neutral within noise | Benchmark methodology | Low | Open measurement question | Final 3-process medians were +0.49% and +0.20% despite earlier paired post-change gains | Pin benchmark CPU affinity or use a dedicated runner, then repeat with a supported larger fixture |
+| P2 | Small-tier timing remains noisy | Benchmark methodology | Low | Open measurement question | Continuation small-tier samples span 8.434–10.186 ms | Pin benchmark CPU affinity or use a dedicated runner before treating small-tier changes as meaningful |
 
 ## CI status
 
@@ -332,7 +401,7 @@ Local Linux CI-equivalent portable verification is green. Repository workflows d
 
 ## Final commit and working-tree record
 
-The source snapshot tested before report-only files were added was `a18b7b6278605ec386325ad3a62cc90c87bae97b`. The local report handoff was first committed as `af4ec05` before the authenticated GitHub mirror update. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector published the equivalent tree and report-only update.
+The continuation source snapshot tested before report-only files were added is `e45b385c6bf7c3a32ffff5d3afcdb732414ab104`. The earlier first-pass report handoff was committed as `af4ec05` before the authenticated GitHub mirror update. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector will publish the equivalent final tree update without merging the pull request.
 
 - local report handoff commit before the mirror-only update: `af4ec05`;
 - remote branch initial code/report head: `hardening/extensive-optimization-2026-09-10` at `dbdd8d1af616ec4a241818e46826cd87412f4d3f`;
@@ -341,9 +410,9 @@ The source snapshot tested before report-only files were added was `a18b7b627860
 
 ## RECOMMENDED NEXT OPTIMIZATION TARGETS
 
-1. Profile the `guests` region at a supported high-population fixture. It accounts for 41.38% self time in the post-change benchmark profile, but the current public API cannot safely create the requested 1,000-guest scale without an explicit authority-preserving fixture.
+1. Profile guest decision/path behavior at a supported high-population fixture. The continuation index pass reduced `guests` to 10.00% self time, but the current public API cannot safely create the requested 1,000-guest scale without an explicit authority-preserving fixture.
 
-2. Break down `staffAndTasks` beyond the optimized planner. It remains 53.45% self time in the benchmark profile; the next smallest diagnostic step is a region-level profile separating task discovery, eligibility filtering, movement, and completion before changing data structures or update cadence.
+2. Break down `staffAndTasks` beyond the new indices and hourly schedule refresh. It remains 78.57% self time in the continuation profile; the next smallest diagnostic step is a region-level profile separating required per-staff state updates, task discovery, eligibility filtering, movement, and completion before changing data structures or update cadence.
 
 3. Run native Windows renderer profiling on a fixed WARP/GPU environment. Portable scene composition is green, but the highest-impact unknowns are GPU submission, asset-buffer creation, visibility, batching, and UI composition under dense hotels.
 

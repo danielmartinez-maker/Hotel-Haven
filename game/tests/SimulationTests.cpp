@@ -34,6 +34,56 @@ static void construction_and_routes() {
           "not furnished");
 }
 
+static void repeated_navigation_queries_preserve_topology() {
+  Simulation s(401, 12, 10, 1);
+  for (int x = 0; x < 6; ++x)
+    require(s.buildTile({0, x, 0}, x == 0 ? TileKind::Entrance
+                                           : TileKind::Floor)
+                .ok,
+            "navigation corridor build failed");
+  const auto roomId = s.buildFurnishedRoom(
+      {"101", 0, 2, 1, 3, 3, {0, 2, 1}, 1, 1, 120});
+  require(roomId.ok, "navigation room build failed");
+
+  for (int repeat = 0; repeat < 64; ++repeat)
+    require(s.isReachable({0, 0, 0}, {0, 2, 1}),
+            "repeated reachable query changed topology");
+  require(s.buildTile({0, 1, 0}, TileKind::Wall).ok,
+          "navigation blocker build failed");
+  for (int repeat = 0; repeat < 64; ++repeat)
+    require(!s.isReachable({0, 0, 0}, {0, 2, 1}),
+            "repeated unreachable query ignored topology mutation");
+  require(s.buildTile({0, 1, 0}, TileKind::Floor).ok,
+          "navigation blocker removal failed");
+  require(s.isReachable({0, 0, 0}, {0, 2, 1}),
+          "navigation route did not recover after mutation");
+}
+
+static void indexed_actor_mutations_preserve_deterministic_state() {
+  auto a = Simulation::tutorial(402);
+  require(a.loadDefinitions(R"({"baseDemand":100})").ok,
+          "actor-index definitions rejected");
+  a.step(2 * 3600);
+
+  const auto extra =
+      a.hireStaff({"Index Worker", PersonKind::Housekeeper, 0, 0, 20});
+  require(extra.ok, "actor-index worker hire failed");
+  EntityId maintenance = 0;
+  for (const auto &person : a.view().people)
+    if (person.kind == PersonKind::Maintenance) {
+      maintenance = person.id;
+      break;
+    }
+  require(maintenance != 0 && a.fireStaff(maintenance).ok,
+          "actor-index worker dismissal failed");
+
+  auto b = Simulation::load(a.save());
+  a.step(6 * 3600);
+  b.step(6 * 3600);
+  require(a.save() == b.save(),
+          "actor indexes changed state after hire, dismissal, and reload");
+}
+
 static void tutorial_contains_explicit_lobby_space() {
   const auto tutorial = Simulation::tutorial(40).view();
   bool lobby = false;
@@ -771,6 +821,8 @@ int main() {
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
     construction_and_routes();
+    repeated_navigation_queries_preserve_topology();
+    indexed_actor_mutations_preserve_deterministic_state();
     tutorial_contains_explicit_lobby_space();
     construction_is_atomic_and_budget_limited();
     operational_infrastructure_cannot_strand_service();
