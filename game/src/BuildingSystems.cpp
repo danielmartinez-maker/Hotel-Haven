@@ -9,18 +9,32 @@
 
 namespace hh::game::detail {
 namespace {
-ElevatorDirection requestDirection(const ElevatorRequestSnapshot &request) noexcept {
+enum class Direction { Idle, Up, Down };
+
+Direction requestDirection(const ElevatorRequestSnapshot &request) noexcept {
   if (request.destinationFloor > request.pickupFloor)
-    return ElevatorDirection::Up;
+    return Direction::Up;
   if (request.destinationFloor < request.pickupFloor)
-    return ElevatorDirection::Down;
-  return ElevatorDirection::Idle;
+    return Direction::Down;
+  return Direction::Idle;
+}
+
+Direction sweepDirection(const ElevatorSnapshot &elevator) noexcept {
+  for (const auto &request : elevator.requests)
+    if (request.boarded)
+      return requestDirection(request);
+  const auto active = std::find_if(
+      elevator.requests.begin(), elevator.requests.end(),
+      [&](const ElevatorRequestSnapshot &request) {
+        return request.id == elevator.activeRequestId;
+      });
+  return active == elevator.requests.end() ? Direction::Idle
+                                           : requestDirection(*active);
 }
 
 bool directionCompatible(const ElevatorRequestSnapshot &request,
-                         ElevatorDirection direction) noexcept {
-  return direction == ElevatorDirection::Idle ||
-         requestDirection(request) == direction;
+                         Direction direction) noexcept {
+  return direction == Direction::Idle || requestDirection(request) == direction;
 }
 
 int onboardCount(const ElevatorSnapshot &elevator) noexcept {
@@ -42,14 +56,15 @@ oldestWaiting(ElevatorSnapshot &elevator) noexcept {
 
 std::vector<ElevatorRequestSnapshot>::iterator
 nextOnboardStop(ElevatorSnapshot &elevator) noexcept {
+  const auto direction = sweepDirection(elevator);
   auto best = elevator.requests.end();
   for (auto it = elevator.requests.begin(); it != elevator.requests.end(); ++it) {
     if (!it->boarded)
       continue;
-    if (elevator.direction == ElevatorDirection::Up &&
+    if (direction == Direction::Up &&
         it->destinationFloor < elevator.currentFloor)
       continue;
-    if (elevator.direction == ElevatorDirection::Down &&
+    if (direction == Direction::Down &&
         it->destinationFloor > elevator.currentFloor)
       continue;
     if (best == elevator.requests.end()) {
@@ -69,13 +84,6 @@ nextOnboardStop(ElevatorSnapshot &elevator) noexcept {
         (best == elevator.requests.end() || it->id < best->id))
       best = it;
   return best;
-}
-
-void refreshDerivedState(ElevatorSnapshot &elevator) noexcept {
-  for (auto &request : elevator.requests)
-    if (request.assignedElevatorId == 0)
-      request.assignedElevatorId = elevator.id;
-  elevator.onboardCount = onboardCount(elevator);
 }
 } // namespace
 
@@ -170,20 +178,16 @@ EntityId selectElevatorForRequest(const BuildingSystemsSnapshot &systems,
 }
 
 void tickElevator(ElevatorSnapshot &elevator) noexcept {
-  refreshDerivedState(elevator);
-
   const auto beginPickup = [&]() {
     auto request = oldestWaiting(elevator);
     if (request == elevator.requests.end() || request->boarded) {
       elevator.state = ElevatorState::Idle;
       elevator.activeRequestId = 0;
       elevator.targetFloor = elevator.currentFloor;
-      elevator.direction = ElevatorDirection::Idle;
       elevator.phaseSecondsRemaining = 0;
       return;
     }
     elevator.activeRequestId = request->id;
-    elevator.direction = requestDirection(*request);
     if (elevator.currentFloor == request->pickupFloor) {
       elevator.state = ElevatorState::Boarding;
       elevator.targetFloor = elevator.currentFloor;
@@ -203,7 +207,6 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
       elevator.state = ElevatorState::Idle;
       elevator.activeRequestId = 0;
       elevator.targetFloor = elevator.currentFloor;
-      elevator.direction = ElevatorDirection::Idle;
       elevator.phaseSecondsRemaining = 0;
       beginPickup();
       return;
@@ -246,11 +249,11 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
       beginPickup();
       break;
     }
-    elevator.direction = requestDirection(*active);
+    const auto direction = requestDirection(*active);
     std::vector<ElevatorRequestSnapshot *> candidates;
     for (auto &request : elevator.requests)
       if (!request.boarded && request.pickupFloor == elevator.currentFloor &&
-          directionCompatible(request, elevator.direction))
+          directionCompatible(request, direction))
         candidates.push_back(&request);
     std::sort(candidates.begin(), candidates.end(),
               [](const ElevatorRequestSnapshot *a,
@@ -262,7 +265,6 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
       request->boarded = true;
       --available;
     }
-    refreshDerivedState(elevator);
     beginDestination();
     break;
   }
@@ -279,11 +281,9 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
                                 request.destinationFloor == elevator.currentFloor;
                        }),
         elevator.requests.end());
-    refreshDerivedState(elevator);
-    if (elevator.onboardCount > 0)
+    if (onboardCount(elevator) > 0)
       beginDestination();
     else {
-      elevator.direction = ElevatorDirection::Idle;
       elevator.state = ElevatorState::Idle;
       elevator.activeRequestId = 0;
       elevator.targetFloor = elevator.currentFloor;
