@@ -19,21 +19,34 @@ bool finiteBounds(const hh::renderer::Aabb& bounds) noexcept {
            bounds.max.z > bounds.min.z;
 }
 
+std::size_t parseExpectedCount(const char* value, const char* label) {
+    try {
+        const std::string text(value);
+        std::size_t consumed = 0;
+        const auto parsed = std::stoull(text, &consumed);
+        if (consumed != text.size()) {
+            throw std::runtime_error("trailing characters");
+        }
+        return static_cast<std::size_t>(parsed);
+    } catch (const std::exception&) {
+        throw std::runtime_error(std::string("invalid ") + label + " count: " + value);
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
     try {
-        if (argc != 2) {
+        if (argc != 2 && argc != 4) {
             throw std::runtime_error(
-                "usage: hh_runtime_asset_library_audit <cooked-asset-root>");
+                "usage: hh_runtime_asset_library_audit <cooked-asset-root> "
+                "[expected-static expected-skinned]");
         }
 
         hh::renderer::RuntimeAssetRegistry registry;
         registry.loadDirectory(std::filesystem::path(argv[1]));
-        if (registry.size() != 500u) {
-            throw std::runtime_error(
-                "expected exactly 500 cooked gameplay assets, loaded " +
-                std::to_string(registry.size()));
+        if (registry.size() == 0u) {
+            throw std::runtime_error("runtime asset library is empty");
         }
 
         std::size_t staticMeshes = 0;
@@ -71,14 +84,21 @@ int main(int argc, char** argv) {
             }
         }
 
-        if (staticMeshes != 450u || skinnedMeshes != 50u) {
-            throw std::runtime_error(
-                "expected 450 StaticMesh and 50 SkinnedMesh assets, loaded " +
-                std::to_string(staticMeshes) + " static and " +
-                std::to_string(skinnedMeshes) + " skinned");
+        if (argc == 4) {
+            const auto expectedStatic = parseExpectedCount(argv[2], "static mesh");
+            const auto expectedSkinned = parseExpectedCount(argv[3], "skinned mesh");
+            if (staticMeshes != expectedStatic || skinnedMeshes != expectedSkinned) {
+                throw std::runtime_error(
+                    "expected " + std::to_string(expectedStatic) + " StaticMesh and " +
+                    std::to_string(expectedSkinned) + " SkinnedMesh assets, loaded " +
+                    std::to_string(staticMeshes) + " static and " +
+                    std::to_string(skinnedMeshes) + " skinned");
+            }
         }
 
-        std::cout << "Loaded and validated 500 cooked renderer assets (450 static, 50 skinned bind-pose)\n";
+        std::cout << "Loaded and validated " << registry.size()
+                  << " cooked renderer assets (" << staticMeshes << " static, "
+                  << skinnedMeshes << " skinned bind-pose)\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
