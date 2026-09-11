@@ -32,6 +32,16 @@ int main() {
       return overlay.id == hh::frontend::OverlayId::Temperature;
     });
     require(temperature == source.overlays.end(), "bridge fabricated unsupported temperature authority");
+
+    auto alternateContext = context;
+    alternateContext.cutaway = false;
+    const auto alternateSource =
+        hh::client::makeGameUiSnapshotSource(simulation, alternateContext);
+    require(alternateSource.hud.cutaway != source.hud.cutaway,
+            "bridge did not copy cutaway presentation state");
+    require(alternateSource.revision != source.revision,
+            "cutaway presentation changes must invalidate the cached UI snapshot");
+
     require(simulation.save() == before, "building UI snapshot mutated simulation state");
     std::cout << "FINAL-07 game UI bridge passed\n";
   } catch (const std::exception& error) {
