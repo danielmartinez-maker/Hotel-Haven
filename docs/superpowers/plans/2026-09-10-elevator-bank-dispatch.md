@@ -1,143 +1,68 @@
 # Elevator Bank Dispatch Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Implemented; final CI verification pending on the current head.
 
-**Goal:** Replace FINAL-01's single-request elevator servicing with deterministic capacity-aware multi-car bank dispatch and persistent transport diagnostics.
+**Goal:** Replace FINAL-01's single-request elevator servicing with deterministic capacity-aware multi-car bank dispatch while preserving FINAL-01 persistence compatibility.
 
-**Architecture:** Extend `BuildingSystems` in place. Bank assignment is a pure deterministic selection over existing elevator snapshots; each car then performs directional capacity-aware batching while preserving the existing public state enum. `Simulation` owns command validation, elapsed simulation time, save-version migration, and invokes a bank tick once per authoritative one-second step.
+**Architecture:** Extend `BuildingSystems` in place. Bank assignment is a pure deterministic selection over existing elevator snapshots; each car performs directional capacity-aware batching while preserving the existing public state enum. The existing HHGS 11 car/request fields remain the complete behavior authority, so no save-version migration is required.
 
-**Tech Stack:** C++20, CMake/CTest, existing Hotel Haven text save format.
+**Tech Stack:** C++20, CMake/CTest, existing Hotel Haven HHGS 11 text save format.
 
 **Spec:** `docs/superpowers/specs/2026-09-10-elevator-bank-dispatch-design.md`
 
-## Global Constraints
+## Constraints
 
-- Extend FINAL-01; do not create a parallel transport/navigation system.
-- Preserve existing `requestElevator(EntityId, int, int)` compatibility.
-- Dispatch must use integer authoritative state only: no RNG, wall clock, floating-point score, or unordered iteration order.
-- Passenger and service banks remain isolated by exact `ElevatorKind`.
+- Extend FINAL-01; no parallel transport/navigation system.
+- Preserve direct `requestElevator(EntityId, ...)` compatibility.
+- Add bank `requestElevator(ElevatorKind, ...)` selection.
+- Integer deterministic scoring only; no RNG, wall clock, floating dispatch score, or unordered iteration authority.
+- Passenger/service banks isolated by exact `ElevatorKind`.
 - Capacity is a hard invariant.
-- Elevators never become fire-egress authority.
-- Save format becomes HHGS 12 while HHGS 2-11 remain loadable.
-- Completed-trip diagnostics are bounded to 128 records.
+- Elevators remain excluded from fire-egress authority.
+- HHGS 11 remains unchanged; new live diagnostics must be derivable from persisted state.
+- Automatic guest/staff path integration is out of scope and must not be claimed.
 
----
+## Completed implementation sequence
 
-### Task 1: RED contracts for assignment, capacity and batching
+### 1. RED dispatch contracts
 
-**Files:**
-- Modify: `game/tests/BuildingSystemsTests.cpp`
-- Modify: `game/CMakeLists.txt` only if the existing target does not already compile `BuildingSystemsTests.cpp`.
+- [x] Added failing bank-selection, capacity/batching, bank-isolation and rejection contracts before production API existed.
+- [x] Opened branch-isolated draft PR #25 against FINAL-01 while the feature was RED.
 
-**Interfaces:**
-- Consumes: existing `Simulation::installElevator`, `Simulation::requestElevator`, `BuildingSystemsSnapshot`.
-- Produces required API: `Simulation::requestElevator(ElevatorKind kind, int pickupFloor, int destinationFloor)` bank overload and richer elevator/request snapshots.
+### 2. Deterministic bank selector
 
-- [ ] Add a failing test that installs two passenger cars, issues a bank request, and requires deterministic assignment to the minimum `(ETA, queue depth, elevatorId)` car.
-- [ ] Add a failing test with capacity 2 and three same-floor/up-direction requests; after boarding, require exactly two boarded and one waiting.
-- [ ] Add a failing test requiring compatible same-floor requests to share one boarding door cycle rather than serial door cycles.
-- [ ] Run the building-system target and confirm RED failures are specifically missing bank dispatch/capacity behavior.
-- [ ] Commit RED tests.
+- [x] Added `ElevatorDirection` and derived `assignedElevatorId`/`onboardCount` diagnostics.
+- [x] Added `Simulation::requestElevator(ElevatorKind, pickup, destination)` in a small dedicated translation unit rather than expanding `Simulation.cpp`.
+- [x] Implemented exact-kind/floor eligibility and selection key `(etaSeconds, queueDepth, elevatorId)`.
+- [x] Rejected same-floor and no-compatible-car bank requests.
 
-### Task 2: Snapshot model and deterministic bank selector
+### 3. Capacity-aware directional batching
 
-**Files:**
-- Modify: `game/include/hh/game/BuildingSystems.h`
-- Modify: `game/src/BuildingSystems.cpp`
-- Modify: `game/include/hh/game/Simulation.h`
-- Modify: `game/src/Simulation.cpp`
+- [x] Preserved existing five public car states.
+- [x] Batched same-floor/same-direction waiting requests in stable request-ID order.
+- [x] Enforced remaining capacity before boarding.
+- [x] Selected nearest onboard destination in the current direction with stable ID tie breaking.
+- [x] Alighted every onboard request sharing the reached destination in one door cycle.
+- [x] Returned to the oldest waiting request after the onboard sweep drained.
 
-**Interfaces:**
-- Produces: `ElevatorDirection { Idle, Up, Down }`; request assignment/timestamps; `detail::assignElevatorRequest(BuildingSystemsSnapshot&, ElevatorKind, pickup, destination, requestId, elapsedSeconds)`; bank overload on `Simulation::requestElevator`.
+### 4. Persistence safety
 
-- [ ] Implement request timestamp/assignment fields plus per-car direction/onboard/diagnostic counters using integer fields.
-- [ ] Implement a deterministic projected-ETA helper and selection key `(etaSeconds, requests.size(), elevator.id)` over cars in stable ID order.
-- [ ] Reject degenerate requests and bank requests with no compatible car.
-- [ ] Keep direct-car requests by setting `assignedElevatorId` to that car immediately.
-- [ ] Run Task 1 tests to GREEN for assignment while capacity/batching tests remain RED only where expected.
-- [ ] Commit selector/model implementation.
+- [x] Kept HHGS 11 writer/reader unchanged because all behavior-critical elevator state was already persisted.
+- [x] Kept assignment/direction/onboard diagnostics derived and outside persistence equality.
+- [x] Added mid-trip batched save/load continuation requiring byte-identical final saves and equal authoritative snapshots.
 
-### Task 3: Capacity-aware directional car sweep
+### 5. Burst/soak regression
 
-**Files:**
-- Modify: `game/src/BuildingSystems.cpp`
-- Modify: `game/tests/BuildingSystemsTests.cpp`
+- [x] Added `ElevatorDispatchSoakTests.cpp`.
+- [x] Scenario uses four cars, sixteen floors, passenger/service banks and 400 deterministic requests.
+- [x] Capacity is asserted after each burst tick and through a 20,000-second drain.
+- [x] Same-seed simulations must match at every burst step and end with identical snapshots/save bytes and no stranded requests.
 
-**Interfaces:**
-- Consumes request ordering `(requestedAtSeconds, id)` and assigned car IDs.
-- Produces: `detail::tickElevator(ElevatorSnapshot&, std::int64_t elapsedSeconds, std::vector<ElevatorTripSnapshot>& completedTrips)`.
+### 6. Remaining verification checklist
 
-- [ ] Write/retain failing assertions for capacity saturation, batched boarding, batched alighting, and opposite-direction deferral.
-- [ ] Change car stop selection to deterministic directional sweeps while preserving the five public elevator states.
-- [ ] At boarding, board oldest compatible requests up to `capacity`; never exceed capacity.
-- [ ] At alighting, complete all onboard requests at the current destination in one door cycle and record wait/ride seconds.
-- [ ] When the directional sweep empties, choose the oldest remaining assigned request and establish the next direction.
-- [ ] Bound completed trip history to the newest 128 entries.
-- [ ] Run building-system tests to GREEN.
-- [ ] Commit batching implementation.
-
-### Task 4: Service isolation, rejection and diagnostics RED->GREEN
-
-**Files:**
-- Modify: `game/tests/BuildingSystemsTests.cpp`
-- Modify: `game/src/BuildingSystems.cpp`
-- Modify: `game/src/Simulation.cpp`
-
-**Interfaces:**
-- Snapshot diagnostics: `onboardCount`, `completedTrips`, `cumulativeWaitSeconds`, `cumulativeRideSeconds`, global bounded `completedElevatorTrips`.
-
-- [ ] Add a failing test proving a passenger bank request never uses a service car and vice versa.
-- [ ] Add failing rejection tests for `pickup == destination`, unserved floors, and absent compatible car.
-- [ ] Add a failing diagnostics test whose exact wait/ride duration follows configured floor and door timing.
-- [ ] Implement any missing validation/counter updates needed for those tests.
-- [ ] Run the complete building-system suite to GREEN.
-- [ ] Commit diagnostics/isolation changes.
-
-### Task 5: Save v12 and legacy migration RED->GREEN
-
-**Files:**
-- Modify: `game/src/Simulation.cpp`
-- Modify: `game/tests/ConstructionSaveTests.cpp`
-- Modify: `game/tests/SimulationTestsV11.cpp` only if it contains the existing version-11 fixture helpers.
-
-**Interfaces:**
-- HHGS 12 writes new request/car/trip fields.
-- HHGS 2-11 loader remains accepted.
-
-- [ ] Add a failing mid-trip save/load test: step to a moving/boarding state, save, load, continue both simulations, and require identical elevator snapshots and byte-identical final saves.
-- [ ] Add a failing HHGS 11 migration test requiring existing elevator requests to be assigned to their containing car without changing RNG-dependent simulation state.
-- [ ] Bump writer/current max reader version to 12.
-- [ ] Serialize/parse new car/request/trip fields for v12; preserve the v11 field parser exactly for legacy saves.
-- [ ] During v11 migration, assign each request to its containing elevator and derive stable migration timestamps from `elapsed` plus request-ID ordering.
-- [ ] Validate timestamp order, assignment ownership, capacity, counters, and ID uniqueness.
-- [ ] Run save/construction and building-system tests to GREEN.
-- [ ] Commit persistence changes.
-
-### Task 6: Deterministic burst/soak regression
-
-**Files:**
-- Create: `game/tests/ElevatorDispatchSoakTests.cpp`
-- Modify: `game/CMakeLists.txt`
-
-**Interfaces:**
-- Uses only public `Simulation` commands and immutable snapshots.
-
-- [ ] Add a deterministic scenario with at least 4 cars, 16 served floors, mixed passenger/service banks, and several hundred stable request events.
-- [ ] Require identical same-seed final snapshots and save bytes across two simulations.
-- [ ] Assert no car ever reports `onboardCount > capacity`, all completed trips have nonnegative ordered timestamps, completed history never exceeds 128, and service requests never cross bank type.
-- [ ] Run the soak target twice and confirm identical results.
-- [ ] Commit soak coverage.
-
-### Task 7: Full verification and status
-
-**Files:**
-- Modify: `docs/IMPLEMENTATION_STATUS.md`
-
-**Interfaces:** None.
-
-- [ ] Update the status document to remove elevator-car dispatch from the explicit material-gap list and accurately describe what is now implemented; do not claim actor-level elevator path integration unless implemented.
-- [ ] Configure a fresh Release build.
-- [ ] Build all available portable targets with warnings treated as errors where supported.
-- [ ] Run full CTest and record exact pass/fail count.
-- [ ] Run `git diff --check` equivalent via PR diff review and inspect every changed file for accidental scope expansion.
-- [ ] Open a draft PR against `feature/final-01-construction-building-systems`; do not merge it.
+- [ ] Current-head Ubuntu Integrated Game build + CTest green.
+- [ ] Current-head Windows Integrated Game build + CTest + smoke/package green.
+- [ ] Adjacent Balance Lab, Optimization and OpenUSD workflows green.
+- [ ] Review PR diff for unintended scope expansion.
+- [ ] Update implementation status and PR body with exact verified evidence.
+- [ ] Keep PR draft and unmerged.
