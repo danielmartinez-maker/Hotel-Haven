@@ -632,7 +632,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         }
       }
       refreshTime += dt;
-      if (refreshTime >= .1 || frames == 0) {
+      if (shouldRefreshClientSnapshot(frames == 0, c.speed, refreshTime)) {
         c.refresh();
         refreshTime = 0;
       }
