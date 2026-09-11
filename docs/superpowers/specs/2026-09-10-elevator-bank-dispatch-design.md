@@ -35,13 +35,15 @@ Each compatible car receives an integer ETA derived only from authoritative snap
 - travel time from current/projected target floor to the requested pickup;
 - a deterministic door-cycle charge for already queued requests.
 
-Selection key is `(etaSeconds, queuedRequestCount, elevatorId)`. No RNG, wall-clock time, floating-point comparison, or unordered-container iteration order participates in dispatch.
+Selection key is `(etaSeconds, queuedRequestCount, elevatorId)`. No RNG, wall-clock time, floating-point comparison, or unordered-container iteration order participates in dispatch. Assignment is represented by the request being inserted into the selected car's existing authoritative request vector.
 
 ## Capacity and directional batching
 
 A car may carry at most `capacity` boarded requests. At a boarding stop it collects waiting requests for the same pickup floor and active direction in stable request-ID order until capacity is exhausted.
 
 The first waiting request establishes the sweep direction. Same-floor requests whose destinations continue in that direction may share the door cycle. Opposite-direction requests remain waiting for a later sweep. Multiple onboard riders sharing a destination alight in the same door cycle.
+
+Sweep direction is derived internally from the existing boarded requests/active request. It is not added as new snapshot or save state.
 
 ## Car state machine
 
@@ -54,19 +56,24 @@ The existing public states remain unchanged: `Idle`, `MovingToPickup`, `Boarding
 
 Doors continue to use `doorSeconds`. Car movement remains floor-discrete and simulation-authoritative.
 
-## Live diagnostics
+## Diagnostics
 
-The immutable elevator snapshot exposes derived `direction`, `onboardCount`, and per-request `assignedElevatorId`. Queue depth is the active request-vector size. These fields are diagnostic views of existing authoritative HHGS 11 car/request state; they do not create a second persistence authority.
+No snapshot schema is expanded. Existing immutable data already exposes the required live diagnostics:
+
+- queue depth via `requests.size()`;
+- onboard count via the number of requests whose existing `boarded` flag is true;
+- selected car via request containment;
+- current/target floor, state and phase timing via existing `ElevatorSnapshot` fields.
 
 Historical wait/ride telemetry is intentionally deferred. Adding behavior-irrelevant historical state would require a save-format migration without improving dispatch correctness.
 
 ## Save compatibility
 
-The implementation deliberately keeps **HHGS 11** unchanged.
+The implementation deliberately keeps **HHGS 11** and the existing elevator snapshot/request schema unchanged.
 
-The existing save already persists every behavior-critical dispatch field: containing elevator/car identity, floor range, current/target floors, capacity, travel/door timing, public state, phase time, active request ID, each request's pickup/destination, and whether it has boarded. `assignedElevatorId`, direction, and onboard count are reconstructed deterministically from that state.
+The save already persists every behavior-critical dispatch field: containing elevator/car identity, floor range, current/target floors, capacity, travel/door timing, public state, phase time, active request ID, each request's pickup/destination, and whether it has boarded. Direction and onboard count are computed from those fields when dispatch logic needs them.
 
-This avoids an unnecessary HHGS 12 migration and preserves FINAL-01's existing v2-v11 loading behavior. A dedicated regression saves during a two-rider trip, reloads, continues both simulations, and requires byte-identical final saves plus equal authoritative building-system snapshots.
+This avoids an unnecessary HHGS 12 migration and preserves FINAL-01's existing v2-v11 loading behavior. A dedicated regression saves during a two-rider trip, reloads, continues both simulations, and requires byte-identical final saves plus exact default snapshot equality.
 
 ## Validation and rejection
 
