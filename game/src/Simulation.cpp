@@ -1679,9 +1679,16 @@ CommandResult Simulation::closeRoom(EntityId id, bool closed) {
           return task.targetId == id && task.kind == TaskKind::Repair &&
                  task.status != TaskStatus::Completed;
         });
+    const bool activeTurnover =
+        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
+          return task.targetId == id && task.kind == TaskKind::Turnover &&
+                 task.status != TaskStatus::Completed;
+        });
     if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||
-        r->condition < 40)
-      return {false, "Room must be repaired before reopening"};
+        activeTurnover || r->condition < 40)
+      return {false, activeTurnover
+                         ? "Room service must complete before reopening"
+                         : "Room must be repaired before reopening"};
   }
   r->closed = closed;
   r->status = closed ? RoomStatus::OutOfOrder
