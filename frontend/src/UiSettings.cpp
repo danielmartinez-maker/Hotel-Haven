@@ -19,6 +19,14 @@ bool UiSettings::setKeyboardBinding(UiAction action, int keyCode) noexcept {
     keyboardBindings_[index] = keyCode;
     return true;
 }
+std::optional<UiAction> UiSettings::actionForKey(int keyCode) const noexcept {
+    if (keyCode <= 0 || keyCode > 255)
+        return std::nullopt;
+    const auto found = std::find(keyboardBindings_.begin(), keyboardBindings_.end(), keyCode);
+    if (found == keyboardBindings_.end())
+        return std::nullopt;
+    return static_cast<UiAction>(std::distance(keyboardBindings_.begin(), found));
+}
 void UiSettings::resetKeyboardBindings() noexcept {
     keyboardBindings_ = DefaultKeyboardBindings;
 }
