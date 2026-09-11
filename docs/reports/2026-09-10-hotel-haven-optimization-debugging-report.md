@@ -401,7 +401,7 @@ Local Linux CI-equivalent portable verification is green. Repository workflows d
 
 ## Final commit and working-tree record
 
-The continuation source snapshot tested before report-only files were added is `e45b385c6bf7c3a32ffff5d3afcdb732414ab104`. The earlier first-pass report handoff was committed as `af4ec05` before the authenticated GitHub mirror update. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector will publish the equivalent final tree update without merging the pull request.
+The continuation source snapshot tested before report-only files were added is `e45b385c6bf7c3a32ffff5d3afcdb732414ab104`. The local source and documentation milestones are `e45b385c6bf7c3a32ffff5d3afcdb732414ab104` and `6477ff552d7de13a4d0939090d1f3975843f06d8`. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector published the equivalent final tree to draft PR #24 without merging it.
 
 - local report handoff commit before the mirror-only update: `af4ec05`;
 - remote branch initial code/report head: `hardening/extensive-optimization-2026-09-10` at `dbdd8d1af616ec4a241818e46826cd87412f4d3f`;
