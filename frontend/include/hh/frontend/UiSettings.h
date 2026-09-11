@@ -2,6 +2,7 @@
 #include "hh/frontend/GameUiTypes.h"
 #include <array>
 #include <cstddef>
+#include <optional>
 namespace hh::frontend {
 class UiSettings {
 public:
@@ -12,6 +13,7 @@ public:
     [[nodiscard]] float localizationExpansionFactor() const noexcept { return 1.40f; }
     [[nodiscard]] int keyboardBinding(UiAction action) const noexcept;
     [[nodiscard]] bool setKeyboardBinding(UiAction action, int keyCode) noexcept;
+    [[nodiscard]] std::optional<UiAction> actionForKey(int keyCode) const noexcept;
     void resetKeyboardBindings() noexcept;
 private:
     static constexpr std::size_t KeyboardActionCount = 7;
