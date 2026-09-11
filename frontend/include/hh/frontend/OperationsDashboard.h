@@ -1,5 +1,6 @@
 #pragma once
 #include "hh/frontend/GameUiTypes.h"
+#include <cstddef>
 #include <optional>
 #include <span>
 #include <string>
@@ -16,6 +17,7 @@ struct OperationsFilter {
     std::optional<int> x;
     std::optional<int> y;
 };
+enum class OperationSort { SchedulerOrder, PriorityHighFirst, OldestFirst };
 class OperationsDashboard {
 public:
     void update(const OperationsSnapshot& snapshot);
@@ -26,6 +28,13 @@ public:
     [[nodiscard]] std::span<const OperationRow> window(std::size_t offset, std::size_t count) const noexcept;
     [[nodiscard]] std::vector<OperationRow> filteredWindow(OperationArea area, std::size_t offset, std::size_t count) const;
     [[nodiscard]] std::vector<OperationRow> filteredWindow(const OperationsFilter& filter, std::size_t offset, std::size_t count) const;
-private: OperationsSnapshot snapshot_{};
+    [[nodiscard]] std::vector<OperationRow> filteredWindow(const OperationsFilter& filter, OperationSort sort, std::size_t offset, std::size_t count) const;
+private:
+    [[nodiscard]] const std::vector<std::size_t>& sortedOrder(OperationSort sort) const;
+    OperationsSnapshot snapshot_{};
+    mutable std::vector<std::size_t> priorityOrder_;
+    mutable std::vector<std::size_t> ageOrder_;
+    mutable bool priorityOrderReady_{};
+    mutable bool ageOrderReady_{};
 };
 } // namespace hh::frontend
