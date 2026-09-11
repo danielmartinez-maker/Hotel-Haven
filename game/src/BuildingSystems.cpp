@@ -271,8 +271,7 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
     elevator.state = ElevatorState::Alighting;
     elevator.phaseSecondsRemaining = elevator.doorSeconds;
     break;
-  case ElevatorState::Alighting: {
-    const auto before = elevator.requests.size();
+  case ElevatorState::Alighting:
     elevator.requests.erase(
         std::remove_if(elevator.requests.begin(), elevator.requests.end(),
                        [&](const ElevatorRequestSnapshot &request) {
@@ -280,7 +279,6 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
                                 request.destinationFloor == elevator.currentFloor;
                        }),
         elevator.requests.end());
-    elevator.completedTrips += before - elevator.requests.size();
     refreshDerivedState(elevator);
     if (elevator.onboardCount > 0)
       beginDestination();
@@ -292,7 +290,6 @@ void tickElevator(ElevatorSnapshot &elevator) noexcept {
       beginPickup();
     }
     break;
-  }
   case ElevatorState::Idle:
     beginPickup();
     break;
