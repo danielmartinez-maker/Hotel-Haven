@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "Final06UiCommandAdapter.h"
+#include "LiveBuildCatalog.h"
 
 #include <algorithm>
 #include <array>
@@ -66,7 +67,9 @@ void Client::refreshUi() {
   contextView.cutaway = wallMode == hh::renderer::WallRenderMode::Cutaway;
   contextView.currentTool = toolName(tool);
   contextView.buildPreview = buildPreview;
-  ui.update(makeGameUiSnapshotSource(simulation, contextView));
+  auto source = makeGameUiSnapshotSource(simulation, contextView);
+  attachLiveBuildCatalog(source);
+  ui.update(source);
   hudModel.update(ui.snapshot().hud);
   alertCenter.ingest(ui.snapshot().alerts);
   objectiveUi.update(ui.snapshot().objectives);

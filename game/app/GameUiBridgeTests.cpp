@@ -1,4 +1,5 @@
 #include "GameUiBridge.h"
+#include "LiveBuildCatalog.h"
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
@@ -26,7 +27,8 @@ int main() {
     context.activeFloor = 0;
     context.cutaway = true;
     context.currentTool = "Inspect";
-    const auto source = hh::client::makeGameUiSnapshotSource(simulation, context);
+    auto source = hh::client::makeGameUiSnapshotSource(simulation, context);
+    hh::client::attachLiveBuildCatalog(source);
     const auto view = simulation.view();
     require(source.hud.cashCents == view.economy.cashCents, "HUD cash was not snapshot-bound");
     require(source.hud.day == view.day && source.hud.hour == view.hour, "HUD clock was not snapshot-bound");
@@ -66,6 +68,27 @@ int main() {
       return overlay.id == hh::frontend::OverlayId::Temperature;
     });
     require(temperature == source.overlays.end(), "bridge fabricated unsupported temperature authority");
+
+    require(source.buildCatalog.size() == 12,
+            "live build catalog must expose every currently buildable construction tool");
+    const auto guestRoom = std::find_if(
+        source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
+          return item.id == "Guest room";
+        });
+    require(guestRoom != source.buildCatalog.end(),
+            "live build catalog omitted the furnished guest-room command");
+    require(guestRoom->name == "Guest room" && guestRoom->category == "Rooms",
+            "guest-room build metadata does not match the live construction command");
+    require(guestRoom->costCents == 540000,
+            "guest-room catalog cost drifted from the 6x6 furnished-room command");
+    require(guestRoom->id == guestRoom->name,
+            "catalog id must match the native placement-preview item id");
+    const auto floorTile = std::find_if(
+        source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
+          return item.id == "Floor";
+        });
+    require(floorTile != source.buildCatalog.end() && floorTile->costCents == 500,
+            "tile catalog cost drifted from the live tile-construction command");
 
     auto alternateContext = context;
     alternateContext.cutaway = false;
