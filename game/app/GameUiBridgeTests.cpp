@@ -67,6 +67,25 @@ int main() {
     });
     require(temperature == source.overlays.end(), "bridge fabricated unsupported temperature authority");
 
+    require(source.buildCatalog.size() == 12,
+            "live build catalog must expose every currently buildable construction tool");
+    const auto guestRoom = std::find_if(
+        source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
+          return item.id == "guest_room";
+        });
+    require(guestRoom != source.buildCatalog.end(),
+            "live build catalog omitted the furnished guest-room command");
+    require(guestRoom->name == "Guest room" && guestRoom->category == "Rooms",
+            "guest-room build metadata does not match the live construction command");
+    require(guestRoom->costCents == 540000,
+            "guest-room catalog cost drifted from the 6x6 furnished-room command");
+    const auto floorTile = std::find_if(
+        source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
+          return item.id == "floor";
+        });
+    require(floorTile != source.buildCatalog.end() && floorTile->costCents == 500,
+            "tile catalog cost drifted from the live tile-construction command");
+
     auto alternateContext = context;
     alternateContext.cutaway = false;
     const auto alternateSource =
