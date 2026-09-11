@@ -186,17 +186,18 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     expected_anchor_bindings = report.get('expected_interaction_anchor_bindings', 0)
 
     unresolved = qc_failures + deferred
-    if gameplay != 500:
+    target_assets = int(summary.get('declared_gameplay_asset_count', gameplay))
+    if gameplay != target_assets:
         unresolved += 1
     if linked != expected:
         unresolved += 1
 
     lines = [
-        '# Hotel Haven 500-Asset Library Release Audit V1',
+        f'# Hotel Haven {target_assets}-Asset Library Release Audit V1',
         '',
         '## Release gate',
         '',
-        f'- Gameplay-facing assets: **{gameplay} / 500**',
+        f'- Gameplay-facing assets: **{gameplay} / {target_assets}**',
         f'- Generated asset records (gameplay + animation support): **{summary.get("generated_asset_records", 0)}**',
         f'- Animation dependencies linked: **{linked} / {expected}**',
         f'- Deferred animation dependencies: **{deferred}**',
@@ -221,7 +222,7 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     for profile, budget in sorted(report.get('profile_face_budgets', {}).items()):
         lines.append(f'| {profile} | {budget} |')
     lines.extend(['', '## Batch status', '', '| Batch | Status |', '| --- | --- |'])
-    for batch in range(1, 11):
+    for batch in range(1, int(summary.get('declared_batch_count', len(batch_statuses))) + 1):
         lines.append(f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |')
     lines.extend([
         '',
@@ -254,8 +255,9 @@ def validate(repo_root: Path) -> dict:
         for path in exports.rglob('ANSET_*.animset.json.asset.json')
     }
     paths = sorted(exports.glob('Batch*/*.glb'))
-    if len(paths) != 500:
-        failures.append(f'expected 500 GLBs, found {len(paths)}')
+    expected_asset_count = len(manifests)
+    if len(paths) != expected_asset_count:
+        failures.append(f'expected {expected_asset_count} GLBs, found {len(paths)}')
 
     for path in paths:
         asset_id = path.stem
@@ -447,7 +449,7 @@ def validate(repo_root: Path) -> dict:
                 if counts.get(f'{i:02d}') == 50
                 else f'INCOMPLETE_{counts.get(f"{i:02d}", 0)}_OF_50'
             )
-            for i in range(1, 11)
+            for i in range(1, int(summary.get('declared_batch_count', len(counts))) + 1)
         }
         (validation_dir / 'library_release_audit_v1.md').write_text(
             release_audit_markdown(summary, report, batch_statuses)

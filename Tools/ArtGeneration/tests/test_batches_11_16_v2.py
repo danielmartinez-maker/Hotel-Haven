@@ -58,6 +58,23 @@ def test_v2_batches_generate_50_semantic_assets_each(tmp_path):
             assert sidecar['material_slots']
 
 
+def test_batch14_service_cart_animation_nodes_are_generated(tmp_path):
+    module = importlib.import_module('batch14_generate')
+    out = tmp_path / 'Batch14'
+    module.generate_package(
+        MANIFEST / 'asset_batch_14.json',
+        out,
+        'Tools/ArtGeneration/batch14_generate.py',
+    )
+
+    animated = [row for row in _rows(14) if row[5] == 'ANSET_SERVICE_CART']
+    assert animated
+    for asset_id, name, *_rest in animated:
+        scene = trimesh.load(out / f'{asset_id}.glb', force='scene')
+        nodes = {str(node) for node in scene.graph.nodes_geometry}
+        assert any(node.startswith('MOV_Wheel') for node in nodes), (asset_id, name, sorted(nodes))
+
+
 def test_batch16_character_assets_keep_humanoid_dependencies(tmp_path):
     module = importlib.import_module('batch16_generate')
     out = tmp_path / 'Batch16'
