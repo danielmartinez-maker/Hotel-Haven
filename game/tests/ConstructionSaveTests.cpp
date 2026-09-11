@@ -69,11 +69,42 @@ void complete_construction_state_round_trips_and_migrates_v10() {
               migrated.buildingSystemsSnapshot().elevators.empty(),
           "v10 save did not migrate with safe FINAL-01 defaults");
 }
+
+void batched_elevator_mid_trip_save_continues_identically() {
+  Simulation direct(4003, 8, 8, 8);
+  ElevatorSpec spec;
+  spec.kind = ElevatorKind::Passenger;
+  spec.minFloor = 0;
+  spec.maxFloor = 7;
+  spec.startFloor = 0;
+  spec.capacity = 2;
+  spec.travelSecondsPerFloor = 3;
+  spec.doorSeconds = 2;
+  const auto installed = direct.installElevator(spec);
+  require(installed.ok, "mid-trip elevator install failed");
+  require(direct.requestElevator(ElevatorKind::Passenger, 0, 6).ok &&
+              direct.requestElevator(ElevatorKind::Passenger, 0, 4).ok,
+          "mid-trip bank requests failed");
+  direct.step(7);
+  const auto before = direct.buildingSystemsSnapshot().elevators.front();
+  require(before.onboardCount == 2 &&
+              before.state == ElevatorState::MovingToDestination,
+          "mid-trip fixture did not reach a batched moving state");
+
+  auto resumed = Simulation::load(direct.save());
+  direct.step(90);
+  resumed.step(90);
+  require(resumed.save() == direct.save(),
+          "batched elevator continuation diverged after save/load");
+  require(resumed.buildingSystemsSnapshot() == direct.buildingSystemsSnapshot(),
+          "batched elevator authoritative state diverged after save/load");
+}
 } // namespace
 
 int main() {
   try {
     complete_construction_state_round_trips_and_migrates_v10();
+    batched_elevator_mid_trip_save_continues_identically();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
