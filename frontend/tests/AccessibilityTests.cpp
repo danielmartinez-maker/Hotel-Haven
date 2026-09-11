@@ -37,7 +37,15 @@ TEST_CASE("Keyboard controls can be remapped without ambiguous duplicate binding
     EXPECT_FALSE(settings.setKeyboardBinding(UiAction::Cancel, 0));
     EXPECT_FALSE(settings.setKeyboardBinding(UiAction::Cancel, 256));
 
+    const auto remapped = settings.actionForKey('P');
+    EXPECT_TRUE(remapped.has_value());
+    EXPECT_EQ(*remapped, UiAction::PauseToggle);
+    EXPECT_FALSE(settings.actionForKey(originalPause).has_value());
+
     settings.resetKeyboardBindings();
     EXPECT_EQ(settings.keyboardBinding(UiAction::PauseToggle), originalPause);
     EXPECT_EQ(settings.keyboardBinding(UiAction::Cancel), originalCancel);
+    const auto restored = settings.actionForKey(originalPause);
+    EXPECT_TRUE(restored.has_value());
+    EXPECT_EQ(*restored, UiAction::PauseToggle);
 }
