@@ -30,13 +30,13 @@ void appendVec3(std::vector<std::byte>& bytes, float x, float y, float z) {
     appendValue(bytes, z);
 }
 
-std::vector<std::byte> makeGlb(bool malformedAccessor = false) {
+std::vector<std::byte> makeZUpTriangleGlb(bool malformedAccessor = false) {
     std::vector<std::byte> binary;
 
-    // Positions: one triangle in glTF right-handed, Y-up coordinates.
+    // One triangle in Hotel Haven asset space: X=width, Y=depth, Z=up.
     appendVec3(binary, 1.0f, 2.0f, 3.0f);
-    appendVec3(binary, 0.0f, 0.0f, 0.0f);
-    appendVec3(binary, 0.0f, 1.0f, 0.0f);
+    appendVec3(binary, 2.0f, 2.0f, 3.0f);
+    appendVec3(binary, 1.0f, 3.0f, 3.0f);
     const std::size_t normalOffset = binary.size();
 
     appendVec3(binary, 0.0f, 0.0f, 1.0f);
@@ -83,7 +83,7 @@ std::vector<std::byte> makeGlb(bool malformedAccessor = false) {
           "\"attributes\":{\"POSITION\":0,\"NORMAL\":1},"
           "\"indices\":2,\"material\":0,\"mode\":4"
         "}]}],"
-        "\"nodes\":[{\"mesh\":0,\"translation\":[2.0,0.0,1.0]}],"
+        "\"nodes\":[{\"mesh\":0,\"translation\":[2.0,5.0,7.0]}],"
         "\"scenes\":[{\"nodes\":[0]}],\"scene\":0"
         "}";
 
@@ -113,28 +113,39 @@ std::vector<std::byte> makeGlb(bool malformedAccessor = false) {
 
 }  // namespace
 
-TEST_CASE("GLB loader converts handedness, node transform, normals, winding, and material alpha") {
-    const auto mesh = hh::renderer::loadGlbMesh(makeGlb());
+TEST_CASE("GLB loader maps transformed Hotel Haven Z-up geometry into renderer space") {
+    const auto mesh = hh::renderer::loadGlbMesh(makeZUpTriangleGlb());
 
     EXPECT_EQ(mesh.primitives.size(), 1u);
-    EXPECT_EQ(mesh.materials.size(), 1u);
     const auto& primitive = mesh.primitives.front();
     EXPECT_EQ(primitive.vertices.size(), 3u);
     EXPECT_EQ(primitive.indices.size(), 3u);
 
-    // Node translation is applied in glTF coordinates before RH -> LH conversion.
+    // Apply the node transform in asset space, then map (x,y,z) -> (x,z,y).
     EXPECT_NEAR(primitive.vertices[0].position.x, 3.0f, 0.0001f);
-    EXPECT_NEAR(primitive.vertices[0].position.y, 2.0f, 0.0001f);
-    EXPECT_NEAR(primitive.vertices[0].position.z, -4.0f, 0.0001f);
+    EXPECT_NEAR(primitive.vertices[0].position.y, 10.0f, 0.0001f);
+    EXPECT_NEAR(primitive.vertices[0].position.z, 7.0f, 0.0001f);
     EXPECT_NEAR(primitive.vertices[0].normal.x, 0.0f, 0.0001f);
-    EXPECT_NEAR(primitive.vertices[0].normal.y, 0.0f, 0.0001f);
-    EXPECT_NEAR(primitive.vertices[0].normal.z, -1.0f, 0.0001f);
+    EXPECT_NEAR(primitive.vertices[0].normal.y, 1.0f, 0.0001f);
+    EXPECT_NEAR(primitive.vertices[0].normal.z, 0.0f, 0.0001f);
 
-    // Mirroring Z changes handedness, so triangle winding must be reversed.
+    // Swapping Y and Z changes handedness, so triangle winding reverses once.
     EXPECT_EQ(primitive.indices[0], 0u);
     EXPECT_EQ(primitive.indices[1], 2u);
     EXPECT_EQ(primitive.indices[2], 1u);
 
+    EXPECT_NEAR(mesh.bounds.min.x, 3.0f, 0.0001f);
+    EXPECT_NEAR(mesh.bounds.max.x, 4.0f, 0.0001f);
+    EXPECT_NEAR(mesh.bounds.min.y, 10.0f, 0.0001f);
+    EXPECT_NEAR(mesh.bounds.max.y, 10.0f, 0.0001f);
+    EXPECT_NEAR(mesh.bounds.min.z, 7.0f, 0.0001f);
+    EXPECT_NEAR(mesh.bounds.max.z, 8.0f, 0.0001f);
+}
+
+TEST_CASE("GLB loader preserves material alpha") {
+    const auto mesh = hh::renderer::loadGlbMesh(makeZUpTriangleGlb());
+
+    EXPECT_EQ(mesh.materials.size(), 1u);
     const auto& material = mesh.materials.front();
     EXPECT_NEAR(material.baseColor.r, 0.2f, 0.0001f);
     EXPECT_NEAR(material.baseColor.g, 0.3f, 0.0001f);
@@ -143,17 +154,12 @@ TEST_CASE("GLB loader converts handedness, node transform, normals, winding, and
     EXPECT_NEAR(material.metallic, 0.7f, 0.0001f);
     EXPECT_NEAR(material.roughness, 0.25f, 0.0001f);
     EXPECT_TRUE(material.translucent);
-
-    EXPECT_NEAR(mesh.bounds.min.x, 2.0f, 0.0001f);
-    EXPECT_NEAR(mesh.bounds.max.x, 3.0f, 0.0001f);
-    EXPECT_NEAR(mesh.bounds.min.z, -4.0f, 0.0001f);
-    EXPECT_NEAR(mesh.bounds.max.z, -1.0f, 0.0001f);
 }
 
 TEST_CASE("GLB loader rejects accessors that overrun their buffer view") {
     bool threw = false;
     try {
-        (void)hh::renderer::loadGlbMesh(makeGlb(true));
+        (void)hh::renderer::loadGlbMesh(makeZUpTriangleGlb(true));
     } catch (const std::runtime_error&) {
         threw = true;
     }

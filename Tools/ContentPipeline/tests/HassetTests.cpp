@@ -47,6 +47,24 @@ HH_TEST("hasset rejects unsupported version") {
     bytes[8] = std::byte{2};
     HH_REQUIRE(parse_throws(bytes));
 }
+HH_TEST("hasset rejects infeasible dependency count before allocating") {
+    const auto document = sample();
+    auto bytes = serialize_hasset(document);
+    const auto dependency_count_offset =
+        8u + 4u + 4u + 4u + document.asset_id.size() + 4u + document.fingerprint.size();
+    bytes[dependency_count_offset] = std::byte{0x40};
+    bytes[dependency_count_offset + 1] = std::byte{0x42};
+    bytes[dependency_count_offset + 2] = std::byte{0x0f};
+    bytes[dependency_count_offset + 3] = std::byte{0x00};
+
+    bool bounded_rejection = false;
+    try {
+        static_cast<void>(parse_hasset(bytes));
+    } catch (const std::runtime_error& error) {
+        bounded_rejection = std::string_view(error.what()) == "hasset dependency count exceeds remaining bytes";
+    }
+    HH_REQUIRE(bounded_rejection);
+}
 HH_TEST("hasset rejects truncation at every suffix boundary") {
     const auto bytes = serialize_hasset(sample());
     for (std::size_t size = 0; size < bytes.size(); ++size) {

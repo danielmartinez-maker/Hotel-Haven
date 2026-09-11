@@ -64,6 +64,7 @@ public:
         return out;
     }
     bool finished() const noexcept { return pos_ == bytes_.size(); }
+    std::size_t remaining() const noexcept { return bytes_.size() - pos_; }
 private:
     void require(std::size_t count) const {
         if (count > bytes_.size() - pos_) throw std::runtime_error("truncated hasset");
@@ -107,6 +108,12 @@ HassetDocument parse_hasset(std::span<const std::byte> bytes) {
     document.asset_id = reader.string();
     document.fingerprint = reader.string();
     const auto dependency_count = reader.u32();
+    constexpr std::size_t minimum_dependency_bytes = sizeof(std::uint32_t);
+    constexpr std::size_t minimum_trailing_bytes = sizeof(std::uint32_t) * 2u + sizeof(std::uint64_t);
+    if (reader.remaining() < minimum_trailing_bytes ||
+        dependency_count > (reader.remaining() - minimum_trailing_bytes) / minimum_dependency_bytes) {
+        throw std::runtime_error("hasset dependency count exceeds remaining bytes");
+    }
     document.dependencies.reserve(dependency_count);
     for (std::uint32_t i = 0; i < dependency_count; ++i) document.dependencies.push_back(reader.string());
     document.source_path = reader.string();

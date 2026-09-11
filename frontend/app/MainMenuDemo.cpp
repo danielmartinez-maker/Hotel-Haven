@@ -252,7 +252,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             model.panel() == hh::frontend::MainMenuPanel::None &&
             window.mousePosition(pointer) &&
             hitMenuItem(layout, pointer, hovered) &&
-            model.isEnabled(hovered)) {
+            model.isEnabled(hovered) &&
+            hovered != model.selected()) {
             if (controller.hover(hovered)) {
                 transitions.retarget(model.selected(), reducedMotion);
             }
@@ -280,8 +281,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
                 toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
             } else if (model.panel() == hh::frontend::MainMenuPanel::None &&
                        hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
-                static_cast<void>(controller.hover(hovered));
-                transitions.retarget(model.selected(), reducedMotion);
+                if (hovered != model.selected() && controller.hover(hovered)) {
+                    transitions.retarget(model.selected(), reducedMotion);
+                }
                 executeCommand(controller.activate(), window);
             }
         }
@@ -310,8 +312,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         camera.setAspectRatio(
             static_cast<float>(window.clientWidth()) /
             static_cast<float>(window.clientHeight()));
-        camera.setYawDegrees(-25.0F + pose.idleYawDegrees + pose.yawOffsetDegrees);
-        camera.setOrthoHeight(42.0F * pose.idleZoomScale * pose.zoomScale);
+        camera.setYawDegrees(-25.0F + pose.yawOffsetDegrees);
+        camera.setOrthoHeight(42.0F * pose.zoomScale);
         camera.setTarget({pose.targetXOffset, 3.5F, pose.targetZOffset});
 
         if (!reducedMotion) {

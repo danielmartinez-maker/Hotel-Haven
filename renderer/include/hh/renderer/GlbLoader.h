@@ -33,8 +33,9 @@ struct RuntimeMesh {
     Aabb bounds{};
 };
 
-// Decodes a binary glTF 2.0 payload into renderer-native Y-up, left-handed
-// geometry. Scene-node transforms are flattened into the returned vertices.
+// Decodes a binary glTF 2.0 payload from Hotel Haven's Z-up asset space into
+// renderer-native Y-up, left-handed geometry. Scene-node transforms are
+// flattened before the asset-to-renderer basis conversion.
 // Unsupported or malformed geometry fails fast with std::runtime_error.
 [[nodiscard]] RuntimeMesh loadGlbMesh(std::span<const std::byte> bytes);
 

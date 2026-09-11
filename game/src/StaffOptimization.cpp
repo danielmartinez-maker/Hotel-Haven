@@ -17,6 +17,12 @@ bool contains(const OptimizationWindow &window, std::int64_t start,
   return start >= window.startSecond && end <= window.endSecond;
 }
 
+bool windowLess(const OptimizationWindow &a, const OptimizationWindow &b) {
+  if (a.startSecond != b.startSecond)
+    return a.startSecond < b.startSecond;
+  return a.endSecond < b.endSecond;
+}
+
 const OptimizerEmployee *employeeById(const OptimizerSnapshot &snapshot,
                                       std::uint64_t id) {
   const auto it = std::find_if(snapshot.employees.begin(), snapshot.employees.end(),
@@ -35,32 +41,50 @@ const OptimizerTask *taskById(const OptimizerSnapshot &snapshot,
   return it == snapshot.tasks.end() ? nullptr : &*it;
 }
 
-std::int64_t earliestFit(const OptimizerSnapshot &snapshot,
-                         const OptimizerEmployee &employee,
+struct PreparedEmployee {
+  const OptimizerEmployee *employee{};
+  std::vector<OptimizationWindow> shiftWindows;
+  std::vector<OptimizationWindow> unavailableWindows;
+};
+
+PreparedEmployee prepareEmployee(const OptimizerEmployee &employee) {
+  PreparedEmployee prepared;
+  prepared.employee = &employee;
+  prepared.shiftWindows = employee.shiftWindows;
+  prepared.unavailableWindows = employee.unavailableWindows;
+  std::sort(prepared.shiftWindows.begin(), prepared.shiftWindows.end(),
+            windowLess);
+  std::sort(prepared.unavailableWindows.begin(),
+            prepared.unavailableWindows.end(), windowLess);
+  return prepared;
+}
+
+std::int64_t earliestFit(std::int64_t capturedSecond,
+                         const PreparedEmployee &employee,
                          const OptimizerTask &task,
                          const std::vector<Assignment> &planned) {
-  std::vector<OptimizationWindow> blockers = employee.unavailableWindows;
-  for (const auto &assignment : planned)
-    if (assignment.employeeId == employee.id)
-      blockers.push_back({assignment.startSecond, assignment.endSecond});
-  std::sort(blockers.begin(), blockers.end(), [](const auto &a, const auto &b) {
-    if (a.startSecond != b.startSecond)
-      return a.startSecond < b.startSecond;
-    return a.endSecond < b.endSecond;
-  });
-
-  auto shifts = employee.shiftWindows;
-  std::sort(shifts.begin(), shifts.end(), [](const auto &a, const auto &b) {
-    if (a.startSecond != b.startSecond)
-      return a.startSecond < b.startSecond;
-    return a.endSecond < b.endSecond;
-  });
-  for (const auto &shift : shifts) {
-    auto cursor = std::max({snapshot.capturedSecond, task.earliestStartSecond,
+  for (const auto &shift : employee.shiftWindows) {
+    auto cursor = std::max({capturedSecond, task.earliestStartSecond,
                             shift.startSecond});
     if (cursor + task.durationSeconds > shift.endSecond)
       continue;
-    for (const auto &blocker : blockers) {
+    std::size_t unavailableIndex = 0;
+    std::size_t plannedIndex = 0;
+    while (unavailableIndex < employee.unavailableWindows.size() ||
+           plannedIndex < planned.size()) {
+      OptimizationWindow blocker;
+      const bool useUnavailable =
+          plannedIndex == planned.size() ||
+          (unavailableIndex < employee.unavailableWindows.size() &&
+           windowLess(employee.unavailableWindows[unavailableIndex],
+                      {planned[plannedIndex].startSecond,
+                       planned[plannedIndex].endSecond}));
+      if (useUnavailable) {
+        blocker = employee.unavailableWindows[unavailableIndex++];
+      } else {
+        const auto &assignment = planned[plannedIndex++];
+        blocker = {assignment.startSecond, assignment.endSecond};
+      }
       if (blocker.endSecond <= cursor || blocker.startSecond >= shift.endSecond)
         continue;
       if (cursor + task.durationSeconds <= blocker.startSecond)
@@ -150,25 +174,48 @@ AssignmentPlan buildDeterministicFallbackPlan(
     return a->id < b->id;
   });
 
+  std::vector<PreparedEmployee> preparedEmployees;
+  preparedEmployees.reserve(employees.size());
+  for (const auto *employee : employees)
+    preparedEmployees.push_back(prepareEmployee(*employee));
+  std::vector<std::vector<Assignment>> employeePlans(preparedEmployees.size());
+
   AssignmentPlan plan;
   for (const auto &task : tasks) {
     const OptimizerEmployee *bestEmployee = nullptr;
+    std::size_t bestEmployeeIndex = 0;
     std::int64_t bestStart = std::numeric_limits<std::int64_t>::max();
-    for (const auto *employee : employees) {
+    for (std::size_t employeeIndex = 0;
+         employeeIndex < preparedEmployees.size(); ++employeeIndex) {
+      const auto *employee = preparedEmployees[employeeIndex].employee;
       if (employee->absent || employee->role != task.requiredRole)
         continue;
-      const auto start = earliestFit(snapshot, *employee, task,
-                                     plan.assignments);
+      const auto start = earliestFit(
+          snapshot.capturedSecond, preparedEmployees[employeeIndex], task,
+          employeePlans[employeeIndex]);
       if (start < bestStart ||
           (start == bestStart && bestEmployee && employee->id < bestEmployee->id)) {
         bestStart = start;
         bestEmployee = employee;
+        bestEmployeeIndex = employeeIndex;
       }
     }
-    if (bestEmployee && bestStart != std::numeric_limits<std::int64_t>::max())
+    if (bestEmployee && bestStart != std::numeric_limits<std::int64_t>::max()) {
       plan.assignments.push_back(
           {task.id, bestEmployee->id, bestStart,
            bestStart + task.durationSeconds});
+      const Assignment assignment = plan.assignments.back();
+      auto &employeePlan = employeePlans[bestEmployeeIndex];
+      const auto insertion = std::lower_bound(
+          employeePlan.begin(), employeePlan.end(), assignment,
+          [](const Assignment &plannedAssignment,
+             const Assignment &candidate) {
+            if (plannedAssignment.startSecond != candidate.startSecond)
+              return plannedAssignment.startSecond < candidate.startSecond;
+            return plannedAssignment.endSecond < candidate.endSecond;
+          });
+      employeePlan.insert(insertion, assignment);
+    }
   }
   return plan;
 }

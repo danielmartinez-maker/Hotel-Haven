@@ -59,6 +59,31 @@ static void deterministic_fallback_returns_same_plan() {
           "native fallback generated an invalid plan");
 }
 
+static void fallback_preserves_window_ordering_semantics() {
+  OptimizerSnapshot snapshot;
+  snapshot.capturedSecond = 0;
+  snapshot.horizonEndSecond = 1200;
+  snapshot.employees = {{7,
+                         StaffRole::Housekeeper,
+                         false,
+                         true,
+                         {{700, 1000}, {100, 500}},
+                         {{650, 700}, {250, 300}}}};
+  snapshot.tasks = {{101, StaffRole::Housekeeper, true, 100, 100},
+                    {102, StaffRole::Housekeeper, false, 100, 100},
+                    {103, StaffRole::Housekeeper, false, 600, 100}};
+
+  const auto plan = buildDeterministicFallbackPlan(snapshot);
+  require(plan.assignments.size() == 3,
+          "fallback did not schedule all window-ordering tasks");
+  require(plan.assignments[0] == Assignment{101, 7, 100, 200},
+          "fallback changed critical-task placement");
+  require(plan.assignments[1] == Assignment{102, 7, 300, 400},
+          "fallback changed merged blocker placement");
+  require(plan.assignments[2] == Assignment{103, 7, 700, 800},
+          "fallback changed sorted shift placement");
+}
+
 static void simulation_snapshot_contains_workforce_constraints() {
   Simulation sim(402, 8, 8, 1);
   require(sim.buildTile({0, 0, 0}, TileKind::Entrance).ok,
@@ -111,6 +136,7 @@ int main() {
   try {
     optimizer_rejects_absence_and_break_overlap();
     deterministic_fallback_returns_same_plan();
+    fallback_preserves_window_ordering_semantics();
     simulation_snapshot_contains_workforce_constraints();
     native_scheduler_completes_critical_work_without_optimizer();
   } catch (const std::exception &e) {

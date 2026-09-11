@@ -461,6 +461,18 @@ static void guest_needs_follow_the_satisfied_score_convention() {
   require(false, "arrived guest disappeared");
 }
 
+static void guest_need_loss_definitions_reject_negative_values() {
+  auto s = Simulation::tutorial(251);
+  require(!s.loadDefinitions(R"({"guestHungerPerMinute":-1})"),
+          "negative hunger loss was accepted");
+  require(!s.loadDefinitions(R"({"guestRestLossPerMinute":-1})"),
+          "negative rest loss was accepted");
+  require(s.loadDefinitions(
+                 R"({"guestHungerPerMinute":0,"guestRestLossPerMinute":0})")
+              .ok,
+          "zero guest need losses were rejected");
+}
+
 static void checked_in_guests_follow_a_day_night_room_cycle() {
   auto s = Simulation::tutorial(250);
   require(s.loadDefinitions(R"({"baseDemand":100})").ok,
@@ -579,6 +591,76 @@ static void room_commands_preserve_reservations_and_repair_state() {
           "room with active service work was demolished");
 }
 
+static void queued_turnover_survives_room_closure_and_save_load() {
+  auto s = Simulation::tutorial(38);
+  const auto roomId = s.view().rooms.front().id;
+  require(s.requestClean(roomId).ok,
+          "closure regression cleaning request failed");
+  require(s.closeRoom(roomId, true).ok,
+          "closure regression room could not be closed");
+
+  s.step(1);
+  auto loaded = Simulation::load(s.save());
+  const auto closedView = loaded.view();
+  require(room(closedView, roomId).closed &&
+              room(closedView, roomId).status == RoomStatus::OutOfOrder,
+          "closed room left the unavailable lifecycle state");
+
+  bool queued = false;
+  for (const auto &task : closedView.tasks)
+    if (task.kind == TaskKind::Turnover && task.targetId == roomId &&
+        task.status != TaskStatus::Completed) {
+      queued = true;
+      require(task.status == TaskStatus::Blocked && task.employeeId == 0,
+              "closed-room turnover was not suspended in the queue");
+    }
+  require(queued, "closed-room turnover disappeared from its lifecycle");
+  require(loaded.save() == s.save(),
+          "closed-room turnover did not round-trip exactly");
+
+  require(s.closeRoom(roomId, false).ok &&
+              loaded.closeRoom(roomId, false).ok,
+          "closed-room turnover scenario could not reopen the room");
+  s.step(3600);
+  loaded.step(3600);
+  require(s.save() == loaded.save(),
+          "closed-room turnover diverged after deterministic continuation");
+  require(room(loaded.view(), roomId).status == RoomStatus::VacantReady,
+          "reopened room did not complete its queued turnover");
+}
+
+static void out_of_order_rooms_do_not_dilute_available_capacity() {
+  auto s = Simulation::tutorial(39);
+  EntityId maintenanceId = 0;
+  for (const auto &person : s.view().people)
+    if (person.kind == PersonKind::Maintenance)
+      maintenanceId = person.id;
+  require(maintenanceId != 0 && s.fireStaff(maintenanceId).ok,
+          "occupancy regression could not remove maintenance coverage");
+
+  const auto unavailableRoomId = s.view().rooms.front().id;
+  require(s.requestRepair(unavailableRoomId).ok,
+          "occupancy regression could not make a room unavailable");
+  require(s.loadDefinitions(
+                 R"({"baseDemand":100,"checkInWorkSeconds":1})")
+              .ok,
+          "occupancy regression definitions rejected");
+  s.step(2 * 3600);
+
+  const auto view = s.view();
+  int occupied = 0;
+  int outOfOrder = 0;
+  for (const auto &roomView : view.rooms) {
+    occupied += roomView.status == RoomStatus::Occupied;
+    outOfOrder += roomView.status == RoomStatus::OutOfOrder;
+  }
+  require(outOfOrder == 1, "occupancy regression lost its unavailable room");
+  require(occupied == static_cast<int>(view.rooms.size()) - outOfOrder,
+          "occupancy regression did not fill every available room");
+  require(std::abs(view.economy.occupancy - 1.0) < 1e-12,
+          "out-of-order room diluted available occupancy capacity");
+}
+
 static void worn_rooms_create_physical_maintenance_work() {
   auto s = Simulation::tutorial(32);
   require(
@@ -682,6 +764,9 @@ static void long_campaign_bounds_transient_history() {
 
 int main() {
   try {
+    out_of_order_rooms_do_not_dilute_available_capacity();
+    guest_need_loss_definitions_reject_negative_values();
+    queued_turnover_survives_room_closure_and_save_load();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();

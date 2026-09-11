@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "branch": "hardening/extensive-optimization-2026-09-10",
+    "baseline_commit": "17703b9935d48bb20c55b74e62e3d824bc876cf2",
+    "measurement_commit": "c86e4f40b45a960f9ef755fcc3295d742d6cc570",
+    "note": "The portable benchmark target was added after the baseline commit; its pre-optimization measurements are recorded separately below."
+  },
+  "environment": {
+    "platform": "Linux x86_64",
+    "kernel": "6.18.35",
+    "compiler": "/usr/bin/c++ (Ubuntu 13.3.0-6ubuntu2~24.04)",
+    "cmake": "3.31.10",
+    "python": "3.12.14",
+    "renderer": "Not available on Linux; repository renderer/frontend targets are Windows-only"
+  },
+  "commands": {
+    "release_configure": "cmake -S . -B build-hardening-baseline-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "release_build": "cmake --build build-hardening-baseline-release --parallel 4",
+    "release_tests": "cmake --build build-hardening-baseline-release --target test --parallel 4",
+    "profile_configure": "cmake -S . -B build-hardening-profile -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS=-pg -DCMAKE_EXE_LINKER_FLAGS=-pg",
+    "profile_run": "time -p ./hotel_haven_headless --days 365 --restock",
+    "determinism_run": "./hotel_haven_headless --days 365 --restock"
+  },
+  "build_and_test_baseline": {
+    "release_build": "passed",
+    "release_ctest": {
+      "passed": 7,
+      "failed": 0,
+      "total_seconds": 2.66
+    },
+    "debug_iterator_ctest": {
+      "passed": 7,
+      "failed": 0,
+      "total_seconds": 468.58
+    },
+    "asan_ctest": {
+      "passed": 0,
+      "failed": 7,
+      "classification": "environmental",
+      "evidence": "LeakSanitizer has encountered a fatal error; LeakSanitizer does not work under ptrace"
+    }
+  },
+  "campaign_baseline": {
+    "scenario": "tutorial/restock",
+    "simulated_days": 365,
+    "wall_time_seconds_first": 2.28,
+    "wall_time_seconds_repeat": 2.12,
+    "stdout_sha256": "001ffc523f0e43a8ef9533280bb93591a07374806bdd49e262cb18e2e5cb43dc",
+    "final_csv_row": "365,7839802,27950000,17273198,0.333333,74.0842,954,26,0",
+    "repeat_output_byte_identical": true,
+    "save_load_equivalence": true,
+    "save_sha256": "4003a8690e800b8ca2def7eae1be339b9a74f7a644693190303eab34cef71a4c"
+  },
+  "profile_baseline": {
+    "instrumentation": "gprof -pg",
+    "scenario": "tutorial/restock, 365 simulated days",
+    "hotspots_percent_self": [
+      {"symbol": "Simulation::Impl::guests", "percent": 31.08},
+      {"symbol": "Simulation::Impl::minute", "percent": 23.87},
+      {"symbol": "Simulation::Impl::staffAndTasks", "percent": 19.37},
+      {"symbol": "staffAndTasks assignment lambda", "percent": 11.71},
+      {"symbol": "Simulation::Impl::compactTransientState", "percent": 10.36},
+      {"symbol": "Simulation::Impl::neighbors", "percent": 1.80},
+      {"symbol": "Simulation::step", "percent": 1.35},
+      {"symbol": "Simulation::Impl::hourlyBookings", "percent": 0.45}
+    ]
+  },
+  "portable_benchmark_pre_optimization": {
+    "build": "Release",
+    "timed_region": "Simulation::step only",
+    "simulated_seconds": 86400,
+    "repetitions": 3,
+    "scenario_results": [
+      {"scenario": "small", "rooms": 6, "staff": 3, "simulation_median_ms": 6.688, "checksum": "0x9330f3776492d946"},
+      {"scenario": "normal", "rooms": 12, "staff": 12, "simulation_median_ms": 16.550, "checksum": "0xe2d3ec7750f70f2d"},
+      {"scenario": "large", "rooms": 18, "staff": 100, "simulation_median_ms": 52.196, "checksum": "0xfe07900e7fe3d39a"},
+      {"scenario": "stress", "rooms": 18, "staff": 300, "simulation_median_ms": 118.437, "checksum": "0xff7b896af4218d94"}
+    ],
+    "deterministic_checksums": true,
+    "capability_gaps": [
+      "The public API does not permit direct 500-room/1000-guest injection without mutating authoritative state.",
+      "GPU/frame-time/draw-call metrics require the Windows renderer target.",
+      "Portable process-memory and allocation counters are not exposed by the current runtime/toolchain."
+    ]
+  },
+  "optimizer_scaling_pre_optimization": {
+    "timed_region": "buildDeterministicFallbackPlan only",
+    "repetitions": 3,
+    "scenario_definition": "N housekeeper employees and N tasks; one seven-day shift per employee; every fourth employee has one unavailable window",
+    "scenario_results": [
+      {"employee_task_scale": 64, "timing_samples_ms": [0.258, 0.157, 0.151], "timing_median_ms": 0.157, "assignments": 64, "plan_checksum": "0x4e14af0c44bdcd00"},
+      {"employee_task_scale": 256, "timing_samples_ms": [5.695, 5.625, 5.422], "timing_median_ms": 5.625, "assignments": 256, "plan_checksum": "0x6101ecc6c1dcdb4a"},
+      {"employee_task_scale": 512, "timing_samples_ms": [36.625, 36.377, 35.659], "timing_median_ms": 36.377, "assignments": 512, "plan_checksum": "0x5752b5cb18840828"}
+    ],
+    "deterministic_checksums": true
+  }
+}

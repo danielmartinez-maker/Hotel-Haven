@@ -105,6 +105,7 @@ struct Simulation::Impl {
   double trainingSkillGain{5};
   int consumedApplicantDay{-1};
   std::vector<ApplicantId> consumedApplicantIds;
+  bool transientStateDirty{};
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
   bool inside(Position p) const {
@@ -315,6 +316,7 @@ struct Simulation::Impl {
       return;
     auto *r = getRoom(z->roomId);
     z->completed = true;
+    markTransientStateDirty();
     economy.completedStays++;
     const auto charge = z->nightlyRateCents * (z->departureDay - z->arrivalDay);
     economy.revenueCents += charge;
@@ -361,6 +363,7 @@ struct Simulation::Impl {
     economy.payrollCents += cents;
     economy.cashCents -= cents;
   }
+  void markTransientStateDirty() noexcept { transientStateDirty = true; }
   void staffAndTasks() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
     const int day = static_cast<int>(elapsed / 86400);
@@ -380,6 +383,7 @@ struct Simulation::Impl {
                 task.status != TaskStatus::Completed) {
               task.employeeId = 0;
               task.status = TaskStatus::Completed;
+              markTransientStateDirty();
             }
           p.shiftInstanceKey = key;
           p.shiftWorkedSeconds = 0;
@@ -455,6 +459,16 @@ struct Simulation::Impl {
               owner->breakTaskCreated = false;
             task.employeeId = 0;
             task.status = TaskStatus::Completed;
+            markTransientStateDirty();
+            continue;
+          }
+        }
+
+        if (task.kind == TaskKind::Turnover) {
+          const auto *room = getRoom(task.targetId);
+          if (room && room->closed) {
+            task.status = TaskStatus::Blocked;
+            task.blockedReason = "Room is closed";
             continue;
           }
         }
@@ -527,6 +541,7 @@ struct Simulation::Impl {
         task.employeeId = 0;
         if (task.kind == TaskKind::Break) {
           task.status = TaskStatus::Completed;
+          markTransientStateDirty();
           if (p)
             p->breakTaskCreated = false;
         } else {
@@ -618,6 +633,7 @@ struct Simulation::Impl {
         continue;
 
       task.status = TaskStatus::Completed;
+      markTransientStateDirty();
       p->task = 0;
       p->state = PersonState::Idle;
       if (task.kind == TaskKind::Break) {
@@ -719,6 +735,7 @@ struct Simulation::Impl {
             } else if (p.goal == "Leave hotel") {
               p.state = PersonState::CheckedOut;
               p.goal = "Departed";
+              markTransientStateDirty();
             } else {
               p.state = hour >= 7 && hour < 22 ? PersonState::Idle
                                                : PersonState::Sleeping;
@@ -738,6 +755,8 @@ struct Simulation::Impl {
       }
   }
   void compactTransientState() {
+    if (!transientStateDirty)
+      return;
     people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
                    return p.kind == PersonKind::Guest &&
                           p.state == PersonState::CheckedOut;
@@ -767,6 +786,7 @@ struct Simulation::Impl {
                          return reservation.completed;
                        }),
         reservations.end());
+    transientStateDirty = false;
   }
   void minute() {
     elapsed += 1;
@@ -822,7 +842,8 @@ struct Simulation::Impl {
     }
     int available = 0, occupied = 0;
     for (auto &r : rooms)
-      if (!r.closed && r.status != RoomStatus::Incomplete) {
+      if (!r.closed && r.status != RoomStatus::Incomplete &&
+          r.status != RoomStatus::OutOfOrder) {
         available++;
         occupied += r.status == RoomStatus::Occupied;
       }
@@ -1622,6 +1643,7 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       !integer("initialChemicals", d.inventory.chemicals) ||
       !integer("initialParts", d.inventory.parts) || d.baseDemand < 0 ||
       d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
+      d.hungerRate < 0 || d.restLoss < 0 ||
       d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100 ||
       d.staffBreakDurationMinutes <= 0 || d.staffBreakDurationMinutes > 24 * 60 ||
       d.missedBreakFatiguePerHour < 0 || d.missedBreakFatiguePerHour > 1000 ||
@@ -2202,6 +2224,7 @@ Simulation Simulation::load(std::string_view data) {
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
   }
+  d.transientStateDirty = true;
   d.compactTransientState();
   return s;
 }
