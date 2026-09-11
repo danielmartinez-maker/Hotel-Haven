@@ -26,7 +26,6 @@ enum class ElevatorState {
   MovingToDestination,
   Alighting
 };
-enum class ElevatorDirection { Idle, Up, Down };
 
 struct UtilityNodeSnapshot {
   EntityId id{};
@@ -60,12 +59,7 @@ struct ElevatorRequestSnapshot {
   int pickupFloor{};
   int destinationFloor{};
   bool boarded{};
-  // Derived from containment in the authoritative elevator request vector.
-  EntityId assignedElevatorId{};
-  bool operator==(const ElevatorRequestSnapshot &other) const noexcept {
-    return id == other.id && pickupFloor == other.pickupFloor &&
-           destinationFloor == other.destinationFloor && boarded == other.boarded;
-  }
+  bool operator==(const ElevatorRequestSnapshot &) const = default;
 };
 
 struct ElevatorSnapshot {
@@ -82,19 +76,7 @@ struct ElevatorSnapshot {
   int phaseSecondsRemaining{};
   EntityId activeRequestId{};
   std::vector<ElevatorRequestSnapshot> requests;
-  // Direction and onboard count are deterministic live diagnostics derived
-  // from the HHGS 11 authoritative car/request state.
-  ElevatorDirection direction{ElevatorDirection::Idle};
-  int onboardCount{};
-  bool operator==(const ElevatorSnapshot &other) const noexcept {
-    return id == other.id && kind == other.kind && minFloor == other.minFloor &&
-           maxFloor == other.maxFloor && currentFloor == other.currentFloor &&
-           targetFloor == other.targetFloor && capacity == other.capacity &&
-           travelSecondsPerFloor == other.travelSecondsPerFloor &&
-           doorSeconds == other.doorSeconds && state == other.state &&
-           phaseSecondsRemaining == other.phaseSecondsRemaining &&
-           activeRequestId == other.activeRequestId && requests == other.requests;
-  }
+  bool operator==(const ElevatorSnapshot &) const = default;
 };
 
 struct ElevatorSpec {
