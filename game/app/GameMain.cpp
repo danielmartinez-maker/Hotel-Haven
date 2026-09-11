@@ -229,6 +229,52 @@ void updateBuildPreview(Client &c, Position position) {
   c.refreshUi();
 }
 
+void performUiAction(Client &c, hh::frontend::UiAction action) {
+  switch (clientUiIntent(action)) {
+  case ClientUiIntent::FocusPrevious:
+    if (!c.buttons.empty()) {
+      c.focusedButton = c.focusedButton <= 0
+                            ? static_cast<int>(c.buttons.size()) - 1
+                            : c.focusedButton - 1;
+      InvalidateRect(c.window, nullptr, FALSE);
+    }
+    return;
+  case ClientUiIntent::FocusNext:
+    if (!c.buttons.empty()) {
+      c.focusedButton = (c.focusedButton + 1) % static_cast<int>(c.buttons.size());
+      InvalidateRect(c.window, nullptr, FALSE);
+    }
+    return;
+  case ClientUiIntent::Activate:
+    if (c.focusedButton >= 0 && c.focusedButton < static_cast<int>(c.buttons.size())) {
+      const int priorScale = c.uiSettings.scalePercent();
+      auto buttonAction = c.buttons[static_cast<std::size_t>(c.focusedButton)].action;
+      buttonAction();
+      applyScaleIfChanged(c, priorScale);
+      c.refresh();
+    }
+    return;
+  case ClientUiIntent::Cancel:
+    c.tool = Tool::Inspect;
+    c.selected = 0;
+    c.focusedButton = -1;
+    c.ui.openInspector(0);
+    c.buildPreview = {};
+    c.previewValid = false;
+    c.refresh();
+    return;
+  case ClientUiIntent::HudCommand:
+    if (const auto command = c.hudController.handleAction(action)) {
+      const auto result = c.ui.dispatchUiCommand(*command);
+      if (!result.message.empty())
+        c.notice = wide(result.message);
+    }
+    c.refresh();
+    return;
+  case ClientUiIntent::None: return;
+  }
+}
+
 void pollController(Client &c) {
   XINPUT_STATE state{};
   if (XInputGetState(0, &state) != ERROR_SUCCESS) {
@@ -242,15 +288,15 @@ void pollController(Client &c) {
     return;
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
-    c.key(VK_TAB);
+    performUiAction(c, hh::frontend::UiAction::NavigateNext);
   if (pressed & (XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_LEFT))
-    c.key(VK_UP);
+    performUiAction(c, hh::frontend::UiAction::NavigatePrevious);
   if (pressed & XINPUT_GAMEPAD_A)
-    c.key(VK_RETURN);
+    performUiAction(c, hh::frontend::UiAction::Activate);
   if (pressed & XINPUT_GAMEPAD_B)
-    c.key(VK_ESCAPE);
+    performUiAction(c, hh::frontend::UiAction::Cancel);
   if (pressed & XINPUT_GAMEPAD_START)
-    c.key(VK_SPACE);
+    performUiAction(c, hh::frontend::UiAction::PauseToggle);
 }
 
 } // namespace
@@ -394,41 +440,20 @@ void Client::changeFloor(int requested) {
 }
 
 void Client::key(int k) {
-  using hh::frontend::UiAction;
   using hh::frontend::UiCommand;
   using hh::frontend::UiCommandType;
-  if (k == VK_TAB || k == VK_DOWN || k == VK_RIGHT) {
-    if (!buttons.empty()) {
-      focusedButton = (focusedButton + 1) % static_cast<int>(buttons.size());
-      InvalidateRect(window, nullptr, FALSE);
-    }
+
+  if (const auto action = uiSettings.actionForKey(k)) {
+    performUiAction(*this, *action);
     return;
   }
-  if (k == VK_UP || k == VK_LEFT) {
-    if (!buttons.empty()) {
-      focusedButton = focusedButton <= 0 ? static_cast<int>(buttons.size()) - 1
-                                         : focusedButton - 1;
-      InvalidateRect(window, nullptr, FALSE);
-    }
+  if (k == VK_TAB || k == VK_RIGHT) {
+    performUiAction(*this, hh::frontend::UiAction::NavigateNext);
     return;
   }
-  if (k == VK_RETURN) {
-    if (focusedButton >= 0 && focusedButton < static_cast<int>(buttons.size())) {
-      const int priorScale = uiSettings.scalePercent();
-      auto action = buttons[static_cast<std::size_t>(focusedButton)].action;
-      action();
-      applyScaleIfChanged(*this, priorScale);
-      refresh();
-    }
+  if (k == VK_LEFT) {
+    performUiAction(*this, hh::frontend::UiAction::NavigatePrevious);
     return;
-  }
-  if (k == VK_SPACE) {
-    const auto command = hudController.handleAction(UiAction::PauseToggle);
-    if (command) {
-      const auto result = ui.dispatchUiCommand(*command);
-      if (!result.message.empty())
-        notice = wide(result.message);
-    }
   }
   if (k == 'Q') camera.rotateSnapped(-1);
   if (k == 'E') camera.rotateSnapped(1);
@@ -444,14 +469,6 @@ void Client::key(int k) {
   }
   if (k == VK_F1) { page = Page::Guide; tabScroll = 0; }
   if (k == 'O') { page = Page::Overlays; tabScroll = 0; }
-  if (k == VK_ESCAPE) {
-    tool = Tool::Inspect;
-    selected = 0;
-    focusedButton = -1;
-    ui.openInspector(0);
-    buildPreview = {};
-    previewValid = false;
-  }
   if (k == 'C') context = !context;
   refresh();
 }
