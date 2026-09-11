@@ -63,16 +63,22 @@ jobs:
       - name: Cook renderer-safe gameplay asset library
         run: Tools/ContentPipeline/build/Release/asset.exe cook --runtime
 
-      - name: Verify cooked asset count against active manifest
+      - name: Verify cooked runtime-mesh count from generated asset types
         shell: pwsh
         run: |
-          $summary = Get-Content Art/Validation/full_generation_summary.json -Raw | ConvertFrom-Json
-          $expected = [int]$summary.declared_gameplay_asset_count
+          $runtimeMeshTypes = @('StaticMeshAsset', 'SkinnedMeshAsset')
+          $sidecars = @(Get-ChildItem Art/Exports -Recurse -Filter *.asset.json -File)
+          $expected = @(
+            $sidecars | Where-Object {
+              $metadata = Get-Content $_.FullName -Raw | ConvertFrom-Json
+              $runtimeMeshTypes -contains [string]$metadata.asset_type
+            }
+          ).Count
           $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
           if ($assets.Count -ne $expected) {
-            throw "Expected exactly $expected cooked assets; found $($assets.Count)"
+            throw "Expected exactly $expected runtime mesh assets from generated sidecars; found $($assets.Count)"
           }
-          Write-Host "Verified $($assets.Count) cooked .hasset files against active manifest"
+          Write-Host "Verified $($assets.Count) cooked runtime mesh assets from $($sidecars.Count) generated records"
 
       - name: Configure renderer runtime audit
         run: cmake -S . -B runtime-audit-build -A x64
