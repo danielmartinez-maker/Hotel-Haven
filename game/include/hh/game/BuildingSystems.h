@@ -26,6 +26,7 @@ enum class ElevatorState {
   MovingToDestination,
   Alighting
 };
+enum class ElevatorDirection { Idle, Up, Down };
 
 struct UtilityNodeSnapshot {
   EntityId id{};
@@ -59,6 +60,9 @@ struct ElevatorRequestSnapshot {
   int pickupFloor{};
   int destinationFloor{};
   bool boarded{};
+  EntityId assignedElevatorId{};
+  std::int64_t requestedAtSeconds{};
+  std::int64_t boardedAtSeconds{};
   bool operator==(const ElevatorRequestSnapshot &) const = default;
 };
 
@@ -76,7 +80,23 @@ struct ElevatorSnapshot {
   int phaseSecondsRemaining{};
   EntityId activeRequestId{};
   std::vector<ElevatorRequestSnapshot> requests;
+  ElevatorDirection direction{ElevatorDirection::Idle};
+  int onboardCount{};
+  std::uint64_t completedTrips{};
+  std::int64_t cumulativeWaitSeconds{};
+  std::int64_t cumulativeRideSeconds{};
   bool operator==(const ElevatorSnapshot &) const = default;
+};
+
+struct ElevatorTripSnapshot {
+  EntityId requestId{};
+  EntityId elevatorId{};
+  ElevatorKind kind{ElevatorKind::Passenger};
+  int pickupFloor{};
+  int destinationFloor{};
+  std::int64_t waitSeconds{};
+  std::int64_t rideSeconds{};
+  bool operator==(const ElevatorTripSnapshot &) const = default;
 };
 
 struct ElevatorSpec {
@@ -94,6 +114,7 @@ struct BuildingSystemsSnapshot {
   std::vector<UtilityEdgeSnapshot> utilityEdges;
   std::vector<RoomSystemSnapshot> rooms;
   std::vector<ElevatorSnapshot> elevators;
+  std::vector<ElevatorTripSnapshot> completedElevatorTrips;
   bool operator==(const BuildingSystemsSnapshot &) const = default;
 };
 
@@ -107,6 +128,10 @@ namespace detail {
                                     EntityId roomId,
                                     UtilityKind kind) noexcept;
 void refreshRoomUtilityFlags(BuildingSystemsSnapshot &systems) noexcept;
+[[nodiscard]] EntityId
+selectElevatorForRequest(const BuildingSystemsSnapshot &systems,
+                         ElevatorKind kind, int pickupFloor,
+                         int destinationFloor) noexcept;
 void tickElevator(ElevatorSnapshot &elevator) noexcept;
 [[nodiscard]] RoomSaleValidation
 validateRoomSystems(const BuildingSystemsSnapshot &systems,
