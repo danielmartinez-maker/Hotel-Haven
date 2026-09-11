@@ -82,12 +82,10 @@ struct ElevatorSnapshot {
   int phaseSecondsRemaining{};
   EntityId activeRequestId{};
   std::vector<ElevatorRequestSnapshot> requests;
-  // Direction/count/counter fields are deterministic diagnostics derived from
-  // the HHGS 11 authoritative car/request state and are intentionally omitted
-  // from persistence equality.
+  // Direction and onboard count are deterministic live diagnostics derived
+  // from the HHGS 11 authoritative car/request state.
   ElevatorDirection direction{ElevatorDirection::Idle};
   int onboardCount{};
-  std::uint64_t completedTrips{};
   bool operator==(const ElevatorSnapshot &other) const noexcept {
     return id == other.id && kind == other.kind && minFloor == other.minFloor &&
            maxFloor == other.maxFloor && currentFloor == other.currentFloor &&
