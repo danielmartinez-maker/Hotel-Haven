@@ -99,6 +99,7 @@ struct Client {
   std::uint64_t selectedAlertId{};
   std::size_t financeRuleIndex{};
   std::size_t financeOverbookingIndex{};
+  FinanceView financeView{FinanceView::Overview};
   hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
@@ -110,7 +111,7 @@ struct Client {
   std::array<bool, 256> keys{};
   unsigned short gamepadButtons{};
   int width = 1500, height = 960, floor = 0, speed = 0, priorSpeed = 1,
-      tabScroll = 0, operationsFilter = 0, financeSection = 0;
+      tabScroll = 0, operationsFilter = 0;
   int hoverX = -1, hoverY = -1;
   int focusedButton = -1;
   double pendingSimulationSeconds = 0;
