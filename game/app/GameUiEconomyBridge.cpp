@@ -77,6 +77,81 @@ void mixRevision(std::uint64_t &hash, std::uint64_t value) noexcept {
   }
 }
 
+void mixText(std::uint64_t &hash, const std::string &text) noexcept {
+  constexpr std::uint64_t Prime = 1099511628211ULL;
+  for (const unsigned char value : text) {
+    hash ^= value;
+    hash *= Prime;
+  }
+  mixRevision(hash, text.size());
+}
+
+void mixFieldList(std::uint64_t &hash,
+                  const std::vector<hh::frontend::FieldSnapshot> &fields) noexcept {
+  mixRevision(hash, fields.size());
+  for (const auto &field : fields) {
+    mixText(hash, field.label);
+    mixText(hash, field.value);
+  }
+}
+
+void mixEconomyRevision(std::uint64_t &hash,
+                        const hh::frontend::EconomySnapshot &economy) noexcept {
+  const auto &kpi = economy.kpis;
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.todayOccupancyPermille));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.sevenDayOccupancyPermille));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.thirtyDayOccupancyPermille));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.adrCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.revParCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.trevParCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.gopCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.roomRevenueCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.totalRevenueCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.laborCostCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.utilitiesCostCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.foodCostCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.cashCents));
+  mixRevision(hash, static_cast<std::uint64_t>(kpi.cashRunwayDays));
+
+  mixFieldList(hash, economy.departmentContribution);
+  mixFieldList(hash, economy.bookingPace);
+  mixFieldList(hash, economy.cancellationAndNoShow);
+  mixFieldList(hash, economy.channelMix);
+  mixFieldList(hash, economy.competitors);
+  mixFieldList(hash, economy.demandBySegment);
+  mixFieldList(hash, economy.futureRateCalendar);
+  mixFieldList(hash, economy.campaigns);
+  mixFieldList(hash, economy.contracts);
+  mixFieldList(hash, economy.debtSchedule);
+
+  mixRevision(hash, economy.financingDiagnostics.size());
+  for (const auto &diagnostic : economy.financingDiagnostics) {
+    mixText(hash, diagnostic.code);
+    mixText(hash, diagnostic.message);
+    mixRevision(hash, diagnostic.sourceEntityId);
+    mixRevision(hash, diagnostic.causalParentId);
+  }
+
+  mixRevision(hash, economy.pricingRules.size());
+  for (const auto &rule : economy.pricingRules) {
+    mixRevision(hash, rule.ruleId);
+    mixRevision(hash, static_cast<std::uint64_t>(rule.startDay));
+    mixRevision(hash, static_cast<std::uint64_t>(rule.endDay));
+    mixText(hash, rule.roomCategory);
+    mixRevision(hash, static_cast<std::uint64_t>(rule.rateCents));
+  }
+
+  mixRevision(hash, economy.overbookingPolicies.size());
+  for (const auto &policy : economy.overbookingPolicies) {
+    mixText(hash, policy.roomCategory);
+    mixRevision(hash, static_cast<std::uint64_t>(policy.allowance));
+    mixRevision(hash,
+                static_cast<std::uint64_t>(policy.relocationCompensationCents));
+    mixRevision(hash, static_cast<std::uint64_t>(policy.startDay));
+    mixRevision(hash, static_cast<std::uint64_t>(policy.endDay));
+  }
+}
+
 void mapDiagnostics(const hh::game::EconomyDiagnostics &diagnostics,
                     hh::frontend::EconomySnapshot &economy) {
   economy.kpis.sevenDayOccupancyPermille =
@@ -159,7 +234,7 @@ makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge &simulation,
       makeGameUiSnapshotSource(simulation.physicalSimulation(), bridgedContext);
   mapDiagnostics(simulation.economyDiagnostics(), snapshot.economy);
   mapControlState(simulation, snapshot.economy);
-  mixRevision(snapshot.revision, simulation.authoritativeHash());
+  mixEconomyRevision(snapshot.revision, snapshot.economy);
   return snapshot;
 }
 
