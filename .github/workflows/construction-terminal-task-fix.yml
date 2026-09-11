@@ -1,0 +1,76 @@
+name: Construction Terminal Task Fix
+
+on:
+  push:
+    branches:
+      - stress/final02-construction-guest
+    paths:
+      - .github/workflows/construction-terminal-task-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stress/final02-construction-guest
+          fetch-depth: 0
+
+      - name: Clear terminal build task references
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("game/src/Simulation.cpp")
+          text = path.read_text(encoding="utf-8")
+
+          completed_old = "    job->state = BuildJobState::Completed;\n    job->blockedReason.clear();\n"
+          completed_new = "    job->state = BuildJobState::Completed;\n    job->blockedReason.clear();\n    job->taskId = 0;\n"
+          if completed_old in text:
+              text = text.replace(completed_old, completed_new, 1)
+          elif completed_new not in text:
+              raise SystemExit("completeBuildJob terminal anchor not found")
+
+          cancelled_old = "  job->state = BuildJobState::Cancelled;\n  return {true, \"Build job cancelled\", jobId};\n"
+          cancelled_new = "  job->taskId = 0;\n  job->state = BuildJobState::Cancelled;\n  return {true, \"Build job cancelled\", jobId};\n"
+          if cancelled_old in text:
+              text = text.replace(cancelled_old, cancelled_new, 1)
+          elif cancelled_new not in text:
+              raise SystemExit("cancelBuild terminal anchor not found")
+
+          path.write_text(text, encoding="utf-8")
+
+      - name: Build construction regression targets
+        shell: bash
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target hh_construction_tests hh_build_job_tests hh_construction_save_tests hh_construction_building_stress_tests --parallel 4
+
+      - name: Reproduce terminal-reference checkpoint
+        shell: bash
+        env:
+          HH_STRESS_SCALE: pr
+          HH_STRESS_SEED: "0xc0ffee1234abcdef"
+          HH_STRESS_SCENARIO: dense_place_cancel
+        run: ./build/game/hh_construction_building_stress_tests
+
+      - name: Run focused construction tests
+        shell: bash
+        run: |
+          ctest --test-dir build -C Release --output-on-failure -R 'hh_construction_tests|hh_build_job_tests|hh_construction_save_tests|StressConstructionBuilding'
+
+      - name: Commit production fix
+        shell: bash
+        run: |
+          git config user.name "hotel-haven-ci"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add game/src/Simulation.cpp
+          if git diff --cached --quiet; then
+            echo "Fix already present"
+            exit 0
+          fi
+          git commit -m "fix: clear terminal build task references"
+          git push origin HEAD:stress/final02-construction-guest
