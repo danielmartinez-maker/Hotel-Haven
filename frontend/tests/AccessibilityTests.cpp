@@ -21,3 +21,23 @@ TEST_CASE("Accessibility never depends on color alone and supports reduced motio
     EXPECT_TRUE(settings.requiresTextOrSymbolAlongsideColor());
     EXPECT_TRUE(settings.localizationExpansionFactor() >= 1.35f);
 }
+
+TEST_CASE("Keyboard controls can be remapped without ambiguous duplicate bindings") {
+    UiSettings settings;
+    const int originalPause = settings.keyboardBinding(UiAction::PauseToggle);
+    const int originalCancel = settings.keyboardBinding(UiAction::Cancel);
+    EXPECT_TRUE(originalPause > 0);
+    EXPECT_TRUE(originalCancel > 0);
+    EXPECT_TRUE(originalPause != originalCancel);
+
+    EXPECT_TRUE(settings.setKeyboardBinding(UiAction::PauseToggle, 'P'));
+    EXPECT_EQ(settings.keyboardBinding(UiAction::PauseToggle), static_cast<int>('P'));
+    EXPECT_FALSE(settings.setKeyboardBinding(UiAction::Cancel, 'P'));
+    EXPECT_EQ(settings.keyboardBinding(UiAction::Cancel), originalCancel);
+    EXPECT_FALSE(settings.setKeyboardBinding(UiAction::Cancel, 0));
+    EXPECT_FALSE(settings.setKeyboardBinding(UiAction::Cancel, 256));
+
+    settings.resetKeyboardBindings();
+    EXPECT_EQ(settings.keyboardBinding(UiAction::PauseToggle), originalPause);
+    EXPECT_EQ(settings.keyboardBinding(UiAction::Cancel), originalCancel);
+}
