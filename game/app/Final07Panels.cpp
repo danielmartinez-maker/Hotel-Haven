@@ -12,6 +12,7 @@ namespace hh::client {
 namespace {
 using hh::frontend::AlertSeverity;
 using hh::frontend::InspectorKind;
+using hh::frontend::OperationArea;
 using hh::frontend::OverlayId;
 using hh::frontend::UiCommand;
 using hh::frontend::UiCommandType;
@@ -120,7 +121,11 @@ std::size_t pageRows(const Client &client) {
   case Page::Guests:
   case Page::Staff:
   case Page::Supplies: return pageEntities(client, client.page).size();
-  case Page::Operations: return client.ui.snapshot().operations.rows.size();
+  case Page::Operations:
+    if (client.operationsFilter <= 0)
+      return client.operationsDashboard.snapshot().rows.size();
+    return client.operationsDashboard.filteredCount(
+        static_cast<OperationArea>(client.operationsFilter - 1));
   case Page::Alerts: return client.alertCenter.active().size();
   case Page::Objectives: return client.objectiveUi.items().size();
   case Page::Overlays:
@@ -313,7 +318,7 @@ void Client::paint(HDC output) {
     if (matching.empty()) paragraph(L"No matching authoritative entities are exposed on this integration branch.", 54, Muted);
   } else if (page == Page::Operations) {
     heading(L"Operations command center");
-    const auto &ops = gameUi.operations;
+    const auto &ops = operationsDashboard.snapshot();
     label(L"Scheduled / active", std::to_wstring(ops.scheduledStaff) + L" / " + std::to_wstring(ops.activeStaff));
     label(L"Fatigued / break", std::to_wstring(ops.fatiguedStaff) + L" / " + std::to_wstring(ops.onBreakStaff));
     label(L"HK backlog", std::to_wstring(ops.housekeepingBacklog));
@@ -324,14 +329,38 @@ void Client::paint(HDC output) {
     label(L"Events", std::to_wstring(ops.eventCount));
     label(L"Amenity capacity", std::to_wstring(ops.amenityCapacityUsed) + L" / " + std::to_wstring(ops.amenityCapacityTotal));
     label(L"Service level", permille(ops.serviceLevelPermille)); separator();
-    for (std::size_t index = static_cast<std::size_t>(tabScroll);
-         index < ops.rows.size() && y + 58 < bottom; ++index) {
-      const auto &row = ops.rows[index];
+    constexpr std::array<const wchar_t *, 9> filterNames{
+        L"All", L"Staffing", L"Housekeeping", L"Laundry", L"Logistics",
+        L"Engineering", L"F&B", L"Amenities", L"Events"};
+    fullButton(L"Filter · " + std::wstring(filterNames[static_cast<std::size_t>(operationsFilter)]),
+               [this] { operationsFilter = (operationsFilter + 1) % 9; tabScroll = 0; },
+               operationsFilter != 0);
+    separator();
+    auto drawOperation = [&](const auto &row) {
+      if (y + 58 >= bottom)
+        return false;
       paragraph(wide(row.name) + L" · " + wide(row.state), 24);
       if (!row.reasonCode.empty()) paragraph(L"WHY · " + wide(row.reasonCode), 24, Warning);
       separator();
+      return true;
+    };
+    bool anyRows = false;
+    if (operationsFilter == 0) {
+      const auto rows = operationsDashboard.window(static_cast<std::size_t>(tabScroll), 128);
+      for (const auto &row : rows) {
+        if (!drawOperation(row)) break;
+        anyRows = true;
+      }
+    } else {
+      const auto rows = operationsDashboard.filteredWindow(
+          static_cast<OperationArea>(operationsFilter - 1),
+          static_cast<std::size_t>(tabScroll), 128);
+      for (const auto &row : rows) {
+        if (!drawOperation(row)) break;
+        anyRows = true;
+      }
     }
-    if (ops.rows.empty()) paragraph(L"No active operational rows.", 36, Muted);
+    if (!anyRows) paragraph(L"No active operational rows for this filter.", 36, Muted);
   } else if (page == Page::Finance) {
     heading(L"Revenue & finance");
     const auto &economy = gameUi.economy; const auto &kpi = economy.kpis;
