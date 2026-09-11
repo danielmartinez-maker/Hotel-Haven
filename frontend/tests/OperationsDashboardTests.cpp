@@ -94,3 +94,53 @@ TEST_CASE("Operations filter matrix uses only authoritative row fields") {
     EXPECT_EQ(page.front().id, static_cast<EntityId>(11));
     EXPECT_EQ(source.rows[0].id, static_cast<EntityId>(11));
 }
+
+TEST_CASE("Operations sorting is stable and never mutates scheduler order") {
+    OperationsSnapshot source;
+    source.rows = {
+        {1, OperationArea::Housekeeping, "Task", "Ready", 2, "", 500},
+        {2, OperationArea::Housekeeping, "Task", "Ready", 5, "", 100},
+        {3, OperationArea::Housekeeping, "Task", "Ready", 5, "", 300},
+        {4, OperationArea::Housekeeping, "Task", "Ready", 1, "", 900}
+    };
+    OperationsDashboard dashboard;
+    dashboard.update(source);
+    OperationsFilter filter;
+    filter.area = OperationArea::Housekeeping;
+
+    const auto priority = dashboard.filteredWindow(
+        filter, OperationSort::PriorityHighFirst, 0, 4);
+    EXPECT_EQ(priority.size(), static_cast<std::size_t>(4));
+    EXPECT_EQ(priority[0].id, static_cast<EntityId>(2));
+    EXPECT_EQ(priority[1].id, static_cast<EntityId>(3));
+    EXPECT_EQ(priority[2].id, static_cast<EntityId>(1));
+    EXPECT_EQ(priority[3].id, static_cast<EntityId>(4));
+
+    const auto oldest = dashboard.filteredWindow(
+        filter, OperationSort::OldestFirst, 1, 2);
+    EXPECT_EQ(oldest.size(), static_cast<std::size_t>(2));
+    EXPECT_EQ(oldest[0].id, static_cast<EntityId>(1));
+    EXPECT_EQ(oldest[1].id, static_cast<EntityId>(3));
+
+    EXPECT_EQ(dashboard.snapshot().rows[0].id, static_cast<EntityId>(1));
+    EXPECT_EQ(dashboard.snapshot().rows[1].id, static_cast<EntityId>(2));
+}
+
+TEST_CASE("Sorted large operations windows remain bounded") {
+    OperationsSnapshot source;
+    for (std::uint64_t i = 0; i < 10000; ++i) {
+        source.rows.push_back({i, OperationArea::Engineering, "Repair", "Ready",
+                               static_cast<int>(i % 7), "",
+                               static_cast<std::int64_t>(i)});
+    }
+    OperationsDashboard dashboard;
+    dashboard.update(source);
+    OperationsFilter filter;
+    filter.area = OperationArea::Engineering;
+
+    const auto page = dashboard.filteredWindow(
+        filter, OperationSort::OldestFirst, 1000, 64);
+    EXPECT_EQ(page.size(), static_cast<std::size_t>(64));
+    EXPECT_EQ(page.front().id, static_cast<EntityId>(8999));
+    EXPECT_EQ(page.back().id, static_cast<EntityId>(8936));
+}
