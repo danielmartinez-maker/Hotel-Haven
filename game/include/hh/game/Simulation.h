@@ -19,6 +19,7 @@ struct BuildQueueResult;
 struct ConstructionSnapshot;
 enum class UtilityKind;
 enum class InfrastructureKind;
+enum class ElevatorKind;
 struct BuildingSystemsSnapshot;
 struct RoomSaleValidation;
 struct ElevatorSpec;
@@ -313,6 +314,8 @@ public:
   [[nodiscard]] RoomSaleValidation validateRoomForSale(EntityId roomId) const;
   CommandResult installElevator(const ElevatorSpec &);
   CommandResult requestElevator(EntityId elevatorId, int pickupFloor,
+                                int destinationFloor);
+  CommandResult requestElevator(ElevatorKind kind, int pickupFloor,
                                 int destinationFloor);
   [[nodiscard]] BuildingSystemsSnapshot buildingSystemsSnapshot() const;
 
