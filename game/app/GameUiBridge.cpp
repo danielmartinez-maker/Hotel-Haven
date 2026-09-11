@@ -524,7 +524,8 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
         {task.id, taskArea(task.kind), taskKindText(task.kind),
          taskStatusText(task.status),
          task.status == hh::game::TaskStatus::Blocked ? 3 : 1,
-         task.blockedReason, 0});
+         task.blockedReason, 0, task.employeeId, task.targetId,
+         task.target.floor, task.target.x, task.target.y});
     if (task.kind == hh::game::TaskKind::Turnover &&
         task.status != hh::game::TaskStatus::Completed) {
       ++out.operations.housekeepingBacklog;
@@ -538,6 +539,11 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
 
     hashValue(revision, task.id);
     hashValue(revision, static_cast<std::uint64_t>(task.status));
+    hashValue(revision, task.employeeId);
+    hashValue(revision, task.targetId);
+    hashValue(revision, static_cast<std::uint64_t>(task.target.floor));
+    hashValue(revision, static_cast<std::uint64_t>(task.target.x));
+    hashValue(revision, static_cast<std::uint64_t>(task.target.y));
     hashText(revision, task.blockedReason);
   }
 
