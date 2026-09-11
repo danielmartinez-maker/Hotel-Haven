@@ -74,6 +74,37 @@ void selector_accounts_for_committed_onboard_sweep() {
           "dispatcher underestimated a committed onboard sweep and selected the busy car");
 }
 
+void selector_accounts_for_committed_pickup_trip() {
+  Simulation sim(91002, 8, 8, 16);
+  ElevatorSpec spec;
+  spec.kind = ElevatorKind::Passenger;
+  spec.minFloor = 0;
+  spec.maxFloor = 15;
+  spec.capacity = 2;
+  spec.travelSecondsPerFloor = 2;
+  spec.doorSeconds = 1;
+  spec.startFloor = 0;
+  const auto busy = sim.installElevator(spec);
+  spec.startFloor = 10;
+  const auto idle = sim.installElevator(spec);
+  require(busy.ok && idle.ok, "pickup ETA fixture install failed");
+
+  require(sim.requestElevator(busy.id, 1, 15).ok,
+          "pickup ETA fixture direct request failed");
+  sim.step(1);
+  const auto before = sim.buildingSystemsSnapshot();
+  require(before.elevators[0].state == ElevatorState::MovingToPickup,
+          "busy car did not enter committed pickup trip");
+
+  const auto request = sim.requestElevator(ElevatorKind::Passenger, 2, 3);
+  require(request.ok, "pickup ETA bank request failed");
+  const auto after = sim.buildingSystemsSnapshot();
+  require(after.elevators[0].requests.size() == 1 &&
+              after.elevators[1].requests.size() == 1 &&
+              after.elevators[1].requests.front().id == request.id,
+          "dispatcher stopped ETA at an active pickup instead of its committed destination");
+}
+
 void deterministic_burst_soak_preserves_bank_and_capacity_invariants() {
   Simulation a(91001, 8, 8, 16);
   Simulation b(91001, 8, 8, 16);
@@ -118,6 +149,7 @@ void deterministic_burst_soak_preserves_bank_and_capacity_invariants() {
 int main() {
   try {
     selector_accounts_for_committed_onboard_sweep();
+    selector_accounts_for_committed_pickup_trip();
     deterministic_burst_soak_preserves_bank_and_capacity_invariants();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
