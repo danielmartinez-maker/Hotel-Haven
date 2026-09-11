@@ -90,6 +90,19 @@ int main() {
     require(floorTile != source.buildCatalog.end() && floorTile->costCents == 500,
             "tile catalog cost drifted from the live tile-construction command");
 
+    const auto guestRoomTool = hh::client::liveBuildTool("Guest room");
+    require(guestRoomTool.has_value() && static_cast<int>(*guestRoomTool) == 1,
+            "guest-room catalog id must resolve to the Bedroom construction tool");
+    const auto entranceTool = hh::client::liveBuildTool("Guest entrance");
+    require(entranceTool.has_value() && static_cast<int>(*entranceTool) == 5,
+            "guest-entrance catalog id must resolve to the Entrance construction tool");
+    for (const auto& item : source.buildCatalog) {
+      require(hh::client::liveBuildTool(item.id).has_value(),
+              "every visible live catalog item must resolve to an executable client tool");
+    }
+    require(!hh::client::liveBuildTool("unsupported_future_tool").has_value(),
+            "unknown catalog ids must never resolve to an executable client tool");
+
     auto alternateContext = context;
     alternateContext.cutaway = false;
     const auto alternateSource =
