@@ -9,6 +9,7 @@
 #include "hh/frontend/GameHudController.h"
 #include "hh/frontend/GameUiRuntime.h"
 #include "hh/frontend/ObjectiveUi.h"
+#include "hh/frontend/OperationsDashboard.h"
 #include "hh/frontend/UiSettings.h"
 #include "hh/game/SimulationEconomyBridge.h"
 #include "hh/renderer/Camera.h"
@@ -88,6 +89,7 @@ struct Client {
   hh::frontend::GameUiRuntime ui;
   hh::frontend::AlertCenter alertCenter{200};
   hh::frontend::ObjectiveUi objectiveUi;
+  hh::frontend::OperationsDashboard operationsDashboard;
   hh::frontend::EconomyDashboard economyDashboard;
   hh::frontend::UiSettings uiSettings;
   hh::frontend::BuildPlacementPreview buildPreview;
@@ -105,7 +107,7 @@ struct Client {
   std::array<bool, 256> keys{};
   unsigned short gamepadButtons{};
   int width = 1500, height = 960, floor = 0, speed = 0, priorSpeed = 1,
-      tabScroll = 0;
+      tabScroll = 0, operationsFilter = 0;
   int hoverX = -1, hoverY = -1;
   int focusedButton = -1;
   double pendingSimulationSeconds = 0;
