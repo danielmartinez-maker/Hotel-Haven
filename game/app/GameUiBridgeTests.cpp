@@ -73,7 +73,7 @@ int main() {
             "live build catalog must expose every currently buildable construction tool");
     const auto guestRoom = std::find_if(
         source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
-          return item.id == "guest_room";
+          return item.id == "Guest room";
         });
     require(guestRoom != source.buildCatalog.end(),
             "live build catalog omitted the furnished guest-room command");
@@ -81,9 +81,11 @@ int main() {
             "guest-room build metadata does not match the live construction command");
     require(guestRoom->costCents == 540000,
             "guest-room catalog cost drifted from the 6x6 furnished-room command");
+    require(guestRoom->id == guestRoom->name,
+            "catalog id must match the native placement-preview item id");
     const auto floorTile = std::find_if(
         source.buildCatalog.begin(), source.buildCatalog.end(), [](const auto& item) {
-          return item.id == "floor";
+          return item.id == "Floor";
         });
     require(floorTile != source.buildCatalog.end() && floorTile->costCents == 500,
             "tile catalog cost drifted from the live tile-construction command");
