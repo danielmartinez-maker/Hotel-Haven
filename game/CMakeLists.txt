@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
   src/Simulation.cpp
+  src/SimulationEconomyBridge.cpp
   src/Housekeeping.cpp
   src/Laundry.cpp
   src/Logistics.cpp
@@ -11,6 +12,20 @@ add_library(hh_game
   src/FoodService.cpp
   src/Events.cpp
   src/Amenities.cpp
+  src/MarketDemand.cpp
+  src/MarketDemandDefinitions.cpp
+  src/MarketDemandPersistence.cpp
+  src/RevenueInventory.cpp
+  src/RevenueManagement.cpp
+  src/HotelEconomics.cpp
+  src/Financing.cpp
+  src/Overbooking.cpp
+  src/CommercialDemand.cpp
+  src/CommercialDemandProfile.cpp
+  src/EconomyRuntime.cpp
+  src/EconomyRuntimeDefinitions.cpp
+  src/EconomyRuntimeBridge.cpp
+  src/EconomyDiagnostics.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
@@ -40,4 +55,10 @@ if(HH_GAME_BUILD_TESTS)
   add_executable(hh_SimulationFinal05_tests tests/SimulationFinal05Tests.cpp)
   target_link_libraries(hh_SimulationFinal05_tests PRIVATE hh_game)
   add_test(NAME SimulationFinal05 COMMAND hh_SimulationFinal05_tests)
+
+  foreach(economy_test MarketDemand MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation MarketCompetitorCalendar MarketDefinitions RevenueInventory ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex RevenueManagement HotelEconomics Financing FinancingCovenant Overbooking OverbookingPercentage CommercialDemand CommercialReputationCategory MarketingAttributionIntegration MarketingDailyCostIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec SimulationEconomyBridge SimulationEconomyCapacity EconomyDiagnostics EconomyDepartmentDebtDiagnostics)
+    add_executable(hh_${economy_test}_tests tests/${economy_test}Tests.cpp)
+    target_link_libraries(hh_${economy_test}_tests PRIVATE hh_game)
+    add_test(NAME ${economy_test} COMMAND hh_${economy_test}_tests)
+  endforeach()
 endif()

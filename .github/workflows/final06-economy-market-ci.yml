@@ -1,0 +1,130 @@
+name: FINAL-06 Economy Market Competition CI
+
+on:
+  push:
+    branches:
+      - feature/final-06-economy-market-competition
+  pull_request:
+    paths:
+      - 'game/include/hh/game/MarketDemand.h'
+      - 'game/include/hh/game/RevenueInventory.h'
+      - 'game/include/hh/game/RevenueManagement.h'
+      - 'game/include/hh/game/HotelEconomics.h'
+      - 'game/include/hh/game/Financing.h'
+      - 'game/include/hh/game/Overbooking.h'
+      - 'game/include/hh/game/CommercialDemand.h'
+      - 'game/include/hh/game/EconomyRuntime.h'
+      - 'game/include/hh/game/SimulationEconomyBridge.h'
+      - 'game/src/MarketDemand.cpp'
+      - 'game/src/MarketDemandPersistence.cpp'
+      - 'game/src/RevenueInventory.cpp'
+      - 'game/src/RevenueManagement.cpp'
+      - 'game/src/HotelEconomics.cpp'
+      - 'game/src/Financing.cpp'
+      - 'game/src/Overbooking.cpp'
+      - 'game/src/CommercialDemand.cpp'
+      - 'game/src/CommercialDemandProfile.cpp'
+      - 'game/src/EconomyRuntime.cpp'
+      - 'game/src/EconomyRuntimeBridge.cpp'
+      - 'game/src/EconomyDiagnostics.cpp'
+      - 'game/src/SimulationEconomyBridge.cpp'
+      - 'game/tests/*Economy*Tests.cpp'
+      - 'game/tests/Market*Tests.cpp'
+      - 'game/tests/Commercial*Tests.cpp'
+      - 'game/tests/RevenueInventory*Tests.cpp'
+      - 'game/tests/ReservationPolicySpecTests.cpp'
+      - 'game/tests/RevenueManagementTests.cpp'
+      - 'game/tests/HotelEconomicsTests.cpp'
+      - 'game/tests/Financing*Tests.cpp'
+      - 'game/tests/Overbooking*Tests.cpp'
+      - 'game/tests/Marketing*Tests.cpp'
+      - 'game/data/market_segments.json'
+      - 'game/data/competitor_presets.json'
+      - 'game/data/rate_plan_defaults.json'
+      - 'game/data/financing_defaults.json'
+      - 'game/data/marketing_campaigns.json'
+      - 'game/CMakeLists.txt'
+      - '.github/workflows/final06-economy-market-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: final06-economy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable-final06-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile FINAL-06 portable systems
+        run: |
+          mkdir -p build/final06
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          for src in MarketDemand MarketDemandPersistence RevenueInventory RevenueManagement HotelEconomics Financing Overbooking CommercialDemand CommercialDemandProfile EconomyRuntime EconomyRuntimeBridge EconomyDiagnostics SimulationEconomyBridge; do
+            g++ $CXXFLAGS -c game/src/${src}.cpp -o build/final06/${src}.o
+          done
+      - name: Run FINAL-06 behavior tests
+        run: |
+          CXXFLAGS='-std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror -Igame/include'
+          g++ $CXXFLAGS game/tests/MarketDemandTests.cpp build/final06/MarketDemand.o -o build/final06/MarketDemandTests
+          build/final06/MarketDemandTests
+          g++ $CXXFLAGS game/tests/MarketPotentialDemandTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketPotentialDemandTests
+          build/final06/MarketPotentialDemandTests
+          g++ $CXXFLAGS game/tests/MarketReputationCategoryTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketReputationCategoryTests
+          build/final06/MarketReputationCategoryTests
+          g++ $CXXFLAGS game/tests/MarketCompetitorCategoryAllocationTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketCompetitorCategoryAllocationTests
+          build/final06/MarketCompetitorCategoryAllocationTests
+          g++ $CXXFLAGS game/tests/MarketCompetitorCalendarTests.cpp build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o -o build/final06/MarketCompetitorCalendarTests
+          build/final06/MarketCompetitorCalendarTests
+          g++ $CXXFLAGS game/tests/RevenueInventoryTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryTests
+          build/final06/RevenueInventoryTests
+          g++ $CXXFLAGS game/tests/ReservationPolicySpecTests.cpp build/final06/RevenueInventory.o -o build/final06/ReservationPolicySpecTests
+          build/final06/ReservationPolicySpecTests
+          g++ $CXXFLAGS game/tests/RevenueInventoryBlocksTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryBlocksTests
+          build/final06/RevenueInventoryBlocksTests
+          g++ $CXXFLAGS game/tests/RevenueInventoryIndexTests.cpp build/final06/RevenueInventory.o -o build/final06/RevenueInventoryIndexTests
+          build/final06/RevenueInventoryIndexTests
+          g++ $CXXFLAGS game/tests/RevenueManagementTests.cpp build/final06/RevenueManagement.o -o build/final06/RevenueManagementTests
+          build/final06/RevenueManagementTests
+          g++ $CXXFLAGS game/tests/HotelEconomicsTests.cpp build/final06/HotelEconomics.o -o build/final06/HotelEconomicsTests
+          build/final06/HotelEconomicsTests
+          g++ $CXXFLAGS game/tests/FinancingTests.cpp build/final06/Financing.o -o build/final06/FinancingTests
+          build/final06/FinancingTests
+          g++ $CXXFLAGS game/tests/FinancingCovenantTests.cpp build/final06/Financing.o -o build/final06/FinancingCovenantTests
+          build/final06/FinancingCovenantTests
+          g++ $CXXFLAGS game/tests/OverbookingTests.cpp build/final06/Overbooking.o -o build/final06/OverbookingTests
+          build/final06/OverbookingTests
+          g++ $CXXFLAGS game/tests/CommercialDemandTests.cpp build/final06/CommercialDemand.o build/final06/CommercialDemandProfile.o -o build/final06/CommercialDemandTests
+          build/final06/CommercialDemandTests
+          g++ $CXXFLAGS game/tests/CommercialReputationCategoryTests.cpp build/final06/CommercialDemand.o build/final06/CommercialDemandProfile.o -o build/final06/CommercialReputationCategoryTests
+          build/final06/CommercialReputationCategoryTests
+          OBJS='build/final06/MarketDemand.o build/final06/MarketDemandPersistence.o build/final06/RevenueInventory.o build/final06/RevenueManagement.o build/final06/HotelEconomics.o build/final06/Financing.o build/final06/Overbooking.o build/final06/CommercialDemand.o build/final06/CommercialDemandProfile.o build/final06/EconomyRuntime.o build/final06/EconomyRuntimeBridge.o build/final06/EconomyDiagnostics.o'
+          for test in OverbookingPercentage MarketingAttributionIntegration MarketingDailyCostIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+            g++ $CXXFLAGS game/tests/${test}Tests.cpp $OBJS -o build/final06/${test}Tests
+            build/final06/${test}Tests
+          done
+
+  sanitizer-final06-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run ASan UBSan FINAL-06 suites
+        run: |
+          mkdir -p build/final06-sanitize
+          CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Igame/include'
+          SRCS='game/src/MarketDemand.cpp game/src/MarketDemandPersistence.cpp game/src/RevenueInventory.cpp game/src/RevenueManagement.cpp game/src/HotelEconomics.cpp game/src/Financing.cpp game/src/Overbooking.cpp game/src/CommercialDemand.cpp game/src/CommercialDemandProfile.cpp game/src/EconomyRuntime.cpp game/src/EconomyRuntimeBridge.cpp game/src/EconomyDiagnostics.cpp'
+          for test in MarketPotentialDemand MarketReputationCategory MarketCompetitorCategoryAllocation MarketCompetitorCalendar ReservationPolicySpec RevenueInventoryBlocks RevenueInventoryIndex CommercialReputationCategory FinancingCovenant OverbookingPercentage MarketingAttributionIntegration MarketingDailyCostIntegration ContractBookingIntegration EconomyInventoryBlockIntegration EconomyInitialReputationProfile EconomyIntegration EconomyPotentialDemandIntegration EconomySoak EconomySpecReconciliation RevenueCommercialSpec EconomyDiagnostics EconomyDepartmentDebtDiagnostics; do
+            g++ $CXXFLAGS game/tests/${test}Tests.cpp $SRCS -o build/final06-sanitize/${test}Tests
+            build/final06-sanitize/${test}Tests
+          done
+
+  integrated-game-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure integrated game
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build integrated game
+        run: cmake --build build --config Release --parallel 4
+      - name: Run integrated game tests
+        run: ctest --test-dir build -C Release --output-on-failure
