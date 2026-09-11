@@ -2,6 +2,7 @@
 #include "hh/game/BuildingSystems.h"
 #include "hh/game/Construction.h"
 #include "hh/game/Simulation.h"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -87,8 +88,10 @@ void batched_elevator_mid_trip_save_continues_identically() {
           "mid-trip bank requests failed");
   direct.step(7);
   const auto before = direct.buildingSystemsSnapshot().elevators.front();
-  require(before.onboardCount == 2 &&
-              before.state == ElevatorState::MovingToDestination,
+  const auto boarded = std::count_if(
+      before.requests.begin(), before.requests.end(),
+      [](const ElevatorRequestSnapshot &request) { return request.boarded; });
+  require(boarded == 2 && before.state == ElevatorState::MovingToDestination,
           "mid-trip fixture did not reach a batched moving state");
 
   auto resumed = Simulation::load(direct.save());
