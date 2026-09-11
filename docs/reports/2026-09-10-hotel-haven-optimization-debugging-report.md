@@ -328,15 +328,15 @@ No tests were disabled or weakened. `HH_SKIP_LONG_WORKFORCE_GATES` was not set f
 
 ## CI status
 
-Local Linux CI-equivalent portable verification is green. Repository workflows define separate Ubuntu/Windows jobs for game, frontend, renderer, content pipeline, runtime asset cooking/audit, WARP smoke, and packaging. The Windows jobs were not executable in this environment. The hardening branch was not on the remote at the source snapshot; the draft PR handoff is the next step and its GitHub Actions result must be recorded separately from local verification.
+Local Linux CI-equivalent portable verification is green. Repository workflows define separate Ubuntu/Windows jobs for game, frontend, renderer, content pipeline, runtime asset cooking/audit, WARP smoke, and packaging. The Windows jobs were not executable in this environment. Draft PR [#24](https://github.com/danielmartinez-maker/Hotel-Haven/pull/24) is open; at the final GitHub status poll its head had no reported workflow runs or commit status entries yet, so remote CI is **PENDING**, not claimed green.
 
 ## Final commit and working-tree record
 
-The source snapshot tested before report-only files were added was `a18b7b6278605ec386325ad3a62cc90c87bae97b`. The final report commit and remote draft-PR head must be recorded below after the documentation commit and push:
+The source snapshot tested before report-only files were added was `a18b7b6278605ec386325ad3a62cc90c87bae97b`. The final local documentation commit and remote draft-PR head are recorded below. The normal Git push was unavailable because this runner has no Git HTTPS credential; the authenticated GitHub connector published the equivalent tree and PR head.
 
-- final working-tree commit: pending documentation commit;
-- remote branch: pending push; and
-- draft PR: pending creation; no merge permitted.
+- final local working-tree commit containing the report: `a9f3087b6482f8e1d68b8f20bf5feb2bedb1a56e`;
+- remote branch: `hardening/extensive-optimization-2026-09-10` at `dbdd8d1af616ec4a241818e46826cd87412f4d3f`; and
+- draft PR: [#24](https://github.com/danielmartinez-maker/Hotel-Haven/pull/24), open against `main`, with no merge performed.
 
 ## RECOMMENDED NEXT OPTIMIZATION TARGETS
 
