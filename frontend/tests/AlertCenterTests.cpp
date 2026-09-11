@@ -46,3 +46,25 @@ TEST_CASE("Resolved alert history remains bounded") {
     EXPECT_FALSE(center.navigationFor(1).has_value());
     EXPECT_FALSE(center.causalChain(5).empty());
 }
+
+TEST_CASE("Alert center reconciles thousands of current-state alerts with bounded history") {
+    AlertCenter center(200);
+    std::vector<AlertSnapshot> first;
+    first.reserve(5000);
+    for (std::uint64_t i = 1; i <= 5000; ++i)
+        first.push_back({i, AlertSeverity::Warning, i, "LOAD", "Operational alert", 0, false});
+    center.ingest(first);
+    EXPECT_EQ(center.active().size(), static_cast<std::size_t>(5000));
+
+    std::vector<AlertSnapshot> second;
+    second.reserve(2500);
+    for (std::uint64_t i = 2501; i <= 5000; ++i)
+        second.push_back({i, AlertSeverity::Warning, i, "LOAD", "Operational alert", 0, false});
+    center.ingest(second);
+
+    EXPECT_EQ(center.active().size(), static_cast<std::size_t>(2500));
+    EXPECT_EQ(center.resolvedHistory().size(), static_cast<std::size_t>(200));
+    EXPECT_TRUE(center.causalChain(1).empty());
+    EXPECT_FALSE(center.navigationFor(1).has_value());
+    EXPECT_TRUE(center.navigationFor(5000).has_value());
+}
