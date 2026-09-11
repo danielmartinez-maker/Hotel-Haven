@@ -363,25 +363,138 @@ void Client::paint(HDC output) {
     if (!anyRows) paragraph(L"No active operational rows for this filter.", 36, Muted);
   } else if (page == Page::Finance) {
     heading(L"Revenue & finance");
-    const auto &economy = gameUi.economy; const auto &kpi = economy.kpis;
-    label(L"Occupancy today", permille(kpi.todayOccupancyPermille));
-    label(L"7d / 30d", permille(kpi.sevenDayOccupancyPermille) + L" / " + permille(kpi.thirtyDayOccupancyPermille));
-    label(L"ADR", money(kpi.adrCents));
-    label(L"RevPAR / TRevPAR", money(kpi.revParCents) + L" / " + money(kpi.trevParCents));
-    label(L"GOP", money(kpi.gopCents));
-    label(L"Room / total rev", money(kpi.roomRevenueCents) + L" / " + money(kpi.totalRevenueCents));
-    label(L"Labor / utilities", money(kpi.laborCostCents) + L" / " + money(kpi.utilitiesCostCents));
-    label(L"F&B cost", money(kpi.foodCostCents)); label(L"Cash", money(kpi.cashCents)); separator();
+    const auto &economy = gameUi.economy;
+    const auto &kpi = economy.kpis;
+    constexpr std::array<const wchar_t *, 5> financeLabels{
+        L"Overview", L"Revenue", L"Market", L"Controls", L"Risk"};
+    for (std::size_t index = 0; index < financeLabels.size(); ++index) {
+      button(left + static_cast<int>(index) * 63, y, 58, 29, financeLabels[index],
+             [this, index] { financeView = static_cast<FinanceView>(index); tabScroll = 0; },
+             static_cast<std::size_t>(financeView) == index);
+    }
+    y += 39;
+    separator();
+
     auto fields = [&](const std::wstring &name, const auto &values) {
       if (values.empty() || y + 40 >= bottom) return;
       paragraph(name, 22, Muted);
-      for (const auto &field : values) { if (y + 28 >= bottom) break; label(wide(field.label), wide(field.value)); }
+      for (const auto &field : values) {
+        if (y + 28 >= bottom) break;
+        label(wide(field.label), wide(field.value));
+      }
     };
-    fields(L"Booking pace", economy.bookingPace); fields(L"Competitors", economy.competitors);
-    fields(L"Demand", economy.demandBySegment); fields(L"Future rates", economy.futureRateCalendar);
-    fields(L"Campaigns", economy.campaigns); fields(L"Contracts", economy.contracts); fields(L"Debt", economy.debtSchedule);
-    if (economy.competitors.empty() && economy.futureRateCalendar.empty() && economy.demandBySegment.empty())
-      paragraph(L"Advanced FINAL-06 market snapshots and commands are not attached to the authoritative Simulation on this branch; FINAL-07 does not create a duplicate economy runtime.", 72, Muted);
+    auto dispatchFinance = [&](auto command, const std::wstring &unavailable) {
+      if (!command) {
+        notice = unavailable;
+        return;
+      }
+      const auto result = ui.dispatchUiCommand(*command);
+      economyDashboard.applyCommandResult(result);
+      notice = result.message.empty()
+                   ? (result.ok ? L"Finance change applied." : L"Finance change rejected.")
+                   : wide(result.message);
+      refreshUi();
+    };
+
+    switch (financeView) {
+    case FinanceView::Overview:
+      label(L"Occupancy today", permille(kpi.todayOccupancyPermille));
+      label(L"7d / 30d", permille(kpi.sevenDayOccupancyPermille) + L" / " + permille(kpi.thirtyDayOccupancyPermille));
+      label(L"ADR", money(kpi.adrCents));
+      label(L"RevPAR / TRevPAR", money(kpi.revParCents) + L" / " + money(kpi.trevParCents));
+      label(L"GOP", money(kpi.gopCents));
+      label(L"Room / total rev", money(kpi.roomRevenueCents) + L" / " + money(kpi.totalRevenueCents));
+      label(L"Labor / utilities", money(kpi.laborCostCents) + L" / " + money(kpi.utilitiesCostCents));
+      label(L"F&B cost", money(kpi.foodCostCents));
+      label(L"Cash", money(kpi.cashCents));
+      label(L"Cash runway", std::to_wstring(kpi.cashRunwayDays) + L" days");
+      break;
+    case FinanceView::Revenue:
+      fields(L"Department contribution", economy.departmentContribution);
+      fields(L"Booking pace", economy.bookingPace);
+      fields(L"Cancellations / no-shows", economy.cancellationAndNoShow);
+      fields(L"Channel mix", economy.channelMix);
+      fields(L"Future rates", economy.futureRateCalendar);
+      if (economy.departmentContribution.empty() && economy.bookingPace.empty() &&
+          economy.futureRateCalendar.empty())
+        paragraph(L"No authoritative revenue diagnostics are available yet.", 44, Muted);
+      break;
+    case FinanceView::Market:
+      fields(L"Competitors", economy.competitors);
+      fields(L"Demand by segment", economy.demandBySegment);
+      if (economy.competitors.empty() && economy.demandBySegment.empty())
+        paragraph(L"No authoritative market comparison data is available yet.", 44, Muted);
+      break;
+    case FinanceView::Controls:
+      paragraph(L"Controls modify only existing FINAL-06 pricing rules and the standard overbooking policy. FINAL-07 does not manufacture offers or recovery policy fields.", 66, Muted);
+      if (economy.pricingRules.empty()) {
+        paragraph(L"No authoritative pricing rule exists to adjust.", 34, Muted);
+      } else {
+        financeRuleIndex = std::min(financeRuleIndex, economy.pricingRules.size() - 1);
+        const auto &rule = economy.pricingRules[financeRuleIndex];
+        fullButton(L"Pricing rule " + std::to_wstring(financeRuleIndex + 1) + L" / " +
+                       std::to_wstring(economy.pricingRules.size()),
+                   [this, count = economy.pricingRules.size()] {
+                     financeRuleIndex = (financeRuleIndex + 1) % count;
+                   });
+        label(L"Category", wide(rule.roomCategory));
+        label(L"Days", std::to_wstring(rule.startDay) + L"–" + std::to_wstring(rule.endDay));
+        label(L"Rate", money(rule.rateCents));
+        if (y + 38 < bottom) {
+          button(left, y, 151, 32, L"Rate − $5", [this] {
+            dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, -500),
+                            L"This pricing rule cannot be reduced safely.");
+          });
+          button(left + 163, y, 151, 32, L"Rate + $5", [this] {
+            dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, 500),
+                            L"This pricing rule cannot be increased safely.");
+          });
+          y += 39;
+        }
+      }
+      separator();
+      if (economy.overbookingPolicies.empty()) {
+        paragraph(L"No authoritative overbooking policy is available.", 34, Muted);
+      } else {
+        financeOverbookingIndex = std::min(financeOverbookingIndex, economy.overbookingPolicies.size() - 1);
+        const auto &policy = economy.overbookingPolicies[financeOverbookingIndex];
+        fullButton(L"Overbooking " + std::to_wstring(financeOverbookingIndex + 1) + L" / " +
+                       std::to_wstring(economy.overbookingPolicies.size()),
+                   [this, count = economy.overbookingPolicies.size()] {
+                     financeOverbookingIndex = (financeOverbookingIndex + 1) % count;
+                   });
+        label(L"Category", wide(policy.roomCategory));
+        label(L"Allowance", std::to_wstring(policy.allowance));
+        label(L"Relocation", money(policy.relocationCompensationCents));
+        label(L"Days", std::to_wstring(policy.startDay) + L"–" + std::to_wstring(policy.endDay));
+        if (policy.roomCategory == "standard" && y + 38 < bottom) {
+          button(left, y, 151, 32, L"Allowance − 1", [this] {
+            dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, -1),
+                            L"Overbooking allowance cannot be reduced further.");
+          });
+          button(left + 163, y, 151, 32, L"Allowance + 1", [this] {
+            dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, 1),
+                            L"Overbooking allowance cannot be increased safely.");
+          });
+          y += 39;
+        } else if (policy.roomCategory != "standard") {
+          paragraph(L"This policy is read-only because the FINAL-06 application adapter currently owns only the standard-room overbooking command.", 54, Muted);
+        }
+      }
+      break;
+    case FinanceView::Risk:
+      fields(L"Debt schedule", economy.debtSchedule);
+      for (const auto &diagnostic : economy.financingDiagnostics) {
+        if (y + 42 >= bottom) break;
+        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " + wide(diagnostic.message), 36, Warning);
+      }
+      fields(L"Active campaigns", economy.campaigns);
+      fields(L"Accepted contracts", economy.contracts);
+      if (economy.debtSchedule.empty() && economy.financingDiagnostics.empty() &&
+          economy.campaigns.empty() && economy.contracts.empty())
+        paragraph(L"No authoritative financing or commercial-risk state is available.", 44, Muted);
+      break;
+    }
   } else if (page == Page::Alerts) {
     heading(L"Alerts & why chains");
     label(L"Active", std::to_wstring(alertCenter.active().size()));
