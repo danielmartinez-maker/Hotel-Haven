@@ -28,7 +28,7 @@ def _normalized_name(name: str) -> str | None:
     if not name or "\\" in name or name.startswith("/"):
         return None
     path = PurePosixPath(name)
-    if any(part in ("", ".", "..") for part in path.parts):
+    if any(part in ("", ".", "..") or ":" in part for part in path.parts):
         return None
     return path.as_posix().rstrip("/")
 
