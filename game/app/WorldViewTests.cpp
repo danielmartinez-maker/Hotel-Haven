@@ -1,5 +1,6 @@
 #include "WorldView.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -22,6 +23,19 @@ bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
                      [handle](const MeshRenderItem &item) {
                        return item.asset == AssetHandle{handle};
                      });
+}
+bool hasDifferentDiagnosticColor(const RenderScene &baseline,
+                                 const RenderScene &candidate) {
+  if (candidate.items.size() != baseline.items.size() ||
+      candidate.meshes.size() != baseline.meshes.size())
+    return false;
+  for (std::size_t i = 0; i < baseline.items.size(); ++i) {
+    const auto &a = baseline.items[i].color;
+    const auto &b = candidate.items[i].color;
+    if (a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a)
+      return true;
+  }
+  return false;
 }
 } // namespace
 int main() {
@@ -121,10 +135,21 @@ int main() {
             "heatmap changed procedural diagnostic geometry");
     require(heatmap.meshes.size() == scene.meshes.size(),
             "heatmap changed asset-backed physical geometry");
-    bool changed = false;
-    for (std::size_t i = 0; i < scene.items.size(); ++i)
-      changed |= scene.items[i].color.r != heatmap.items[i].color.r;
-    require(changed, "cleanliness heatmap has no diagnostic colors");
+    require(hasDifferentDiagnosticColor(scene, heatmap),
+            "cleanliness heatmap has no diagnostic colors");
+
+    for (const auto mode : std::array{
+             Overlay::GuestSatisfaction, Overlay::StaffUtilization,
+             Overlay::QueueWait, Overlay::OpenTaskDensity}) {
+      options.overlay = mode;
+      const auto diagnostic = worldScene(snapshot, options, &assets);
+      require(diagnostic.items.size() == scene.items.size(),
+              "management overlay changed procedural geometry");
+      require(diagnostic.meshes.size() == scene.meshes.size(),
+              "management overlay changed asset-backed geometry");
+      require(hasDifferentDiagnosticColor(scene, diagnostic),
+              "available management overlay has no world diagnostic colors");
+    }
 
     options.showPreview = true;
     options.previewSize = 6;
