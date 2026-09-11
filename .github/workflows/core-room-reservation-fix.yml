@@ -26,42 +26,43 @@ jobs:
 
           path = Path("game/src/Simulation.cpp")
           text = path.read_text(encoding="utf-8")
-
-          old = r'''  if (!closed) {
-    const bool activeRepair =
-        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
-          return task.targetId == id && task.kind == TaskKind::Repair &&
-                 task.status != TaskStatus::Completed;
-        });
-    if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||
-        r->condition < 40)
-      return {false, "Room must be repaired before reopening"};
-  }
-'''
-          new = r'''  if (!closed) {
-    const bool activeRepair =
-        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
-          return task.targetId == id && task.kind == TaskKind::Repair &&
-                 task.status != TaskStatus::Completed;
-        });
-    const bool activeTurnover =
-        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
-          return task.targetId == id && task.kind == TaskKind::Turnover &&
-                 task.status != TaskStatus::Completed;
-        });
-    if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||
-        activeTurnover || r->condition < 40)
-      return {false, activeTurnover
-                         ? "Room service must complete before reopening"
-                         : "Room must be repaired before reopening"};
-  }
-'''
-
+          old_lines = [
+              "  if (!closed) {",
+              "    const bool activeRepair =",
+              "        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {",
+              "          return task.targetId == id && task.kind == TaskKind::Repair &&",
+              "                 task.status != TaskStatus::Completed;",
+              "        });",
+              "    if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||",
+              "        r->condition < 40)",
+              '      return {false, "Room must be repaired before reopening"};',
+              "  }",
+          ]
+          new_lines = [
+              "  if (!closed) {",
+              "    const bool activeRepair =",
+              "        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {",
+              "          return task.targetId == id && task.kind == TaskKind::Repair &&",
+              "                 task.status != TaskStatus::Completed;",
+              "        });",
+              "    const bool activeTurnover =",
+              "        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {",
+              "          return task.targetId == id && task.kind == TaskKind::Turnover &&",
+              "                 task.status != TaskStatus::Completed;",
+              "        });",
+              "    if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||",
+              "        activeTurnover || r->condition < 40)",
+              "      return {false, activeTurnover",
+              '                         ? "Room service must complete before reopening"',
+              '                         : "Room must be repaired before reopening"};',
+              "  }",
+          ]
+          old = "\n".join(old_lines) + "\n"
+          new = "\n".join(new_lines) + "\n"
           if old in text:
               text = text.replace(old, new, 1)
           elif new not in text:
               raise SystemExit("closeRoom reopening anchor not found")
-
           if text.count("const bool activeTurnover =") != 1:
               raise SystemExit("unexpected active-turnover guard count")
           path.write_text(text, encoding="utf-8")
