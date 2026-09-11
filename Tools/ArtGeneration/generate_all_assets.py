@@ -5,7 +5,7 @@ import importlib
 import json
 from pathlib import Path
 
-BATCHES = tuple(range(1, 11))
+from asset_manifest import AssetManifest, load_active_manifest
 
 
 def install_trimesh_color_guard():
@@ -63,20 +63,21 @@ def normalize_sidecars(exports_root: Path) -> int:
     return renamed
 
 
-def gameplay_manifest_metadata(root: Path) -> tuple[dict[str, dict], dict[str, dict]]:
-    definitions = root / 'GameData' / 'AssetDefinitions'
-    master = json.loads((definitions / 'hotel_haven_asset_manifest_v1.json').read_text(encoding='utf-8'))
-    profiles = master['profiles']
+def gameplay_manifest_metadata(
+    root: Path,
+    manifest: AssetManifest | None = None,
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    active = manifest or load_active_manifest(root)
+    profiles = active.profiles
     assets: dict[str, dict] = {}
-    manifest_dir = definitions / 'Manifest'
-    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
-        data = json.loads(manifest.read_text(encoding='utf-8'))
-        for group in data['groups']:
-            for row in group['assets']:
-                assets[row[0]] = {
-                    'profile': row[4],
-                    'interaction_anchors': list(row[6]),
-                }
+    for family, _manifest_path, row in active.iter_rows():
+        assets[row[0]] = {
+            'profile': row[4],
+            'family': family,
+            'material_family': row[3],
+            'animation_set': row[5],
+            'interaction_anchors': list(row[6]),
+        }
     return assets, profiles
 
 
@@ -105,8 +106,12 @@ def normalize_gameplay_sidecar_data(sidecar: dict, meta: dict, contract: dict) -
     return normalized
 
 
-def normalize_gameplay_sidecars(root: Path, exports_root: Path) -> tuple[int, int]:
-    assets, profiles = gameplay_manifest_metadata(root)
+def normalize_gameplay_sidecars(
+    root: Path,
+    exports_root: Path,
+    manifest: AssetManifest | None = None,
+) -> tuple[int, int]:
+    assets, profiles = gameplay_manifest_metadata(root, manifest)
     normalized_count = 0
     anchor_bindings = 0
     for sidecar_path in sorted(exports_root.glob('Batch*/*.asset.json')):
@@ -126,12 +131,8 @@ def normalize_gameplay_sidecars(root: Path, exports_root: Path) -> tuple[int, in
     return normalized_count, anchor_bindings
 
 
-def expected_animation_bindings(manifest_dir: Path) -> int:
-    total = 0
-    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
-        data = json.loads(manifest.read_text())
-        total += sum(1 for group in data['groups'] for row in group['assets'] if row[5])
-    return total
+def expected_animation_bindings(manifest: AssetManifest) -> int:
+    return sum(1 for _family, _path, row in manifest.iter_rows() if row[5])
 
 
 def validate_generated_tree(root: Path, exports: Path) -> dict:
@@ -140,7 +141,7 @@ def validate_generated_tree(root: Path, exports: Path) -> dict:
     paired = 0
     sources = 0
     for sidecar in sorted(exports.rglob('*.asset.json')):
-        data = json.loads(sidecar.read_text())
+        data = json.loads(sidecar.read_text(encoding='utf-8'))
         asset_id = data['asset_id']
         if asset_id in records:
             raise RuntimeError(f'duplicate generated asset_id: {asset_id}')
@@ -171,18 +172,21 @@ def generate_all(repo_root: Path | str):
     from humanoid_animation_generate import generate as generate_humanoid
     from link_animation_dependencies import link
     from floor_contact_hardening import harden_floor_supports
+    from quality_enrichment import enrich_gameplay_library
 
-    root = Path(repo_root)
+    root = Path(repo_root).resolve()
+    manifest = load_active_manifest(root)
     manifest_dir = root / 'GameData' / 'AssetDefinitions' / 'Manifest'
     exports = root / 'Art' / 'Exports'
     exports.mkdir(parents=True, exist_ok=True)
     batch_counts = {}
 
-    for batch in BATCHES:
+    for entry in manifest.batch_entries:
+        batch = entry.batch
         module = importlib.import_module(f'batch{batch:02d}_generate')
-        manifest = manifest_dir / f'asset_batch_{batch:02d}.json'
+        batch_manifest = manifest.batch_path(batch)
         out = exports / f'Batch{batch:02d}'
-        paths = run_batch_generator(module, batch, manifest, out)
+        paths = run_batch_generator(module, batch, batch_manifest, out)
         batch_counts[f'{batch:02d}'] = len(paths)
 
     floor_support_assets = harden_floor_supports(exports)
@@ -193,12 +197,16 @@ def generate_all(repo_root: Path | str):
     )
     linked, deferred = link(manifest_dir, exports)
     normalized = normalize_sidecars(exports)
-    normalized_gameplay, interaction_anchor_bindings = normalize_gameplay_sidecars(root, exports)
+    normalized_gameplay, interaction_anchor_bindings = normalize_gameplay_sidecars(root, exports, manifest)
+    quality = enrich_gameplay_library(root, exports, manifest)
     tree = validate_generated_tree(root, exports)
-    expected_links = expected_animation_bindings(manifest_dir)
+    expected_links = expected_animation_bindings(manifest)
 
     summary = {
-        'schema': 1,
+        'schema': 2 if manifest.data.get('schema') == 2 else 1,
+        'active_manifest': manifest.path.name,
+        'declared_batch_count': len(manifest.batch_entries),
+        'declared_gameplay_asset_count': manifest.asset_count,
         'batch_counts': batch_counts,
         'gameplay_asset_count': sum(batch_counts.values()),
         'floor_support_assets_hardened': len(floor_support_assets),
@@ -214,21 +222,32 @@ def generate_all(repo_root: Path | str):
         'normalized_sidecars': normalized,
         'normalized_gameplay_sidecars': normalized_gameplay,
         'interaction_anchor_bindings': interaction_anchor_bindings,
+        **quality,
         **tree,
     }
-    expected_records = 500 + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
-    if summary['gameplay_asset_count'] != 500:
-        raise RuntimeError(f"expected 500 gameplay assets, got {summary['gameplay_asset_count']}")
-    if normalized_gameplay != 500:
-        raise RuntimeError(f'expected 500 normalized gameplay sidecars, got {normalized_gameplay}')
+    expected_records = manifest.asset_count + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
+    if summary['gameplay_asset_count'] != manifest.asset_count:
+        raise RuntimeError(
+            f"expected {manifest.asset_count} gameplay assets, got {summary['gameplay_asset_count']}"
+        )
+    if normalized_gameplay != manifest.asset_count:
+        raise RuntimeError(
+            f'expected {manifest.asset_count} normalized gameplay sidecars, got {normalized_gameplay}'
+        )
+    if quality['quality_enriched_assets'] != manifest.asset_count:
+        raise RuntimeError(
+            f"expected {manifest.asset_count} V2 quality-enriched assets, got {quality['quality_enriched_assets']}"
+        )
     if tree['generated_asset_records'] != expected_records:
-        raise RuntimeError(f"expected {expected_records} generated records, got {tree['generated_asset_records']}")
+        raise RuntimeError(
+            f"expected {expected_records} generated records, got {tree['generated_asset_records']}"
+        )
     if linked != expected_links or deferred != 0:
         raise RuntimeError(
             f'animation dependency linking incomplete: linked={linked} expected={expected_links} deferred={deferred}'
         )
     (root / 'Art' / 'Validation' / 'full_generation_summary.json').write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + '\n'
+        json.dumps(summary, indent=2, sort_keys=True) + '\n', encoding='utf-8'
     )
     return summary
 
