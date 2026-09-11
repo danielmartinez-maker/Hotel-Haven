@@ -2,9 +2,9 @@
 
 **Status:** Implemented; final CI verification pending on the current head.
 
-**Goal:** Replace FINAL-01's single-request elevator servicing with deterministic capacity-aware multi-car bank dispatch while preserving FINAL-01 persistence compatibility.
+**Goal:** Replace FINAL-01's single-request elevator servicing with deterministic capacity-aware multi-car bank dispatch while preserving FINAL-01 persistence and snapshot compatibility.
 
-**Architecture:** Extend `BuildingSystems` in place. Bank assignment is a pure deterministic selection over existing elevator snapshots; each car performs directional capacity-aware batching while preserving the existing public state enum. The existing HHGS 11 car/request fields remain the complete behavior authority, so no save-version migration is required.
+**Architecture:** Extend `BuildingSystems` in place. Bank assignment is a pure deterministic selection over existing elevator snapshots; each car performs directional capacity-aware batching while preserving the existing public state enum. The existing HHGS 11 car/request fields remain the complete behavior authority, so no save-version or snapshot-schema migration is required.
 
 **Tech Stack:** C++20, CMake/CTest, existing Hotel Haven HHGS 11 text save format.
 
@@ -19,7 +19,7 @@
 - Passenger/service banks isolated by exact `ElevatorKind`.
 - Capacity is a hard invariant.
 - Elevators remain excluded from fire-egress authority.
-- HHGS 11 remains unchanged; new live diagnostics must be derivable from persisted state.
+- HHGS 11 and `ElevatorSnapshot`/`ElevatorRequestSnapshot` schemas remain unchanged.
 - Automatic guest/staff path integration is out of scope and must not be claimed.
 
 ## Completed implementation sequence
@@ -31,9 +31,9 @@
 
 ### 2. Deterministic bank selector
 
-- [x] Added `ElevatorDirection` and derived `assignedElevatorId`/`onboardCount` diagnostics.
 - [x] Added `Simulation::requestElevator(ElevatorKind, pickup, destination)` in a small dedicated translation unit rather than expanding `Simulation.cpp`.
 - [x] Implemented exact-kind/floor eligibility and selection key `(etaSeconds, queueDepth, elevatorId)`.
+- [x] Represented assignment through existing request-vector ownership, requiring no new persisted field.
 - [x] Rejected same-floor and no-compatible-car bank requests.
 
 ### 3. Capacity-aware directional batching
@@ -41,15 +41,15 @@
 - [x] Preserved existing five public car states.
 - [x] Batched same-floor/same-direction waiting requests in stable request-ID order.
 - [x] Enforced remaining capacity before boarding.
+- [x] Derived sweep direction from existing active/boarded requests rather than introducing new state.
 - [x] Selected nearest onboard destination in the current direction with stable ID tie breaking.
 - [x] Alighted every onboard request sharing the reached destination in one door cycle.
 - [x] Returned to the oldest waiting request after the onboard sweep drained.
 
 ### 4. Persistence safety
 
-- [x] Kept HHGS 11 writer/reader unchanged because all behavior-critical elevator state was already persisted.
-- [x] Kept assignment/direction/onboard diagnostics derived and outside persistence equality.
-- [x] Added mid-trip batched save/load continuation requiring byte-identical final saves and equal authoritative snapshots.
+- [x] Kept HHGS 11 writer/reader and elevator snapshot/request schemas unchanged.
+- [x] Added mid-trip batched save/load continuation requiring byte-identical final saves and exact authoritative snapshot equality.
 
 ### 5. Burst/soak regression
 
@@ -63,6 +63,7 @@
 - [ ] Current-head Ubuntu Integrated Game build + CTest green.
 - [ ] Current-head Windows Integrated Game build + CTest + smoke/package green.
 - [ ] Adjacent Balance Lab, Optimization and OpenUSD workflows green.
-- [ ] Review PR diff for unintended scope expansion.
-- [ ] Update implementation status and PR body with exact verified evidence.
-- [ ] Keep PR draft and unmerged.
+- [x] Reviewed PR diff and removed unnecessary snapshot/persistence fields.
+- [x] Updated implementation status without claiming automatic actor routing.
+- [ ] Update PR body with exact verified evidence.
+- [x] Keep PR draft and unmerged.
