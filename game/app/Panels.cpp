@@ -115,9 +115,12 @@ std::wstring taskName(TaskKind k) {
     return L"Supply pickup";
   case TaskKind::Repair:
     return L"Maintenance";
+  case TaskKind::Build:
+    return L"Construction";
   }
   return L"Task";
 }
+std::wstring yesNo(bool value) { return value ? L"Ready" : L"Missing"; }
 } // namespace
 std::wstring wide(const std::string &s) {
   if (s.empty())
@@ -246,37 +249,51 @@ void Client::paint(HDC output) {
   const int bottom = height - FooterHeight - 52;
   if (page == Page::Build) {
     heading(L"Build your property");
-    paragraph(L"Choose a tool, then click the hotel. Rooms include furniture "
-              L"and a bathroom. Connect the door to the entrance.",
-              64);
-    const std::array<std::wstring, 13> labels = {L"Inspect / select",
-                                                 L"Room · 6 × 6",
-                                                 L"Corridor / floor",
-                                                 L"Wall",
-                                                 L"Door",
-                                                 L"Guest entrance",
-                                                 L"Reception desk",
-                                                 L"Supply closet",
-                                                 L"Stairs",
-                                                 L"Remove tile",
-                                                 L"Bathroom tile",
-                                                 L"Staff room tile",
-                                                 L"Lobby tile"};
-    for (int i = 0; i < 13; ++i) {
+    paragraph(L"Tile tools shape rooms and corridors. Object tools queue "
+              L"authoritative cash, material, and maintenance-labor jobs.",
+              52);
+    const std::array<std::wstring, 23> labels = {
+        L"Inspect / select", L"Room · 6 × 6", L"Corridor / floor", L"Wall",
+        L"Door", L"Guest entrance", L"Reception desk", L"Supply closet",
+        L"Stairs", L"Remove tile", L"Bathroom tile", L"Staff room tile",
+        L"Lobby tile", L"Chair · $75", L"Desk · $150", L"Guest bed · $250",
+        L"Wall sconce · $80", L"Power source · $300", L"Water source · $300",
+        L"Fire alarm · $120", L"Security camera · $160",
+        L"Passenger lift · $1k", L"Service lift · $1.2k"};
+    for (int i = 0; i < static_cast<int>(labels.size()); ++i) {
       button(
           left + (i % 2) * 163, y + (i / 2) * 35, 151, 30,
           labels[static_cast<std::size_t>(i)],
           [this, i] {
             tool = static_cast<Tool>(i);
-            notice = L"Click a tile to use the selected tool.";
+            previewCostCents = 0;
+            notice = i >= static_cast<int>(Tool::ObjectChair)
+                         ? L"Hover a tile for authoritative placement cost and validity."
+                         : L"Click a tile to use the selected tool.";
           },
           static_cast<int>(tool) == i);
     }
-    y += 7 * 35;
-    if (y + 55 < bottom)
-      paragraph(L"Stairs connect matching coordinates on adjacent floors. "
-                L"Invalid construction shows its reason below.",
-                56);
+    y += static_cast<int>((labels.size() + 1) / 2) * 35;
+    if (y + 28 < bottom)
+      label(L"Objects / lifts", std::to_wstring(construction.objects.size()) +
+                                    L" / " +
+                                    std::to_wstring(buildingSystems.elevators.size()));
+    if (y + 28 < bottom) {
+      int activeJobs = 0;
+      for (const auto &job : construction.buildJobs)
+        activeJobs += job.state != BuildJobState::Completed &&
+                      job.state != BuildJobState::Cancelled;
+      label(L"Active build jobs", std::to_wstring(activeJobs));
+    }
+    if (y + 42 < bottom) {
+      const auto &m = construction.availableMaterials;
+      paragraph(L"Materials  L " + std::to_wstring(m.lumber) + L" · D " +
+                    std::to_wstring(m.drywall) + L" · E " +
+                    std::to_wstring(m.electrical) + L" · P " +
+                    std::to_wstring(m.plumbing) + L" · H " +
+                    std::to_wstring(m.hardware),
+                34);
+    }
   } else if (page == Page::Rooms) {
     heading(L"Rooms & service");
     const auto room =
@@ -289,6 +306,24 @@ void Client::paint(HDC output) {
       label(L"Cleanliness", pct(r.cleanliness));
       label(L"Condition", pct(r.condition));
       label(L"Nightly rate", money(r.nightlyRateCents));
+      const auto systems =
+          std::find_if(buildingSystems.rooms.begin(), buildingSystems.rooms.end(),
+                       [&](const auto &system) { return system.roomId == r.id; });
+      if (systems != buildingSystems.rooms.end()) {
+        label(L"Power / water", yesNo(systems->powerConnected) + L" / " +
+                                    yesNo(systems->waterConnected));
+        label(L"Egress / accessible", yesNo(systems->egress) + L" / " +
+                                         yesNo(systems->accessible));
+        label(L"Fire / security", yesNo(systems->fireCovered) + L" / " +
+                                      yesNo(systems->securityCovered));
+        const auto sale = simulation.validateRoomForSale(r.id);
+        paragraph(sale.sellable
+                      ? L"Building systems permit room sales."
+                      : L"Room sales blocked by authoritative building-system validation.",
+                  38);
+      } else {
+        paragraph(L"Building-system state is unavailable for this room.", 38);
+      }
       paragraph(r.reachable ? L"Connected to the guest entrance."
                             : L"No route to the entrance. Connect the door "
                               L"with corridor tiles.",
@@ -425,6 +460,16 @@ void Client::paint(HDC output) {
     });
     fullButton(L"Order 10 repair parts",
                [this] { result(simulation.orderSupplies({0, 0, 0, 0, 10})); });
+    const auto &m = construction.availableMaterials;
+    paragraph(L"Construction stock · L " + std::to_wstring(m.lumber) +
+                  L" · D " + std::to_wstring(m.drywall) + L" · E " +
+                  std::to_wstring(m.electrical) + L" · P " +
+                  std::to_wstring(m.plumbing) + L" · H " +
+                  std::to_wstring(m.hardware),
+              36);
+    fullButton(L"Deliver construction pallet", [this] {
+      result(simulation.addConstructionMaterials({20, 20, 20, 20, 20}));
+    });
     for (const auto &o : snapshot.supplyOrders)
       if (!o.delivered && y + 30 < bottom) {
         paragraph(L"Order #" + std::to_wstring(o.id) + L" · expected day " +
@@ -560,11 +605,13 @@ void Client::paint(HDC output) {
         (static_cast<int>(wallMode) + 1) % 3);
   });
   button(563, by, 103, 31, L"Overlay", [this] {
-    overlay = static_cast<Overlay>((static_cast<int>(overlay) + 1) % 4);
+    overlay = static_cast<Overlay>((static_cast<int>(overlay) + 1) % 6);
   });
-  const std::array<std::wstring, 4> overlays = {
+  const std::array<std::wstring, 6> overlays = {
       L"Natural view", L"Green ready / blue occupied / amber dirty",
-      L"Cleanliness: red 0 → green 100", L"Condition: red 0 → green 100"};
+      L"Cleanliness: red 0 → green 100", L"Condition: red 0 → green 100",
+      L"Utilities: red rooms lack power or water",
+      L"Access: red rooms lack egress or accessible route"};
   text(dc, smallFont, overlays[static_cast<std::size_t>(overlay)], 680, by + 7,
        width - 700, 22, Muted);
   // Status strip lies above the world, never over its interactive controls.

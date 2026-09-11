@@ -10,10 +10,25 @@ namespace hh::game {
 
 using EntityId = std::uint64_t;
 
+struct ConstructionCommand;
+struct ConstructionPreview;
+struct ConstructionResult;
+struct ConstructionMaterials;
+struct BuildPlan;
+struct BuildQueueResult;
+struct ConstructionSnapshot;
+enum class UtilityKind;
+enum class InfrastructureKind;
+enum class ElevatorKind;
+struct BuildingSystemsSnapshot;
+struct RoomSaleValidation;
+struct ElevatorSpec;
+
 struct Position {
   int floor{};
   int x{};
   int y{};
+  bool operator==(const Position &) const = default;
 };
 enum class TileKind {
   Empty,
@@ -84,7 +99,7 @@ enum class PersonState {
   Sleeping,
   CheckedOut
 };
-enum class TaskKind { CheckIn, Turnover, Restock, Repair, CheckOut };
+enum class TaskKind { CheckIn, Turnover, Restock, Repair, CheckOut, Build };
 enum class TaskStatus { Ready, Traveling, Working, Blocked, Completed };
 
 struct TileView {
@@ -283,6 +298,27 @@ public:
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
   void setStaffOptimizerEnabled(bool enabled);
+
+  [[nodiscard]] ConstructionPreview
+  previewConstruction(const ConstructionCommand &) const;
+  ConstructionResult executeConstruction(const ConstructionCommand &);
+  BuildQueueResult queueBuild(const BuildPlan &);
+  CommandResult cancelBuild(EntityId jobId);
+  CommandResult addConstructionMaterials(const ConstructionMaterials &);
+  [[nodiscard]] ConstructionSnapshot constructionSnapshot() const;
+
+  CommandResult setRoomUtility(EntityId roomId, UtilityKind kind,
+                               bool connected);
+  CommandResult setRoomInfrastructure(EntityId roomId,
+                                      InfrastructureKind kind, bool installed);
+  [[nodiscard]] RoomSaleValidation validateRoomForSale(EntityId roomId) const;
+  CommandResult installElevator(const ElevatorSpec &);
+  CommandResult requestElevator(EntityId elevatorId, int pickupFloor,
+                                int destinationFloor);
+  CommandResult requestElevator(ElevatorKind kind, int pickupFloor,
+                                int destinationFloor);
+  [[nodiscard]] BuildingSystemsSnapshot buildingSystemsSnapshot() const;
+
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;

@@ -28,7 +28,17 @@ enum class Tool {
   Erase,
   Bathroom,
   StaffRoom,
-  Lobby
+  Lobby,
+  ObjectChair,
+  ObjectDesk,
+  GuestBed,
+  WallSconce,
+  PowerSource,
+  WaterSource,
+  FireAlarm,
+  SecurityCamera,
+  PassengerElevator,
+  ServiceElevator
 };
 struct Button {
   RECT rect{};
@@ -39,6 +49,8 @@ struct Button {
 struct Client {
   hh::game::Simulation simulation;
   hh::game::SimulationView snapshot;
+  hh::game::ConstructionSnapshot construction;
+  hh::game::BuildingSystemsSnapshot buildingSystems;
   HWND window{}, viewport{};
   hh::renderer::D3D11Renderer renderer;
   hh::renderer::OrthoCamera camera;
@@ -50,6 +62,7 @@ struct Client {
       tabScroll = 0;
   int hoverX = -1, hoverY = -1;
   double pendingSimulationSeconds = 0;
+  std::int64_t previewCostCents{};
   hh::game::EntityId selected{};
   Page page = Page::Guide;
   Tool tool = Tool::Inspect;
