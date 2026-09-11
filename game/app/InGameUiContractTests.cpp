@@ -30,6 +30,17 @@ int main() {
     require(hh::client::Final07FinanceViewLabels == expectedFinanceViews,
             "FINAL-07 finance data must be split into reachable bounded views");
 
+    require(hh::client::shouldRefreshClientSnapshot(true, 0, 0.0),
+            "first frame must always build the UI snapshot");
+    require(!hh::client::shouldRefreshClientSnapshot(false, 0, 10.0),
+            "paused stable simulation must not rebuild snapshots periodically");
+    require(!hh::client::shouldRefreshClientSnapshot(false, 1, 0.099),
+            "running simulation must respect the 100 ms UI refresh budget");
+    require(hh::client::shouldRefreshClientSnapshot(false, 1, 0.100),
+            "running simulation must refresh at the 100 ms boundary");
+    require(hh::client::shouldRefreshClientSnapshot(false, 8, 0.250),
+            "accelerated simulation must continue publishing snapshots");
+
     constexpr std::array<std::array<int, 2>, 5> resolutions{{
         {1280, 720}, {1600, 900}, {1920, 1080}, {2560, 1440}, {2560, 1080}}};
     for (const int scale : hh::client::Final07UiScales) {
