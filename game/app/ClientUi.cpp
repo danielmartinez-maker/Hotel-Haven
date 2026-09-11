@@ -70,6 +70,7 @@ void Client::refreshUi() {
   hudModel.update(ui.snapshot().hud);
   alertCenter.ingest(ui.snapshot().alerts);
   objectiveUi.update(ui.snapshot().objectives);
+  operationsDashboard.update(ui.snapshot().operations);
   economyDashboard.update(ui.snapshot().economy);
 }
 
