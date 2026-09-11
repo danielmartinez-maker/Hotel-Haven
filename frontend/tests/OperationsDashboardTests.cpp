@@ -45,6 +45,8 @@ TEST_CASE("Filtered operations lists virtualize before materializing rows") {
     EXPECT_EQ(page.size(), static_cast<std::size_t>(64));
     EXPECT_EQ(page.front().id, static_cast<EntityId>(3000));
     EXPECT_EQ(page.back().id, static_cast<EntityId>(3189));
+    EXPECT_EQ(dashboard.filteredCount(OperationArea::Engineering),
+              static_cast<std::size_t>(3334));
 }
 
 TEST_CASE("Zero-sized filtered operations windows materialize no rows") {
