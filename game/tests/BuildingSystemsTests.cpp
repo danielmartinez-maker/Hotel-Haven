@@ -181,7 +181,8 @@ void elevator_capacity_batches_same_floor_same_direction_requests() {
           "capacity fixture request failed");
 
   sim.step(3);
-  const auto &car = sim.buildingSystemsSnapshot().elevators.front();
+  const auto snapshot = sim.buildingSystemsSnapshot();
+  const auto &car = snapshot.elevators.front();
   require(boardedCount(car) == 2,
           "elevator did not board up to capacity in one door cycle");
   require(car.requests.size() == 3,
@@ -203,7 +204,8 @@ void elevator_batch_defers_opposite_direction_riders() {
               sim.requestElevator(ElevatorKind::Passenger, 2, 0).ok,
           "direction fixture requests failed");
   sim.step(2);
-  const auto &car = sim.buildingSystemsSnapshot().elevators.front();
+  const auto snapshot = sim.buildingSystemsSnapshot();
+  const auto &car = snapshot.elevators.front();
   require(boardedCount(car) == 2 && car.requests.size() == 3,
           "opposite-direction rider boarded into the active upward sweep");
 }
