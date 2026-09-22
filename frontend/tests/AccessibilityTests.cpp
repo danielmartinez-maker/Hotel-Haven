@@ -76,3 +76,17 @@ TEST_CASE("Key binding editor captures, validates, and cancels player rebinding"
     editor.cancel();
     EXPECT_FALSE(editor.capturing());
 }
+
+TEST_CASE("Key binding editor exposes every remappable action exactly once") {
+    EXPECT_EQ(EditableKeyBindings.size(), std::size_t{7});
+    std::array<bool, 7> seen{};
+    for (const auto& descriptor : EditableKeyBindings) {
+        const auto index = static_cast<std::size_t>(descriptor.action);
+        EXPECT_TRUE(index < seen.size());
+        EXPECT_FALSE(seen[index]);
+        EXPECT_FALSE(descriptor.label.empty());
+        seen[index] = true;
+    }
+    for (const bool present : seen)
+        EXPECT_TRUE(present);
+}

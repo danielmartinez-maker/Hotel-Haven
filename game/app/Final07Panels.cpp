@@ -116,6 +116,33 @@ std::wstring overlayName(OverlayId id) {
   return found == descriptors.end() ? L"Overlay" : wide(found->label);
 }
 
+std::wstring keyName(int keyCode) {
+  if ((keyCode >= '0' && keyCode <= '9') ||
+      (keyCode >= 'A' && keyCode <= 'Z'))
+    return std::wstring(1, static_cast<wchar_t>(keyCode));
+  if (keyCode >= VK_F1 && keyCode <= VK_F24)
+    return L"F" + std::to_wstring(keyCode - VK_F1 + 1);
+  switch (keyCode) {
+  case VK_UP: return L"Up";
+  case VK_DOWN: return L"Down";
+  case VK_LEFT: return L"Left";
+  case VK_RIGHT: return L"Right";
+  case VK_RETURN: return L"Enter";
+  case VK_ESCAPE: return L"Esc";
+  case VK_SPACE: return L"Space";
+  case VK_TAB: return L"Tab";
+  case VK_BACK: return L"Backspace";
+  case VK_DELETE: return L"Delete";
+  case VK_HOME: return L"Home";
+  case VK_END: return L"End";
+  case VK_PRIOR: return L"Page Up";
+  case VK_NEXT: return L"Page Down";
+  case VK_OEM_MINUS: return L"-";
+  case VK_OEM_PLUS: return L"+";
+  default: return L"Key " + std::to_wstring(keyCode);
+  }
+}
+
 std::size_t pageRows(const Client &client) {
   switch (client.page) {
   case Page::Rooms:
@@ -608,10 +635,44 @@ void Client::paint(HDC output) {
       }, uiSettings.scalePercent() == value);
     }
     y += 78;
-    fullButton(uiSettings.reducedMotion() ? L"Reduced motion: ON" : L"Reduced motion: OFF", [this] { uiSettings.setReducedMotion(!uiSettings.reducedMotion()); }, uiSettings.reducedMotion());
+    fullButton(uiSettings.reducedMotion() ? L"Reduced motion: ON" : L"Reduced motion: OFF", [this] {
+      uiSettings.setReducedMotion(!uiSettings.reducedMotion());
+      notice = uiSettings.reducedMotion() ? L"Reduced motion enabled." : L"Reduced motion disabled.";
+    }, uiSettings.reducedMotion());
     label(L"Visible focus", uiSettings.visibleFocusRequired() ? L"Required" : L"Mouse modality");
-    label(L"Color-only information", L"Never"); label(L"Localization reserve", L"140% string expansion");
-    paragraph(L"Scaling/focus/reduced-motion preferences are presentation state only and never alter simulation authority.", 54, Muted);
+    paragraph(L"Color is never the only cue. Text layout reserves 140% localization expansion. These preferences never alter simulation authority.", 44, Muted);
+    separator();
+    paragraph(keyBindingEditor.capturing()
+                  ? L"Keyboard bindings · press the next key, or click the highlighted action to cancel."
+                  : L"Keyboard bindings · click an action, then press the replacement key.",
+              36, keyBindingEditor.capturing() ? Warning : Muted);
+    for (const auto &descriptor : hh::frontend::EditableKeyBindings) {
+      const auto pending = keyBindingEditor.pendingAction();
+      const bool capturing = pending && *pending == descriptor.action;
+      std::wstring bindingLabel = wide(std::string(descriptor.label)) + L" · " +
+                                  keyName(uiSettings.keyboardBinding(descriptor.action));
+      if (capturing)
+        bindingLabel = L"PRESS KEY · " + bindingLabel;
+      if (y + 38 >= bottom)
+        break;
+      fullButton(std::move(bindingLabel), [this, action = descriptor.action] {
+        const auto pending = keyBindingEditor.pendingAction();
+        if (pending && *pending == action) {
+          keyBindingEditor.cancel();
+          notice = L"Keyboard rebinding cancelled.";
+          return;
+        }
+        keyBindingEditor.begin(action);
+        notice = L"Press a key for the selected action.";
+      }, capturing);
+    }
+    if (y + 38 < bottom) {
+      fullButton(L"Reset keyboard bindings", [this] {
+        keyBindingEditor.cancel();
+        uiSettings.resetKeyboardBindings();
+        notice = L"Keyboard bindings reset to defaults.";
+      });
+    }
   } else {
     heading(L"Your first hotel");
     paragraph(L"Inspect the hotel, follow Operations and Alerts, then use Finance and Overlays to understand why service succeeds or fails.", 58);

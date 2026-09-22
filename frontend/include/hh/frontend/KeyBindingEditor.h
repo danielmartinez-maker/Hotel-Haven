@@ -1,7 +1,9 @@
 #pragma once
 
 #include "hh/frontend/UiSettings.h"
+#include <array>
 #include <optional>
+#include <string_view>
 
 namespace hh::frontend {
 
@@ -11,6 +13,21 @@ enum class KeyBindingCaptureResult {
     Duplicate,
     Invalid
 };
+
+struct KeyBindingDescriptor {
+    UiAction action;
+    std::string_view label;
+};
+
+inline constexpr std::array<KeyBindingDescriptor, 7> EditableKeyBindings{{
+    {UiAction::NavigatePrevious, "Navigate previous"},
+    {UiAction::NavigateNext, "Navigate next"},
+    {UiAction::Activate, "Activate"},
+    {UiAction::Cancel, "Cancel"},
+    {UiAction::SpeedDown, "Speed down"},
+    {UiAction::SpeedUp, "Speed up"},
+    {UiAction::PauseToggle, "Pause / resume"},
+}};
 
 class KeyBindingEditor {
 public:
