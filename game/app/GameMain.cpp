@@ -669,9 +669,18 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
                               : c.directory;
     const auto hotelRoot = userRoot / L"HotelHaven";
     c.savePath = hotelRoot / L"campaign.hhsave";
-    c.settingsPath = hotelRoot / L"ui-settings.cfg";
-    if (!c.loadUiPreferences())
-      c.notice = L"UI preferences were invalid or unreadable; defaults are in use.";
+    if (c.smoke) {
+      c.settingsPath = c.directory / L"smoke-ui-settings.cfg";
+      std::error_code ignored;
+      std::filesystem::remove(c.settingsPath, ignored);
+      auto temporarySettings = c.settingsPath;
+      temporarySettings += L".tmp";
+      std::filesystem::remove(temporarySettings, ignored);
+    } else {
+      c.settingsPath = hotelRoot / L"ui-settings.cfg";
+      if (!c.loadUiPreferences())
+        c.notice = L"UI preferences were invalid or unreadable; defaults are in use.";
+    }
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = procedure;
@@ -775,6 +784,20 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
           throw std::runtime_error("Keyboard-only UI focus could not enter the control tree");
         if (!c.uiSettings.setScalePercent(150))
           throw std::runtime_error("FINAL-07 150 percent scale was rejected");
+        c.uiSettings.setReducedMotion(true);
+        if (!c.uiSettings.setKeyboardBinding(hh::frontend::UiAction::PauseToggle, 'P'))
+          throw std::runtime_error("FINAL-07 smoke preference remap was rejected");
+        if (!c.saveUiPreferences())
+          throw std::runtime_error("FINAL-07 smoke preferences could not be saved");
+        if (!c.uiSettings.setScalePercent(100))
+          throw std::runtime_error("FINAL-07 smoke preference reset failed");
+        c.uiSettings.setReducedMotion(false);
+        c.uiSettings.resetKeyboardBindings();
+        if (!c.loadUiPreferences())
+          throw std::runtime_error("FINAL-07 smoke preferences could not be reloaded");
+        if (c.uiSettings.scalePercent() != 150 || !c.uiSettings.reducedMotion() ||
+            c.uiSettings.keyboardBinding(hh::frontend::UiAction::PauseToggle) != 'P')
+          throw std::runtime_error("FINAL-07 smoke preference roundtrip mismatch");
         applyClientUiScale(150);
         c.layout();
         c.refresh();
@@ -798,6 +821,11 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         const auto restored = hh::client::Simulation::load(state);
         if (restored.save() != state)
           throw std::runtime_error("Integrated client save roundtrip mismatch");
+        std::error_code ignored;
+        std::filesystem::remove(c.settingsPath, ignored);
+        auto temporarySettings = c.settingsPath;
+        temporarySettings += L".tmp";
+        std::filesystem::remove(temporarySettings, ignored);
         c.running = false;
       }
     }
