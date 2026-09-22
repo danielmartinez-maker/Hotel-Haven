@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "FramePipeline.h"
+#include "hh/frontend/UiSettingsCodec.h"
 #include "hh/renderer/SceneComposer.h"
 #include <Xinput.h>
 #include <algorithm>
@@ -9,6 +10,7 @@
 #include <iterator>
 #include <optional>
 #include <stdexcept>
+#include <system_error>
 #include <thread>
 #include <windowsx.h>
 
@@ -181,6 +183,7 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       return 0;
     case WM_KILLFOCUS:
       c->keys.fill(false);
+      c->keyBindingEditor.cancel();
       return 0;
     case WM_LBUTTONDOWN:
       if (view) {
@@ -286,6 +289,19 @@ void pollController(Client &c) {
   c.gamepadButtons = buttons;
   if (pressed == 0)
     return;
+  constexpr WORD SupportedButtons = XINPUT_GAMEPAD_DPAD_DOWN |
+                                    XINPUT_GAMEPAD_DPAD_RIGHT |
+                                    XINPUT_GAMEPAD_DPAD_UP |
+                                    XINPUT_GAMEPAD_DPAD_LEFT |
+                                    XINPUT_GAMEPAD_A |
+                                    XINPUT_GAMEPAD_B |
+                                    XINPUT_GAMEPAD_START;
+  if ((pressed & SupportedButtons) == 0)
+    return;
+  if (c.keyBindingEditor.capturing()) {
+    c.keyBindingEditor.cancel();
+    c.notice = L"Keyboard rebinding cancelled.";
+  }
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
     performUiAction(c, hh::frontend::UiAction::NavigateNext);
@@ -364,8 +380,11 @@ void Client::click(int x, int y) {
   for (const auto &b : buttons) {
     if (x >= b.rect.left && x < b.rect.right && y >= b.rect.top && y < b.rect.bottom) {
       const int priorScale = uiSettings.scalePercent();
+      const Page priorPage = page;
       auto fn = b.action;
       fn();
+      if (page != priorPage)
+        keyBindingEditor.cancel();
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
@@ -447,7 +466,9 @@ void Client::key(int k) {
   if (keyBindingEditor.capturing()) {
     switch (keyBindingEditor.capture(uiSettings, k)) {
     case KeyBindingCaptureResult::Applied:
-      notice = L"Keyboard binding updated.";
+      notice = saveUiPreferences()
+                   ? L"Keyboard binding updated."
+                   : L"Keyboard binding updated for this session; preference file could not be saved.";
       break;
     case KeyBindingCaptureResult::Duplicate:
       notice = L"That key is already assigned to another remappable action.";
@@ -513,6 +534,59 @@ bool Client::save() {
   }
   refresh();
   return true;
+}
+
+bool Client::saveUiPreferences() {
+  if (settingsPath.empty())
+    return false;
+
+  auto temporaryPath = settingsPath;
+  temporaryPath += L".tmp";
+  try {
+    std::filesystem::create_directories(settingsPath.parent_path());
+    const std::string encoded = hh::frontend::serializeUiSettings(uiSettings);
+    {
+      std::ofstream out(temporaryPath, std::ios::binary | std::ios::trunc);
+      out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
+      out.flush();
+      if (!out)
+        throw std::runtime_error("Cannot write UI preference file");
+    }
+    if (!MoveFileExW(temporaryPath.c_str(), settingsPath.c_str(),
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+      throw std::runtime_error("Cannot replace UI preference file");
+    return true;
+  } catch (...) {
+    std::error_code ignored;
+    std::filesystem::remove(temporaryPath, ignored);
+    return false;
+  }
+}
+
+bool Client::loadUiPreferences() {
+  if (settingsPath.empty())
+    return true;
+
+  try {
+    if (!std::filesystem::exists(settingsPath))
+      return true;
+    constexpr std::uintmax_t MaxPreferenceBytes = 4096;
+    if (std::filesystem::file_size(settingsPath) > MaxPreferenceBytes)
+      return false;
+    std::ifstream in(settingsPath, std::ios::binary);
+    if (!in)
+      return false;
+    const std::string encoded{std::istreambuf_iterator<char>(in),
+                              std::istreambuf_iterator<char>()};
+    auto candidate = uiSettings;
+    if (!hh::frontend::deserializeUiSettings(encoded, candidate))
+      return false;
+    uiSettings = candidate;
+    applyClientUiScale(uiSettings.scalePercent());
+    return true;
+  } catch (...) {
+    return false;
+  }
 }
 
 bool Client::load() {
@@ -590,8 +664,23 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
     }
     c.worldAssets = loadWorldAssetsFromDirectory(c.assetRegistry, c.directory / L"data" / L"assets");
     const DWORD len = GetEnvironmentVariableW(L"LOCALAPPDATA", path.data(), static_cast<DWORD>(path.size()));
-    c.savePath = (len > 0 && len < path.size() ? std::filesystem::path(path.data()) : c.directory) /
-                 L"HotelHaven" / L"campaign.hhsave";
+    const auto userRoot = len > 0 && len < path.size()
+                              ? std::filesystem::path(path.data())
+                              : c.directory;
+    const auto hotelRoot = userRoot / L"HotelHaven";
+    c.savePath = hotelRoot / L"campaign.hhsave";
+    if (c.smoke) {
+      c.settingsPath = c.directory / L"smoke-ui-settings.cfg";
+      std::error_code ignored;
+      std::filesystem::remove(c.settingsPath, ignored);
+      auto temporarySettings = c.settingsPath;
+      temporarySettings += L".tmp";
+      std::filesystem::remove(temporarySettings, ignored);
+    } else {
+      c.settingsPath = hotelRoot / L"ui-settings.cfg";
+      if (!c.loadUiPreferences())
+        c.notice = L"UI preferences were invalid or unreadable; defaults are in use.";
+    }
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = procedure;
@@ -695,6 +784,20 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
           throw std::runtime_error("Keyboard-only UI focus could not enter the control tree");
         if (!c.uiSettings.setScalePercent(150))
           throw std::runtime_error("FINAL-07 150 percent scale was rejected");
+        c.uiSettings.setReducedMotion(true);
+        if (!c.uiSettings.setKeyboardBinding(hh::frontend::UiAction::PauseToggle, 'P'))
+          throw std::runtime_error("FINAL-07 smoke preference remap was rejected");
+        if (!c.saveUiPreferences())
+          throw std::runtime_error("FINAL-07 smoke preferences could not be saved");
+        if (!c.uiSettings.setScalePercent(100))
+          throw std::runtime_error("FINAL-07 smoke preference reset failed");
+        c.uiSettings.setReducedMotion(false);
+        c.uiSettings.resetKeyboardBindings();
+        if (!c.loadUiPreferences())
+          throw std::runtime_error("FINAL-07 smoke preferences could not be reloaded");
+        if (c.uiSettings.scalePercent() != 150 || !c.uiSettings.reducedMotion() ||
+            c.uiSettings.keyboardBinding(hh::frontend::UiAction::PauseToggle) != 'P')
+          throw std::runtime_error("FINAL-07 smoke preference roundtrip mismatch");
         applyClientUiScale(150);
         c.layout();
         c.refresh();
@@ -718,6 +821,11 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         const auto restored = hh::client::Simulation::load(state);
         if (restored.save() != state)
           throw std::runtime_error("Integrated client save roundtrip mismatch");
+        std::error_code ignored;
+        std::filesystem::remove(c.settingsPath, ignored);
+        auto temporarySettings = c.settingsPath;
+        temporarySettings += L".tmp";
+        std::filesystem::remove(temporarySettings, ignored);
         c.running = false;
       }
     }

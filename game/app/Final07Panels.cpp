@@ -631,13 +631,24 @@ void Client::paint(HDC output) {
     for (std::size_t index = 0; index < Final07UiScales.size(); ++index) {
       const int value = Final07UiScales[index]; const int row = static_cast<int>(index / 3), column = static_cast<int>(index % 3);
       button(left + column * 106, y + row * 35, 98, 30, std::to_wstring(value) + L"%", [this, value] {
-        notice = uiSettings.setScalePercent(value) ? L"UI scale preference updated." : L"Unsupported UI scale.";
+        if (!uiSettings.setScalePercent(value)) {
+          notice = L"Unsupported UI scale.";
+          return;
+        }
+        notice = saveUiPreferences()
+                     ? L"UI scale preference updated."
+                     : L"UI scale updated for this session; preference file could not be saved.";
       }, uiSettings.scalePercent() == value);
     }
     y += 78;
     fullButton(uiSettings.reducedMotion() ? L"Reduced motion: ON" : L"Reduced motion: OFF", [this] {
       uiSettings.setReducedMotion(!uiSettings.reducedMotion());
-      notice = uiSettings.reducedMotion() ? L"Reduced motion enabled." : L"Reduced motion disabled.";
+      const bool persisted = saveUiPreferences();
+      if (!persisted) {
+        notice = L"Reduced-motion preference changed for this session; preference file could not be saved.";
+      } else {
+        notice = uiSettings.reducedMotion() ? L"Reduced motion enabled." : L"Reduced motion disabled.";
+      }
     }, uiSettings.reducedMotion());
     label(L"Visible focus", uiSettings.visibleFocusRequired() ? L"Required" : L"Mouse modality");
     paragraph(L"Color is never the only cue. Text layout reserves 140% localization expansion. These preferences never alter simulation authority.", 44, Muted);
@@ -676,7 +687,9 @@ void Client::paint(HDC output) {
       fullButton(L"Reset keyboard bindings", [this] {
         keyBindingEditor.cancel();
         uiSettings.resetKeyboardBindings();
-        notice = L"Keyboard bindings reset to defaults.";
+        notice = saveUiPreferences()
+                     ? L"Keyboard bindings reset to defaults."
+                     : L"Keyboard bindings reset for this session; preference file could not be saved.";
       });
     }
   } else {

@@ -95,7 +95,7 @@ struct Client {
   ClientRenderer renderer{assetRegistry};
   WorldAssetSet worldAssets;
   hh::renderer::OrthoCamera camera;
-  std::filesystem::path directory, savePath;
+  std::filesystem::path directory, savePath, settingsPath;
   std::vector<Button> buttons;
   std::array<bool, 256> keys{};
   unsigned short gamepadButtons{};
@@ -128,6 +128,8 @@ struct Client {
   void changeFloor(int);
   bool save();
   bool load();
+  bool saveUiPreferences();
+  bool loadUiPreferences();
   void result(const hh::game::CommandResult &);
   void newCampaign();
   [[nodiscard]] hh::frontend::UiCommandResult

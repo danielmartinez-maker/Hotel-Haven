@@ -34,6 +34,7 @@ add_library(hh_frontend_core STATIC
     src/AlertCenter.cpp
     src/ObjectiveUi.cpp
     src/UiSettings.cpp
+    src/UiSettingsCodec.cpp
     src/GameUiRuntime.cpp
 )
 target_include_directories(hh_frontend_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
