@@ -362,7 +362,6 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
 
   auto cleanliness = makeOverlay(OverlayId::Cleanliness, "%", 0, 1000);
   auto satisfaction = makeOverlay(OverlayId::GuestSatisfaction, "%", 0, 1000);
-  auto roomQuality = makeOverlay(OverlayId::RoomQuality, "score", 0, 1000);
   auto roomStatus = makeOverlay(OverlayId::RoomStatus, "status", 0, 7);
   auto maintenance = makeOverlay(OverlayId::MaintenanceCondition, "%", 0, 1000);
   auto openTasks = makeOverlay(OverlayId::OpenTaskDensity, "tasks", 0, 1000);
@@ -414,9 +413,6 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
          room.cleanliness < 70.0 ? "Needs cleaning" : "Clean"});
     const auto condition =
         static_cast<std::int64_t>(std::lround(room.condition * 10.0));
-    roomQuality.samples.push_back(
-        {room.id, condition, percentage(room.condition),
-         room.condition < 60.0 ? "Low condition" : "Good condition"});
     maintenance.samples.push_back(
         {room.id, condition, percentage(room.condition),
          room.condition < 60.0 ? "Maintenance attention" : "Serviceable"});
@@ -664,7 +660,6 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
   out.overlays.push_back(std::move(cleanliness));
   if (!satisfaction.samples.empty())
     out.overlays.push_back(std::move(satisfaction));
-  out.overlays.push_back(std::move(roomQuality));
   out.overlays.push_back(std::move(roomStatus));
   out.overlays.push_back(std::move(maintenance));
   if (!openTasks.samples.empty())

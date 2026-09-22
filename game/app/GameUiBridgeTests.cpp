@@ -69,6 +69,17 @@ int main() {
     });
     require(temperature == source.overlays.end(), "bridge fabricated unsupported temperature authority");
 
+    const auto roomQuality = std::find_if(source.overlays.begin(), source.overlays.end(), [](const auto& overlay) {
+      return overlay.id == hh::frontend::OverlayId::RoomQuality;
+    });
+    require(roomQuality == source.overlays.end(),
+            "bridge fabricated room quality from maintenance condition");
+    const auto maintenance = std::find_if(source.overlays.begin(), source.overlays.end(), [](const auto& overlay) {
+      return overlay.id == hh::frontend::OverlayId::MaintenanceCondition;
+    });
+    require(maintenance != source.overlays.end(),
+            "maintenance overlay lost its authoritative room-condition source");
+
     require(source.buildCatalog.size() == 12,
             "live build catalog must expose every currently buildable construction tool");
     const auto guestRoom = std::find_if(
