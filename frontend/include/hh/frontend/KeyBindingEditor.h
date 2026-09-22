@@ -10,6 +10,7 @@ namespace hh::frontend {
 enum class KeyBindingCaptureResult {
     Idle,
     Applied,
+    Cancelled,
     Duplicate,
     Invalid
 };
@@ -31,6 +32,8 @@ inline constexpr std::array<KeyBindingDescriptor, 7> EditableKeyBindings{{
 
 class KeyBindingEditor {
 public:
+    static constexpr int CancelCaptureKeyCode = 27;
+
     void begin(UiAction action) noexcept { pendingAction_ = action; }
     void cancel() noexcept { pendingAction_.reset(); }
     [[nodiscard]] bool capturing() const noexcept { return pendingAction_.has_value(); }
@@ -39,6 +42,10 @@ public:
     KeyBindingCaptureResult capture(UiSettings& settings, int keyCode) noexcept {
         if (!pendingAction_)
             return KeyBindingCaptureResult::Idle;
+        if (keyCode == CancelCaptureKeyCode) {
+            pendingAction_.reset();
+            return KeyBindingCaptureResult::Cancelled;
+        }
         if (keyCode <= 0 || keyCode > 255)
             return KeyBindingCaptureResult::Invalid;
         if (const auto existing = settings.actionForKey(keyCode);

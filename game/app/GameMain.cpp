@@ -311,6 +311,9 @@ void pollController(Client &c) {
   if (c.keyBindingEditor.capturing()) {
     c.keyBindingEditor.cancel();
     c.notice = L"Keyboard rebinding cancelled.";
+    c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
+    c.refresh();
+    return;
   }
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
@@ -511,6 +514,9 @@ void Client::key(int k) {
       notice = saveUiPreferences()
                    ? L"Keyboard binding updated."
                    : L"Keyboard binding updated for this session; preference file could not be saved.";
+      break;
+    case KeyBindingCaptureResult::Cancelled:
+      notice = L"Keyboard rebinding cancelled.";
       break;
     case KeyBindingCaptureResult::Duplicate:
       notice = L"That key is already assigned to another remappable action.";
