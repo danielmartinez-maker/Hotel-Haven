@@ -1262,10 +1262,10 @@ SimulationView Simulation::view() const {
     v.rooms.push_back(r);
   for (auto &p : impl_->people)
     v.people.push_back(p);
-  for (auto &r : impl_->reservations)
-    v.reservations.push_back(r);
-  for (auto &r : impl_->completedReservationHistory)
-    v.reservations.push_back(r);
+  // Live snapshots intentionally exclude archival completed reservations.
+  // Full reservation history remains authoritative in save()/load().
+  for (const auto &reservation : impl_->reservations)
+    v.reservations.push_back(reservation);
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)

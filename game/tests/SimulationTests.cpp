@@ -772,6 +772,34 @@ static void fatigue_tracks_work_instead_of_idle_shift_time() {
   require(recoveredFatigue == 0, "off-duty recovery did not clear fatigue");
 }
 
+static void live_view_excludes_completed_reservation_archive() {
+  auto simulation = Simulation::tutorial(153);
+  require(
+      simulation
+          .loadDefinitions(
+              R"({"baseDemand":100,"turnoverWorkSeconds":1,"checkInWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":500,"initialTowels":1000,"initialAmenities":500,"initialChemicals":500})")
+          .ok,
+      "reservation archive test definitions rejected");
+  simulation.step(20 * 86400);
+
+  const auto live = simulation.view();
+  require(live.economy.completedStays > 20,
+          "reservation archive test did not complete enough stays");
+  for (const auto &reservation : live.reservations)
+    require(!reservation.completed,
+            "completed reservation leaked back into the live simulation view");
+
+  const auto saved = simulation.save();
+  const auto restored = Simulation::load(saved);
+  require(restored.save() == saved,
+          "completed reservation archive did not survive save round-trip");
+  require(restored.view().economy.completedStays == live.economy.completedStays,
+          "completed-stay history changed after archive round-trip");
+  for (const auto &reservation : restored.view().reservations)
+    require(!reservation.completed,
+            "reloaded live view exposed completed reservation history");
+}
+
 static void long_campaign_bounds_transient_history() {
   auto s = Simulation::tutorial(37);
   require(
@@ -798,6 +826,7 @@ static void long_campaign_bounds_transient_history() {
 int main() {
   try {
     map_dimensions_must_fit_internal_index_space();
+    live_view_excludes_completed_reservation_archive();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
