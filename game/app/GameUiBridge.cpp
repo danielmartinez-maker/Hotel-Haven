@@ -337,7 +337,13 @@ void mapEconomy(const hh::game::SimulationView& view,
 hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
                          const GameUiBridgeContext& context) {
-  const auto view = simulation.view();
+  return makeGameUiSnapshotSource(simulation, simulation.view(), context);
+}
+
+hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
+                         const hh::game::SimulationView& view,
+                         const GameUiBridgeContext& context) {
   const auto logistics = simulation.logisticsSnapshot();
   const auto food = simulation.foodServiceSnapshot();
   const auto events = simulation.eventsSnapshot();

@@ -25,7 +25,17 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
                          const GameUiBridgeContext& context);
 
 [[nodiscard]] hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
+                         const hh::game::SimulationView& view,
+                         const GameUiBridgeContext& context);
+
+[[nodiscard]] hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge& simulation,
+                         const GameUiBridgeContext& context);
+
+[[nodiscard]] hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge& simulation,
+                         const hh::game::SimulationView& view,
                          const GameUiBridgeContext& context);
 
 } // namespace hh::client
