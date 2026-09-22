@@ -225,9 +225,8 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
 }
 
 void updateBuildPreview(Client &c, Position position) {
-  auto previewSimulation = c.simulation;
-  const auto check = applyBuildTool(previewSimulation, c.tool, position,
-                                    c.snapshot.rooms.size());
+  const auto check =
+      previewBuildTool(c.simulation, c.tool, position, c.snapshot.rooms.size());
   c.previewValid = check.ok;
   c.buildPreview = {};
   c.buildPreview.requestId = ++c.previewRequestSerial;

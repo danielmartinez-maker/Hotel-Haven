@@ -215,6 +215,9 @@ public:
   Simulation &operator=(const Simulation &);
 
   static Simulation tutorial(std::uint64_t seed = 1);
+  [[nodiscard]] CommandResult previewBuildTile(Position, TileKind) const;
+  [[nodiscard]] CommandResult
+  previewBuildFurnishedRoom(const RoomBlueprint &) const;
   CommandResult buildTile(Position, TileKind);
   CommandResult buildFurnishedRoom(const RoomBlueprint &);
   CommandResult hireStaff(const StaffHire &);

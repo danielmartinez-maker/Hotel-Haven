@@ -6,6 +6,36 @@
 #include <array>
 
 namespace hh::client {
+namespace {
+
+hh::game::RoomBlueprint roomBlueprintFor(hh::game::Position position,
+                                         std::size_t roomCount) {
+  hh::game::RoomBlueprint room;
+  room.name =
+      "Room " + std::to_string((position.floor + 1) * 100 + roomCount + 1);
+  room.floor = position.floor;
+  room.x = position.x;
+  room.y = position.y;
+  room.width = 6;
+  room.height = 6;
+  room.door = {position.floor, position.x + 2, position.y + 5};
+  room.nightlyRate = 120;
+  return room;
+}
+
+hh::game::TileKind tileKindFor(Tool tool) {
+  using hh::game::TileKind;
+  constexpr std::array<TileKind, 13> kinds = {
+      TileKind::Empty,     TileKind::Empty,        TileKind::Floor,
+      TileKind::Wall,      TileKind::Door,         TileKind::Entrance,
+      TileKind::FrontDesk, TileKind::SupplyCloset, TileKind::Stairs,
+      TileKind::Empty,     TileKind::Bathroom,     TileKind::StaffRoom,
+      TileKind::Lobby};
+  const auto index = static_cast<std::size_t>(tool);
+  return index < kinds.size() ? kinds[index] : TileKind::Empty;
+}
+
+} // namespace
 
 std::string toolName(Tool tool) {
   switch (tool) {
@@ -30,27 +60,20 @@ hh::game::CommandResult applyBuildTool(Simulation &simulation,
                                        Tool tool,
                                        hh::game::Position position,
                                        std::size_t roomCount) {
-  using namespace hh::game;
-  if (tool == Tool::Bedroom) {
-    RoomBlueprint room;
-    room.name =
-        "Room " + std::to_string((position.floor + 1) * 100 + roomCount + 1);
-    room.floor = position.floor;
-    room.x = position.x;
-    room.y = position.y;
-    room.width = 6;
-    room.height = 6;
-    room.door = {position.floor, position.x + 2, position.y + 5};
-    room.nightlyRate = 120;
-    return simulation.buildFurnishedRoom(room);
-  }
-  constexpr std::array<TileKind, 13> kinds = {
-      TileKind::Empty,     TileKind::Empty,        TileKind::Floor,
-      TileKind::Wall,      TileKind::Door,         TileKind::Entrance,
-      TileKind::FrontDesk, TileKind::SupplyCloset, TileKind::Stairs,
-      TileKind::Empty,     TileKind::Bathroom,     TileKind::StaffRoom,
-      TileKind::Lobby};
-  return simulation.buildTile(position, kinds[static_cast<std::size_t>(tool)]);
+  if (tool == Tool::Bedroom)
+    return simulation.buildFurnishedRoom(roomBlueprintFor(position, roomCount));
+  return simulation.buildTile(position, tileKindFor(tool));
+}
+
+hh::game::CommandResult previewBuildTool(const Simulation &simulation,
+                                         Tool tool,
+                                         hh::game::Position position,
+                                         std::size_t roomCount) {
+  const auto &physical = simulation.physicalSimulation();
+  if (tool == Tool::Bedroom)
+    return physical.previewBuildFurnishedRoom(
+        roomBlueprintFor(position, roomCount));
+  return physical.previewBuildTile(position, tileKindFor(tool));
 }
 
 void Client::refreshUi() {
