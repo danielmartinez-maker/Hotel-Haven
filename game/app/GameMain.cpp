@@ -807,7 +807,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       const auto scene = worldScene(
           c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX, c.hoverY,
                        c.tool == Tool::Bedroom ? 6.f : 1.f,
-                       c.tool != Tool::Inspect, c.previewValid},
+                       c.tool != Tool::Inspect, c.previewValid,
+                       c.uiSettings.reducedMotion()},
           &c.worldAssets);
       const auto frame = composeVisibleFrame(
           scene, composer,

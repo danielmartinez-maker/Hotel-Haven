@@ -330,7 +330,7 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
       shirt = diagnosticGoodness(1.0f - pressure);
     }
     const float stride =
-        p.state == PersonState::Traveling
+        !c.reducedMotion && p.state == PersonState::Traveling
             ? .10f *
                   std::sin(static_cast<float>(snapshot.elapsedSeconds % 100) *
                                1.2f +
