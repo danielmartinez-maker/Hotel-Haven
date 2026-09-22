@@ -806,7 +806,11 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       }
       refreshTime += dt;
       if (shouldRefreshClientSnapshot(frames == 0, c.speed, refreshTime)) {
-        c.refresh();
+        // The render snapshot is refreshed immediately after every simulation
+        // step. Rebuild only presentation projections here so this periodic UI
+        // update does not clone the complete simulation view a second time.
+        c.refreshUi();
+        InvalidateRect(c.window, nullptr, FALSE);
         refreshTime = 0;
       }
       const auto scene = worldScene(
