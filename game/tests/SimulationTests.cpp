@@ -20,7 +20,7 @@ static const RoomView &room(const SimulationView &v, EntityId id) {
 static void map_dimensions_must_fit_internal_index_space() {
   bool rejected = false;
   try {
-    Simulation impossible(3, INT_MAX, INT_MAX, INT_MAX);
+    (void)Simulation(3, INT_MAX, INT_MAX, INT_MAX);
   } catch (const std::invalid_argument &) {
     rejected = true;
   }
