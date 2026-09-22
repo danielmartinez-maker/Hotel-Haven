@@ -63,8 +63,8 @@ TEST_CASE("Key binding editor captures, validates, and cancels player rebinding"
     EXPECT_TRUE(editor.pendingAction().has_value());
     EXPECT_EQ(*editor.pendingAction(), UiAction::PauseToggle);
 
-    const int cancelKey = settings.keyboardBinding(UiAction::Cancel);
-    EXPECT_EQ(editor.capture(settings, cancelKey), KeyBindingCaptureResult::Duplicate);
+    const int duplicateKey = settings.keyboardBinding(UiAction::NavigateNext);
+    EXPECT_EQ(editor.capture(settings, duplicateKey), KeyBindingCaptureResult::Duplicate);
     EXPECT_TRUE(editor.capturing());
     EXPECT_EQ(editor.capture(settings, 0), KeyBindingCaptureResult::Invalid);
     EXPECT_TRUE(editor.capturing());
@@ -72,6 +72,11 @@ TEST_CASE("Key binding editor captures, validates, and cancels player rebinding"
     EXPECT_EQ(editor.capture(settings, 'P'), KeyBindingCaptureResult::Applied);
     EXPECT_FALSE(editor.capturing());
     EXPECT_EQ(settings.keyboardBinding(UiAction::PauseToggle), static_cast<int>('P'));
+
+    editor.begin(UiAction::Activate);
+    EXPECT_EQ(editor.capture(settings, KeyBindingEditor::CancelCaptureKeyCode),
+              KeyBindingCaptureResult::Cancelled);
+    EXPECT_FALSE(editor.capturing());
 
     editor.begin(UiAction::Activate);
     editor.cancel();
