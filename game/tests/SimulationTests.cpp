@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <array>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -31,6 +32,20 @@ static void map_dimensions_must_fit_internal_index_space() {
   const auto view = benchmarkSized.view();
   require(view.width == 512 && view.height == 10 && view.floors == 1,
           "existing 512-wide deterministic benchmark size was rejected");
+
+  for (const auto dimensions :
+       std::array<std::array<int, 3>, 3>{{{513, 10, 1},
+                                          {10, 513, 1},
+                                          {10, 10, 65}}}) {
+    rejected = false;
+    try {
+      (void)Simulation(3, dimensions[0], dimensions[1], dimensions[2]);
+    } catch (const std::invalid_argument &) {
+      rejected = true;
+    }
+    require(rejected,
+            "constructor accepted a world that persisted saves cannot reload");
+  }
 }
 
 static void construction_and_routes() {

@@ -14,6 +14,10 @@
 
 namespace hh::game {
 namespace {
+constexpr int MaxMapWidth = 512;
+constexpr int MaxMapHeight = 512;
+constexpr int MaxMapFloors = 64;
+
 bool same(Position a, Position b) {
   return a.floor == b.floor && a.x == b.x && a.y == b.y;
 }
@@ -821,7 +825,8 @@ struct Simulation::Impl {
 Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
     : impl_(std::make_unique<Impl>()) {
   const auto tileCount = checkedTileCount(w, h, f);
-  if (w < 4 || h < 4 || f < 1 || !tileCount)
+  if (w < 4 || w > MaxMapWidth || h < 4 || h > MaxMapHeight ||
+      f < 1 || f > MaxMapFloors || !tileCount)
     throw std::invalid_argument("invalid map dimensions");
   impl_->seed = seed;
   impl_->rng.seed(seed);
@@ -1384,7 +1389,8 @@ Simulation Simulation::load(std::string_view data) {
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
-  if (w < 4 || w > 512 || h < 4 || h > 512 || f < 1 || f > 64)
+  if (w < 4 || w > MaxMapWidth || h < 4 || h > MaxMapHeight ||
+      f < 1 || f > MaxMapFloors)
     throw std::invalid_argument("invalid saved map dimensions");
   Simulation s(seed, w, h, f);
   auto &d = *s.impl_;
