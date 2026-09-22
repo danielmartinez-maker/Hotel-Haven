@@ -141,6 +141,9 @@ struct Client {
 [[nodiscard]] hh::game::CommandResult
 applyBuildTool(Simulation &simulation, Tool tool,
                hh::game::Position position, std::size_t roomCount);
+[[nodiscard]] hh::game::CommandResult
+previewBuildTool(const Simulation &simulation, Tool tool,
+                 hh::game::Position position, std::size_t roomCount);
 std::wstring wide(const std::string &);
 std::wstring money(std::int64_t);
 std::wstring roomStatus(hh::game::RoomStatus);

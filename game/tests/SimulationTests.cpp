@@ -256,6 +256,54 @@ static void poor_layout_lowers_service_quality_and_profit() {
           "poor layout did not reduce operating profit");
 }
 
+static void construction_preview_is_authoritative_and_read_only() {
+  auto simulation = Simulation::tutorial(151);
+  const auto before = simulation.save();
+
+  const Position validTile{2, 30, 19};
+  const auto tilePreview = simulation.previewBuildTile(validTile, TileKind::Floor);
+  require(tilePreview.ok, "valid tile preview was rejected");
+  require(simulation.save() == before, "valid tile preview mutated simulation state");
+  auto tileExecution = simulation;
+  require(tileExecution.buildTile(validTile, TileKind::Floor).ok,
+          "tile preview accepted placement that execution rejected");
+
+  const auto existingRoom = simulation.view().rooms.front();
+  const Position invalidTile{
+      existingRoom.floor, existingRoom.x + 1, existingRoom.y + 1};
+  const auto invalidTilePreview =
+      simulation.previewBuildTile(invalidTile, TileKind::Floor);
+  auto invalidTileExecution = simulation;
+  const auto invalidTileResult =
+      invalidTileExecution.buildTile(invalidTile, TileKind::Floor);
+  require(!invalidTilePreview.ok && !invalidTileResult.ok &&
+              invalidTilePreview.message == invalidTileResult.message,
+          "tile preview rejection diverged from authoritative construction");
+
+  const RoomBlueprint validRoom{
+      "Preview room", 2, 20, 12, 6, 6, {2, 22, 17}, 1, 1, 120};
+  const auto roomPreview = simulation.previewBuildFurnishedRoom(validRoom);
+  require(roomPreview.ok, "valid furnished-room preview was rejected");
+  require(simulation.save() == before, "room preview mutated simulation state");
+  auto roomExecution = simulation;
+  require(roomExecution.buildFurnishedRoom(validRoom).ok,
+          "room preview accepted placement that execution rejected");
+
+  const RoomBlueprint overlapRoom{
+      "Overlap", existingRoom.floor, existingRoom.x, existingRoom.y,
+      existingRoom.width, existingRoom.height, existingRoom.door,
+      existingRoom.beds, existingRoom.baths, 120};
+  const auto overlapPreview =
+      simulation.previewBuildFurnishedRoom(overlapRoom);
+  auto overlapExecution = simulation;
+  const auto overlapResult = overlapExecution.buildFurnishedRoom(overlapRoom);
+  require(!overlapPreview.ok && !overlapResult.ok &&
+              overlapPreview.message == overlapResult.message,
+          "room preview rejection diverged from authoritative construction");
+  require(simulation.save() == before,
+          "construction previews changed authoritative state");
+}
+
 static void construction_preserves_property_invariants() {
   auto s = Simulation::tutorial(15);
   auto r = s.view().rooms.front();
@@ -694,6 +742,7 @@ int main() {
     deterministic_save_continuation();
     layout_has_consequences();
     poor_layout_lowers_service_quality_and_profit();
+    construction_preview_is_authoritative_and_read_only();
     construction_preserves_property_invariants();
     invalid_inputs_are_rejected();
     completed_tasks_do_not_replay_when_staff_are_fired();

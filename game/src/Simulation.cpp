@@ -200,6 +200,74 @@ struct Simulation::Impl {
   bool has(TileKind kind) const {
     return std::find(map.begin(), map.end(), kind) != map.end();
   }
+
+  [[nodiscard]] CommandResult validateBuildTile(Position p, TileKind k) const {
+    if (!inside(p) || ei(k) < ei(TileKind::Empty) || ei(k) > ei(TileKind::Lobby))
+      return {false, "Tile or type is invalid"};
+    const auto old = map[index(p)];
+    if (old == TileKind::Entrance && k != TileKind::Entrance)
+      return {false, "The hotel entrance cannot be removed"};
+    if (k == TileKind::Entrance && old != TileKind::Entrance &&
+        has(TileKind::Entrance))
+      return {false, "The hotel already has a main entrance"};
+    if (old == TileKind::FrontDesk && k != TileKind::FrontDesk &&
+        std::any_of(people.begin(), people.end(), [](const auto &person) {
+          return person.kind == PersonKind::Guest &&
+                 person.state != PersonState::CheckedOut;
+        }))
+      return {false, "Reception is required while guests are on property"};
+    if (old == TileKind::SupplyCloset && k != TileKind::SupplyCloset &&
+        std::any_of(tasks.begin(), tasks.end(), [](const auto &task) {
+          return task.kind == TaskKind::Turnover && !task.resourcesClaimed &&
+                 task.status != TaskStatus::Completed;
+        }))
+      return {false, "Supply closet is required by an active turnover"};
+    if (!passableKind(k) &&
+        std::any_of(people.begin(), people.end(),
+                    [&](const auto &person) { return same(person.position, p); }))
+      return {false, "A person is standing on this tile"};
+    for (const auto &room : rooms)
+      if (p.floor == room.floor && p.x >= room.x && p.x < room.x + room.width &&
+          p.y >= room.y && p.y < room.y + room.height)
+        return {false, "Use room commands to alter a room"};
+    if (old == k)
+      return {true, "Tile unchanged"};
+    if (economy.cashCents < 500)
+      return {false, "Insufficient cash for construction"};
+    return {true, "Tile placement valid"};
+  }
+
+  [[nodiscard]] CommandResult
+  validateBuildFurnishedRoom(const RoomBlueprint &b) const {
+    if (b.width < 3 || b.height < 3 || b.beds < 1 || b.baths < 1 ||
+        !std::isfinite(b.nightlyRate) || b.nightlyRate <= 0 ||
+        b.nightlyRate > 5000)
+      return {false,
+              "Room requires a 3x3 footprint, bed, bath, and positive rate"};
+    if (!inside({b.floor, b.x, b.y}) ||
+        !inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
+      return {false, "Room footprint outside property"};
+    if (b.door.floor != b.floor || b.door.x < b.x ||
+        b.door.x >= b.x + b.width || b.door.y < b.y ||
+        b.door.y >= b.y + b.height ||
+        (b.door.x != b.x && b.door.x != b.x + b.width - 1 &&
+         b.door.y != b.y && b.door.y != b.y + b.height - 1))
+      return {false, "Door must lie on room perimeter"};
+    for (const auto &room : rooms)
+      if (room.floor == b.floor && b.x < room.x + room.width &&
+          b.x + b.width > room.x && b.y < room.y + room.height &&
+          b.y + b.height > room.y)
+        return {false, "Room overlaps another room"};
+    for (int y = b.y; y < b.y + b.height; ++y)
+      for (int x = b.x; x < b.x + b.width; ++x)
+        if (map[index({b.floor, x, y})] != TileKind::Empty)
+          return {false, "Room footprint contains existing construction"};
+    const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
+    if (economy.cashCents < cost)
+      return {false, "Insufficient cash for furnished room construction"};
+    return {true, "Furnished room placement valid"};
+  }
+
   void refreshReachability() {
     for (auto &r : rooms) {
       r.reachable =
@@ -756,40 +824,21 @@ Simulation Simulation::tutorial(std::uint64_t seed) {
   s.impl_->configureTutorialFinal05();
   return s;
 }
+CommandResult Simulation::previewBuildTile(Position p, TileKind k) const {
+  return impl_->validateBuildTile(p, k);
+}
+
+CommandResult
+Simulation::previewBuildFurnishedRoom(const RoomBlueprint &b) const {
+  return impl_->validateBuildFurnishedRoom(b);
+}
+
 CommandResult Simulation::buildTile(Position p, TileKind k) {
-  if (!impl_->inside(p) || ei(k) < ei(TileKind::Empty) ||
-      ei(k) > ei(TileKind::Lobby))
-    return {false, "Tile or type is invalid"};
-  auto old = impl_->map[impl_->index(p)];
-  if (old == TileKind::Entrance && k != TileKind::Entrance)
-    return {false, "The hotel entrance cannot be removed"};
-  if (k == TileKind::Entrance && old != TileKind::Entrance &&
-      impl_->has(TileKind::Entrance))
-    return {false, "The hotel already has a main entrance"};
-  if (old == TileKind::FrontDesk && k != TileKind::FrontDesk &&
-      std::any_of(impl_->people.begin(), impl_->people.end(), [](auto &person) {
-        return person.kind == PersonKind::Guest &&
-               person.state != PersonState::CheckedOut;
-      }))
-    return {false, "Reception is required while guests are on property"};
-  if (old == TileKind::SupplyCloset && k != TileKind::SupplyCloset &&
-      std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [](auto &task) {
-        return task.kind == TaskKind::Turnover && !task.resourcesClaimed &&
-               task.status != TaskStatus::Completed;
-      }))
-    return {false, "Supply closet is required by an active turnover"};
-  if (!passableKind(k) &&
-      std::any_of(impl_->people.begin(), impl_->people.end(),
-                  [&](auto &person) { return same(person.position, p); }))
-    return {false, "A person is standing on this tile"};
-  for (auto &r : impl_->rooms)
-    if (p.floor == r.floor && p.x >= r.x && p.x < r.x + r.width && p.y >= r.y &&
-        p.y < r.y + r.height)
-      return {false, "Use room commands to alter a room"};
-  if (old == k)
-    return {true, "Tile unchanged"};
-  if (impl_->economy.cashCents < 500)
-    return {false, "Insufficient cash for construction"};
+  const auto validation = impl_->validateBuildTile(p, k);
+  if (!validation.ok)
+    return validation;
+  if (impl_->map[impl_->index(p)] == k)
+    return validation;
   impl_->map[impl_->index(p)] = k;
   impl_->economy.cashCents -= 500;
   impl_->economy.constructionCostCents += 500;
@@ -797,30 +846,10 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
   return {true, "Tile built"};
 }
 CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
-  if (b.width < 3 || b.height < 3 || b.beds < 1 || b.baths < 1 ||
-      !std::isfinite(b.nightlyRate) || b.nightlyRate <= 0 ||
-      b.nightlyRate > 5000)
-    return {false,
-            "Room requires a 3x3 footprint, bed, bath, and positive rate"};
-  if (!impl_->inside({b.floor, b.x, b.y}) ||
-      !impl_->inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
-    return {false, "Room footprint outside property"};
-  if (b.door.floor != b.floor || b.door.x < b.x || b.door.x >= b.x + b.width ||
-      b.door.y < b.y || b.door.y >= b.y + b.height ||
-      (b.door.x != b.x && b.door.x != b.x + b.width - 1 && b.door.y != b.y &&
-       b.door.y != b.y + b.height - 1))
-    return {false, "Door must lie on room perimeter"};
-  for (auto &r : impl_->rooms)
-    if (r.floor == b.floor && b.x < r.x + r.width && b.x + b.width > r.x &&
-        b.y < r.y + r.height && b.y + b.height > r.y)
-      return {false, "Room overlaps another room"};
-  for (int y = b.y; y < b.y + b.height; ++y)
-    for (int x = b.x; x < b.x + b.width; ++x)
-      if (impl_->map[impl_->index({b.floor, x, y})] != TileKind::Empty)
-        return {false, "Room footprint contains existing construction"};
+  const auto validation = impl_->validateBuildFurnishedRoom(b);
+  if (!validation.ok)
+    return validation;
   const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
-  if (impl_->economy.cashCents < cost)
-    return {false, "Insufficient cash for furnished room construction"};
   for (int y = b.y; y < b.y + b.height; ++y)
     for (int x = b.x; x < b.x + b.width; ++x) {
       Position p{b.floor, x, y};
