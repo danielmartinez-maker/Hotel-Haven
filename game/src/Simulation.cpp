@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <optional>
 #include <queue>
 #include <random>
 #include <sstream>
@@ -48,6 +49,13 @@ struct PendingOrder : SupplyOrderView {};
 
 struct Simulation::Impl {
   static constexpr std::size_t completedTaskHistoryLimit = 128;
+
+  struct FootprintBounds {
+    int left{};
+    int top{};
+    int rightExclusive{};
+    int bottomExclusive{};
+  };
 
   std::uint64_t seed{1};
   std::mt19937_64 rng{1};
@@ -201,6 +209,32 @@ struct Simulation::Impl {
     return std::find(map.begin(), map.end(), kind) != map.end();
   }
 
+  [[nodiscard]] std::optional<FootprintBounds>
+  roomFootprintBounds(int floor, int x, int y, int roomWidth,
+                      int roomHeight) const noexcept {
+    if (floor < 0 || floor >= floors || roomWidth <= 0 || roomHeight <= 0 ||
+        x < 0 || y < 0)
+      return std::nullopt;
+    const auto right = static_cast<std::int64_t>(x) + roomWidth;
+    const auto bottom = static_cast<std::int64_t>(y) + roomHeight;
+    if (right > width || bottom > height)
+      return std::nullopt;
+    return FootprintBounds{x, y, static_cast<int>(right),
+                           static_cast<int>(bottom)};
+  }
+
+  [[nodiscard]] std::optional<std::int64_t>
+  furnishedRoomCost(int roomWidth, int roomHeight) const noexcept {
+    if (roomWidth <= 0 || roomHeight <= 0)
+      return std::nullopt;
+    const auto area =
+        static_cast<std::int64_t>(roomWidth) * static_cast<std::int64_t>(roomHeight);
+    constexpr std::int64_t CostPerTileCents = 15000;
+    if (area > std::numeric_limits<std::int64_t>::max() / CostPerTileCents)
+      return std::nullopt;
+    return area * CostPerTileCents;
+  }
+
   [[nodiscard]] CommandResult validateBuildTile(Position p, TileKind k) const {
     if (!inside(p) || ei(k) < ei(TileKind::Empty) || ei(k) > ei(TileKind::Lobby))
       return {false, "Tile or type is invalid"};
@@ -244,26 +278,41 @@ struct Simulation::Impl {
         b.nightlyRate > 5000)
       return {false,
               "Room requires a 3x3 footprint, bed, bath, and positive rate"};
-    if (!inside({b.floor, b.x, b.y}) ||
-        !inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
+
+    const auto bounds =
+        roomFootprintBounds(b.floor, b.x, b.y, b.width, b.height);
+    if (!bounds)
       return {false, "Room footprint outside property"};
-    if (b.door.floor != b.floor || b.door.x < b.x ||
-        b.door.x >= b.x + b.width || b.door.y < b.y ||
-        b.door.y >= b.y + b.height ||
-        (b.door.x != b.x && b.door.x != b.x + b.width - 1 &&
-         b.door.y != b.y && b.door.y != b.y + b.height - 1))
+
+    const auto doorX = static_cast<std::int64_t>(b.door.x);
+    const auto doorY = static_cast<std::int64_t>(b.door.y);
+    if (b.door.floor != b.floor || doorX < bounds->left ||
+        doorX >= bounds->rightExclusive || doorY < bounds->top ||
+        doorY >= bounds->bottomExclusive ||
+        (doorX != bounds->left && doorX != bounds->rightExclusive - 1 &&
+         doorY != bounds->top && doorY != bounds->bottomExclusive - 1))
       return {false, "Door must lie on room perimeter"};
-    for (const auto &room : rooms)
-      if (room.floor == b.floor && b.x < room.x + room.width &&
-          b.x + b.width > room.x && b.y < room.y + room.height &&
-          b.y + b.height > room.y)
+
+    for (const auto &room : rooms) {
+      const auto roomRight =
+          static_cast<std::int64_t>(room.x) + room.width;
+      const auto roomBottom =
+          static_cast<std::int64_t>(room.y) + room.height;
+      if (room.floor == b.floor && bounds->left < roomRight &&
+          bounds->rightExclusive > room.x && bounds->top < roomBottom &&
+          bounds->bottomExclusive > room.y)
         return {false, "Room overlaps another room"};
-    for (int y = b.y; y < b.y + b.height; ++y)
-      for (int x = b.x; x < b.x + b.width; ++x)
+    }
+
+    for (int y = bounds->top; y < bounds->bottomExclusive; ++y)
+      for (int x = bounds->left; x < bounds->rightExclusive; ++x)
         if (map[index({b.floor, x, y})] != TileKind::Empty)
           return {false, "Room footprint contains existing construction"};
-    const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
-    if (economy.cashCents < cost)
+
+    const auto cost = furnishedRoomCost(b.width, b.height);
+    if (!cost)
+      return {false, "Room construction cost exceeds supported range"};
+    if (economy.cashCents < *cost)
       return {false, "Insufficient cash for furnished room construction"};
     return {true, "Furnished room placement valid"};
   }
@@ -849,12 +898,18 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   const auto validation = impl_->validateBuildFurnishedRoom(b);
   if (!validation.ok)
     return validation;
-  const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
-  for (int y = b.y; y < b.y + b.height; ++y)
-    for (int x = b.x; x < b.x + b.width; ++x) {
+  const auto bounds =
+      impl_->roomFootprintBounds(b.floor, b.x, b.y, b.width, b.height);
+  const auto cost = impl_->furnishedRoomCost(b.width, b.height);
+  if (!bounds || !cost)
+    return {false, "Room construction parameters exceed supported range"};
+  for (int y = bounds->top; y < bounds->bottomExclusive; ++y)
+    for (int x = bounds->left; x < bounds->rightExclusive; ++x) {
       Position p{b.floor, x, y};
-      bool edge = x == b.x || x == b.x + b.width - 1 || y == b.y ||
-                  y == b.y + b.height - 1;
+      const bool edge = x == bounds->left ||
+                        x == bounds->rightExclusive - 1 ||
+                        y == bounds->top ||
+                        y == bounds->bottomExclusive - 1;
       impl_->map[impl_->index(p)] = same(p, b.door) ? TileKind::Door
                                     : edge          ? TileKind::Wall
                                                     : TileKind::Floor;
@@ -884,8 +939,8 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
                                                  : ServiceRoomStatus::Blocked);
   impl_->services.registerAsset(
       r.id, std::clamp(static_cast<int>(std::llround(r.condition * 100.0)), 0, 10000));
-  impl_->economy.cashCents -= cost;
-  impl_->economy.constructionCostCents += cost;
+  impl_->economy.cashCents -= *cost;
+  impl_->economy.constructionCostCents += *cost;
   return {true,
           r.reachable ? "Furnished room opened"
                       : "Room built but lacks an entrance route",
@@ -1383,8 +1438,7 @@ Simulation Simulation::load(std::string_view data) {
     r.nightlyRate = r.nightlyRateCents / 100.0;
     if (st < ei(RoomStatus::Incomplete) || st > ei(RoomStatus::OutOfOrder) ||
         r.width < 3 || r.height < 3 || !d.inside(r.door) ||
-        !d.inside({r.floor, r.x, r.y}) ||
-        !d.inside({r.floor, r.x + r.width - 1, r.y + r.height - 1}) ||
+        !d.roomFootprintBounds(r.floor, r.x, r.y, r.width, r.height) ||
         !std::isfinite(r.cleanliness) || !std::isfinite(r.condition) ||
         r.nightlyRateCents <= 0 || r.nightlyRateCents > 500000)
       throw std::invalid_argument("invalid saved room");
