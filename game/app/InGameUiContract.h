@@ -79,9 +79,28 @@ struct Final07Layout {
   int viewportHeight{};
 };
 
+struct Final07Typography {
+  int normalHeight{};
+  int smallHeight{};
+  int titleHeight{};
+  int numberHeight{};
+  int focusInsetPixels{};
+};
+
 [[nodiscard]] constexpr int final07ScalePixel(int logicalPixels,
                                                int scalePercent) noexcept {
   return (logicalPixels * scalePercent + 50) / 100;
+}
+
+[[nodiscard]] constexpr Final07Typography
+computeFinal07Typography(int scalePercent) noexcept {
+  Final07Typography result;
+  result.normalHeight = -final07ScalePixel(16, scalePercent);
+  result.smallHeight = -final07ScalePixel(13, scalePercent);
+  result.titleHeight = -final07ScalePixel(23, scalePercent);
+  result.numberHeight = -final07ScalePixel(24, scalePercent);
+  result.focusInsetPixels = final07ScalePixel(2, scalePercent);
+  return result;
 }
 
 [[nodiscard]] constexpr Final07Layout

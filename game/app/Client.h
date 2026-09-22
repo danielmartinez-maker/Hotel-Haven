@@ -115,11 +115,13 @@ struct Client {
   std::string fatalError;
   std::wstring notice = L"Welcome. Open the guide to begin your first hotel.";
   HFONT normal{}, small{}, title{}, number{};
+  int fontScalePercent{100};
   Client();
   ~Client();
   void refresh();
   void refreshUi();
   void layout();
+  [[nodiscard]] bool rebuildFonts(int scalePercent) noexcept;
   void paint(HDC);
   void click(int, int);
   void mapClick(int, int);
