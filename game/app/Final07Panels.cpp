@@ -646,26 +646,32 @@ void Client::paint(HDC output) {
                   ? L"Keyboard bindings · press the next key, or click the highlighted action to cancel."
                   : L"Keyboard bindings · click an action, then press the replacement key.",
               36, keyBindingEditor.capturing() ? Warning : Muted);
-    for (const auto &descriptor : hh::frontend::EditableKeyBindings) {
-      const auto pending = keyBindingEditor.pendingAction();
-      const bool capturing = pending && *pending == descriptor.action;
+    const auto pendingBinding = keyBindingEditor.pendingAction();
+    constexpr int bindingGap = 12;
+    const int bindingWidth = (panelWidth - bindingGap) / 2;
+    for (std::size_t index = 0; index < hh::frontend::EditableKeyBindings.size(); ++index) {
+      const auto &descriptor = hh::frontend::EditableKeyBindings[index];
+      const bool capturing = pendingBinding && *pendingBinding == descriptor.action;
       std::wstring bindingLabel = wide(std::string(descriptor.label)) + L" · " +
                                   keyName(uiSettings.keyboardBinding(descriptor.action));
       if (capturing)
-        bindingLabel = L"PRESS KEY · " + bindingLabel;
-      if (y + 38 >= bottom)
-        break;
-      fullButton(std::move(bindingLabel), [this, action = descriptor.action] {
-        const auto pending = keyBindingEditor.pendingAction();
-        if (pending && *pending == action) {
-          keyBindingEditor.cancel();
-          notice = L"Keyboard rebinding cancelled.";
-          return;
-        }
-        keyBindingEditor.begin(action);
-        notice = L"Press a key for the selected action.";
-      }, capturing);
+        bindingLabel = L"PRESS · " + bindingLabel;
+      const int row = static_cast<int>(index / 2);
+      const int column = static_cast<int>(index % 2);
+      button(left + column * (bindingWidth + bindingGap), y + row * 35,
+             bindingWidth, 30, std::move(bindingLabel),
+             [this, action = descriptor.action] {
+               const auto pending = keyBindingEditor.pendingAction();
+               if (pending && *pending == action) {
+                 keyBindingEditor.cancel();
+                 notice = L"Keyboard rebinding cancelled.";
+                 return;
+               }
+               keyBindingEditor.begin(action);
+               notice = L"Press a key for the selected action.";
+             }, capturing);
     }
+    y += static_cast<int>((hh::frontend::EditableKeyBindings.size() + 1) / 2) * 35;
     if (y + 38 < bottom) {
       fullButton(L"Reset keyboard bindings", [this] {
         keyBindingEditor.cancel();

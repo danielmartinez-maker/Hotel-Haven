@@ -20,13 +20,13 @@ struct KeyBindingDescriptor {
 };
 
 inline constexpr std::array<KeyBindingDescriptor, 7> EditableKeyBindings{{
-    {UiAction::NavigatePrevious, "Navigate previous"},
-    {UiAction::NavigateNext, "Navigate next"},
+    {UiAction::NavigatePrevious, "Previous"},
+    {UiAction::NavigateNext, "Next"},
     {UiAction::Activate, "Activate"},
     {UiAction::Cancel, "Cancel"},
     {UiAction::SpeedDown, "Speed down"},
     {UiAction::SpeedUp, "Speed up"},
-    {UiAction::PauseToggle, "Pause / resume"},
+    {UiAction::PauseToggle, "Pause"},
 }};
 
 class KeyBindingEditor {
