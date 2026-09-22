@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "hh/frontend/KeyBindingEditor.h"
 #include "hh/frontend/UiSettings.h"
+#include "hh/frontend/UiSettingsCodec.h"
 
 using namespace hh::frontend;
 
@@ -89,4 +90,51 @@ TEST_CASE("Key binding editor exposes every remappable action exactly once") {
     }
     for (const bool present : seen)
         EXPECT_TRUE(present);
+}
+
+TEST_CASE("UI preferences round-trip scale motion and swapped key bindings") {
+    UiSettings source;
+    EXPECT_TRUE(source.setScalePercent(150));
+    source.setReducedMotion(true);
+
+    auto bindings = source.keyboardBindings();
+    const int previous = bindings[0];
+    bindings[0] = bindings[1];
+    bindings[1] = previous;
+    EXPECT_TRUE(source.setKeyboardBindings(bindings));
+
+    const std::string encoded = serializeUiSettings(source);
+    UiSettings restored;
+    restored.setInputModality(InputModality::Controller);
+    EXPECT_TRUE(deserializeUiSettings(encoded, restored));
+
+    EXPECT_EQ(restored.scalePercent(), 150);
+    EXPECT_TRUE(restored.reducedMotion());
+    EXPECT_EQ(restored.inputModality(), InputModality::Controller);
+    for (std::size_t index = 0; index < bindings.size(); ++index)
+        EXPECT_EQ(restored.keyboardBindings()[index], bindings[index]);
+}
+
+TEST_CASE("UI preference decoding rejects corrupt state transactionally") {
+    UiSettings settings;
+    EXPECT_TRUE(settings.setScalePercent(125));
+    settings.setReducedMotion(true);
+    EXPECT_TRUE(settings.setKeyboardBinding(UiAction::PauseToggle, 'P'));
+    const std::string before = serializeUiSettings(settings);
+
+    EXPECT_FALSE(deserializeUiSettings(
+        "HHUI2 100 0 38 40 13 27 189 187 32\n", settings));
+    EXPECT_EQ(serializeUiSettings(settings), before);
+
+    EXPECT_FALSE(deserializeUiSettings(
+        "HHUI1 100 0 38 38 13 27 189 187 32\n", settings));
+    EXPECT_EQ(serializeUiSettings(settings), before);
+
+    EXPECT_FALSE(deserializeUiSettings(
+        "HHUI1 100 0 38 40 13 27 189 187 256\n", settings));
+    EXPECT_EQ(serializeUiSettings(settings), before);
+
+    EXPECT_FALSE(deserializeUiSettings(
+        "HHUI1 100 0 38 40 13 27 189 187 32 trailing\n", settings));
+    EXPECT_EQ(serializeUiSettings(settings), before);
 }
