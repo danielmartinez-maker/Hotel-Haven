@@ -80,6 +80,28 @@ int main() {
                 "scaled vertical chrome must reconcile with viewport height");
       }
     }
+    const auto type100 = hh::client::computeFinal07Typography(100);
+    require(type100.normalHeight == -16 && type100.smallHeight == -13 &&
+                type100.titleHeight == -23 && type100.numberHeight == -24 &&
+                type100.focusInsetPixels == 2,
+            "100% scale must preserve baseline typography metrics");
+    const auto type150 = hh::client::computeFinal07Typography(150);
+    require(type150.normalHeight == -24 && type150.smallHeight == -20 &&
+                type150.titleHeight == -35 && type150.numberHeight == -36 &&
+                type150.focusInsetPixels == 3,
+            "150% scale must enlarge typography and focus affordances");
+    for (std::size_t index = 1; index < hh::client::Final07UiScales.size(); ++index) {
+      const auto previousType = hh::client::computeFinal07Typography(
+          hh::client::Final07UiScales[index - 1]);
+      const auto currentType = hh::client::computeFinal07Typography(
+          hh::client::Final07UiScales[index]);
+      require(-currentType.normalHeight >= -previousType.normalHeight &&
+                  -currentType.smallHeight >= -previousType.smallHeight &&
+                  -currentType.titleHeight >= -previousType.titleHeight &&
+                  -currentType.numberHeight >= -previousType.numberHeight,
+              "supported UI scales must never shrink typography as scale increases");
+    }
+
     const auto normal = hh::client::computeFinal07Layout(1500, 960, 100);
     require(normal.headerPixels == 88 && normal.footerPixels == 58 &&
                 normal.sidebarPixels == 356,

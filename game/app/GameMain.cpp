@@ -99,9 +99,17 @@ void captureClient(HWND window, const std::filesystem::path &path) {
 }
 
 void applyScaleIfChanged(Client &client, int priorScale) {
-  if (client.uiSettings.scalePercent() == priorScale)
+  const int requestedScale = client.uiSettings.scalePercent();
+  if (requestedScale == priorScale)
     return;
-  applyClientUiScale(client.uiSettings.scalePercent());
+  if (!client.rebuildFonts(requestedScale)) {
+    (void)client.uiSettings.setScalePercent(priorScale);
+    (void)client.saveUiPreferences();
+    client.notice =
+        L"UI scale could not be applied because Windows could not create the scaled fonts.";
+    return;
+  }
+  applyClientUiScale(requestedScale);
   client.layout();
 }
 
@@ -162,7 +170,9 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
         if (c->uiSettings.visibleFocusRequired() && c->focusedButton >= 0 &&
             c->focusedButton < static_cast<int>(c->buttons.size())) {
           RECT focus = c->buttons[static_cast<std::size_t>(c->focusedButton)].rect;
-          InflateRect(&focus, -2, -2);
+          const int inset =
+              computeFinal07Typography(c->uiSettings.scalePercent()).focusInsetPixels;
+          InflateRect(&focus, -inset, -inset);
           DrawFocusRect(dc, &focus);
         }
       }
@@ -318,18 +328,8 @@ void pollController(Client &c) {
 } // namespace
 
 Client::Client() : simulation(Simulation::tutorial(20260907)), hudController(hudModel) {
-  normal = CreateFontW(-16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                       DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                       CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
-  small = CreateFontW(-13, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-                      DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                      CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
-  title = CreateFontW(-23, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
-                      DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                      CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Georgia");
-  number = CreateFontW(-24, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
-                       DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                       CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  if (!rebuildFonts(uiSettings.scalePercent()))
+    throw std::runtime_error("Cannot create Hotel Haven UI fonts");
   applyClientUiScale(uiSettings.scalePercent());
   snapshot = simulation.view();
   refreshUi();
@@ -340,10 +340,52 @@ Client::Client() : simulation(Simulation::tutorial(20260907)), hudController(hud
 }
 
 Client::~Client() {
-  DeleteObject(normal);
-  DeleteObject(small);
-  DeleteObject(title);
-  DeleteObject(number);
+  if (normal) DeleteObject(normal);
+  if (small) DeleteObject(small);
+  if (title) DeleteObject(title);
+  if (number) DeleteObject(number);
+}
+
+bool Client::rebuildFonts(int scalePercent) noexcept {
+  if (fontScalePercent == scalePercent && normal && small && title && number)
+    return true;
+
+  const auto metrics = computeFinal07Typography(scalePercent);
+  HFONT nextNormal =
+      CreateFontW(metrics.normalHeight, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                  DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                  CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  HFONT nextSmall =
+      CreateFontW(metrics.smallHeight, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
+                  DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                  CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+  HFONT nextTitle =
+      CreateFontW(metrics.titleHeight, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
+                  DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                  CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Georgia");
+  HFONT nextNumber =
+      CreateFontW(metrics.numberHeight, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, FALSE,
+                  DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                  CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Segoe UI");
+
+  if (!nextNormal || !nextSmall || !nextTitle || !nextNumber) {
+    if (nextNormal) DeleteObject(nextNormal);
+    if (nextSmall) DeleteObject(nextSmall);
+    if (nextTitle) DeleteObject(nextTitle);
+    if (nextNumber) DeleteObject(nextNumber);
+    return false;
+  }
+
+  if (normal) DeleteObject(normal);
+  if (small) DeleteObject(small);
+  if (title) DeleteObject(title);
+  if (number) DeleteObject(number);
+  normal = nextNormal;
+  small = nextSmall;
+  title = nextTitle;
+  number = nextNumber;
+  fontScalePercent = scalePercent;
+  return true;
 }
 
 void Client::refresh() {
@@ -581,6 +623,8 @@ bool Client::loadUiPreferences() {
     auto candidate = uiSettings;
     if (!hh::frontend::deserializeUiSettings(encoded, candidate))
       return false;
+    if (!rebuildFonts(candidate.scalePercent()))
+      return false;
     uiSettings = candidate;
     applyClientUiScale(uiSettings.scalePercent());
     return true;
@@ -798,6 +842,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         if (c.uiSettings.scalePercent() != 150 || !c.uiSettings.reducedMotion() ||
             c.uiSettings.keyboardBinding(hh::frontend::UiAction::PauseToggle) != 'P')
           throw std::runtime_error("FINAL-07 smoke preference roundtrip mismatch");
+        if (c.fontScalePercent != 150)
+          throw std::runtime_error("FINAL-07 persisted UI scale did not rebuild typography");
         applyClientUiScale(150);
         c.layout();
         c.refresh();
