@@ -304,6 +304,42 @@ static void construction_preview_is_authoritative_and_read_only() {
           "construction previews changed authoritative state");
 }
 
+static void extreme_room_footprints_fail_closed_without_overflow() {
+  auto simulation = Simulation::tutorial(152);
+  const auto before = simulation.save();
+
+  const RoomBlueprint hugePositive{
+      "Huge positive", 0, INT_MAX - 2, INT_MAX - 2, INT_MAX, INT_MAX,
+      {0, INT_MAX - 2, INT_MAX - 2}, 1, 1, 120};
+  const auto positivePreview =
+      simulation.previewBuildFurnishedRoom(hugePositive);
+  require(!positivePreview.ok,
+          "overflowing positive room footprint was accepted by preview");
+  auto positiveExecution = simulation;
+  const auto positiveResult =
+      positiveExecution.buildFurnishedRoom(hugePositive);
+  require(!positiveResult.ok &&
+              positiveResult.message == positivePreview.message,
+          "overflowing positive room footprint diverged between preview and execution");
+
+  const RoomBlueprint hugeNegative{
+      "Huge negative", 0, INT_MIN, INT_MIN, INT_MAX, INT_MAX,
+      {0, INT_MIN, INT_MIN}, 1, 1, 120};
+  const auto negativePreview =
+      simulation.previewBuildFurnishedRoom(hugeNegative);
+  require(!negativePreview.ok,
+          "overflowing negative room footprint was accepted by preview");
+  auto negativeExecution = simulation;
+  const auto negativeResult =
+      negativeExecution.buildFurnishedRoom(hugeNegative);
+  require(!negativeResult.ok &&
+              negativeResult.message == negativePreview.message,
+          "overflowing negative room footprint diverged between preview and execution");
+
+  require(simulation.save() == before,
+          "extreme room footprint validation mutated authoritative state");
+}
+
 static void construction_preserves_property_invariants() {
   auto s = Simulation::tutorial(15);
   auto r = s.view().rooms.front();
@@ -743,6 +779,7 @@ int main() {
     layout_has_consequences();
     poor_layout_lowers_service_quality_and_profit();
     construction_preview_is_authoritative_and_read_only();
+    extreme_room_footprints_fail_closed_without_overflow();
     construction_preserves_property_invariants();
     invalid_inputs_are_rejected();
     completed_tasks_do_not_replay_when_staff_are_fired();
