@@ -9,6 +9,7 @@
 #include "hh/frontend/EconomyDashboard.h"
 #include "hh/frontend/GameHudController.h"
 #include "hh/frontend/GameUiRuntime.h"
+#include "hh/frontend/KeyBindingEditor.h"
 #include "hh/frontend/ObjectiveUi.h"
 #include "hh/frontend/OperationsDashboard.h"
 #include "hh/frontend/UiSettings.h"
@@ -80,6 +81,7 @@ struct Client {
   hh::frontend::OperationSort operationsSort{hh::frontend::OperationSort::SchedulerOrder};
   hh::frontend::EconomyDashboard economyDashboard;
   hh::frontend::UiSettings uiSettings;
+  hh::frontend::KeyBindingEditor keyBindingEditor;
   hh::frontend::BuildPlacementPreview buildPreview;
   bool uiConfigured{};
   std::uint64_t previewRequestSerial{};

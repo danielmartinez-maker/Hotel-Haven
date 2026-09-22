@@ -440,9 +440,27 @@ void Client::changeFloor(int requested) {
 }
 
 void Client::key(int k) {
+  using hh::frontend::KeyBindingCaptureResult;
   using hh::frontend::UiCommand;
   using hh::frontend::UiCommandType;
 
+  if (keyBindingEditor.capturing()) {
+    switch (keyBindingEditor.capture(uiSettings, k)) {
+    case KeyBindingCaptureResult::Applied:
+      notice = L"Keyboard binding updated.";
+      break;
+    case KeyBindingCaptureResult::Duplicate:
+      notice = L"That key is already assigned to another remappable action.";
+      break;
+    case KeyBindingCaptureResult::Invalid:
+      notice = L"That key cannot be assigned.";
+      break;
+    case KeyBindingCaptureResult::Idle:
+      break;
+    }
+    refresh();
+    return;
+  }
   if (const auto action = uiSettings.actionForKey(k)) {
     performUiAction(*this, *action);
     return;
