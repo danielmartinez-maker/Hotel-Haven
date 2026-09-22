@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <array>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -15,6 +16,36 @@ static const RoomView &room(const SimulationView &v, EntityId id) {
     if (r.id == id)
       return r;
   throw std::runtime_error("room missing");
+}
+
+static void map_dimensions_must_fit_internal_index_space() {
+  bool rejected = false;
+  try {
+    (void)Simulation(3, INT_MAX, INT_MAX, INT_MAX);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected,
+          "map dimensions exceeding internal index space were accepted");
+
+  Simulation benchmarkSized(3, 512, 10, 1);
+  const auto view = benchmarkSized.view();
+  require(view.width == 512 && view.height == 10 && view.floors == 1,
+          "existing 512-wide deterministic benchmark size was rejected");
+
+  for (const auto dimensions :
+       std::array<std::array<int, 3>, 3>{{{513, 10, 1},
+                                          {10, 513, 1},
+                                          {10, 10, 65}}}) {
+    rejected = false;
+    try {
+      (void)Simulation(3, dimensions[0], dimensions[1], dimensions[2]);
+    } catch (const std::invalid_argument &) {
+      rejected = true;
+    }
+    require(rejected,
+            "constructor accepted a world that persisted saves cannot reload");
+  }
 }
 
 static void construction_and_routes() {
@@ -766,6 +797,7 @@ static void long_campaign_bounds_transient_history() {
 
 int main() {
   try {
+    map_dimensions_must_fit_internal_index_space();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
