@@ -24,6 +24,20 @@ bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
                        return item.asset == AssetHandle{handle};
                      });
 }
+bool sameBoxGeometry(const RenderScene &a, const RenderScene &b) {
+  if (a.items.size() != b.items.size())
+    return false;
+  for (std::size_t index = 0; index < a.items.size(); ++index) {
+    const auto &left = a.items[index];
+    const auto &right = b.items[index];
+    if (left.center.x != right.center.x || left.center.y != right.center.y ||
+        left.center.z != right.center.z || left.size.x != right.size.x ||
+        left.size.y != right.size.y || left.size.z != right.size.z)
+      return false;
+  }
+  return true;
+}
+
 bool hasDifferentDiagnosticColor(const RenderScene &baseline,
                                  const RenderScene &candidate) {
   if (candidate.items.size() != baseline.items.size() ||
@@ -184,6 +198,33 @@ int main() {
       require(hasDifferentDiagnosticColor(diagnosticBaseline, diagnostic),
               "available management overlay has no world diagnostic colors");
     }
+
+    hh::game::SimulationView motionSnapshot;
+    motionSnapshot.width = 10;
+    motionSnapshot.height = 10;
+    motionSnapshot.floors = 1;
+    motionSnapshot.elapsedSeconds = 1;
+    hh::game::PersonView traveler;
+    traveler.id = 7;
+    traveler.name = "Motion traveler";
+    traveler.kind = hh::game::PersonKind::Guest;
+    traveler.state = hh::game::PersonState::Traveling;
+    traveler.position = {0, 3, 3};
+    motionSnapshot.people.push_back(traveler);
+
+    WorldViewOptions motionOptions;
+    const auto animatedMotion = worldScene(motionSnapshot, motionOptions, nullptr);
+    motionOptions.reducedMotion = true;
+    const auto reducedMotion = worldScene(motionSnapshot, motionOptions, nullptr);
+    require(!sameBoxGeometry(animatedMotion, reducedMotion),
+            "reduced motion did not suppress procedural walking gait");
+
+    auto laterMotionSnapshot = motionSnapshot;
+    laterMotionSnapshot.elapsedSeconds = 47;
+    const auto reducedMotionLater =
+        worldScene(laterMotionSnapshot, motionOptions, nullptr);
+    require(sameBoxGeometry(reducedMotion, reducedMotionLater),
+            "reduced-motion world geometry still depends on presentation time");
 
     options.showPreview = true;
     options.previewSize = 6;

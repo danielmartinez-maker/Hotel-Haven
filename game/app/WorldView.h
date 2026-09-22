@@ -51,6 +51,7 @@ struct WorldViewOptions {
   int hoverX{-1}, hoverY{-1};
   float previewSize{1};
   bool showPreview{}, previewValid{};
+  bool reducedMotion{};
 };
 
 hh::renderer::RenderScene worldScene(
