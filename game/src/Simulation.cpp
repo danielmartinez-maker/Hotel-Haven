@@ -29,6 +29,25 @@ bool passableKind(TileKind kind) {
          kind == TileKind::Bathroom || kind == TileKind::StaffRoom ||
          kind == TileKind::Lobby;
 }
+
+[[nodiscard]] std::optional<std::size_t>
+checkedTileCount(int width, int height, int floors) noexcept {
+  if (width <= 0 || height <= 0 || floors <= 0)
+    return std::nullopt;
+
+  constexpr auto MaxIndexableTiles =
+      static_cast<std::size_t>(std::numeric_limits<int>::max());
+  std::size_t count = static_cast<std::size_t>(width);
+  const auto heightSize = static_cast<std::size_t>(height);
+  const auto floorSize = static_cast<std::size_t>(floors);
+  if (heightSize > MaxIndexableTiles / count)
+    return std::nullopt;
+  count *= heightSize;
+  if (floorSize > MaxIndexableTiles / count)
+    return std::nullopt;
+  count *= floorSize;
+  return count;
+}
 struct Room : RoomView {};
 struct Person : PersonView {
   EntityId reservation{};
@@ -801,7 +820,8 @@ struct Simulation::Impl {
 
 Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
     : impl_(std::make_unique<Impl>()) {
-  if (w < 4 || h < 4 || f < 1)
+  const auto tileCount = checkedTileCount(w, h, f);
+  if (w < 4 || h < 4 || f < 1 || !tileCount)
     throw std::invalid_argument("invalid map dimensions");
   impl_->seed = seed;
   impl_->rng.seed(seed);
@@ -820,7 +840,7 @@ Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
   impl_->width = w;
   impl_->height = h;
   impl_->floors = f;
-  impl_->map.assign((size_t)w * h * f, TileKind::Empty);
+  impl_->map.assign(*tileCount, TileKind::Empty);
   impl_->economy.reputation = 70;
   impl_->economy.stars = 1;
 }
