@@ -10,6 +10,7 @@
 #include <iterator>
 #include <optional>
 #include <stdexcept>
+#include <system_error>
 #include <thread>
 #include <windowsx.h>
 
@@ -563,17 +564,20 @@ bool Client::saveUiPreferences() {
 }
 
 bool Client::loadUiPreferences() {
-  if (settingsPath.empty() || !std::filesystem::exists(settingsPath))
+  if (settingsPath.empty())
     return true;
 
   try {
+    if (!std::filesystem::exists(settingsPath))
+      return true;
     constexpr std::uintmax_t MaxPreferenceBytes = 4096;
     if (std::filesystem::file_size(settingsPath) > MaxPreferenceBytes)
       return false;
     std::ifstream in(settingsPath, std::ios::binary);
     if (!in)
       return false;
-    const std::string encoded{std::istreambuf_iterator<char>(in), {}};
+    const std::string encoded{std::istreambuf_iterator<char>(in),
+                              std::istreambuf_iterator<char>()};
     auto candidate = uiSettings;
     if (!hh::frontend::deserializeUiSettings(encoded, candidate))
       return false;
