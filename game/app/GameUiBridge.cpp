@@ -67,6 +67,28 @@ std::string oneDecimal(double value) {
 
 std::string percentage(double value) { return oneDecimal(value) + "%"; }
 
+bool inventoryUiStorageKind(hh::game::StorageKind kind) noexcept {
+  using hh::game::StorageKind;
+  return kind == StorageKind::CentralStorage ||
+         kind == StorageKind::CleanLinen ||
+         kind == StorageKind::FloorCloset;
+}
+
+int usableInventoryUnits(const hh::game::LogisticsSnapshot& logistics,
+                         std::string_view item) {
+  int units = 0;
+  for (const auto& stack : logistics.inventory) {
+    const auto storage = std::find_if(
+        logistics.storage.begin(), logistics.storage.end(),
+        [&](const auto& candidate) { return candidate.id == stack.storage; });
+    if (storage == logistics.storage.end() || !storage->operational ||
+        !inventoryUiStorageKind(storage->kind) || stack.item != item)
+      continue;
+    units += std::max(0, stack.quantity - stack.reservedQuantity);
+  }
+  return units;
+}
+
 SimulationSpeed speedFromInt(int speed) noexcept {
   switch (speed) {
   case 0: return SimulationSpeed::Paused;
@@ -549,16 +571,25 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
          count > 2 ? "High task density" : "Open tasks"});
   }
 
+  const int cleanLinenUnits =
+      usableInventoryUnits(logistics, "clean_linen_set");
+  const int towelUnits = usableInventoryUnits(logistics, "towel_unit");
+  const int amenityUnits = usableInventoryUnits(logistics, "amenity_kit");
+  const int chemicalUnits =
+      usableInventoryUnits(logistics, "cleaning_chemical");
+  const int maintenanceParts =
+      usableInventoryUnits(logistics, "maintenance_part");
+
   UiEntitySnapshot inventoryEntity;
   inventoryEntity.id = 0xF000000000000001ULL;
   inventoryEntity.kind = InspectorKind::Inventory;
   inventoryEntity.title = "Property inventory";
   inventoryEntity.fields = {
-      {"Linen", std::to_string(view.inventory.linen)},
-      {"Towels", std::to_string(view.inventory.towels)},
-      {"Amenities", std::to_string(view.inventory.amenities)},
-      {"Chemicals", std::to_string(view.inventory.chemicals)},
-      {"Parts", std::to_string(view.inventory.parts)}};
+      {"Linen", std::to_string(cleanLinenUnits)},
+      {"Towels", std::to_string(towelUnits)},
+      {"Amenities", std::to_string(amenityUnits)},
+      {"Chemicals", std::to_string(chemicalUnits)},
+      {"Parts", std::to_string(maintenanceParts)}};
   out.entities.push_back(std::move(inventoryEntity));
 
   for (const auto& order : view.supplyOrders) {
@@ -566,10 +597,7 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
       ++out.operations.incomingOrders;
   }
 
-  for (const auto& stack : logistics.inventory) {
-    if (stack.item == "clean_linen")
-      out.operations.cleanLinenUnits += stack.quantity - stack.reservedQuantity;
-  }
+  out.operations.cleanLinenUnits = cleanLinenUnits;
   for (const auto& order : logistics.purchaseOrders) {
     if (order.state != hh::game::PurchaseOrderState::Completed &&
         order.state != hh::game::PurchaseOrderState::Cancelled) {
