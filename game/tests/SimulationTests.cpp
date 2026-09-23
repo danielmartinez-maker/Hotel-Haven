@@ -1,8 +1,10 @@
 #include "hh/game/Simulation.h"
+#include <algorithm>
 #include <array>
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -468,6 +470,77 @@ static void invalid_inputs_are_rejected() {
   require(rejected, "reservation reference to missing room accepted");
 }
 
+static void corrupt_task_progress_is_rejected_on_load() {
+  auto simulation = Simulation::tutorial(161);
+  const auto roomId = simulation.view().rooms.front().id;
+  require(simulation.requestClean(roomId).ok,
+          "task-progress test could not create turnover work");
+
+  const auto view = simulation.view();
+  const auto taskIt =
+      std::find_if(view.tasks.begin(), view.tasks.end(), [](const auto &task) {
+        return task.kind == TaskKind::Turnover &&
+               task.status != TaskStatus::Completed;
+      });
+  require(taskIt != view.tasks.end(),
+          "task-progress test did not expose active turnover work");
+
+  std::ostringstream originalRecord;
+  originalRecord << taskIt->id << ' ' << static_cast<int>(taskIt->kind) << ' '
+                 << static_cast<int>(taskIt->status) << ' ' << taskIt->targetId
+                 << ' ' << taskIt->employeeId << ' ' << taskIt->target.floor
+                 << ' ' << taskIt->target.x << ' ' << taskIt->target.y << ' '
+                 << taskIt->workRemainingSeconds << " \"\" "
+                 << taskIt->workRemainingSeconds << " 0";
+
+  const std::string original = originalRecord.str();
+  auto corrupt = simulation.save();
+  auto recordPosition = corrupt.find(original);
+  require(recordPosition != std::string::npos,
+          "task-progress test could not locate serialized turnover record");
+
+  std::ostringstream zeroRemainingRecord;
+  zeroRemainingRecord << taskIt->id << ' ' << static_cast<int>(taskIt->kind)
+                      << ' ' << static_cast<int>(taskIt->status) << ' '
+                      << taskIt->targetId << ' ' << taskIt->employeeId << ' '
+                      << taskIt->target.floor << ' ' << taskIt->target.x << ' '
+                      << taskIt->target.y << " 0 \"\" "
+                      << taskIt->workRemainingSeconds << " 0";
+  corrupt.replace(recordPosition, original.size(), zeroRemainingRecord.str());
+
+  bool rejected = false;
+  try {
+    (void)Simulation::load(corrupt);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "active task with zero work remaining was accepted");
+
+  corrupt = simulation.save();
+  recordPosition = corrupt.find(original);
+  require(recordPosition != std::string::npos,
+          "task-progress test lost serialized turnover record");
+
+  std::ostringstream excessiveRemainingRecord;
+  excessiveRemainingRecord
+      << taskIt->id << ' ' << static_cast<int>(taskIt->kind) << ' '
+      << static_cast<int>(taskIt->status) << ' ' << taskIt->targetId << ' '
+      << taskIt->employeeId << ' ' << taskIt->target.floor << ' '
+      << taskIt->target.x << ' ' << taskIt->target.y << ' '
+      << taskIt->workRemainingSeconds + 1 << " \"\" "
+      << taskIt->workRemainingSeconds << " 0";
+  corrupt.replace(recordPosition, original.size(),
+                  excessiveRemainingRecord.str());
+
+  rejected = false;
+  try {
+    (void)Simulation::load(corrupt);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, "task progress greater than declared total was accepted");
+}
+
 static void completed_tasks_do_not_replay_when_staff_are_fired() {
   auto s = Simulation::tutorial(21);
   auto roomId = s.view().rooms.front().id;
@@ -814,6 +887,7 @@ int main() {
     extreme_room_footprints_fail_closed_without_overflow();
     construction_preserves_property_invariants();
     invalid_inputs_are_rejected();
+    corrupt_task_progress_is_rejected_on_load();
     completed_tasks_do_not_replay_when_staff_are_fired();
     occupied_rooms_cannot_enter_repair_turnover();
     carried_turnover_supplies_survive_shift_change();
