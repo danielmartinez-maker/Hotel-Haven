@@ -330,6 +330,12 @@ SimulationEconomyBridge SimulationEconomyBridge::load(std::string_view data) {
   SimulationEconomyBridge result(1);
   result.simulation_ = Simulation::load(simulationState);
   result.economy_ = EconomyRuntime::load(economyState);
+  const auto simulationDay = result.simulation_.view().day;
+  if (result.economy_.currentDay() != simulationDay ||
+      result.economy_.cumulativeSellableRoomNights() != sellable ||
+      result.economy_.cumulativeOccupiedRoomNights() != occupied)
+    throw std::invalid_argument(
+        "integrated save wrapper metrics do not match FINAL-06 state");
   result.cumulativeSellableRoomNights_ = sellable;
   result.cumulativeOccupiedRoomNights_ = occupied;
   result.resetBaseline();

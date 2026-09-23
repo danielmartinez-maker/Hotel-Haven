@@ -19,6 +19,8 @@ int main() {
   auto recovery = system.chooseRecovery(context);
   require(recovery.action == RecoveryAction::FreeUpgrade,
           "recovery did not follow category-equivalent/free-upgrade priority");
+  require(!recovery.severeExperienceEvent && recovery.experienceEventCode.empty(),
+          "successful recovery emitted a severe experience event");
 
   context.freeUpgradeAvailable = false;
   recovery = system.chooseRecovery(context);
