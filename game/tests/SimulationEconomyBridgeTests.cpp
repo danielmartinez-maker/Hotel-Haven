@@ -6,6 +6,18 @@ using namespace hh::game;
 static void require(bool v, const char *m) { if (!v) throw std::runtime_error(m); }
 
 int main() {
+  {
+    bool rejected = false;
+    try {
+      auto bounded = SimulationEconomyBridge::tutorial(9000);
+      bounded.step(32.0 * 86400.0);
+    } catch (const std::invalid_argument &) {
+      rejected = true;
+    }
+    require(rejected,
+            "integrated bridge accepted a time advance beyond the execution budget");
+  }
+
   auto bridge = SimulationEconomyBridge::tutorial(9001);
   const auto initialView = bridge.view();
   const auto initialFinancial = bridge.financialSnapshot();

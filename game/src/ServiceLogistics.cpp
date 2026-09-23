@@ -7,6 +7,8 @@
 
 namespace hh::game {
 namespace {
+constexpr std::int64_t MaxSingleServiceAdvanceSeconds = 31LL * 86400LL;
+
 template <class E> int enumValue(E value) { return static_cast<int>(value); }
 
 bool validBlockReason(int value) {
@@ -158,7 +160,7 @@ void ServiceLogisticsRuntime::tickSecond() {
   impl_->logistics.tickSecond();
 }
 void ServiceLogisticsRuntime::tickSeconds(std::int64_t seconds) {
-  if (seconds < 0 || seconds > 1'000'000'000LL)
+  if (seconds < 0 || seconds > MaxSingleServiceAdvanceSeconds)
     throw std::invalid_argument("service tick seconds must be bounded and nonnegative");
   for (std::int64_t i = 0; i < seconds; ++i)
     tickSecond();
