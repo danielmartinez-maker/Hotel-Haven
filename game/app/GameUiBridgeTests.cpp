@@ -35,6 +35,47 @@ int main() {
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
     require(source.entities.size() >= view.rooms.size(), "room inspectors were not composed");
 
+    hh::game::Simulation inventorySimulation =
+        hh::game::Simulation::tutorial(20260910);
+    const auto legacyInventoryBefore = inventorySimulation.view().inventory;
+    const auto inventoryRoom = inventorySimulation.view().rooms.front().id;
+    require(inventorySimulation.requestRoomTurn(inventoryRoom) != 0,
+            "FINAL-04 inventory fixture could not start a room turn");
+    inventorySimulation.step(1500);
+    const auto legacyInventoryAfter = inventorySimulation.view().inventory;
+    require(legacyInventoryAfter.linen == legacyInventoryBefore.linen &&
+                legacyInventoryAfter.towels == legacyInventoryBefore.towels &&
+                legacyInventoryAfter.amenities == legacyInventoryBefore.amenities &&
+                legacyInventoryAfter.chemicals == legacyInventoryBefore.chemicals,
+            "FINAL-04-only room turn unexpectedly changed legacy inventory");
+
+    const auto inventorySource =
+        hh::client::makeGameUiSnapshotSource(inventorySimulation, context);
+    const auto inventoryEntity = std::find_if(
+        inventorySource.entities.begin(), inventorySource.entities.end(),
+        [](const auto& entity) {
+          return entity.kind == hh::frontend::InspectorKind::Inventory &&
+                 entity.title == "Property inventory";
+        });
+    require(inventoryEntity != inventorySource.entities.end(),
+            "authoritative property inventory inspector was omitted");
+
+    const auto fieldValue = [&](const char* label) -> std::string {
+      const auto field = std::find_if(
+          inventoryEntity->fields.begin(), inventoryEntity->fields.end(),
+          [&](const auto& candidate) { return candidate.label == label; });
+      require(field != inventoryEntity->fields.end(),
+              "authoritative inventory field was omitted");
+      return field->value;
+    };
+    require(fieldValue("Linen") == "23" && fieldValue("Towels") == "46" &&
+                fieldValue("Amenities") == "35" &&
+                fieldValue("Chemicals") == "23" &&
+                fieldValue("Parts") == "8",
+            "property inventory inspector did not follow FINAL-04 physical stock");
+    require(inventorySource.operations.cleanLinenUnits == 23,
+            "operations clean-linen KPI did not use FINAL-04 clean_linen_set stock");
+
     const auto task = std::find_if(view.tasks.begin(), view.tasks.end(),
         [cleanedRoomId](const auto& candidate) {
           return candidate.targetId == cleanedRoomId &&
