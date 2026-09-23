@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <algorithm>
 #include <array>
 #include <climits>
 #include <cmath>
