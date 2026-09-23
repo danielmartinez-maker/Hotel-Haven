@@ -441,20 +441,72 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     service.orders_.push_back(std::move(order));
   }
 
+  if (l.elapsedSeconds_ != elapsed || h.elapsedSeconds_ != elapsed ||
+      laundry.elapsedSeconds_ != elapsed ||
+      engineering.elapsedSeconds_ != elapsed ||
+      service.elapsedSeconds_ != elapsed)
+    throw std::invalid_argument("service subsystem clock mismatch");
+
+  auto claimAllocatedId = [](std::uint64_t id, std::uint64_t nextId,
+                             std::unordered_set<std::uint64_t> &seen) {
+    return id != 0 && id < nextId && seen.insert(id).second;
+  };
+
   std::unordered_set<StorageNodeId> storageIds;
+  std::unordered_set<PurchaseOrderId> purchaseOrderIds;
+  std::unordered_set<std::uint64_t> logisticsAllocatedIds;
   for (const auto &node : l.storage_) {
-    if (!storageIds.insert(node.id).second || l.usedUnits(node.id) > node.capacityUnits)
+    if (!claimAllocatedId(node.id, l.nextId_, logisticsAllocatedIds) ||
+        !storageIds.insert(node.id).second ||
+        l.usedUnits(node.id) > node.capacityUnits)
       throw std::invalid_argument("invalid storage references or capacity");
   }
   for (const auto &stack : l.inventory_)
     if (!storageIds.contains(stack.storage))
       throw std::invalid_argument("inventory references missing storage");
-  for (const auto &order : l.orders_)
-    if (!storageIds.contains(order.destination))
-      throw std::invalid_argument("order references missing storage");
-  for (const auto &move : l.moves_)
-    if (!storageIds.contains(move.from) || !storageIds.contains(move.to))
-      throw std::invalid_argument("move references missing storage");
+  for (const auto &order : l.orders_) {
+    if (!claimAllocatedId(order.id, l.nextId_, logisticsAllocatedIds) ||
+        !purchaseOrderIds.insert(order.id).second ||
+        !storageIds.contains(order.destination))
+      throw std::invalid_argument("invalid purchase order references");
+  }
+  for (const auto &move : l.moves_) {
+    if (!claimAllocatedId(move.id, l.nextId_, logisticsAllocatedIds) ||
+        !purchaseOrderIds.contains(move.orderId) ||
+        !storageIds.contains(move.from) || !storageIds.contains(move.to))
+      throw std::invalid_argument("invalid stock move references");
+  }
+
+  std::unordered_set<RoomId> serviceRoomIds;
+  for (const auto &room : h.rooms_)
+    if (!serviceRoomIds.insert(room.id).second)
+      throw std::invalid_argument("duplicate service room");
+  std::unordered_set<std::uint64_t> housekeepingJobIds;
+  for (const auto &job : h.jobs_)
+    if (!claimAllocatedId(job.id, h.nextId_, housekeepingJobIds) ||
+        !serviceRoomIds.contains(job.roomId))
+      throw std::invalid_argument("invalid housekeeping job references");
+
+  std::unordered_set<std::uint64_t> laundryBatchIds;
+  for (const auto &batch : laundry.batches_)
+    if (!claimAllocatedId(batch.id, laundry.nextId_, laundryBatchIds))
+      throw std::invalid_argument("invalid laundry batch IDs");
+
+  std::unordered_set<AssetId> engineeringAssetIds;
+  for (const auto &asset : engineering.assets_)
+    if (!engineeringAssetIds.insert(asset.id).second)
+      throw std::invalid_argument("duplicate engineering asset");
+  std::unordered_set<std::uint64_t> engineeringWorkOrderIds;
+  for (const auto &order : engineering.workOrders_)
+    if (!claimAllocatedId(order.id, engineering.nextId_,
+                          engineeringWorkOrderIds) ||
+        !engineeringAssetIds.contains(order.assetId))
+      throw std::invalid_argument("invalid engineering work order references");
+
+  std::unordered_set<std::uint64_t> roomServiceOrderIds;
+  for (const auto &order : service.orders_)
+    if (!claimAllocatedId(order.id, service.nextId_, roomServiceOrderIds))
+      throw std::invalid_argument("invalid room service order IDs");
 
   in >> std::ws;
   if (!in.eof())
