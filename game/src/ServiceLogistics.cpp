@@ -61,6 +61,52 @@ void ServiceLogisticsRuntime::registerRoom(RoomId room, ServiceRoomStatus status
 void ServiceLogisticsRuntime::registerAsset(AssetId asset, int condition) {
   impl_->engineering.registerAsset(asset, condition);
 }
+bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
+  if (room == 0)
+    return false;
+
+  auto &housekeeping = impl_->housekeeping;
+  auto &engineering = impl_->engineering;
+  const auto roomIt =
+      std::find_if(housekeeping.rooms_.begin(), housekeeping.rooms_.end(),
+                   [room](const auto &entry) { return entry.id == room; });
+  const auto assetIt =
+      std::find_if(engineering.assets_.begin(), engineering.assets_.end(),
+                   [room](const auto &entry) { return entry.id == room; });
+  if (roomIt == housekeeping.rooms_.end() ||
+      assetIt == engineering.assets_.end())
+    return false;
+
+  const bool activeHousekeeping =
+      std::any_of(housekeeping.jobs_.begin(), housekeeping.jobs_.end(),
+                  [room](const auto &job) {
+                    return job.roomId == room &&
+                           job.stage != HousekeepingStage::Completed;
+                  });
+  const bool activeEngineering =
+      std::any_of(engineering.workOrders_.begin(),
+                  engineering.workOrders_.end(), [room](const auto &order) {
+                    return order.assetId == room &&
+                           order.stage != WorkOrderStage::Completed;
+                  });
+  if (activeHousekeeping || activeEngineering)
+    return false;
+
+  housekeeping.jobs_.erase(
+      std::remove_if(housekeeping.jobs_.begin(), housekeeping.jobs_.end(),
+                     [room](const auto &job) { return job.roomId == room; }),
+      housekeeping.jobs_.end());
+  housekeeping.rooms_.erase(roomIt);
+  engineering.workOrders_.erase(
+      std::remove_if(engineering.workOrders_.begin(),
+                     engineering.workOrders_.end(),
+                     [room](const auto &order) {
+                       return order.assetId == room;
+                     }),
+      engineering.workOrders_.end());
+  engineering.assets_.erase(assetIt);
+  return true;
+}
 LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot() const {
   return impl_->logistics.snapshot();
 }

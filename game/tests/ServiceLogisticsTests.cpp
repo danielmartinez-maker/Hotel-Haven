@@ -44,4 +44,49 @@ int main() {
   require(original.save() == restored.save(), "loaded service continuation diverged");
   require(original.laundry().totalLinenUnits() == 13,
           "active service chains minted or lost linen across save/load");
+
+  ServiceLogisticsRuntime retirement(100);
+  auto &retirementLogistics = retirement.logistics();
+  require(retirementLogistics.addInventory(
+              retirementLogistics.firstStorage(StorageKind::CleanLinen),
+              "clean_linen_set", 2),
+          "seed retirement clean linen");
+  require(retirementLogistics.addInventory(
+              retirementLogistics.firstStorage(StorageKind::FloorCloset),
+              "towel_unit", 4),
+          "seed retirement towels");
+  require(retirementLogistics.addInventory(
+              retirementLogistics.firstStorage(StorageKind::FloorCloset),
+              "amenity_kit", 2),
+          "seed retirement amenities");
+  require(retirementLogistics.addInventory(
+              retirementLogistics.firstStorage(StorageKind::FloorCloset),
+              "cleaning_chemical", 2),
+          "seed retirement chemicals");
+  require(retirementLogistics.addInventory(
+              retirementLogistics.firstStorage(StorageKind::CentralStorage),
+              "maintenance_part", 2),
+          "seed retirement parts");
+
+  constexpr RoomId retiringRoom = 202;
+  retirement.registerRoom(retiringRoom);
+  retirement.registerAsset(retiringRoom, 8000);
+  require(retirement.requestRoomTurn(retiringRoom) != 0,
+          "retirement room turn not created");
+  require(retirement.createWorkOrder(retiringRoom, WorkOrderType::Preventive) != 0,
+          "retirement work order not created");
+  require(!retirement.retireRoomAndAsset(retiringRoom),
+          "room retired while FINAL-04 work was active");
+
+  retirement.tickSeconds(2400);
+  require(retirement.retireRoomAndAsset(retiringRoom),
+          "completed FINAL-04 room state could not retire");
+  require(retirement.requestRoomTurn(retiringRoom) == 0,
+          "retired room remained registered with housekeeping");
+  require(retirement.createWorkOrder(retiringRoom, WorkOrderType::Preventive) == 0,
+          "retired room remained registered as an engineering asset");
+
+  const auto retiredState = retirement.save();
+  require(ServiceLogisticsRuntime::load(retiredState).save() == retiredState,
+          "retired FINAL-04 state did not round-trip");
 }

@@ -39,6 +39,7 @@ public:
   void registerRoom(RoomId room,
                     ServiceRoomStatus status = ServiceRoomStatus::Ready);
   void registerAsset(AssetId asset, int condition = 10000);
+  [[nodiscard]] bool retireRoomAndAsset(RoomId room);
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);

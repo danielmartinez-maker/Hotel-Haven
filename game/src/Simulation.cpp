@@ -1078,6 +1078,8 @@ CommandResult Simulation::removeRoom(EntityId id) {
         return task.targetId == id && task.status != TaskStatus::Completed;
       }))
     return {false, "Complete room service before demolition"};
+  if (!impl_->services.retireRoomAndAsset(id))
+    return {false, "Complete housekeeping or engineering work before demolition"};
   for (int y = it->y; y < it->y + it->height; ++y)
     for (int x = it->x; x < it->x + it->width; ++x)
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
