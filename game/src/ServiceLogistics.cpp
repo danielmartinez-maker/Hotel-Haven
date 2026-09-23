@@ -61,6 +61,22 @@ void ServiceLogisticsRuntime::registerRoom(RoomId room, ServiceRoomStatus status
 void ServiceLogisticsRuntime::registerAsset(AssetId asset, int condition) {
   impl_->engineering.registerAsset(asset, condition);
 }
+bool ServiceLogisticsRuntime::hasRegisteredRoom(RoomId room) const noexcept {
+  return std::any_of(impl_->housekeeping.rooms_.begin(),
+                     impl_->housekeeping.rooms_.end(),
+                     [room](const auto &entry) { return entry.id == room; });
+}
+bool ServiceLogisticsRuntime::hasRegisteredAsset(AssetId asset) const noexcept {
+  return std::any_of(impl_->engineering.assets_.begin(),
+                     impl_->engineering.assets_.end(),
+                     [asset](const auto &entry) { return entry.id == asset; });
+}
+std::size_t ServiceLogisticsRuntime::registeredRoomCount() const noexcept {
+  return impl_->housekeeping.rooms_.size();
+}
+std::size_t ServiceLogisticsRuntime::registeredAssetCount() const noexcept {
+  return impl_->engineering.assets_.size();
+}
 bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
   if (room == 0)
     return false;
@@ -149,6 +165,18 @@ void ServiceLogisticsRuntime::tickSeconds(std::int64_t seconds) {
 }
 std::int64_t ServiceLogisticsRuntime::elapsedSeconds() const {
   return impl_->elapsedSeconds;
+}
+
+void ServiceLogisticsRuntime::synchronizeElapsedSecondsForSimulation(
+    std::int64_t seconds) {
+  if (seconds < 0)
+    throw std::invalid_argument("service clock must be nonnegative");
+  impl_->elapsedSeconds = seconds;
+  impl_->logistics.elapsedSeconds_ = seconds;
+  impl_->housekeeping.elapsedSeconds_ = seconds;
+  impl_->laundry.elapsedSeconds_ = seconds;
+  impl_->engineering.elapsedSeconds_ = seconds;
+  impl_->roomService.elapsedSeconds_ = seconds;
 }
 
 std::string ServiceLogisticsRuntime::save() const {

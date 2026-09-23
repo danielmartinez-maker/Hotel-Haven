@@ -895,6 +895,7 @@ Simulation Simulation::tutorial(std::uint64_t seed) {
   s.hireStaff({"Morgan", PersonKind::Housekeeper, 8, 16, 18});
   s.hireStaff({"Casey", PersonKind::Maintenance, 10, 12, 25});
   s.impl_->elapsed = 14 * 3600;
+  s.impl_->services.synchronizeElapsedSecondsForSimulation(s.impl_->elapsed);
   s.impl_->configureTutorialFinal05();
   return s;
 }
@@ -1622,7 +1623,17 @@ Simulation Simulation::load(std::string_view data) {
           room.id,
           std::clamp(static_cast<int>(std::llround(room.condition * 100.0)), 0, 10000));
     }
+    d.services.synchronizeElapsedSecondsForSimulation(d.elapsed);
   }
+  if (d.services.elapsedSeconds() != d.elapsed ||
+      d.services.registeredRoomCount() != d.rooms.size() ||
+      d.services.registeredAssetCount() != d.rooms.size())
+    throw std::invalid_argument("FINAL-04 state does not match simulation");
+  for (const auto &room : d.rooms)
+    if (!d.services.hasRegisteredRoom(room.id) ||
+        !d.services.hasRegisteredAsset(room.id))
+      throw std::invalid_argument("FINAL-04 room registrations do not match simulation");
+
   if (version >= 9) {
     auto readFinal05Section = [&](std::string_view expected) {
       std::string tag;
