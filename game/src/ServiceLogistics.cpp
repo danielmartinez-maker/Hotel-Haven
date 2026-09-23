@@ -167,6 +167,18 @@ std::int64_t ServiceLogisticsRuntime::elapsedSeconds() const {
   return impl_->elapsedSeconds;
 }
 
+void ServiceLogisticsRuntime::synchronizeElapsedSecondsForSimulation(
+    std::int64_t seconds) {
+  if (seconds < 0)
+    throw std::invalid_argument("service clock must be nonnegative");
+  impl_->elapsedSeconds = seconds;
+  impl_->logistics.elapsedSeconds_ = seconds;
+  impl_->housekeeping.elapsedSeconds_ = seconds;
+  impl_->laundry.elapsedSeconds_ = seconds;
+  impl_->engineering.elapsedSeconds_ = seconds;
+  impl_->roomService.elapsedSeconds_ = seconds;
+}
+
 std::string ServiceLogisticsRuntime::save() const {
   std::ostringstream out;
   out << "HHSL 1 " << impl_->seed << ' ' << impl_->elapsedSeconds << '\n';

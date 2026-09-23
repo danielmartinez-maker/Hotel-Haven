@@ -62,6 +62,9 @@ public:
   static ServiceLogisticsRuntime load(std::string_view data);
 
 private:
+  friend class Simulation;
+  void synchronizeElapsedSecondsForSimulation(std::int64_t seconds);
+
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };

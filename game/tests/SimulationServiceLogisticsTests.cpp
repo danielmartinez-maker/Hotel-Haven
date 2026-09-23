@@ -56,6 +56,8 @@ int main() {
   auto sim = Simulation::tutorial(321);
   const auto view = sim.view();
   require(!view.rooms.empty(), "tutorial requires a serviceable room");
+  require(sim.logisticsSnapshot().elapsedSeconds == view.elapsedSeconds,
+          "tutorial FINAL-04 clock did not start on the simulation clock");
   const auto room = view.rooms.front().id;
 
   const auto turn = sim.requestRoomTurn(room);
