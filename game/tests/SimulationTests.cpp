@@ -75,6 +75,18 @@ static void requireSimulationLoadRejected(const std::string &encoded,
   require(rejected, message);
 }
 
+static void oversized_time_advance_is_rejected_before_iteration() {
+  bool rejected = false;
+  try {
+    Simulation simulation(2, 8, 8, 1);
+    simulation.step(32.0 * 86400.0);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected,
+          "simulation accepted a single time advance beyond the execution budget");
+}
+
 static void map_dimensions_must_fit_internal_index_space() {
   bool rejected = false;
   try {
@@ -968,6 +980,7 @@ static void long_campaign_bounds_transient_history() {
 
 int main() {
   try {
+    oversized_time_advance_is_rejected_before_iteration();
     map_dimensions_must_fit_internal_index_space();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();

@@ -9,6 +9,7 @@
 
 namespace hh::game {
 namespace {
+constexpr double MaxSingleBridgeStepSeconds = 31.0 * 86400.0;
 
 std::uint64_t fnv1a(std::string_view text) {
   std::uint64_t hash = 1469598103934665603ULL;
@@ -229,7 +230,8 @@ CommandResult SimulationEconomyBridge::loadDefinitions(std::string_view jsonText
 }
 
 void SimulationEconomyBridge::step(double seconds) {
-  if (!std::isfinite(seconds) || seconds < 0.0)
+  if (!std::isfinite(seconds) || seconds < 0.0 ||
+      seconds > MaxSingleBridgeStepSeconds)
     throw std::invalid_argument("invalid bridge step");
   double remaining = seconds;
   while (remaining > 0.0) {
