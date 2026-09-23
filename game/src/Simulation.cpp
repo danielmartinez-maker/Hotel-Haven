@@ -1623,6 +1623,15 @@ Simulation Simulation::load(std::string_view data) {
           std::clamp(static_cast<int>(std::llround(room.condition * 100.0)), 0, 10000));
     }
   }
+  if ((version >= 8 && d.services.elapsedSeconds() != d.elapsed) ||
+      d.services.registeredRoomCount() != d.rooms.size() ||
+      d.services.registeredAssetCount() != d.rooms.size())
+    throw std::invalid_argument("FINAL-04 state does not match simulation");
+  for (const auto &room : d.rooms)
+    if (!d.services.hasRegisteredRoom(room.id) ||
+        !d.services.hasRegisteredAsset(room.id))
+      throw std::invalid_argument("FINAL-04 room registrations do not match simulation");
+
   if (version >= 9) {
     auto readFinal05Section = [&](std::string_view expected) {
       std::string tag;

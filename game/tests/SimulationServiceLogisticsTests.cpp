@@ -1,8 +1,56 @@
 #include "hh/game/Simulation.h"
+#include <functional>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 
 using namespace hh::game;
 static void require(bool value, const char *message) { if (!value) throw std::runtime_error(message); }
+
+static std::string transformFinal04(
+    const std::string &simulationState,
+    const std::function<std::string(const std::string &)> &transform) {
+  const auto headerStart = simulationState.find("FINAL04 ");
+  if (headerStart == std::string::npos)
+    throw std::runtime_error("FINAL-04 section missing from simulation save");
+  const auto headerEnd = simulationState.find('\n', headerStart);
+  if (headerEnd == std::string::npos)
+    throw std::runtime_error("FINAL-04 section header is truncated");
+
+  std::istringstream header(
+      simulationState.substr(headerStart, headerEnd - headerStart));
+  std::string tag;
+  std::size_t bytes{};
+  header >> tag >> bytes;
+  if (!header || tag != "FINAL04")
+    throw std::runtime_error("FINAL-04 section header could not be parsed");
+
+  const auto stateStart = headerEnd + 1;
+  if (bytes > simulationState.size() - stateStart)
+    throw std::runtime_error("FINAL-04 section payload is truncated");
+  const auto stateEnd = stateStart + bytes;
+  if (stateEnd >= simulationState.size() || simulationState[stateEnd] != '\n')
+    throw std::runtime_error("FINAL-04 section terminator is missing");
+
+  const auto replacement =
+      transform(simulationState.substr(stateStart, bytes));
+  std::ostringstream rebuilt;
+  rebuilt << simulationState.substr(0, headerStart) << "FINAL04 "
+          << replacement.size() << '\n' << replacement << '\n'
+          << simulationState.substr(stateEnd + 1);
+  return rebuilt.str();
+}
+
+static void requireSimulationLoadRejected(const std::string &encoded,
+                                          const char *message) {
+  bool rejected = false;
+  try {
+    (void)Simulation::load(encoded);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, message);
+}
 
 int main() {
   auto sim = Simulation::tutorial(321);
@@ -58,4 +106,41 @@ int main() {
   const auto demolishedState = demolition.save();
   require(Simulation::load(demolishedState).save() == demolishedState,
           "demolition with retired FINAL-04 state did not round-trip");
+
+  auto parity = Simulation::tutorial(323);
+  parity.step(10);
+  const auto parityState = parity.save();
+
+  const auto clockDrift = transformFinal04(
+      parityState, [](const std::string &serviceState) {
+        auto service = ServiceLogisticsRuntime::load(serviceState);
+        service.tickSecond();
+        return service.save();
+      });
+  requireSimulationLoadRejected(
+      clockDrift,
+      "Simulation accepted FINAL-04 state on a different authoritative clock");
+
+  const auto ghostRegistration = transformFinal04(
+      parityState, [](const std::string &serviceState) {
+        auto service = ServiceLogisticsRuntime::load(serviceState);
+        service.registerRoom(999999);
+        service.registerAsset(999999, 9000);
+        return service.save();
+      });
+  requireSimulationLoadRejected(
+      ghostRegistration,
+      "Simulation accepted ghost FINAL-04 room/asset registrations");
+
+  const auto physicalRoom = parity.view().rooms.front().id;
+  const auto missingRegistration = transformFinal04(
+      parityState, [physicalRoom](const std::string &serviceState) {
+        auto service = ServiceLogisticsRuntime::load(serviceState);
+        require(service.retireRoomAndAsset(physicalRoom),
+                "could not build missing-registration corruption fixture");
+        return service.save();
+      });
+  requireSimulationLoadRejected(
+      missingRegistration,
+      "Simulation accepted missing FINAL-04 room/asset registrations");
 }

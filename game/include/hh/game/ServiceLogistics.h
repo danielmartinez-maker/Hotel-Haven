@@ -5,6 +5,7 @@
 #include "hh/game/Laundry.h"
 #include "hh/game/Logistics.h"
 #include "hh/game/RoomService.h"
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -40,6 +41,10 @@ public:
                     ServiceRoomStatus status = ServiceRoomStatus::Ready);
   void registerAsset(AssetId asset, int condition = 10000);
   [[nodiscard]] bool retireRoomAndAsset(RoomId room);
+  [[nodiscard]] bool hasRegisteredRoom(RoomId room) const noexcept;
+  [[nodiscard]] bool hasRegisteredAsset(AssetId asset) const noexcept;
+  [[nodiscard]] std::size_t registeredRoomCount() const noexcept;
+  [[nodiscard]] std::size_t registeredAssetCount() const noexcept;
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
