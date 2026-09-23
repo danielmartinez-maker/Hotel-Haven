@@ -1,5 +1,6 @@
 #include "hh/game/SimulationEconomyBridge.h"
 #include <stdexcept>
+#include <string>
 
 using namespace hh::game;
 static void require(bool v, const char *m) { if (!v) throw std::runtime_error(m); }
@@ -51,4 +52,18 @@ int main() {
   require(restored.financialSnapshot().economics.cashCents ==
               restored.view().economy.cashCents,
           "restored bridge ledger diverged from simulation cash");
+
+  const std::string zeroMetricPrefix = "HHSIMECO 1 0 0";
+  require(saved.rfind(zeroMetricPrefix, 0) == 0,
+          "bridge metric corruption fixture expected zero cumulative nights");
+  auto corruptMetrics = saved;
+  corruptMetrics.replace(0, zeroMetricPrefix.size(), "HHSIMECO 1 1 0");
+  bool rejected = false;
+  try {
+    (void)SimulationEconomyBridge::load(corruptMetrics);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected,
+          "integrated bridge accepted wrapper metrics that diverged from FINAL-06");
 }

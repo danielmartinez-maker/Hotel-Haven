@@ -102,6 +102,12 @@ public:
   [[nodiscard]] const std::map<std::string, OverbookingPolicy> &
   overbookingPolicies() const noexcept { return overbooking_.policies(); }
   [[nodiscard]] int currentDay() const noexcept;
+  [[nodiscard]] std::int64_t cumulativeSellableRoomNights() const noexcept {
+    return cumulativeSellableRoomNights_;
+  }
+  [[nodiscard]] std::int64_t cumulativeOccupiedRoomNights() const noexcept {
+    return cumulativeOccupiedRoomNights_;
+  }
 
   [[nodiscard]] std::string save() const;
   static EconomyRuntime load(std::string_view data);
