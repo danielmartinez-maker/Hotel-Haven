@@ -1563,10 +1563,14 @@ Simulation Simulation::load(std::string_view data) {
     i >> t.id >> k >> st >> t.targetId >> t.employeeId >> t.target.floor >>
         t.target.x >> t.target.y >> t.workRemainingSeconds >>
         std::quoted(t.blockedReason) >> t.total >> t.resourcesClaimed;
+    const bool completed = st == ei(TaskStatus::Completed);
     if (k < ei(TaskKind::CheckIn) || k > ei(TaskKind::CheckOut) ||
         st < ei(TaskStatus::Ready) || st > ei(TaskStatus::Completed) ||
         !d.inside(t.target) || !std::isfinite(t.workRemainingSeconds) ||
-        !std::isfinite(t.total))
+        !std::isfinite(t.total) || t.total <= 0 ||
+        (completed ? t.workRemainingSeconds > 0
+                   : (t.workRemainingSeconds <= 0 ||
+                      t.workRemainingSeconds > t.total)))
       throw std::invalid_argument("invalid saved task");
     t.kind = static_cast<TaskKind>(k);
     t.status = static_cast<TaskStatus>(st);
