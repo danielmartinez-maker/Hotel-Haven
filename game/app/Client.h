@@ -104,6 +104,7 @@ struct Client {
   int hoverX = -1, hoverY = -1;
   int focusedButton = -1;
   double pendingSimulationSeconds = 0;
+  std::int64_t previewCostCents{};
   hh::game::EntityId selected{};
   Page page = Page::Guide;
   Tool tool = Tool::Inspect;

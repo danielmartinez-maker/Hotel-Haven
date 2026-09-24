@@ -24,6 +24,26 @@ TEST_CASE("idle motion remains within approved bounds") {
     }
 }
 
+TEST_CASE("camera pose exposes composed yaw offset") {
+    hh::frontend::MenuSceneController scene;
+    hh::frontend::MenuTransitionState state{};
+    state.targetItem = hh::frontend::MainMenuItem::LoadHotel;
+    state.easedProgress = 1.0F;
+    const auto pose = scene.cameraPose(22.4399475F, state);
+    EXPECT_NEAR(pose.idleYawDegrees, 2.0F, 0.0001F);
+    EXPECT_NEAR(pose.yawOffsetDegrees, 3.6F, 0.0001F);
+}
+
+TEST_CASE("camera pose exposes composed zoom scale") {
+    hh::frontend::MenuSceneController scene;
+    hh::frontend::MenuTransitionState state{};
+    state.targetItem = hh::frontend::MainMenuItem::Continue;
+    state.easedProgress = 1.0F;
+    const auto pose = scene.cameraPose(14.279966F, state);
+    EXPECT_NEAR(pose.idleZoomScale, 1.02F, 0.0001F);
+    EXPECT_NEAR(pose.zoomScale, 0.9843F, 0.0001F);
+}
+
 TEST_CASE("settings selection almost stops camera") {
     hh::frontend::MenuSceneController scene;
     hh::frontend::MenuTransitionState state{};

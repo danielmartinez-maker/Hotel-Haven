@@ -36,6 +36,8 @@ std::string valid_sidecar(std::string_view asset_type = "StaticMeshAsset", std::
         "  \"material_slots\":[\"frame\",\"linen\",\"metal\"],\n" +
         "  \"tags\":[\"guestroom\",\"bed\",\"king\"],\n" +
         "  \"dependencies\":[],\n" +
+        "  \"interaction_anchors\":[\"INT_USE_01\",\"INT_REPAIR_01\"],\n" +
+        "  \"pivot_profile\":\"floor_contact_center\",\n" +
         "  \"cutaway_policy\":\"fade_when_foreground\",\n" +
         "  \"source_revision\":7,\n" +
         "  \"metadata_revision\":4,\n" +
@@ -94,6 +96,11 @@ HH_TEST("valid sidecar loads exact HMG-070 fields") {
     HH_REQUIRE(metadata.asset_id == "asset.prop.guestroom.bed.king.modern_01");
     HH_REQUIRE(metadata.asset_type == AssetType::StaticMesh);
     HH_REQUIRE(metadata.material_slots.size() == 3);
+    HH_REQUIRE(metadata.interaction_anchors.size() == 2);
+    HH_REQUIRE(metadata.interaction_anchors[0] == "INT_USE_01");
+    HH_REQUIRE(metadata.interaction_anchors[1] == "INT_REPAIR_01");
+    HH_REQUIRE(metadata.pivot_profile.has_value());
+    HH_REQUIRE(*metadata.pivot_profile == "floor_contact_center");
     HH_REQUIRE(metadata.cutaway_policy.has_value());
     HH_REQUIRE(*metadata.cutaway_policy == CutawayPolicy::FadeWhenForeground);
     HH_REQUIRE(metadata.lifecycle_state == LifecycleState::Approved);
@@ -155,4 +162,6 @@ HH_TEST("canonical metadata output is stable and key ordered") {
     HH_REQUIRE(a == b);
     HH_REQUIRE(a.find("\"asset_id\"") < a.find("\"asset_type\""));
     HH_REQUIRE(a.find("\"schema\"") > a.find("\"material_slots\""));
+    HH_REQUIRE(a.find("\"interaction_anchors\":[\"INT_USE_01\",\"INT_REPAIR_01\"]") != std::string::npos);
+    HH_REQUIRE(a.find("\"pivot_profile\":\"floor_contact_center\"") != std::string::npos);
 }

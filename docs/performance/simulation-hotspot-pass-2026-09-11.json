@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "pass": "simulation-hotspot-optimization",
+  "repository": "danielmartinez-maker/Hotel-Haven",
+  "branch": "hardening/extensive-optimization-2026-09-10",
+  "source_baseline_commit": "2ce42ec356f884729843aef356087bb101c5945e",
+  "source_final_commit": "e45b385c6bf7c3a32ffff5d3afcdb732414ab104",
+  "methodology": {
+    "configuration": "Release",
+    "compiler": "GCC 13.3.0",
+    "platform": "Linux x86_64",
+    "fixed_seeds": true,
+    "simulated_seconds": 86400,
+    "repetitions_per_process": 3,
+    "timed_region": "Simulation::step only",
+    "checksum": "FNV-1a 64-bit over Simulation::save()"
+  },
+  "simulation_tiers": [
+    {
+      "scenario": "small",
+      "requested": {"rooms": 6, "staff": 3},
+      "baseline_samples_ms": [9.576, 11.521, 10.076],
+      "baseline_median_ms": 10.076,
+      "final_samples_ms": [8.983, 8.434, 10.186],
+      "final_median_ms": 8.983,
+      "change_percent": -10.85,
+      "checksum": "0x9330f3776492d946",
+      "interpretation": "within normal small-tier measurement noise"
+    },
+    {
+      "scenario": "normal",
+      "requested": {"rooms": 12, "staff": 12},
+      "baseline_samples_ms": [24.938, 26.182, 24.804],
+      "baseline_median_ms": 24.938,
+      "final_samples_ms": [15.093, 14.027, 13.969],
+      "final_median_ms": 14.027,
+      "change_percent": -43.76,
+      "checksum": "0xe2d3ec7750f70f2d",
+      "interpretation": "material improvement with identical state checksum"
+    },
+    {
+      "scenario": "large",
+      "requested": {"rooms": 18, "staff": 100},
+      "baseline_samples_ms": [105.654, 95.586, 85.356],
+      "baseline_median_ms": 95.586,
+      "final_samples_ms": [42.668, 41.541, 50.787],
+      "final_median_ms": 42.668,
+      "change_percent": -55.36,
+      "checksum": "0xfe07900e7fe3d39a",
+      "interpretation": "material improvement with identical state checksum"
+    },
+    {
+      "scenario": "stress",
+      "requested": {"rooms": 18, "staff": 300},
+      "baseline_samples_ms": [206.186, 217.714, 238.665],
+      "baseline_median_ms": 217.714,
+      "final_samples_ms": [161.564, 141.240, 150.901],
+      "final_median_ms": 150.901,
+      "change_percent": -30.69,
+      "checksum": "0xff7b896af4218d94",
+      "interpretation": "material improvement with identical state checksum"
+    }
+  ],
+  "gprof_self_percent": {
+    "baseline": {
+      "staffAndTasks": 55.26,
+      "guests": 37.72,
+      "path": 0.00,
+      "neighbors": 0.88
+    },
+    "final": {
+      "staffAndTasks": 78.57,
+      "guests": 10.00,
+      "path": 0.00,
+      "neighbors": 0.00
+    }
+  },
+  "memory": {
+    "final_benchmark_child_max_rss_kib": 8576,
+    "prior_365_day_campaign_child_max_rss_kib": 8448,
+    "comparison_note": "different workloads; no memory regression claim"
+  },
+  "verification": {
+    "release_relevant_ctest": "5/5",
+    "asan_ubsan_ctest": "8/8",
+    "campaign_repeat_sha256": "20160db34e021c59f69e0d7077c382cec3efe2fbf64dc492b4d6b57698bcac1d",
+    "save_load_sha256": "4003a8690e800b8ca2def7eae1be339b9a74f7a644693190303eab34cef71a4c"
+  }
+}

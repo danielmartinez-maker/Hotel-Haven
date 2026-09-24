@@ -210,6 +210,10 @@ Vec3 transformPoint(const Mat4& matrix, Vec3 point) {
     };
 }
 
+Vec3 assetToRendererSpace(Vec3 value) {
+    return {value.x, value.z, value.y};
+}
+
 Vec3 normalize(Vec3 value) {
     const float length = std::sqrt(value.x * value.x + value.y * value.y + value.z * value.z);
     if (length < kEpsilon) {
@@ -611,12 +615,12 @@ RuntimeMesh loadGlbMesh(std::span<const std::byte> bytes) {
                 MeshPrimitive primitive;
                 primitive.vertices.resize(positions.size());
                 for (std::size_t vertexIndex = 0; vertexIndex < positions.size(); ++vertexIndex) {
-                    Vec3 position = transformPoint(worldTransform, positions[vertexIndex]);
-                    position.z = -position.z;
+                    const Vec3 position = assetToRendererSpace(
+                        transformPoint(worldTransform, positions[vertexIndex]));
                     primitive.vertices[vertexIndex].position = position;
                     if (!normals.empty()) {
-                        Vec3 normal = transformNormal(worldTransform, normals[vertexIndex]);
-                        normal.z = -normal.z;
+                        const Vec3 normal = assetToRendererSpace(
+                            transformNormal(worldTransform, normals[vertexIndex]));
                         primitive.vertices[vertexIndex].normal = normalize(normal);
                     } else {
                         primitive.vertices[vertexIndex].normal = {0.0f, 0.0f, 0.0f};

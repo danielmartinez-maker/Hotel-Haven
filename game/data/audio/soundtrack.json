@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "playback": {
+    "order": "sequential",
+    "loop": true,
+    "default_volume_percent": 35
+  },
+  "tracks": [
+    {
+      "id": "morning_in_the_atrium",
+      "title": "Morning in the Atrium",
+      "file": "Morning_in_the_Atrium.mp3",
+      "duration_seconds": 179.905250,
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "bit_rate_bps": 192270,
+      "bytes": 4323801,
+      "sha256": "af78af388491faf33449efad632dfc6d09f53406d3ccf05cbad91dace933e69d"
+    },
+    {
+      "id": "sunlight_on_marble",
+      "title": "Sunlight on Marble",
+      "file": "Sunlight_on_Marble.mp3",
+      "duration_seconds": 180.192583,
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "bit_rate_bps": 192269,
+      "bytes": 4330697,
+      "sha256": "cc0018a839e3fa9b0f0775b128a9774d8cb5d13802682bda4317b80347199460"
+    },
+    {
+      "id": "the_concierge_desk",
+      "title": "The Concierge Desk",
+      "file": "The_Concierge_Desk.mp3",
+      "duration_seconds": 180.688917,
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "bit_rate_bps": 192268,
+      "bytes": 4342609,
+      "sha256": "89b2308da2b26d58f7186516c592810e83660ec86944707f0885aa94057939b7"
+    },
+    {
+      "id": "first_light_on_marble",
+      "title": "First Light on Marble",
+      "file": "First_Light_on_Marble.mp3",
+      "duration_seconds": 182.125667,
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "bit_rate_bps": 192266,
+      "bytes": 4377091,
+      "sha256": "06031b117eb1b1af6bd6c7f0cf72d955d07c176f38c06df97e32f577a3e51823"
+    }
+  ]
+}

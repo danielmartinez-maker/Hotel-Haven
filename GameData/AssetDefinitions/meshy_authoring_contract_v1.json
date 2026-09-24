@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "contract_id": "HH_MESHY_AUTHORING_V1",
+  "offline_only": true,
+  "runtime_dependency": false,
+  "provider": "meshy",
+  "accepted_source_formats": ["glb", "fbx", "obj"],
+  "preferred_source_format": "glb",
+  "pbr_required": true,
+  "units_after_normalization": "meters",
+  "up_axis_after_normalization": "z",
+  "quality_contract": "HH_ASSET_QUALITY_V2",
+  "required_provenance_fields": [
+    "provider",
+    "task_id",
+    "source_format",
+    "pbr_enabled",
+    "quality_review_state"
+  ],
+  "forbidden_serialized_fields": [
+    "credential",
+    "secret",
+    "token"
+  ],
+  "normalization_pipeline": [
+    "resolve_target_logical_id",
+    "load_source_mesh",
+    "normalize_to_meters_z_up",
+    "preserve_or_assign_semantic_nodes",
+    "bind_manifest_profile_family_material",
+    "emit_authoring_sidecar",
+    "run_HH_ASSET_QUALITY_V2",
+    "cook_deterministic_hasset"
+  ],
+  "release_rule": "A Meshy-authored source has no special release exemption; it must pass the same geometry, semantic, material, interaction, animation, variant and preview gates as every other gameplay asset."
+}

@@ -7,11 +7,74 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 enable_testing()
+find_package(Python3 COMPONENTS Interpreter QUIET)
 add_subdirectory(Tools/ContentPipeline)
+add_subdirectory(optimization)
 add_subdirectory(game)
+
+add_library(hh_soundtrack_catalog STATIC game/audio/SoundtrackCatalog.cpp)
+target_include_directories(hh_soundtrack_catalog PUBLIC game/audio)
+target_compile_features(hh_soundtrack_catalog PUBLIC cxx_std_20)
+if(MSVC)
+    target_compile_options(hh_soundtrack_catalog PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(hh_soundtrack_catalog PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+add_executable(hh_soundtrack_catalog_tests game/audio/SoundtrackCatalogTests.cpp)
+target_link_libraries(hh_soundtrack_catalog_tests PRIVATE hh_soundtrack_catalog)
+add_test(NAME hh_soundtrack_catalog_tests COMMAND hh_soundtrack_catalog_tests)
+set(HH_SOUNDTRACK_ASSET_NAMES
+    Morning_in_the_Atrium.mp3
+    Sunlight_on_Marble.mp3
+    The_Concierge_Desk.mp3
+    First_Light_on_Marble.mp3)
+set(HH_SOUNDTRACK_ASSETS_PRESENT TRUE)
+foreach(HH_SOUNDTRACK_ASSET IN LISTS HH_SOUNDTRACK_ASSET_NAMES)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/game/data/audio/${HH_SOUNDTRACK_ASSET}")
+        set(HH_SOUNDTRACK_ASSETS_PRESENT FALSE)
+    endif()
+endforeach()
+if(HH_SOUNDTRACK_ASSETS_PRESENT)
+    add_test(
+        NAME hh_soundtrack_assets
+        COMMAND ${CMAKE_COMMAND}
+                -DHH_SOUNDTRACK_DIR=${CMAKE_CURRENT_SOURCE_DIR}/game/data/audio
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/game/audio/VerifySoundtrackAssets.cmake)
+else()
+    message(WARNING "Hotel Haven soundtrack MP3 files are absent; playback will remain disabled until they are placed in game/data/audio")
+endif()
+
 add_executable(hotel_haven_headless game/app/HeadlessMain.cpp)
 target_link_libraries(hotel_haven_headless PRIVATE hh_game)
 add_test(NAME hh_campaign COMMAND hotel_haven_headless --days 14 --restock)
+add_test(
+    NAME hh_balance_summary_cli
+    COMMAND hotel_haven_headless --days 14 --seed 20260909
+            --run-id ci-balance
+            --balance-summary ${CMAKE_BINARY_DIR}/balance-runs/ci-balance.json)
+add_test(
+    NAME hh_balance_output_alias_cli
+    COMMAND hotel_haven_headless --days 0 --seed 20260909
+            --run-id ci-balance-alias
+            --balance-output ${CMAKE_BINARY_DIR}/balance-runs/ci-balance-alias.json)
+if(Python3_Interpreter_FOUND)
+    add_test(
+        NAME hh_balance_summary_semantics
+        COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/Tools/BalanceLab/validate_headless_summary.py
+                ${CMAKE_BINARY_DIR}/balance-runs/ci-balance.json
+                --expected-run-id ci-balance
+                --min-guest-satisfaction 20)
+    set_tests_properties(hh_balance_summary_semantics PROPERTIES DEPENDS hh_balance_summary_cli)
+    add_test(
+        NAME hh_balance_summary_frontier
+        COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/Tools/BalanceLab/balance_lab.py
+                frontier
+                --input-dir ${CMAKE_BINARY_DIR}/balance-runs
+                --output-dir ${CMAKE_BINARY_DIR}/balance-output)
+    set_tests_properties(hh_balance_summary_frontier PROPERTIES DEPENDS hh_balance_summary_semantics)
+endif()
 install(TARGETS hotel_haven_headless RUNTIME DESTINATION .)
 add_library(hh_world_view STATIC game/app/WorldView.cpp game/app/WorldAssetBindings.cpp)
 target_include_directories(hh_world_view PUBLIC game/app renderer/include)

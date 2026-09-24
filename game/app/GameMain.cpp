@@ -35,15 +35,17 @@ std::optional<Position> pick(const Client &c, int x, int y) {
                                c.camera.viewMatrix(), XMMatrixIdentity()));
     return p;
   };
-  const auto near = unproject(0), far = unproject(1);
-  const float dy = far.y - near.y;
+  const auto nearPoint = unproject(0), farPoint = unproject(1);
+  const float dy = farPoint.y - nearPoint.y;
   if (std::abs(dy) < 1e-6f)
     return {};
-  const float t = (static_cast<float>(c.floor) * 3.2f - near.y) / dy;
+  const float t = (static_cast<float>(c.floor) * 3.2f - nearPoint.y) / dy;
   if (t < 0 || t > 1)
     return {};
-  const int tx = static_cast<int>(std::floor(near.x + (far.x - near.x) * t)),
-            ty = static_cast<int>(std::floor(near.z + (far.z - near.z) * t));
+  const int tx = static_cast<int>(
+                std::floor(nearPoint.x + (farPoint.x - nearPoint.x) * t)),
+            ty = static_cast<int>(
+                std::floor(nearPoint.z + (farPoint.z - nearPoint.z) * t));
   if (tx < 0 || ty < 0 || tx >= c.snapshot.width || ty >= c.snapshot.height)
     return {};
   return Position{c.floor, tx, ty};
@@ -443,6 +445,7 @@ void Client::hover(int x, int y) {
   hoverX = p ? p->x : -1;
   hoverY = p ? p->y : -1;
   previewTool = tool;
+  previewCostCents = 0;
   if (p && tool != Tool::Inspect) {
     updateBuildPreview(*this, *p);
   } else {
@@ -800,7 +803,6 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         const auto seconds = static_cast<std::int64_t>(std::floor(c.pendingSimulationSeconds));
         if (seconds > 0) {
           c.simulation.step(static_cast<double>(seconds));
-          c.snapshot = c.simulation.view();
           c.pendingSimulationSeconds -= static_cast<double>(seconds);
         }
       }

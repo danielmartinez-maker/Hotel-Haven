@@ -1,4 +1,7 @@
 #pragma once
+#include "hh/game/BuildingSystems.h"
+#include "hh/game/BuildJobs.h"
+#include "hh/game/Construction.h"
 #include "hh/game/Simulation.h"
 #include "hh/renderer/RenderScene.h"
 #include <functional>

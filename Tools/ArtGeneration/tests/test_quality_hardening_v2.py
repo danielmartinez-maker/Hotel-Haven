@@ -47,6 +47,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
         'lod_policy': 'lod_furniture',
         'collision_policy': 'simple_proxy',
         'cutaway_policy': 'normal',
+        'pivot_profile': 'floor_contact_center',
     }
 
     normalized = normalize(sidecar, meta, contract)
@@ -55,6 +56,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
     assert normalized['lod_policy'] == 'lod_furniture'
     assert normalized['collision_policy'] == 'simple_proxy'
     assert normalized['cutaway_policy'] == 'normal'
+    assert normalized['pivot_profile'] == 'floor_contact_center'
     assert normalized['interaction_anchors'] == ['INT_USE_01', 'INT_REPAIR_01']
     assert 'interaction_anchor:INT_USE_01' in normalized['tags']
     assert 'interaction_anchor:INT_REPAIR_01' in normalized['tags']

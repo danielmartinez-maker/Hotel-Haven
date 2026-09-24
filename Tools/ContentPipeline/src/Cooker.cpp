@@ -2,6 +2,7 @@
 #include "hh/assets/Hasset.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <map>
 #include <span>
@@ -13,8 +14,13 @@
 #endif
 
 namespace hh::assets {
+namespace test {
+using CookStatePublicationObserver = void (*)(const std::filesystem::path&);
+void set_cook_state_publication_observer(CookStatePublicationObserver observer) noexcept;
+}
 namespace {
 using CookState = std::map<std::string, std::string, std::less<>>;
+std::atomic<test::CookStatePublicationObserver> cook_state_publication_observer{nullptr};
 
 std::vector<std::byte> read_binary(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
@@ -101,6 +107,16 @@ void write_text_atomic(const std::filesystem::path& output, std::string_view tex
     write_bytes_atomic(output, std::as_bytes(std::span(text.data(), text.size())));
 }
 
+void publish_cook_state(const CookOptions& options, const CookState& state) {
+    const auto output = options.cooked_root / ".cook-state.json";
+    write_text_atomic(output, serialize_state(state));
+    if (const auto observer = cook_state_publication_observer.load(std::memory_order_relaxed)) observer(output);
+}
+
+bool any_cooked(const std::vector<CookResult>& results) {
+    return std::any_of(results.begin(), results.end(), [](const CookResult& result) { return result.cooked; });
+}
+
 std::string repo_relative(const std::filesystem::path& path, const std::filesystem::path& root) {
     const auto absolute_path = std::filesystem::absolute(path).lexically_normal();
     const auto absolute_root = std::filesystem::absolute(root).lexically_normal();
@@ -147,24 +163,38 @@ CookResult cook_internal(
     document.dependencies = record.metadata.dependencies;
     document.source_path = repo_relative(record.source_path, options.repository_root);
     document.sidecar_path = repo_relative(record.sidecar_path, options.repository_root);
+    document.units = record.metadata.units;
+    document.lod_policy = record.metadata.lod_policy;
+    document.collision_policy = record.metadata.collision_policy;
+    document.cutaway_policy = record.metadata.cutaway_policy ? std::string(to_string(*record.metadata.cutaway_policy)) : std::string{};
+    document.pivot_profile = record.metadata.pivot_profile.value_or(std::string{});
+    document.interaction_anchors = record.metadata.interaction_anchors;
     document.payload = read_binary(record.export_path);
     const auto bytes = serialize_hasset(document);
     write_bytes_atomic(output, bytes);
     state[record.metadata.asset_id] = fingerprint;
-    write_text_atomic(options.cooked_root / ".cook-state.json", serialize_state(state));
     return {record.metadata.asset_id, true, output, fingerprint};
+}
+}
+
+namespace test {
+void set_cook_state_publication_observer(CookStatePublicationObserver observer) noexcept {
+    cook_state_publication_observer.store(observer, std::memory_order_relaxed);
 }
 }
 
 CookResult cook_one(const AssetCatalog& catalog, const DependencyGraph& graph, std::string_view asset_id, const CookOptions& options) {
     auto state = load_state(options.cooked_root / ".cook-state.json");
-    return cook_internal(catalog, graph, asset_id, options, state, false);
+    auto result = cook_internal(catalog, graph, asset_id, options, state, false);
+    if (result.cooked) publish_cook_state(options, state);
+    return result;
 }
 
 std::vector<CookResult> cook_all(const AssetCatalog& catalog, const DependencyGraph& graph, const CookOptions& options) {
     auto state = load_state(options.cooked_root / ".cook-state.json");
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, true));
+    if (any_cooked(results)) publish_cook_state(options, state);
     return results;
 }
 
@@ -172,6 +202,7 @@ std::vector<CookResult> cook_changed(const AssetCatalog& catalog, const Dependen
     auto state = load_state(options.cooked_root / ".cook-state.json");
     std::vector<CookResult> results;
     for (const auto& id : graph.topological_order()) results.push_back(cook_internal(catalog, graph, id, options, state, false));
+    if (any_cooked(results)) publish_cook_state(options, state);
     return results;
 }
 
@@ -189,6 +220,7 @@ std::vector<CookResult> cook_runtime_meshes(const AssetCatalog& catalog, const D
         if (!is_runtime_mesh(record.metadata.asset_type)) continue;
         results.push_back(cook_internal(catalog, graph, id, options, state, true));
     }
+    if (any_cooked(results)) publish_cook_state(options, state);
     return results;
 }
 }

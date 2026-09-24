@@ -2,17 +2,52 @@
 #include "hh/assets/Catalog.h"
 #include "hh/assets/Cooker.h"
 #include "hh/assets/DependencyGraph.h"
+#include "hh/assets/Hasset.h"
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <utility>
 #include <vector>
+
+namespace hh::assets::test {
+using CookStatePublicationObserver = void (*)(const std::filesystem::path&);
+void set_cook_state_publication_observer(CookStatePublicationObserver observer) noexcept;
+}
 
 using namespace hh::assets;
 namespace fs = std::filesystem;
 namespace {
+class CookStatePublicationProbe {
+public:
+    explicit CookStatePublicationProbe(std::vector<fs::path> expected_outputs)
+        : expected_outputs_(std::move(expected_outputs)) {
+        active_ = this;
+        hh::assets::test::set_cook_state_publication_observer(&observe);
+    }
+    ~CookStatePublicationProbe() {
+        hh::assets::test::set_cook_state_publication_observer(nullptr);
+        active_ = nullptr;
+    }
+    std::size_t publication_count() const noexcept { return publication_count_; }
+    bool all_outputs_existed_on_publication() const noexcept { return all_outputs_existed_on_publication_; }
+
+private:
+    static void observe(const fs::path&) {
+        ++active_->publication_count_;
+        for (const auto& output : active_->expected_outputs_) {
+            if (!fs::exists(output)) active_->all_outputs_existed_on_publication_ = false;
+        }
+    }
+
+    inline static CookStatePublicationProbe* active_{};
+    std::vector<fs::path> expected_outputs_;
+    std::size_t publication_count_{};
+    bool all_outputs_existed_on_publication_{true};
+};
+
 fs::path make_repo() {
     static int serial = 0;
     auto root = fs::temp_directory_path() / ("hh_cooker_" + std::to_string(++serial));
@@ -29,6 +64,8 @@ void add_asset(const fs::path& root, std::string id, std::string name, std::stri
     out << "{\"schema\":1,\"asset_id\":\"" << id << "\",\"asset_type\":\"StaticMeshAsset\","
         << "\"source\":\"Art/Source/" << name << ".blend\",\"units\":\"meters\","
         << "\"lod_policy\":\"prop_standard\",\"collision_policy\":\"simple_authored\","
+        << "\"cutaway_policy\":\"fade_when_foreground\",\"pivot_profile\":\"floor_contact_center\","
+        << "\"interaction_anchors\":[\"INT_USE_01\",\"INT_REPAIR_01\"],"
         << "\"material_slots\":[],\"tags\":[],\"dependencies\":" << deps << "}";
 }
 CookOptions options(const fs::path& root) {
@@ -51,6 +88,18 @@ HH_TEST("first cook writes hasset and unchanged cook is a no-op") {
     HH_REQUIRE(first.cooked); HH_REQUIRE(fs::exists(first.output));
     const auto second = cook_one(catalog, graph, "asset.a", options(root));
     HH_REQUIRE(!second.cooked); HH_REQUIRE(second.fingerprint == first.fingerprint);
+}
+HH_TEST("cooker transports runtime policy metadata into hasset v2") {
+    const auto root = make_repo(); add_asset(root, "asset.a", "a");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    const auto cooked = cook_one(catalog, graph, "asset.a", options(root));
+    const auto parsed = parse_hasset(read_bytes(cooked.output));
+    HH_REQUIRE(parsed.units == "meters");
+    HH_REQUIRE(parsed.lod_policy == "prop_standard");
+    HH_REQUIRE(parsed.collision_policy == "simple_authored");
+    HH_REQUIRE(parsed.cutaway_policy == "fade_when_foreground");
+    HH_REQUIRE(parsed.pivot_profile == "floor_contact_center");
+    HH_REQUIRE(parsed.interaction_anchors == std::vector<std::string>({"INT_REPAIR_01", "INT_USE_01"}));
 }
 HH_TEST("changed source recooks asset") {
     const auto root = make_repo(); add_asset(root, "asset.a", "a");
@@ -80,6 +129,29 @@ HH_TEST("cook all follows dependency-first deterministic order and is byte ident
     const auto second = cook_all(catalog, graph, options(root));
     HH_REQUIRE(cooked_count(second) == 2);
     HH_REQUIRE(read_bytes(second[1].output) == before);
+}
+HH_TEST("multi-asset cook publishes state once after all outputs succeed") {
+    const auto root = make_repo();
+    add_asset(root, "asset.a", "a"); add_asset(root, "asset.b", "b");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    CookStatePublicationProbe probe({root / "Build/CookedAssets/asset.a.hasset", root / "Build/CookedAssets/asset.b.hasset"});
+    const auto results = cook_all(catalog, graph, options(root));
+    HH_REQUIRE(results.size() == 2);
+    if (probe.publication_count() != 1) {
+        throw std::runtime_error("expected one cook-state publication, observed " + std::to_string(probe.publication_count()));
+    }
+    HH_REQUIRE(probe.all_outputs_existed_on_publication());
+}
+HH_TEST("failed multi-asset cook does not publish partial state") {
+    const auto root = make_repo();
+    add_asset(root, "asset.a", "a"); add_asset(root, "asset.b", "b");
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports"); const auto graph = DependencyGraph::build(catalog);
+    fs::remove(root / "Art/Exports/b.glb");
+    CookStatePublicationProbe probe({});
+    bool threw = false;
+    try { static_cast<void>(cook_all(catalog, graph, options(root))); } catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw); HH_REQUIRE(fs::exists(root / "Build/CookedAssets/asset.a.hasset"));
+    HH_REQUIRE(probe.publication_count() == 0); HH_REQUIRE(!fs::exists(root / "Build/CookedAssets/.cook-state.json"));
 }
 HH_TEST("failed recook preserves previous valid output") {
     const auto root = make_repo(); add_asset(root, "asset.a", "a");

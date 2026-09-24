@@ -1,0 +1,140 @@
+{
+  "schema": 2,
+  "manifest_id": "HH_GAMEPLAY_ASSET_MANIFEST_V2",
+  "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
+  "quality_contract": "GameData/AssetDefinitions/asset_quality_contract_v2.json",
+  "previous_manifest": "GameData/AssetDefinitions/hotel_haven_asset_manifest_v1.json",
+  "asset_count": 800,
+  "storage": "sharded_by_production_batch",
+  "entry_columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "profiles": {
+    "P_ARCH_STATIC": {
+      "asset_type": "StaticMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_architecture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "contextual_architecture",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_ARCH_ANIMATED": {
+      "asset_type": "SkinnedMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_architecture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "contextual_architecture",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_FURNITURE_STATIC": {
+      "asset_type": "StaticMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_furniture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "floor_contact_center",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_SERVICE_PROP_ANIMATED": {
+      "asset_type": "SkinnedMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_furniture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "floor_contact_center",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_INTERACTIVE_PREFAB": {
+      "asset_type": "PrefabAsset",
+      "units": "meters",
+      "lod_policy": "lod_furniture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "floor_contact_center",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_INTERACTIVE_ANIMATED": {
+      "asset_type": "SkinnedMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_furniture",
+      "collision_policy": "simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "floor_contact_center",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_SMALL_PROP": {
+      "asset_type": "StaticMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_small_prop",
+      "collision_policy": "none_or_simple_proxy",
+      "cutaway_policy": "normal",
+      "pivot_profile": "contextual",
+      "footprint": "contextual",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    },
+    "P_CHARACTER": {
+      "asset_type": "SkinnedMeshAsset",
+      "units": "meters",
+      "lod_policy": "lod_character",
+      "collision_policy": "capsule_runtime",
+      "cutaway_policy": "normal",
+      "pivot_profile": "feet_midpoint",
+      "footprint": "FP_CHARACTER",
+      "dependencies": [],
+      "review_status": "REQUESTED"
+    }
+  },
+  "family_targets": {
+    "architecture_construction": 120,
+    "finish_systems": 40,
+    "guest_room_furniture_fixtures": 125,
+    "front_of_house_public": 110,
+    "restaurant_bar_food_service": 95,
+    "housekeeping_maintenance_logistics": 105,
+    "amenities_events": 52,
+    "decor_clutter_signage": 45,
+    "exterior_landscaping": 38,
+    "guests_staff": 70
+  },
+  "batches": [
+    {"batch": 1, "path": "GameData/AssetDefinitions/Manifest/asset_batch_01.json", "asset_count": 50},
+    {"batch": 2, "path": "GameData/AssetDefinitions/Manifest/asset_batch_02.json", "asset_count": 50},
+    {"batch": 3, "path": "GameData/AssetDefinitions/Manifest/asset_batch_03.json", "asset_count": 50},
+    {"batch": 4, "path": "GameData/AssetDefinitions/Manifest/asset_batch_04.json", "asset_count": 50},
+    {"batch": 5, "path": "GameData/AssetDefinitions/Manifest/asset_batch_05.json", "asset_count": 50},
+    {"batch": 6, "path": "GameData/AssetDefinitions/Manifest/asset_batch_06.json", "asset_count": 50},
+    {"batch": 7, "path": "GameData/AssetDefinitions/Manifest/asset_batch_07.json", "asset_count": 50},
+    {"batch": 8, "path": "GameData/AssetDefinitions/Manifest/asset_batch_08.json", "asset_count": 50},
+    {"batch": 9, "path": "GameData/AssetDefinitions/Manifest/asset_batch_09.json", "asset_count": 50},
+    {"batch": 10, "path": "GameData/AssetDefinitions/Manifest/asset_batch_10.json", "asset_count": 50},
+    {"batch": 11, "path": "GameData/AssetDefinitions/Manifest/asset_batch_11.json", "asset_count": 50},
+    {"batch": 12, "path": "GameData/AssetDefinitions/Manifest/asset_batch_12.json", "asset_count": 50},
+    {"batch": 13, "path": "GameData/AssetDefinitions/Manifest/asset_batch_13.json", "asset_count": 50},
+    {"batch": 14, "path": "GameData/AssetDefinitions/Manifest/asset_batch_14.json", "asset_count": 50},
+    {"batch": 15, "path": "GameData/AssetDefinitions/Manifest/asset_batch_15.json", "asset_count": 50},
+    {"batch": 16, "path": "GameData/AssetDefinitions/Manifest/asset_batch_16.json", "asset_count": 50}
+  ],
+  "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, reachability, task, and interaction authority remain in their owning game-data systems.",
+  "runtime_contract": "Shipping executables consume deterministic cooked .hasset assets only; authoring generators and optional DCC/AI tooling are offline-only."
+}
