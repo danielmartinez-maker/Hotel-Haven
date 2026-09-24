@@ -56,6 +56,26 @@ def test_animation_dependency_gate_rejects_missing_or_unknown_bindings():
     ) == []
 
 
+def test_integrated_runtime_casegoods_have_release_semantic_contracts():
+    check = getattr(qc, 'semantic_contract_failures', None)
+    # The validator imports this helper at module scope; inspect the source
+    # authority directly to ensure the runtime-integrated assets are gated.
+    semantic = load_module(
+        'semantic_asset_quality_runtime_bindings',
+        ROOT / 'Tools' / 'ArtGeneration' / 'semantic_asset_quality.py',
+    )
+    requirements = semantic.SEMANTIC_NODE_REQUIREMENTS
+    for asset_id in ('HH_A121', 'HH_A141', 'HH_A302', 'HH_A338'):
+        assert asset_id in requirements
+        display_name, required = requirements[asset_id]
+        assert display_name
+        assert required
+        assert semantic.semantic_contract_failures(asset_id, required) == []
+        one_missing = set(required)
+        one_missing.pop()
+        assert semantic.semantic_contract_failures(asset_id, one_missing)
+
+
 def test_front_desk_roles_have_distinct_management_camera_markers():
     receptionist = node_names(characters.build_character('Receptionist Woman', 31))
     concierge = node_names(characters.build_character('Concierge Woman', 33))
