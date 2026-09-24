@@ -94,8 +94,10 @@ int main() {
               mirroredHousekeeping.jobs.back().stage !=
                   HousekeepingStage::Completed,
           "mirrored FINAL-04 room turn targeted the wrong room");
+  const auto mirroredCleanViewAfterFirst = mirroredClean.view();
   const auto physicalTurnsAfterFirst = std::count_if(
-      mirroredClean.view().tasks.begin(), mirroredClean.view().tasks.end(),
+      mirroredCleanViewAfterFirst.tasks.begin(),
+      mirroredCleanViewAfterFirst.tasks.end(),
       [mirroredRoom](const auto &task) {
         return task.targetId == mirroredRoom &&
                task.kind == TaskKind::Turnover &&
@@ -106,8 +108,10 @@ int main() {
   require(mirroredClean.housekeepingSnapshot().jobs.size() ==
               housekeepingBefore + 1,
           "duplicate physical clean request created a second FINAL-04 job");
+  const auto mirroredCleanViewAfterSecond = mirroredClean.view();
   const auto physicalTurnsAfterSecond = std::count_if(
-      mirroredClean.view().tasks.begin(), mirroredClean.view().tasks.end(),
+      mirroredCleanViewAfterSecond.tasks.begin(),
+      mirroredCleanViewAfterSecond.tasks.end(),
       [mirroredRoom](const auto &task) {
         return task.targetId == mirroredRoom &&
                task.kind == TaskKind::Turnover &&
