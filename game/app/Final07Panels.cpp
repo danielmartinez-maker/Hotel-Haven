@@ -1076,6 +1076,25 @@ void Client::paint(HDC output) {
            });
   }
 
+  const std::size_t scrollCount = pageRows(*this);
+  if (scrollCount > 6) {
+    const int railX = width - px(8);
+    const int railTop = panelLayout.contentTopPixels;
+    const int railBottom = panelLayout.contentBottomPixels;
+    const int railHeight = std::max(1, railBottom - railTop);
+    const int thumbHeight = std::min(railHeight, std::max(vpx(24), railHeight / 6));
+    const int maximumScroll = static_cast<int>(scrollCount - 1);
+    const int clampedScroll = std::clamp(tabScroll, 0, maximumScroll);
+    const int thumbTravel = std::max(0, railHeight - thumbHeight);
+    const int thumbY =
+        railTop + (maximumScroll == 0
+                       ? 0
+                       : thumbTravel * clampedScroll / maximumScroll);
+    fill(dc, {railX, railTop, railX + std::max(1, px(1)), railBottom}, Line);
+    fill(dc, {railX - px(1), thumbY, railX + px(2), thumbY + thumbHeight},
+         Accent);
+  }
+
   const int footerY = height - FooterHeight + px(9);
   const int footerControlHeight = std::max(px(22), vpx(31));
   const int footerGap = px(5);
