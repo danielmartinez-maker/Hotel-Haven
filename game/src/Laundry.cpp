@@ -16,9 +16,19 @@ LaundryBatchId LaundrySystem::requestBatch(int quantity) {
                                    "dirty_linen_set", quantity))
     return 0;
   const auto id = nextId_++;
+  const auto index = batches_.size();
   batches_.push_back({id, quantity, LaundryStage::AwaitingWasher, 0,
                       BlockReason::None});
+  activeBatches_.push_back(index);
   return id;
+}
+
+void LaundrySystem::rebuildActiveBatches() {
+  activeBatches_.clear();
+  activeBatches_.reserve(batches_.size());
+  for (std::size_t index = 0; index < batches_.size(); ++index)
+    if (batches_[index].stage != LaundryStage::Completed)
+      activeBatches_.push_back(index);
 }
 
 void LaundrySystem::tickSecond() {
@@ -27,13 +37,15 @@ void LaundrySystem::tickSecond() {
   int washing = 0;
   int drying = 0;
   int folding = 0;
-  for (const auto &batch : batches_) {
+  for (const auto index : activeBatches_) {
+    const auto &batch = batches_[index];
     washing += batch.stage == LaundryStage::Washing;
     drying += batch.stage == LaundryStage::Drying;
     folding += batch.stage == LaundryStage::Folding;
   }
 
-  for (auto &batch : batches_) {
+  for (const auto index : activeBatches_) {
+    auto &batch = batches_[index];
     switch (batch.stage) {
     case LaundryStage::AwaitingWasher:
       if (stations_.washers <= washing) {
@@ -101,6 +113,12 @@ void LaundrySystem::tickSecond() {
       break;
     }
   }
+  activeBatches_.erase(
+      std::remove_if(activeBatches_.begin(), activeBatches_.end(),
+                     [&](std::size_t index) {
+                       return batches_[index].stage == LaundryStage::Completed;
+                     }),
+      activeBatches_.end());
 }
 
 void LaundrySystem::tickSeconds(std::int64_t seconds) {
