@@ -253,11 +253,11 @@ def small_cleaning(name, mat):
             add(scene, cyl(0.16, 0.35, (0.24, 0, 0.175), mat, 18), 'Canister')
         return scene
     if 'Mop Bucket' in name:
-        add(scene, box((0.48, 0.34, 0.38), (0, 0, 0.19), mat), 'Bucket')
+        add(scene, box((0.48, 0.34, 0.38), (0, 0, 0.19), mat), 'PrimaryBucket')
         add(scene, box((0.20, 0.30, 0.24), (0.18, 0, 0.48), 'MAT_BLACKENED_STEEL'), 'Wringer')
         return scene
     if 'Caddy' in name or 'Toolbox' in name:
-        add(scene, box((0.48, 0.26, 0.26), (0, 0, 0.13), mat), 'Box')
+        add(scene, box((0.48, 0.26, 0.26), (0, 0, 0.13), mat), 'PrimaryBox')
         add(scene, box((0.25, 0.04, 0.20), (0, 0, 0.36), 'MAT_BLACKENED_STEEL'), 'Handle')
         return scene
     if any(k in name for k in ('Hamper', 'Sorting Bin', 'Trash Bin', 'Recycling Bin', 'Compactor Bin')):
@@ -278,7 +278,7 @@ def ladder(name, mat):
     h = 1.65 if 'Portable' in name else 1.20
     w = 0.48
     for i, x in enumerate((-w / 2, w / 2)):
-        add(scene, box((0.045, 0.05, h), (x, 0, h / 2), mat), f'Rail_{i}')
+        add(scene, box((0.045, 0.05, h), (x, 0, h / 2), mat), f'FrameRail_{i}')
     for i, z in enumerate(np.linspace(0.20, h - 0.18, 6)):
         add(scene, box((w, 0.12, 0.045), (0, 0, z), mat), f'Step_{i}')
     return scene
@@ -320,7 +320,7 @@ def security(name, mat):
             add(scene, box((0.05, 0.08, 0.18), (x, -0.18, 0.79), 'MAT_BLACKENED_STEEL'), f'MonitorStand_{i}')
         return scene
     if 'Time Clock' in name:
-        add(scene, box((0.38, 0.20, 0.55), (0, 0, 0.275), 'MAT_ELECTRONICS'), 'TimeClockBody')
+        add(scene, box((0.38, 0.20, 0.55), (0, 0, 0.275), 'MAT_ELECTRONICS'), 'PrimaryTimeClockBody')
         add(scene, box((0.24, 0.025, 0.16), (0, -0.115, 0.39), 'MAT_GLASS_CLEAR'), 'Screen')
         return scene
     if 'First Aid' in name:
@@ -338,12 +338,12 @@ def security(name, mat):
 def gym(name, mat):
     scene = trimesh.Scene()
     if 'Weight Bench' in name:
-        add(scene, box((1.25, 0.38, 0.14), (0, 0, 0.48), 'MAT_UPHOLSTERY'), 'Bench')
+        add(scene, box((1.25, 0.38, 0.14), (0, 0, 0.48), 'MAT_UPHOLSTERY'), 'SeatBench')
         for i, x in enumerate((-0.48, 0.48)):
             add(scene, box((0.08, 0.32, 0.46), (x, 0, 0.23), 'MAT_BLACKENED_STEEL'), f'Leg_{i}')
         return scene
     if 'Treadmill' in name:
-        add(scene, box((1.35, 0.55, 0.12), (0, 0, 0.06), 'MAT_BLACKENED_STEEL'), 'Deck')
+        add(scene, box((1.35, 0.55, 0.12), (0, 0, 0.06), 'MAT_BLACKENED_STEEL'), 'BaseDeck')
         for i, x in enumerate((-0.20, 0.20)):
             add(scene, box((0.05, 0.05, 1.02), (x, 0.22, 0.57), 'MAT_BLACKENED_STEEL'), f'Handrail_{i}')
         add(scene, box((0.45, 0.12, 0.28), (0, 0.22, 1.12), 'MAT_ELECTRONICS'), 'Console')
@@ -365,7 +365,7 @@ def gym(name, mat):
     if 'Elliptical' in name:
         add(scene, cyl(0.26, 0.06, (0, 0, 0.26), 'MAT_BLACKENED_STEEL', 24), 'MOV_Flywheel')
         for i, x in enumerate((-0.20, 0.20)):
-            add(scene, box((0.05, 0.05, 1.30), (x, 0, 0.70), 'MAT_BLACKENED_STEEL'), f'Handle_{i}')
+            add(scene, box((0.05, 0.05, 1.30), (x, 0, 0.70), 'MAT_BLACKENED_STEEL'), f'FrameHandle_{i}')
         add(scene, box((0.60, 0.16, 0.05), (-0.22, -0.10, 0.18), 'MAT_BLACKENED_STEEL'), 'Pedal_Left')
         add(scene, box((0.60, 0.16, 0.05), (0.22, 0.10, 0.18), 'MAT_BLACKENED_STEEL'), 'Pedal_Right')
         return scene
