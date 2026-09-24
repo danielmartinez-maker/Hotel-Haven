@@ -85,8 +85,14 @@ def test_bathroom_and_reception_assets_have_expected_named_parts(tmp_path):
 
 def test_reception_service_points_have_distinct_camera_readable_details():
     cases = {
-        'Reception Desk Single': {'Countertop', 'Monitor_0'},
-        'Reception Desk Grand': {'Countertop', 'Monitor_0', 'Monitor_1', 'BrassInlay'},
+        'Reception Desk Single': {
+            'Countertop', 'Monitor_0', 'ReceptionToeKick',
+            'ReceptionFrontRail', 'ReceptionPilaster_0', 'ReceptionPilaster_1',
+        },
+        'Reception Desk Grand': {
+            'Countertop', 'Monitor_0', 'Monitor_1', 'BrassInlay',
+            'ReceptionToeKick', 'ReceptionFrontRail',
+        },
         'Reception Back Counter': {'WorkSurface', 'StorageDoor_0'},
         'Concierge Desk': {'BrochureRack', 'ConciergeLamp'},
         'Bell Desk': {'ServiceBell', 'LuggageTagRack'},
