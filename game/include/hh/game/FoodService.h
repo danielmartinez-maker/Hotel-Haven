@@ -171,6 +171,9 @@ public:
   [[nodiscard]] FoodOrderView order(FoodOrderId id) const;
   [[nodiscard]] std::vector<FoodStage> stageHistory(FoodOrderId id) const;
   [[nodiscard]] FoodServiceSnapshot snapshot() const;
+  [[nodiscard]] std::int64_t revenueCents() const noexcept;
+  void pendingRoomServiceHandoffs(
+      std::vector<PreparedRoomServiceHandoff> &out) const;
   [[nodiscard]] std::vector<PreparedRoomServiceHandoff>
   pendingRoomServiceHandoffs() const;
   [[nodiscard]] bool acknowledgeRoomServiceHandoff(FoodOrderId id);
