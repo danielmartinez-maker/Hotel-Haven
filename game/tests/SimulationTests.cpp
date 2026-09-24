@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace hh::game;
 static void require(bool v, const char *m) {
@@ -18,6 +19,60 @@ static const RoomView &room(const SimulationView &v, EntityId id) {
     if (r.id == id)
       return r;
   throw std::runtime_error("room missing");
+}
+
+static std::vector<std::string> splitSaveLines(const std::string &encoded) {
+  std::vector<std::string> lines;
+  std::istringstream input(encoded);
+  for (std::string line; std::getline(input, line);)
+    lines.push_back(std::move(line));
+  return lines;
+}
+
+static std::string joinSaveLines(const std::vector<std::string> &lines) {
+  std::ostringstream output;
+  for (const auto &line : lines)
+    output << line << '\n';
+  return output.str();
+}
+
+static std::size_t roomLine(const std::vector<std::string> &lines,
+                            const RoomView &roomView) {
+  const std::string prefix =
+      std::to_string(roomView.id) + " \"" + roomView.name + "\" ";
+  for (std::size_t index = 0; index < lines.size(); ++index)
+    if (lines[index].rfind(prefix, 0) == 0)
+      return index;
+  throw std::runtime_error("serialized room record missing");
+}
+
+static std::vector<std::string> whitespaceTokens(const std::string &line) {
+  std::vector<std::string> tokens;
+  std::istringstream input(line);
+  for (std::string token; input >> token;)
+    tokens.push_back(std::move(token));
+  return tokens;
+}
+
+static std::string joinTokens(const std::vector<std::string> &tokens) {
+  std::ostringstream output;
+  for (std::size_t index = 0; index < tokens.size(); ++index) {
+    if (index)
+      output << ' ';
+    output << tokens[index];
+  }
+  return output.str();
+}
+
+static void requireSimulationLoadRejected(const std::string &encoded,
+                                          const char *message) {
+  bool rejected = false;
+  try {
+    (void)Simulation::load(encoded);
+  } catch (const std::invalid_argument &) {
+    rejected = true;
+  }
+  require(rejected, message);
 }
 
 static void map_dimensions_must_fit_internal_index_space() {
@@ -371,6 +426,49 @@ static void extreme_room_footprints_fail_closed_without_overflow() {
 
   require(simulation.save() == before,
           "extreme room footprint validation mutated authoritative state");
+}
+
+static void corrupt_room_spatial_state_is_rejected_on_load() {
+  auto simulation = Simulation::tutorial(153);
+  const auto view = simulation.view();
+  require(view.rooms.size() >= 2,
+          "room-spatial corruption test requires two rooms");
+
+  {
+    auto lines = splitSaveLines(simulation.save());
+    const auto lineIndex = roomLine(lines, view.rooms.front());
+    auto tokens = whitespaceTokens(lines[lineIndex]);
+    require(tokens.size() == 19,
+            "unexpected serialized room token count");
+    tokens[17] = view.rooms.front().reachable ? "0" : "1";
+    lines[lineIndex] = joinTokens(tokens);
+    requireSimulationLoadRejected(
+        joinSaveLines(lines),
+        "save loader trusted a room reachability flag that disagreed with map topology");
+  }
+
+  {
+    auto lines = splitSaveLines(simulation.save());
+    const auto &first = view.rooms[0];
+    const auto &second = view.rooms[1];
+    const auto secondLine = roomLine(lines, second);
+    auto tokens = whitespaceTokens(lines[secondLine]);
+    require(tokens.size() == 19,
+            "unexpected serialized overlap room token count");
+    tokens[2] = std::to_string(first.door.floor);
+    tokens[3] = std::to_string(first.door.x);
+    tokens[4] = std::to_string(first.door.y);
+    tokens[6] = std::to_string(first.floor);
+    tokens[7] = std::to_string(first.x);
+    tokens[8] = std::to_string(first.y);
+    tokens[9] = std::to_string(first.width);
+    tokens[10] = std::to_string(first.height);
+    tokens[17] = first.reachable ? "1" : "0";
+    lines[secondLine] = joinTokens(tokens);
+    requireSimulationLoadRejected(
+        joinSaveLines(lines),
+        "save loader accepted overlapping room footprints");
+  }
 }
 
 static void construction_preserves_property_invariants() {
@@ -885,6 +983,7 @@ int main() {
     poor_layout_lowers_service_quality_and_profit();
     construction_preview_is_authoritative_and_read_only();
     extreme_room_footprints_fail_closed_without_overflow();
+    corrupt_room_spatial_state_is_rejected_on_load();
     construction_preserves_property_invariants();
     invalid_inputs_are_rejected();
     corrupt_task_progress_is_rejected_on_load();

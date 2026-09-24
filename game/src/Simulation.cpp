@@ -201,6 +201,28 @@ struct Simulation::Impl {
     std::reverse(out.begin(), out.end());
     return out;
   }
+
+  [[nodiscard]] std::vector<bool> reachableMask(Position from) const {
+    std::vector<bool> reachable(map.size(), false);
+    if (!passable(from))
+      return reachable;
+    std::queue<Position> pending;
+    pending.push(from);
+    reachable[static_cast<std::size_t>(index(from))] = true;
+    while (!pending.empty()) {
+      const auto current = pending.front();
+      pending.pop();
+      for (const auto next : neighbors(current)) {
+        const auto nextIndex = static_cast<std::size_t>(index(next));
+        if (!reachable[nextIndex]) {
+          reachable[nextIndex] = true;
+          pending.push(next);
+        }
+      }
+    }
+    return reachable;
+  }
+
   Room *getRoom(EntityId id) {
     for (auto &x : rooms)
       if (x.id == id)
@@ -341,9 +363,12 @@ struct Simulation::Impl {
   }
 
   void refreshReachability() {
+    const auto start = entrance();
+    const auto reachable = reachableMask(start);
     for (auto &r : rooms) {
-      r.reachable =
-          has(TileKind::Entrance) && !path(entrance(), r.door).empty();
+      r.reachable = inside(r.door) &&
+                    reachable[static_cast<std::size_t>(index(r.door))] &&
+                    !same(start, r.door);
       if (!r.closed && r.status == RoomStatus::Incomplete && r.reachable)
         r.status = RoomStatus::VacantReady;
     }
@@ -1679,6 +1704,10 @@ Simulation Simulation::load(std::string_view data) {
   std::unordered_map<EntityId, const Person *> personById;
   std::unordered_map<EntityId, const Reservation *> reservationById;
   std::unordered_map<EntityId, const Task *> taskById;
+
+  const auto entrance = d.entrance();
+  const auto reachable = d.reachableMask(entrance);
+  std::vector<bool> claimedRoomTiles(d.map.size(), false);
   for (const auto &room : d.rooms) {
     addEntityId(room.id);
     roomById.emplace(room.id, &room);
@@ -1687,6 +1716,28 @@ Simulation Simulation::load(std::string_view data) {
         room.cleanliness > 100 || room.condition < 0 || room.condition > 100 ||
         (room.closed && room.status != RoomStatus::OutOfOrder))
       throw std::invalid_argument("invalid saved room state");
+
+    const auto bounds =
+        d.roomFootprintBounds(room.floor, room.x, room.y, room.width, room.height);
+    if (!bounds)
+      throw std::invalid_argument("invalid saved room footprint");
+    for (int y = bounds->top; y < bounds->bottomExclusive; ++y)
+      for (int x = bounds->left; x < bounds->rightExclusive; ++x) {
+        const auto tileIndex =
+            static_cast<std::size_t>(d.index({room.floor, x, y}));
+        if (claimedRoomTiles[tileIndex])
+          throw std::invalid_argument("overlapping saved room footprints");
+        if (d.map[tileIndex] == TileKind::Empty)
+          throw std::invalid_argument("saved room footprint contains empty tile");
+        claimedRoomTiles[tileIndex] = true;
+      }
+
+    const bool actualReachable =
+        d.inside(room.door) &&
+        reachable[static_cast<std::size_t>(d.index(room.door))] &&
+        !same(entrance, room.door);
+    if (room.reachable != actualReachable)
+      throw std::invalid_argument("saved room reachability does not match map");
   }
   for (const auto &person : d.people) {
     addEntityId(person.id);

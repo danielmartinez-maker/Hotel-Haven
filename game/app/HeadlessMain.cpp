@@ -66,10 +66,30 @@ int main(int argc, char **argv) {
     std::cout << "day,cash_cents,revenue_cents,payroll_cents,occupancy,"
                  "reputation,completed_stays,linen,blocked_tasks\n";
     for (int day = 0; day < days; ++day) {
-      if (restock && simulation.view().inventory.linen < 12) {
-        const auto r = simulation.orderSupplies({20, 40, 20, 20, 4});
-        if (!r)
-          std::cerr << "Reorder: " << r.message << '\n';
+      if (restock) {
+        const auto beforeRestock = simulation.view();
+        auto projected = beforeRestock.inventory;
+        for (const auto &pending : beforeRestock.supplyOrders) {
+          if (pending.delivered)
+            continue;
+          projected.linen += pending.items.linen;
+          projected.towels += pending.items.towels;
+          projected.amenities += pending.items.amenities;
+          projected.chemicals += pending.items.chemicals;
+          projected.parts += pending.items.parts;
+        }
+        const hh::game::SupplyOrder replenish{
+            projected.linen < 12 ? 30 : 0,
+            projected.towels < 24 ? 60 : 0,
+            projected.amenities < 12 ? 30 : 0,
+            projected.chemicals < 12 ? 30 : 0,
+            projected.parts < 8 ? 5 : 0};
+        if (replenish.linen || replenish.towels || replenish.amenities ||
+            replenish.chemicals || replenish.parts) {
+          const auto r = simulation.orderSupplies(replenish);
+          if (!r)
+            std::cerr << "Reorder: " << r.message << '\n';
+        }
       }
       simulation.step(86400);
       const auto v = simulation.view();
