@@ -102,6 +102,16 @@ int main() {
               "supported UI scales must never shrink typography as scale increases");
     }
 
+    require(hh::client::final07DensityScalePercent(90) == 90 &&
+                hh::client::final07DensityScalePercent(110) == 110 &&
+                hh::client::final07DensityScalePercent(125) == 115 &&
+                hh::client::final07DensityScalePercent(150) == 115,
+            "FINAL-07 density scaling must cap whitespace growth without shrinking typography");
+    require(hh::client::final07BuildCatalogColumns(359) == 2 &&
+                hh::client::final07BuildCatalogColumns(360) == 3 &&
+                hh::client::final07BuildCatalogColumns(474) == 3,
+            "FINAL-07 build catalog must use the compact third column when the scaled panel permits it");
+
     const auto normal = hh::client::computeFinal07Layout(1500, 960, 100);
     require(normal.headerPixels == 88 && normal.footerPixels == 58 &&
                 normal.sidebarPixels == 356,

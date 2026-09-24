@@ -208,11 +208,43 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       }
       return 0;
     case WM_MOUSEMOVE:
-      if (view)
+      if (view) {
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         c->hover(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+      } else {
+        c->hoverUi(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+        TRACKMOUSEEVENT tracking{};
+        tracking.cbSize = sizeof(tracking);
+        tracking.dwFlags = TME_LEAVE;
+        tracking.hwndTrack = window;
+        TrackMouseEvent(&tracking);
+      }
+      return 0;
+    case WM_MOUSELEAVE:
+      if (!view && c->hoveredButton != -1) {
+        c->hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+        InvalidateRect(c->window, nullptr, FALSE);
+      }
       return 0;
     case WM_MOUSEWHEEL: {
-      const float steps = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      const float steps =
+          static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      if (!view) {
+        POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+        ScreenToClient(c->window, &point);
+        const bool overPanel =
+            point.x >= c->width - SidebarWidth &&
+            point.y >= HeaderHeight &&
+            point.y < c->height - FooterHeight;
+        if (overPanel) {
+          c->scrollPanel(steps > 0.0f ? -1 : 1);
+          return 0;
+        }
+      }
       c->camera.setOrthoHeight(std::clamp(
           c->camera.orthoHeight() * std::pow(.85f, steps), 8.f, 150.f));
       return 0;
@@ -429,8 +461,14 @@ void Client::click(int x, int y) {
       const Page priorPage = page;
       auto fn = b.action;
       fn();
-      if (page != priorPage)
+      const bool pageChanged = page != priorPage;
+      const bool scaleChanged = uiSettings.scalePercent() != priorScale;
+      if (pageChanged)
         keyBindingEditor.cancel();
+      if (pageChanged || scaleChanged) {
+        hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+      }
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;

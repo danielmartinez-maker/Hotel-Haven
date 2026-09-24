@@ -92,6 +92,16 @@ struct Final07Typography {
   return (logicalPixels * scalePercent + 50) / 100;
 }
 
+[[nodiscard]] constexpr int
+final07DensityScalePercent(int scalePercent) noexcept {
+  return scalePercent > 115 ? 115 : scalePercent;
+}
+
+[[nodiscard]] constexpr int
+final07BuildCatalogColumns(int panelWidthPixels) noexcept {
+  return panelWidthPixels >= 360 ? 3 : 2;
+}
+
 [[nodiscard]] constexpr Final07Typography
 computeFinal07Typography(int scalePercent) noexcept {
   Final07Typography result;

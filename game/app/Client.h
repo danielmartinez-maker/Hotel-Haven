@@ -103,6 +103,7 @@ struct Client {
       tabScroll = 0, operationsFilter = 0;
   int hoverX = -1, hoverY = -1;
   int focusedButton = -1;
+  int hoveredButton = -1;
   double pendingSimulationSeconds = 0;
   std::int64_t previewCostCents{};
   hh::game::EntityId selected{};
@@ -127,6 +128,8 @@ struct Client {
   void click(int, int);
   void mapClick(int, int);
   void hover(int, int);
+  void hoverUi(int, int);
+  void scrollPanel(int);
   void key(int);
   void changeFloor(int);
   bool save();
