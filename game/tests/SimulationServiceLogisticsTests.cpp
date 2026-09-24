@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include <algorithm>
 #include <functional>
 #include <sstream>
 #include <stdexcept>
