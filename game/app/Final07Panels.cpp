@@ -494,7 +494,7 @@ void Client::paint(HDC output) {
   if (page == Page::Build) {
     heading(L"Build & construction");
     if (bottom - y >= vpx(420)) {
-      paragraph(L"Choose from the live construction catalog, move over the hotel for authoritative placement validation, then click to confirm the latest valid preview.", 64);
+      paragraph(L"Choose a construction item, move it over the hotel to check placement and cost, then click to build.", 64);
     } else {
       paragraph(L"Select an item, validate it over the hotel, then click to place.", 36, Muted);
     }
@@ -679,7 +679,7 @@ void Client::paint(HDC output) {
         }
       }
       separator();
-    } else paragraph(L"Select an item below to inspect authoritative fields and reason codes.", 48);
+    } else paragraph(L"Select an item below to view its current status and any blockers.", 48);
     for (std::size_t index = static_cast<std::size_t>(tabScroll);
          index < matching.size() && y + vpx(38) < bottom; ++index) {
       const auto *entity = matching[index];
@@ -688,7 +688,7 @@ void Client::paint(HDC output) {
         if (!result.message.empty()) notice = wide(result.message);
       }, selected == entity->id);
     }
-    if (matching.empty()) paragraph(L"No matching authoritative entities are exposed on this integration branch.", 54, Muted);
+    if (matching.empty()) paragraph(L"Nothing in this category is available yet.", 54, Muted);
   } else if (page == Page::Operations) {
     heading(L"Operations command center");
     const auto &ops = operationsDashboard.snapshot();
@@ -798,18 +798,18 @@ void Client::paint(HDC output) {
       fields(L"Future rates", economy.futureRateCalendar);
       if (economy.departmentContribution.empty() && economy.bookingPace.empty() &&
           economy.futureRateCalendar.empty())
-        paragraph(L"No authoritative revenue diagnostics are available yet.", 44, Muted);
+        paragraph(L"No revenue diagnostics are available yet.", 44, Muted);
       break;
     case FinanceView::Market:
       fields(L"Competitors", economy.competitors);
       fields(L"Demand by segment", economy.demandBySegment);
       if (economy.competitors.empty() && economy.demandBySegment.empty())
-        paragraph(L"No authoritative market comparison data is available yet.", 44, Muted);
+        paragraph(L"No market comparison data is available yet.", 44, Muted);
       break;
     case FinanceView::Controls:
-      paragraph(L"Controls modify only existing FINAL-06 pricing rules and the standard overbooking policy. FINAL-07 does not manufacture offers or recovery policy fields.", 66, Muted);
+      paragraph(L"Adjust room pricing and the standard overbooking policy here. Other commercial controls remain read-only.", 66, Muted);
       if (economy.pricingRules.empty()) {
-        paragraph(L"No authoritative pricing rule exists to adjust.", 34, Muted);
+        paragraph(L"No pricing rule is available to adjust.", 34, Muted);
       } else {
         financeRuleIndex = std::min(financeRuleIndex, economy.pricingRules.size() - 1);
         const auto &rule = economy.pricingRules[financeRuleIndex];
@@ -837,7 +837,7 @@ void Client::paint(HDC output) {
       }
       separator();
       if (economy.overbookingPolicies.empty()) {
-        paragraph(L"No authoritative overbooking policy is available.", 34, Muted);
+        paragraph(L"No overbooking policy is available.", 34, Muted);
       } else {
         financeOverbookingIndex = std::min(financeOverbookingIndex, economy.overbookingPolicies.size() - 1);
         const auto &policy = economy.overbookingPolicies[financeOverbookingIndex];
@@ -863,7 +863,7 @@ void Client::paint(HDC output) {
           });
           y += std::max(px(28), vpx(39));
         } else if (policy.roomCategory != "standard") {
-          paragraph(L"This policy is read-only because the FINAL-06 application adapter currently owns only the standard-room overbooking command.", 54, Muted);
+          paragraph(L"This policy is read-only here. Only the standard-room overbooking allowance can currently be changed.", 54, Muted);
         }
       }
       break;
@@ -877,7 +877,7 @@ void Client::paint(HDC output) {
       fields(L"Accepted contracts", economy.contracts);
       if (economy.debtSchedule.empty() && economy.financingDiagnostics.empty() &&
           economy.campaigns.empty() && economy.contracts.empty())
-        paragraph(L"No authoritative financing or commercial-risk state is available.", 44, Muted);
+        paragraph(L"No financing or commercial-risk data is available yet.", 44, Muted);
       break;
     }
   } else if (page == Page::Alerts) {
@@ -915,11 +915,11 @@ void Client::paint(HDC output) {
         if (objective.dismissible && y + vpx(38) < bottom) fullButton(L"Dismiss guidance", [this, id = objective.id] { if (!objectiveUi.dismiss(id)) notice = L"Guidance cannot be dismissed."; });
         separator();
       }
-      if (items.empty()) paragraph(L"No authoritative scenario objectives are exposed by the current application layer.", 54, Muted);
+      if (items.empty()) paragraph(L"No scenario objectives are active.", 54, Muted);
     }
   } else if (page == Page::Overlays) {
     heading(L"Management overlays");
-    paragraph(L"All 18 required overlays are listed with text legends and exact units. Missing simulation data is never inferred.", 56);
+    paragraph(L"Choose an overlay to inspect hotel conditions. Each view shows its legend and units; unavailable data is labeled.", 56);
     const auto descriptors = hh::frontend::OverlayModel::requiredDescriptors();
     for (std::size_t index = static_cast<std::size_t>(tabScroll); index < descriptors.size() && y + vpx(40) < bottom; ++index) {
       const auto &descriptor = descriptors[index];
