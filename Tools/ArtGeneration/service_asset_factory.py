@@ -349,7 +349,13 @@ def gym(name, mat):
         add(scene, box((0.45, 0.12, 0.28), (0, 0.22, 1.12), 'MAT_ELECTRONICS'), 'Console')
         return scene
     if 'Stationary Bike' in name:
-        add(scene, cyl(0.34, 0.06, (0, 0, 0.34), 'MAT_BLACKENED_STEEL', 24), 'MOV_Flywheel')
+        flywheel = cyl(0.34, 0.06, (0, 0, 0.34), 'MAT_BLACKENED_STEEL', 24)
+        flywheel.apply_transform(
+            trimesh.transformations.rotation_matrix(
+                np.pi / 2, [1, 0, 0], [0, 0, 0.34]
+            )
+        )
+        add(scene, flywheel, 'MOV_Flywheel')
         add(scene, box((0.06, 0.06, 0.80), (0, 0, 0.68), 'MAT_BLACKENED_STEEL'), 'Frame')
         add(scene, box((0.24, 0.20, 0.08), (0, 0, 1.10), 'MAT_UPHOLSTERY'), 'Seat')
         add(scene, box((0.62, 0.05, 0.05), (0, 0, 1.18), 'MAT_BLACKENED_STEEL'), 'Handlebar')
