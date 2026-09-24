@@ -121,6 +121,7 @@ LaundrySnapshot LaundrySystem::snapshot() const {
   LaundrySnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.stations = stations_;
+  out.batches.reserve(batches_.size());
   for (const auto &batch : batches_)
     out.batches.push_back({batch.id, batch.quantity, batch.stage,
                            batch.remainingSeconds, batch.blockedReason});
