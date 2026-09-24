@@ -835,22 +835,13 @@ void Client::paint(HDC output) {
           std::max(y + vpx(56), bottom - inspectorListReserve);
 
       paragraph(wide(selectedEntity->title), 28);
-      for (const auto &field : selectedEntity->fields) {
-        if (y + vpx(28) >= detailBottom)
-          break;
-        label(wide(field.label), wide(field.value));
+      const bool departmentInspector =
+          page == Page::Staff &&
+          selectedEntity->kind == InspectorKind::Department;
+      if (departmentInspector && y + vpx(38) < detailBottom) {
+        paragraph(L"MANAGEMENT", 20, Muted);
       }
-      for (const auto &diagnostic : selectedEntity->diagnostics) {
-        if (y + vpx(42) >= detailBottom)
-          break;
-        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " +
-                      wide(diagnostic.message),
-                  36, Warning);
-      }
-
-      if (page == Page::Staff &&
-          selectedEntity->kind == InspectorKind::Department &&
-          y + vpx(38) < detailBottom) {
+      if (departmentInspector && y + vpx(38) < detailBottom) {
         const auto departments = simulation.departments();
         const auto department = std::find_if(
             departments.begin(), departments.end(),
@@ -899,7 +890,20 @@ void Client::paint(HDC output) {
                 });
           }
         }
+      }      for (const auto &field : selectedEntity->fields) {
+        if (y + vpx(28) >= detailBottom)
+          break;
+        label(wide(field.label), wide(field.value));
       }
+      for (const auto &diagnostic : selectedEntity->diagnostics) {
+        if (y + vpx(42) >= detailBottom)
+          break;
+        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " +
+                      wide(diagnostic.message),
+                  36, Warning);
+      }
+
+
 
       if (y < detailBottom)
         separator();
