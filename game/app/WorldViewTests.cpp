@@ -72,8 +72,8 @@ int main() {
           requestedIds.emplace_back(id);
           return visual(assetNumber(id));
         });
-    require(requiredWorldAssetIds().size() == 64u,
-            "world dependency contract should contain 64 assets");
+    require(requiredWorldAssetIds().size() == 70u,
+            "world dependency contract should contain 70 assets");
     require(requestedIds.size() == requiredWorldAssetIds().size(),
             "startup world asset resolver did not resolve the complete dependency set");
     auto uniqueIds = requestedIds;
@@ -113,6 +113,8 @@ int main() {
             "luggage bench startup binding mismatch");
     require(resolved.wardrobe->handle == AssetHandle{141},
             "wardrobe startup binding mismatch");
+    require(resolved.tvConsole->handle == AssetHandle{151},
+            "TV console startup binding mismatch");
     require(resolved.wallTelevision->handle == AssetHandle{153},
             "wall television startup binding mismatch");
     require(resolved.bathroomVanity->handle == AssetHandle{166},
@@ -129,6 +131,16 @@ int main() {
             "lobby armchair startup binding mismatch");
     require(resolved.lobbyCoffeeTable->handle == AssetHandle{200},
             "lobby coffee table startup binding mismatch");
+    require(resolved.lobbyFloorLamp->handle == AssetHandle{205},
+            "lobby floor lamp startup binding mismatch");
+    require(resolved.lobbyPlanter->handle == AssetHandle{207},
+            "lobby planter startup binding mismatch");
+    require(resolved.luggageCart->handle == AssetHandle{211},
+            "luggage cart startup binding mismatch");
+    require(resolved.housekeepingCart->handle == AssetHandle{291},
+            "housekeeping cart startup binding mismatch");
+    require(resolved.utilityCart->handle == AssetHandle{320},
+            "utility cart startup binding mismatch");
     require(resolved.cleaningSupplyCabinet->handle == AssetHandle{302},
             "cleaning cabinet startup binding mismatch");
     require(resolved.staffLockerBank->handle == AssetHandle{338},
@@ -231,8 +243,11 @@ int main() {
     placementSnapshot.floors = 1;
     placementSnapshot.tiles = {
         {{0, 0, 0}, hh::game::TileKind::Lobby},
+        {{0, 1, 0}, hh::game::TileKind::Lobby},
         {{0, 2, 0}, hh::game::TileKind::Lobby},
+        {{0, 3, 0}, hh::game::TileKind::Lobby},
         {{0, 4, 0}, hh::game::TileKind::Lobby},
+        {{0, 5, 0}, hh::game::TileKind::Lobby},
         {{0, 6, 0}, hh::game::TileKind::StaffRoom},
         {{0, 8, 0}, hh::game::TileKind::Entrance},
     };
@@ -254,8 +269,9 @@ int main() {
 
     const auto placementScene =
         worldScene(placementSnapshot, WorldViewOptions{}, &assets);
-    for (const auto handle : std::array<std::uint32_t, 10>{
-             57, 131, 140, 141, 153, 194, 197, 200, 338, 339}) {
+    for (const auto handle : std::array<std::uint32_t, 14>{
+             57, 131, 140, 141, 151, 153, 194, 197, 200, 205, 207, 211,
+             338, 339}) {
       require(containsHandle(placementScene, handle),
               "world presentation omitted an integrated room/public-area asset");
     }
@@ -349,10 +365,14 @@ int main() {
             "guest character variant was not rendered");
     require(containsHandle(diagnosticBaseline, 487),
             "housekeeper character variant was not rendered");
+    require(containsHandle(diagnosticBaseline, 291),
+            "working housekeeper did not surface the housekeeping cart");
     require(containsHandle(diagnosticBaseline, 481),
             "receptionist character variant was not rendered");
     require(containsHandle(diagnosticBaseline, 496),
             "maintenance character variant was not rendered");
+    require(containsHandle(diagnosticBaseline, 320),
+            "working maintenance staff did not surface the utility cart");
     for (const auto mode : std::array{
              Overlay::GuestSatisfaction, Overlay::StaffUtilization,
              Overlay::QueueWait, Overlay::OpenTaskDensity}) {
