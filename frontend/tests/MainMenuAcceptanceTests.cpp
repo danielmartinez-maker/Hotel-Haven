@@ -46,8 +46,11 @@ TEST_CASE("layout remains inside supported resolution matrix") {
 
             const float menuBottom =
                 layout.navigationTop +
-                (8.0F * 55.0F + 28.0F) * layout.uiDensityScale;
+                (8.0F * 55.0F + 28.0F) * layout.uiContentScale;
             EXPECT_TRUE(menuBottom <= height + 0.01F);
+            EXPECT_TRUE(layout.versionLeft >= 0.0F);
+            EXPECT_TRUE(layout.versionLeft + 300.0F * layout.uiContentScale <=
+                        width + 0.01F);
         }
     }
 }
