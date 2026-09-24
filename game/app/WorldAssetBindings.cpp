@@ -8,7 +8,12 @@ namespace {
 constexpr std::string_view kStraightStair = "HH_A030";
 constexpr std::string_view kStandardGuestDoor = "HH_A012";
 constexpr std::string_view kLobbyEntranceDoor = "HH_A057";
-constexpr std::string_view kGuestBed = "HH_A113";
+constexpr std::string_view kSingleBed = "HH_A111";
+constexpr std::string_view kDoubleBed = "HH_A112";
+constexpr std::string_view kQueenBed = "HH_A113";
+constexpr std::string_view kKingBed = "HH_A114";
+constexpr std::string_view kTwinBedLeft = "HH_A115";
+constexpr std::string_view kTwinBedRight = "HH_A116";
 constexpr std::string_view kNightstand = "HH_A121";
 constexpr std::string_view kBedsideLamp = "HH_A125";
 constexpr std::string_view kGuestDesk = "HH_A126";
@@ -46,7 +51,7 @@ constexpr std::array<std::string_view, WorldAssetSet::HousekeeperVariantCount>
 constexpr std::array<std::string_view, WorldAssetSet::MaintenanceVariantCount>
     kMaintenanceCharacterIds{{"HH_A495", "HH_A496"}};
 
-constexpr std::size_t kCoreAssetCount = 23;
+constexpr std::size_t kCoreAssetCount = 28;
 constexpr std::size_t kRequiredAssetCount =
     kCoreAssetCount + kGuestCharacterIds.size() +
     kReceptionistCharacterIds.size() + kHousekeeperCharacterIds.size() +
@@ -57,7 +62,12 @@ constexpr auto makeRequiredAssetIds() {
       kStraightStair,
       kStandardGuestDoor,
       kLobbyEntranceDoor,
-      kGuestBed,
+      kSingleBed,
+      kDoubleBed,
+      kQueenBed,
+      kKingBed,
+      kTwinBedLeft,
+      kTwinBedRight,
       kNightstand,
       kBedsideLamp,
       kGuestDesk,
@@ -112,7 +122,12 @@ WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver) {
   assets.straightStair = resolver(kStraightStair);
   assets.standardGuestDoor = resolver(kStandardGuestDoor);
   assets.lobbyEntranceDoor = resolver(kLobbyEntranceDoor);
-  assets.guestBed = resolver(kGuestBed);
+  assets.singleBed = resolver(kSingleBed);
+  assets.doubleBed = resolver(kDoubleBed);
+  assets.queenBed = resolver(kQueenBed);
+  assets.kingBed = resolver(kKingBed);
+  assets.twinBedLeft = resolver(kTwinBedLeft);
+  assets.twinBedRight = resolver(kTwinBedRight);
   assets.nightstand = resolver(kNightstand);
   assets.bedsideLamp = resolver(kBedsideLamp);
   assets.guestDesk = resolver(kGuestDesk);
