@@ -387,11 +387,16 @@ void Client::paint(HDC output) {
            px(18), ChromeMuted);
 
   auto metric = [&](int index, const std::wstring &labelText,
-                    const std::wstring &valueText, bool compact = false) {
+                    const std::wstring &valueText, bool compact = false,
+                    std::function<void()> action = {}) {
     const int x = metricLeft + index * (metricWidth + metricGap);
     RECT surface{x, px(10), x + metricWidth, HeaderHeight - px(24)};
-    fill(dc, surface, ChromeRaised);
-    frame(dc, surface, ChromeLine);
+    const int metricButtonIndex =
+        action ? static_cast<int>(buttons.size()) : -1;
+    const bool hovered =
+        metricButtonIndex >= 0 && metricButtonIndex == hoveredButton;
+    fill(dc, surface, hovered ? ChromeLine : ChromeRaised);
+    frame(dc, surface, hovered ? Accent : ChromeLine);
     drawText(dc, small, labelText, x + px(8), px(15),
              std::max(1, metricWidth - px(16)), px(18), ChromeMuted,
              DT_LEFT | DT_SINGLELINE | DT_END_ELLIPSIS);
@@ -399,6 +404,9 @@ void Client::paint(HDC output) {
     drawText(dc, valueFont, valueText, x + px(8), px(37),
              std::max(1, metricWidth - px(16)), px(26), ChromeText,
              DT_LEFT | DT_SINGLELINE | DT_END_ELLIPSIS);
+    if (action)
+      buttons.push_back(
+          {surface, labelText + L" · " + valueText, std::move(action), false});
   };
 
   std::wostringstream clock;
@@ -407,12 +415,23 @@ void Client::paint(HDC output) {
   const bool compactHud = metricWidth < px(130);
   metric(0, L"CASH",
          compactHud ? compactMoney(hud.cashCents) : money(hud.cashCents),
-         compactHud);
-  metric(1, L"OCCUPANCY", permille(hud.occupancyPermille), false);
+         compactHud, [this] {
+           page = Page::Finance;
+           financeView = FinanceView::Overview;
+           tabScroll = 0;
+         });
+  metric(1, L"OCCUPANCY", permille(hud.occupancyPermille), false, [this] {
+    page = Page::Finance;
+    financeView = FinanceView::Overview;
+    tabScroll = 0;
+  });
   metric(2, compactHud ? L"SAT / REP" : L"SATISFACTION / REP",
          permille(hud.satisfactionPermille) + L" / " +
              permille(hud.reputationPermille),
-         true);
+         true, [this] {
+           page = Page::Guests;
+           tabScroll = 0;
+         });
   metric(3, L"DAY " + std::to_wstring(hud.day + 1), clock.str(), false);
 
   int criticalAlertCount = 0;
