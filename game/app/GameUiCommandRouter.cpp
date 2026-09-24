@@ -104,6 +104,7 @@ routeGameUiCommand(const hh::frontend::UiCommand& command,
   case UiCommandType::BuildConfirm:
   case UiCommandType::BuildRotate:
   case UiCommandType::BuildCancel:
+  case UiCommandType::AssignDepartmentManager:
   case UiCommandType::SetFutureRate:
   case UiCommandType::SetOverbookingPolicy:
   case UiCommandType::StartMarketingCampaign:
