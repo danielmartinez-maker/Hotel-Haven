@@ -1,5 +1,7 @@
 #include "hh/game/Logistics.h"
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace hh::game {
 
@@ -316,16 +318,34 @@ LogisticsSnapshot LogisticsSystem::snapshot() const {
   out.wasteInBackOfHouse = 0;
   out.wasteOverflowUnits = wasteOverflowUnits_;
   out.wastePickupActive = wastePickupRemaining_ >= 0;
-  for (const auto &storage : storage_) {
-    out.storage.push_back({storage.id, storage.kind, storage.capacityUnits,
-                           usedUnits(storage.id), storage.reservedUnits,
-                           storage.operational});
+  out.storage.reserve(storage_.size());
+  out.inventory.reserve(inventory_.size());
+  out.purchaseOrders.reserve(orders_.size());
+  out.stockMoves.reserve(moves_.size());
+
+  std::unordered_map<StorageNodeId, int> usedByStorage;
+  usedByStorage.reserve(storage_.size());
+  std::unordered_set<StorageNodeId> wasteStorage;
+  wasteStorage.reserve(storage_.size());
+  for (const auto &storage : storage_)
     if (storage.kind == StorageKind::Waste)
-      out.wasteInBackOfHouse += inventoryAt(storage.id, "waste");
-  }
-  for (const auto &stack : inventory_)
+      wasteStorage.insert(storage.id);
+
+  for (const auto &stack : inventory_) {
+    usedByStorage[stack.storage] += stack.quantity;
+    if (stack.item == "waste" && wasteStorage.contains(stack.storage))
+      out.wasteInBackOfHouse += stack.quantity;
     out.inventory.push_back(
         {stack.storage, stack.item, stack.quantity, stack.reservedQuantity});
+  }
+
+  for (const auto &storage : storage_) {
+    const auto used = usedByStorage.find(storage.id);
+    out.storage.push_back(
+        {storage.id, storage.kind, storage.capacityUnits,
+         used == usedByStorage.end() ? 0 : used->second,
+         storage.reservedUnits, storage.operational});
+  }
   for (const auto &order : orders_)
     out.purchaseOrders.push_back({order.id, order.item, order.quantity,
                                   order.destination, order.state,
