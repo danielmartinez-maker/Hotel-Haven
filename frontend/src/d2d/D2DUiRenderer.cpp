@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <sstream>
 
 #include "d2d/FontManager.h"
@@ -285,23 +286,57 @@ UiRendererResult D2DUiRenderer::draw(
                                  right - 38.0F * ui,
                                  top + 78.0F * ui),
                      propertyFormat.Get(), kIvory);
-            drawText(L"REDUCED MOTION",
+
+            const float rowLeft = left + 30.0F * ui;
+            const float rowRight = right - 30.0F * ui;
+            const float rowHeight = 52.0F * ui;
+            const float scaleRowTop = top + 98.0F * ui;
+            const float motionRowTop = top + 158.0F * ui;
+            const auto drawSettingRow =
+                [&](MainMenuSettingsItem item, float rowTop,
+                    const wchar_t* label, const std::wstring& value) {
+                    const bool selected = model.settingsSelection() == item;
+                    const D2D1_RECT_F rowRect =
+                        D2D1::RectF(rowLeft, rowTop, rowRight,
+                                    rowTop + rowHeight);
+                    if (selected) {
+                        primitives.fillRect(rowRect, kSelected);
+                        primitives.strokeRect(rowRect, kBrass,
+                                              std::max(1.0F, ui));
+                        primitives.fillRect(
+                            D2D1::RectF(rowRect.left, rowRect.top,
+                                        rowRect.left + 4.0F * ui,
+                                        rowRect.bottom),
+                            kBrass);
+                    }
+                    drawText(label,
+                             D2D1::RectF(rowLeft + 14.0F * ui,
+                                         rowTop + 12.0F * ui,
+                                         left + 350.0F * ui,
+                                         rowTop + 42.0F * ui),
+                             menuFormat.Get(), selected ? kIvory : kMuted);
+                    drawText(value,
+                             D2D1::RectF(left + 375.0F * ui,
+                                         rowTop + 12.0F * ui,
+                                         rowRight - 12.0F * ui,
+                                         rowTop + 42.0F * ui),
+                             menuFormat.Get(), kBrass);
+                };
+
+            const int scalePercent =
+                static_cast<int>(std::lround(frameState.uiScale * 100.0F));
+            drawSettingRow(MainMenuSettingsItem::UiScale, scaleRowTop,
+                           L"UI SCALE",
+                           L"[ " + std::to_wstring(scalePercent) + L"% ]");
+            drawSettingRow(MainMenuSettingsItem::ReducedMotion, motionRowTop,
+                           L"REDUCED MOTION",
+                           frameState.reducedMotion ? L"[ ON ]" : L"[ OFF ]");
+
+            drawText(L"UP / DOWN TO SELECT    ENTER / A TO CHANGE    ESC / B TO CLOSE",
                      D2D1::RectF(left + 38.0F * ui,
-                                 top + 116.0F * ui,
-                                 left + 330.0F * ui,
-                                 top + 150.0F * ui),
-                     menuFormat.Get(), kMuted);
-            drawText(frameState.reducedMotion ? L"[ ON ]" : L"[ OFF ]",
-                     D2D1::RectF(left + 360.0F * ui,
-                                 top + 116.0F * ui,
+                                 bottom - 50.0F * ui,
                                  right - 38.0F * ui,
-                                 top + 150.0F * ui),
-                     menuFormat.Get(), kBrass);
-            drawText(L"ENTER / A TO TOGGLE    ESC / B TO CLOSE",
-                     D2D1::RectF(left + 38.0F * ui,
-                                 bottom - 58.0F * ui,
-                                 right - 38.0F * ui,
-                                 bottom - 25.0F * ui),
+                                 bottom - 20.0F * ui),
                      smallFormat.Get(), kMuted);
         } else {
             drawText(L"CREDITS",
