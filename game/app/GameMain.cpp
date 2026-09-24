@@ -277,6 +277,28 @@ void updateBuildPreview(Client &c, Position position) {
   c.refreshUi();
 }
 
+void resetCampaignUiState(Client &c) {
+  c.selected = 0;
+  c.selectedAlertId = 0;
+  c.tabScroll = 0;
+  c.operationsFilter = 0;
+  c.operationsSort = hh::frontend::OperationSort::SchedulerOrder;
+  c.financeView = FinanceView::Overview;
+  c.financeControlView = FinanceControlView::Pricing;
+  c.financeRuleIndex = 0;
+  c.financeOverbookingIndex = 0;
+  c.buildCategoryFilter.clear();
+  c.tool = Tool::Inspect;
+  c.buildPreview = {};
+  c.previewValid = false;
+  c.managementOverlay = hh::frontend::OverlayId::None;
+  c.overlay = Overlay::Natural;
+  c.focusedButton = -1;
+  c.hoveredButton = -1;
+  c.keyBindingEditor.cancel();
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+}
+
 void performUiAction(Client &c, hh::frontend::UiAction action) {
   switch (clientUiIntent(action)) {
   case ClientUiIntent::FocusPrevious:
@@ -692,12 +714,7 @@ bool Client::load() {
     simulation = std::move(restored);
     pendingSimulationSeconds = 0;
     speed = 0;
-    selected = 0;
-    tabScroll = 0;
-    buildPreview = {};
-    previewValid = false;
-    managementOverlay = hh::frontend::OverlayId::None;
-    overlay = Overlay::Natural;
+    resetCampaignUiState(*this);
     refresh();
     changeFloor(std::min(floor, snapshot.floors - 1));
     notice = L"Campaign restored and paused.";
@@ -727,14 +744,10 @@ void Client::newCampaign() {
   }
   simulation = std::move(campaign);
   pendingSimulationSeconds = 0;
-  selected = 0;
   speed = 0;
   floor = 0;
   page = Page::Guide;
-  managementOverlay = hh::frontend::OverlayId::None;
-  overlay = Overlay::Natural;
-  buildPreview = {};
-  previewValid = false;
+  resetCampaignUiState(*this);
   refresh();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
