@@ -51,7 +51,7 @@ TaskId HousekeepingSystem::requestRoomTurn(RoomId roomId) {
   const auto id = nextId_++;
   jobs_.push_back({id, roomId, HousekeepingStage::StripLinen,
                    duration(HousekeepingStage::StripLinen), BlockReason::None,
-                   false});
+                   false, false});
   return id;
 }
 
@@ -70,12 +70,15 @@ bool HousekeepingSystem::beginStage(Job &job) {
     }
     break;
   case HousekeepingStage::CleanBathroom:
-    if (!logistics_->consumeUsable("cleaning_chemical", 1)) {
+    if (!job.suppliesPreclaimed &&
+        !logistics_->consumeUsable("cleaning_chemical", 1)) {
       job.blockedReason = BlockReason::MissingChemicals;
       return false;
     }
     break;
   case HousekeepingStage::ReplaceLinen:
+    if (job.suppliesPreclaimed)
+      break;
     if (logistics_->inventoryUsable("clean_linen_set") < 1) {
       job.blockedReason = BlockReason::MissingCleanLinen;
       return false;
@@ -94,7 +97,8 @@ bool HousekeepingSystem::beginStage(Job &job) {
     }
     break;
   case HousekeepingStage::ReplenishAmenities:
-    if (!logistics_->consumeUsable("amenity_kit", 1)) {
+    if (!job.suppliesPreclaimed &&
+        !logistics_->consumeUsable("amenity_kit", 1)) {
       job.blockedReason = BlockReason::MissingAmenities;
       return false;
     }
