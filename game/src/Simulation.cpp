@@ -1129,10 +1129,44 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
                       static_cast<std::int64_t>(o.parts) * 3500;
   if (impl_->economy.cashCents < cost)
     return {false, "Insufficient cash"};
+
+  // Stage FINAL-04 logistics on a copy first. The legacy order remains in
+  // place for the physical scheduler until that subsystem is retired, but a
+  // player purchase must be visible to both authorities or the operations UI
+  // and usable service inventory diverge immediately.
+  auto stagedServices = impl_->services;
+  auto &logistics = stagedServices.logistics();
+  const int etaDay = static_cast<int>(impl_->elapsed / 86400) + 2;
+  const auto secondsUntilEta =
+      std::max<std::int64_t>(0, static_cast<std::int64_t>(etaDay) * 86400 -
+                                    impl_->elapsed);
+  const int leadSeconds = static_cast<int>(
+      std::min<std::int64_t>(secondsUntilEta, std::numeric_limits<int>::max()));
+
+  const auto stageItem = [&](std::string_view item, int quantity,
+                             StorageKind destinationKind) {
+    if (quantity == 0)
+      return true;
+    const auto destination = logistics.firstStorage(destinationKind);
+    if (destination == 0)
+      return false;
+    return logistics
+        .placePurchaseOrder(item, quantity, destination, leadSeconds)
+        .ok();
+  };
+
+  if (!stageItem("clean_linen_set", o.linen, StorageKind::CleanLinen) ||
+      !stageItem("towel_unit", o.towels, StorageKind::FloorCloset) ||
+      !stageItem("amenity_kit", o.amenities, StorageKind::FloorCloset) ||
+      !stageItem("cleaning_chemical", o.chemicals, StorageKind::FloorCloset) ||
+      !stageItem("maintenance_part", o.parts, StorageKind::CentralStorage))
+    return {false, "Service storage cannot accept this supply order"};
+
   PendingOrder p;
   p.id = impl_->nextId++;
   p.items = {o.linen, o.towels, o.amenities, o.chemicals, o.parts};
-  p.etaDay = impl_->elapsed / 86400 + 2;
+  p.etaDay = etaDay;
+  impl_->services = std::move(stagedServices);
   impl_->orders.push_back(p);
   impl_->economy.cashCents -= cost;
   impl_->economy.supplyCostCents += cost;
