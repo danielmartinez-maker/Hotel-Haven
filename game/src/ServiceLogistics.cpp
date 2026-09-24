@@ -225,12 +225,25 @@ bool ServiceLogisticsRuntime::canClaimRoomTurnSuppliesForSimulation(
     return false;
   if (job->suppliesPreclaimed)
     return true;
+  const auto needsStageSupply = [&](HousekeepingStage stage) {
+    return enumValue(job->stage) < enumValue(stage) ||
+           (job->stage == stage && !job->stageStarted);
+  };
   const auto &logistics = impl_->logistics;
-  return logistics.canAddToKind(StorageKind::DirtyLinen, 1) &&
-         logistics.inventoryUsable("clean_linen_set") >= 1 &&
-         logistics.inventoryUsable("towel_unit") >= 2 &&
-         logistics.inventoryUsable("amenity_kit") >= 1 &&
-         logistics.inventoryUsable("cleaning_chemical") >= 1;
+  const bool dirtyCapacity =
+      job->stage != HousekeepingStage::StripLinen ||
+      logistics.canAddToKind(StorageKind::DirtyLinen, 1);
+  const bool chemicals =
+      !needsStageSupply(HousekeepingStage::CleanBathroom) ||
+      logistics.inventoryUsable("cleaning_chemical") >= 1;
+  const bool linen =
+      !needsStageSupply(HousekeepingStage::ReplaceLinen) ||
+      (logistics.inventoryUsable("clean_linen_set") >= 1 &&
+       logistics.inventoryUsable("towel_unit") >= 2);
+  const bool amenities =
+      !needsStageSupply(HousekeepingStage::ReplenishAmenities) ||
+      logistics.inventoryUsable("amenity_kit") >= 1;
+  return dirtyCapacity && chemicals && linen && amenities;
 }
 
 bool ServiceLogisticsRuntime::claimRoomTurnSuppliesForSimulation(
@@ -250,10 +263,20 @@ bool ServiceLogisticsRuntime::claimRoomTurnSuppliesForSimulation(
     return false;
 
   auto &logistics = impl_->logistics;
-  if (!logistics.consumeUsable("cleaning_chemical", 1) ||
-      !logistics.consumeUsable("clean_linen_set", 1) ||
-      !logistics.consumeUsable("towel_unit", 2) ||
-      !logistics.consumeUsable("amenity_kit", 1))
+  const auto needsStageSupply = [&](HousekeepingStage stage) {
+    return enumValue(job->stage) < enumValue(stage) ||
+           (job->stage == stage && !job->stageStarted);
+  };
+  const bool claimChemicals =
+      needsStageSupply(HousekeepingStage::CleanBathroom);
+  const bool claimLinen = needsStageSupply(HousekeepingStage::ReplaceLinen);
+  const bool claimAmenities =
+      needsStageSupply(HousekeepingStage::ReplenishAmenities);
+  if ((claimChemicals &&
+       !logistics.consumeUsable("cleaning_chemical", 1)) ||
+      (claimLinen && !logistics.consumeUsable("clean_linen_set", 1)) ||
+      (claimLinen && !logistics.consumeUsable("towel_unit", 2)) ||
+      (claimAmenities && !logistics.consumeUsable("amenity_kit", 1)))
     throw std::logic_error("canonical room-turn preclaim lost validated stock");
   job->suppliesPreclaimed = true;
   job->blockedReason = BlockReason::None;
