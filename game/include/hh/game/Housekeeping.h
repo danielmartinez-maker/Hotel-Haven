@@ -53,6 +53,7 @@ private:
     int remainingSeconds{};
     BlockReason blockedReason{BlockReason::None};
     bool stageStarted{};
+    bool suppliesPreclaimed{};
   };
 
   [[nodiscard]] RoomState *room(RoomId id);
