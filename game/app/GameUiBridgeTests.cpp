@@ -81,8 +81,8 @@ int main() {
             "legacy supply-order fixture did not create legacy order state");
     const auto legacyOrderSource =
         hh::client::makeGameUiSnapshotSource(legacyOrderSimulation, context);
-    require(legacyOrderSource.operations.incomingOrders == 0,
-            "FINAL-07 operations dashboard leaked legacy supply-order authority");
+    require(legacyOrderSource.operations.incomingOrders == 1,
+            "FINAL-07 operations dashboard did not project the mirrored FINAL-04 order exactly once");
 
     hh::game::Simulation inventorySimulation =
         hh::game::Simulation::tutorial(20260910);
