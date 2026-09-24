@@ -789,39 +789,54 @@ void Client::paint(HDC output) {
     const auto matching = pageEntities(*this, page);
     const auto selectedEntity = std::find_if(gameUi.entities.begin(), gameUi.entities.end(),
         [this](const auto &entity) { return entity.id == selected; });
-    if (selectedEntity != gameUi.entities.end() && belongs(page, selectedEntity->kind)) {
+    if (selectedEntity != gameUi.entities.end() &&
+        belongs(page, selectedEntity->kind)) {
+      const int inspectorListReserve =
+          matching.size() > 1 ? vpx(105) : vpx(45);
+      const int detailBottom =
+          std::max(y + vpx(56), bottom - inspectorListReserve);
+
       paragraph(wide(selectedEntity->title), 28);
       for (const auto &field : selectedEntity->fields) {
-        if (y + vpx(28) >= bottom) break;
+        if (y + vpx(28) >= detailBottom)
+          break;
         label(wide(field.label), wide(field.value));
       }
       for (const auto &diagnostic : selectedEntity->diagnostics) {
-        if (y + vpx(42) >= bottom) break;
-        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " + wide(diagnostic.message), 36, Warning);
+        if (y + vpx(42) >= detailBottom)
+          break;
+        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " +
+                      wide(diagnostic.message),
+                  36, Warning);
       }
+
       if (page == Page::Staff &&
-          selectedEntity->kind == InspectorKind::Department) {
+          selectedEntity->kind == InspectorKind::Department &&
+          y + vpx(38) < detailBottom) {
         const auto departments = simulation.departments();
         const auto department = std::find_if(
             departments.begin(), departments.end(),
-            [&](const auto &value) { return value.name == selectedEntity->title; });
+            [&](const auto &value) {
+              return value.name == selectedEntity->title;
+            });
         if (department != departments.end()) {
-          paragraph(L"Manager controls", 24, Muted);
           const auto departmentId = department->id;
-          if (department->managerId != 0 && y + vpx(38) < bottom) {
+          if (department->managerId != 0 &&
+              y + vpx(38) < detailBottom) {
             fullButton(L"Clear current manager", [this, departmentId] {
               const auto result = ui.dispatchUiCommand(
                   UiCommand{UiCommandType::AssignDepartmentManager, 0,
                             static_cast<std::int64_t>(departmentId)});
-              notice = result.message.empty()
-                           ? (result.ok ? L"Department manager cleared."
-                                        : L"Manager change rejected.")
-                           : wide(result.message);
+              notice =
+                  result.message.empty()
+                      ? (result.ok ? L"Department manager cleared."
+                                   : L"Manager change rejected.")
+                      : wide(result.message);
               refreshUi();
             });
           }
           for (const auto candidateId : department->directReports) {
-            if (y + vpx(38) >= bottom)
+            if (y + vpx(38) >= detailBottom)
               break;
             const auto person = std::find_if(
                 snapshot.people.begin(), snapshot.people.end(),
@@ -830,24 +845,30 @@ void Client::paint(HDC output) {
                 person == snapshot.people.end()
                     ? std::to_wstring(candidateId)
                     : wide(person->name);
-            fullButton(L"Assign " + candidateName + L" as manager",
-                       [this, departmentId, candidateId] {
-                         const auto result = ui.dispatchUiCommand(
-                             UiCommand{UiCommandType::AssignDepartmentManager,
-                                       candidateId,
-                                       static_cast<std::int64_t>(departmentId)});
-                         notice = result.message.empty()
-                                      ? (result.ok
-                                             ? L"Department manager assigned."
-                                             : L"Manager change rejected.")
-                                      : wide(result.message);
-                         refreshUi();
-                       });
+            fullButton(
+                L"Assign " + candidateName + L" as manager",
+                [this, departmentId, candidateId] {
+                  const auto result = ui.dispatchUiCommand(
+                      UiCommand{UiCommandType::AssignDepartmentManager,
+                                candidateId,
+                                static_cast<std::int64_t>(departmentId)});
+                  notice =
+                      result.message.empty()
+                          ? (result.ok ? L"Department manager assigned."
+                                       : L"Manager change rejected.")
+                          : wide(result.message);
+                  refreshUi();
+                });
           }
         }
       }
-      separator();
-    } else paragraph(L"Select an item below to view its current status and any blockers.", 48);
+
+      if (y < detailBottom)
+        separator();
+    } else {
+      paragraph(L"Select an item below to view its current status and any blockers.",
+                48);
+    }
     for (std::size_t index = static_cast<std::size_t>(tabScroll);
          index < matching.size() && y + vpx(38) < bottom; ++index) {
       const auto *entity = matching[index];
