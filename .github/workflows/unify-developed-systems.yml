@@ -62,6 +62,10 @@ jobs:
           test -f Tools/OpenUsdPipeline/hh_usd.py
           test -f Tools/BalanceLab/balance_lab.py
 
+      - name: Checkpoint merged integration tree
+        shell: bash
+        run: git push origin HEAD:integration/unify-developed-systems-2026-09-24
+
       - name: Configure unified build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
