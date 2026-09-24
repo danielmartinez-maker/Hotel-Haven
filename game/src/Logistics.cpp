@@ -242,7 +242,6 @@ void LogisticsSystem::rebuildDerivedState() {
   for (std::size_t index = 0; index < orders_.size(); ++index) {
     orderIndex_.emplace(orders_[index].id, index);
     if (orders_[index].state != PurchaseOrderState::Completed &&
-        orders_[index].state != PurchaseOrderState::RejectedNoCapacity &&
         orders_[index].state != PurchaseOrderState::Cancelled)
       activeOrders_.push_back(index);
     if (orders_[index].state == PurchaseOrderState::InTransit)
@@ -321,7 +320,6 @@ void LogisticsSystem::tickSecond() {
                      [&](std::size_t index) {
                        const auto state = orders_[index].state;
                        return state == PurchaseOrderState::Completed ||
-                              state == PurchaseOrderState::RejectedNoCapacity ||
                               state == PurchaseOrderState::Cancelled;
                      }),
       activeOrders_.end());
@@ -368,8 +366,10 @@ LogisticsSnapshot LogisticsSystem::snapshot(bool includeHistory) const {
   out.wastePickupActive = wastePickupRemaining_ >= 0;
   out.storage.reserve(storage_.size());
   out.inventory.reserve(inventory_.size());
-  out.purchaseOrders.reserve(orders_.size());
-  out.stockMoves.reserve(moves_.size());
+  out.purchaseOrders.reserve(includeHistory ? orders_.size()
+                                            : activeOrders_.size());
+  out.stockMoves.reserve(includeHistory ? moves_.size()
+                                        : activeMoves_.size());
 
   std::unordered_map<StorageNodeId, int> usedByStorage;
   usedByStorage.reserve(storage_.size());
