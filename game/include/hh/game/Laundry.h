@@ -56,8 +56,6 @@ private:
     int remainingSeconds{};
     BlockReason blockedReason{BlockReason::None};
   };
-  [[nodiscard]] int activeIn(LaundryStage stage) const;
-
   LogisticsSystem *logistics_{};
   LaundryStations stations_{};
   ServiceId nextId_{1};
