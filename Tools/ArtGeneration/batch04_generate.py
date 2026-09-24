@@ -310,15 +310,19 @@ def reception(name):
 
     if 'Reception Desk' in name:
         add(s,box((w+0.08,d+0.04,0.07),(0,0,h+0.035),'MAT_MARBLE_LIGHT'),'Countertop')
-        add(s,box((w*0.78,0.025,h*0.55),(0,-d/2-0.015,h*0.48),'MAT_WOOD_DARK'),'FrontInset')
+        add(s,box((w*0.78,0.032,h*0.55),(0,-d/2-0.019,h*0.48),'MAT_WOOD_DARK'),'FrontInset')
+        add(s,box((w*0.88,d*0.76,0.09),(0,0,0.045),'MAT_WOOD_DARK'),'ReceptionToeKick')
+        add(s,box((w*0.76,0.030,0.045),(0,-d/2-0.052,h*0.68),'MAT_BRASS_POLISHED'),'ReceptionFrontRail')
+        for i,x in enumerate((-w*0.39,w*0.39)):
+            add(s,box((0.038,0.030,h*0.46),(x,-d/2-0.052,h*0.43),'MAT_BRASS_POLISHED'),f'ReceptionPilaster_{i}')
         monitor_count = 2 if ('Double' in name or 'Grand' in name) else 1
         positions = np.linspace(-w*0.25,w*0.25,monitor_count)
         for i,x in enumerate(positions):
             _monitor(s,float(x),h+0.28,i)
         if 'Grand' in name:
-            add(s,box((w*0.72,0.020,0.045),(0,-d/2-0.045,h*0.72),'MAT_BRASS_POLISHED'),'BrassInlay')
+            add(s,box((w*0.72,0.020,0.045),(0,-d/2-0.065,h*0.77),'MAT_BRASS_POLISHED'),'BrassInlay')
             for x in (-w*0.38,w*0.38):
-                add(s,box((0.045,0.025,h*0.48),(x,-d/2-0.045,h*0.42),'MAT_BRASS_POLISHED'),f'GrandVerticalInlay_{x}')
+                add(s,box((0.045,0.025,h*0.48),(x,-d/2-0.065,h*0.42),'MAT_BRASS_POLISHED'),f'GrandVerticalInlay_{x}')
 
     if 'Back Counter' in name:
         add(s,box((w+0.04,d+0.03,0.055),(0,0,h+0.028),'MAT_STONE_LIGHT'),'WorkSurface')
