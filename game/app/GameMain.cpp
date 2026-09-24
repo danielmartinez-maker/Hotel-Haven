@@ -233,17 +233,15 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
     case WM_MOUSEWHEEL: {
       const float steps =
           static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
-      if (!view) {
-        POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
-        ScreenToClient(c->window, &point);
-        const bool overPanel =
-            point.x >= c->width - SidebarWidth &&
-            point.y >= HeaderHeight &&
-            point.y < c->height - FooterHeight;
-        if (overPanel) {
-          c->scrollPanel(steps > 0.0f ? -1 : 1);
-          return 0;
-        }
+      POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+      ScreenToClient(c->window, &point);
+      const bool overPanel =
+          point.x >= c->width - SidebarWidth &&
+          point.y >= HeaderHeight &&
+          point.y < c->height - FooterHeight;
+      if (overPanel) {
+        c->scrollPanel(steps > 0.0f ? -1 : 1);
+        return 0;
       }
       c->camera.setOrthoHeight(std::clamp(
           c->camera.orthoHeight() * std::pow(.85f, steps), 8.f, 150.f));
