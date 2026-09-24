@@ -4,6 +4,7 @@ project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
   # Authoritative physical simulation + FINAL-04/05/06 integration.
   src/Simulation.cpp
+  src/SimulationIntegrated.cpp
   src/SimulationEconomyBridge.cpp
   src/Housekeeping.cpp
   src/Laundry.cpp
