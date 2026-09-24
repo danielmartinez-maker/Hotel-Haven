@@ -72,8 +72,8 @@ int main() {
           requestedIds.emplace_back(id);
           return visual(assetNumber(id));
         });
-    require(requiredWorldAssetIds().size() == 59u,
-            "world dependency contract should contain 59 assets");
+    require(requiredWorldAssetIds().size() == 64u,
+            "world dependency contract should contain 64 assets");
     require(requestedIds.size() == requiredWorldAssetIds().size(),
             "startup world asset resolver did not resolve the complete dependency set");
     auto uniqueIds = requestedIds;
@@ -87,8 +87,18 @@ int main() {
             "guest door startup binding mismatch");
     require(resolved.lobbyEntranceDoor->handle == AssetHandle{57},
             "lobby entrance startup binding mismatch");
-    require(resolved.guestBed->handle == AssetHandle{113},
-            "guest bed startup binding mismatch");
+    require(resolved.singleBed->handle == AssetHandle{111},
+            "single bed startup binding mismatch");
+    require(resolved.doubleBed->handle == AssetHandle{112},
+            "double bed startup binding mismatch");
+    require(resolved.queenBed->handle == AssetHandle{113},
+            "queen bed startup binding mismatch");
+    require(resolved.kingBed->handle == AssetHandle{114},
+            "king bed startup binding mismatch");
+    require(resolved.twinBedLeft->handle == AssetHandle{115},
+            "left twin startup binding mismatch");
+    require(resolved.twinBedRight->handle == AssetHandle{116},
+            "right twin startup binding mismatch");
     require(resolved.nightstand->handle == AssetHandle{121},
             "nightstand startup binding mismatch");
     require(resolved.bedsideLamp->handle == AssetHandle{125},
@@ -148,7 +158,7 @@ int main() {
     options.selected = snapshot.rooms.front().id;
     const auto scene = worldScene(snapshot, options, &assets);
     require(!scene.meshes.empty(), "world omitted asset-backed furnishing geometry");
-    require(containsHandle(scene, 113), "guest bed did not use its asset handle");
+    require(containsHandle(scene, 113), "queen bed did not use its asset handle");
     require(containsHandle(scene, 121), "nightstand did not use its asset handle");
     require(containsHandle(scene, 125), "bedside lamp did not use its asset handle");
     require(containsHandle(scene, 126), "guest desk did not use its asset handle");
@@ -172,6 +182,48 @@ int main() {
       require(containsHandle(scene, 302),
               "supply closets did not use the cleaning cabinet mesh");
     require(scene.focusTarget.has_value(), "selected room has no cutaway focus");
+
+    struct BedCase {
+      int width;
+      int beds;
+      std::array<std::uint32_t, 2> handles;
+      std::size_t handleCount;
+    };
+    const std::array<BedCase, 5> bedCases{{
+        {4, 1, {111, 0}, 1},
+        {5, 1, {112, 0}, 1},
+        {6, 1, {113, 0}, 1},
+        {8, 1, {114, 0}, 1},
+        {8, 2, {115, 116}, 2},
+    }};
+    for (std::size_t caseIndex = 0; caseIndex < bedCases.size(); ++caseIndex) {
+      hh::game::SimulationView bedSnapshot;
+      bedSnapshot.width = 12;
+      bedSnapshot.height = 10;
+      bedSnapshot.floors = 1;
+      hh::game::RoomView bedRoom;
+      bedRoom.id = 710000 + caseIndex;
+      bedRoom.name = "Bed variant room";
+      bedRoom.door = {0, 1, 1};
+      bedRoom.status = hh::game::RoomStatus::VacantReady;
+      bedRoom.floor = 0;
+      bedRoom.x = 1;
+      bedRoom.y = 1;
+      bedRoom.width = bedCases[caseIndex].width;
+      bedRoom.height = 7;
+      bedRoom.beds = bedCases[caseIndex].beds;
+      bedRoom.baths = 0;
+      bedRoom.cleanliness = 100;
+      bedRoom.condition = 100;
+      bedSnapshot.rooms.push_back(bedRoom);
+
+      const auto bedScene = worldScene(bedSnapshot, WorldViewOptions{}, &assets);
+      for (std::size_t handleIndex = 0;
+           handleIndex < bedCases[caseIndex].handleCount; ++handleIndex) {
+        require(containsHandle(bedScene, bedCases[caseIndex].handles[handleIndex]),
+                "room footprint did not select the expected bed variant");
+      }
+    }
 
     hh::game::SimulationView placementSnapshot;
     placementSnapshot.width = 12;
