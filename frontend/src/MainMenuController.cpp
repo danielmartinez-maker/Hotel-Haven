@@ -5,8 +5,14 @@
 namespace hh::frontend {
 
 void MainMenuController::navigate(int delta) noexcept {
-    if (delta == 0 || model_.modal() != MainMenuModal::None ||
-        model_.panel() != MainMenuPanel::None) {
+    if (delta == 0 || model_.modal() != MainMenuModal::None) {
+        return;
+    }
+    if (model_.panel() == MainMenuPanel::Settings) {
+        model_.navigateSettings(delta);
+        return;
+    }
+    if (model_.panel() != MainMenuPanel::None) {
         return;
     }
 
@@ -80,6 +86,15 @@ bool MainMenuController::hover(MainMenuItem item) noexcept {
         return false;
     }
     return model_.select(item);
+}
+
+bool MainMenuController::hoverSettings(MainMenuSettingsItem item) noexcept {
+    if (model_.modal() != MainMenuModal::None ||
+        model_.panel() != MainMenuPanel::Settings) {
+        return false;
+    }
+    model_.selectSettings(item);
+    return true;
 }
 
 MainMenuCommand MainMenuController::commandFor(MainMenuItem item) noexcept {

@@ -78,6 +78,18 @@ int main() {
                         layout.footerPixels ==
                     resolution[1],
                 "scaled vertical chrome must reconcile with viewport height");
+
+        const auto panel = hh::client::computeFinal07PanelLayout(
+            resolution[0], resolution[1], scale);
+        require(panel.contentWidthPixels > 0,
+                "scaled management panel must retain usable width");
+        require(panel.contentHeightPixels > 0 &&
+                    panel.contentTopPixels < panel.contentBottomPixels,
+                "scaled management panel must retain bounded content height");
+        require(panel.densityScalePercent <= 115,
+                "panel whitespace density must stay capped at large UI scales");
+        require(panel.buildColumns == 2 || panel.buildColumns == 3,
+                "build catalog must retain a supported responsive column count");
       }
     }
     const auto type100 = hh::client::computeFinal07Typography(100);
@@ -101,6 +113,39 @@ int main() {
                   -currentType.numberHeight >= -previousType.numberHeight,
               "supported UI scales must never shrink typography as scale increases");
     }
+
+    require(hh::client::final07DensityScalePercent(90) == 90 &&
+                hh::client::final07DensityScalePercent(110) == 110 &&
+                hh::client::final07DensityScalePercent(125) == 115 &&
+                hh::client::final07DensityScalePercent(150) == 115,
+            "FINAL-07 density scaling must cap whitespace growth without shrinking typography");
+    require(hh::client::final07BuildCatalogColumns(359) == 2 &&
+                hh::client::final07BuildCatalogColumns(360) == 3 &&
+                hh::client::final07BuildCatalogColumns(474) == 3,
+            "FINAL-07 build catalog must use the compact third column when the scaled panel permits it");
+    const auto smallestLargeUi =
+        hh::client::computeFinal07PanelLayout(1280, 720, 150);
+    require(smallestLargeUi.contentHeightPixels >= 250 &&
+                smallestLargeUi.buildColumns == 3,
+            "1280x720 at 150 percent must preserve a usable compact management workspace");
+
+    require(hh::client::final07ValidatedControlIndex(-1, 5) == -1 &&
+                hh::client::final07ValidatedControlIndex(0, 5) == 0 &&
+                hh::client::final07ValidatedControlIndex(4, 5) == 4 &&
+                hh::client::final07ValidatedControlIndex(5, 5) == -1 &&
+                hh::client::final07ValidatedControlIndex(2, 0) == -1,
+            "rebuilt control trees must clear stale keyboard/controller indices");
+
+    require(hh::client::final07PointInManagementPanel(
+                1280, 720, 150, 1279, 300),
+            "pointer inside scaled sidebar must route wheel input to the panel");
+    require(!hh::client::final07PointInManagementPanel(
+                1280, 720, 150, 700, 300) &&
+                !hh::client::final07PointInManagementPanel(
+                    1280, 720, 150, 1279, 100) &&
+                !hh::client::final07PointInManagementPanel(
+                    1280, 720, 150, 1279, 700),
+            "world, header, and footer points must stay outside management-panel wheel routing");
 
     const auto normal = hh::client::computeFinal07Layout(1500, 960, 100);
     require(normal.headerPixels == 88 && normal.footerPixels == 58 &&

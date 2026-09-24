@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -7,6 +8,11 @@
 #include "hh/frontend/MenuHotelProvider.h"
 
 namespace hh::frontend {
+
+inline constexpr std::array<float, 5> MainMenuUiScales{
+    0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
+
+[[nodiscard]] float nextMainMenuUiScale(float currentScale) noexcept;
 
 struct PropertyCardText {
     std::string hotelName;
@@ -24,6 +30,8 @@ struct LayoutMetrics {
     float viewportHeight{};
     float logicalScale{1.0F};
     float uiScale{1.0F};
+    float uiContentScale{1.0F};
+    float uiDensityScale{1.0F};
     float safeZoneLeft{};
     float safeZoneTop{};
     float safeZoneWidth{};

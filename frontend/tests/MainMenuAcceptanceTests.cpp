@@ -27,15 +27,32 @@ TEST_CASE("layout remains inside supported resolution matrix") {
         {1600.0F, 1200.0F},
     }};
 
+    EXPECT_EQ(hh::frontend::MainMenuUiScales.size(), std::size_t{5});
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.front(), 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.back(), 1.50F, 0.0001F);
+
     for (const auto& [width, height] : sizes) {
-        const auto layout = view.layout(width, height, 1.0F);
-        EXPECT_TRUE(layout.logicalScale > 0.0F);
-        EXPECT_TRUE(layout.navigationLeft >= 0.0F);
-        EXPECT_TRUE(layout.navigationTop >= 0.0F);
-        EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
-        EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+        for (const float uiScale : hh::frontend::MainMenuUiScales) {
+            const auto layout = view.layout(width, height, uiScale);
+            EXPECT_TRUE(layout.logicalScale > 0.0F);
+            EXPECT_TRUE(layout.uiContentScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale <= layout.uiContentScale + 0.001F);
+            EXPECT_TRUE(layout.navigationLeft >= 0.0F);
+            EXPECT_TRUE(layout.navigationTop >= 0.0F);
+            EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
+            EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+
+            const float menuBottom =
+                layout.navigationTop +
+                (8.0F * 55.0F + 28.0F) * layout.uiContentScale;
+            EXPECT_TRUE(menuBottom <= height + 0.01F);
+            EXPECT_TRUE(layout.versionLeft >= 0.0F);
+            EXPECT_TRUE(layout.versionLeft + 300.0F * layout.uiContentScale <=
+                        width + 0.01F);
+        }
     }
 }
 
@@ -66,4 +83,20 @@ TEST_CASE("reduced motion removes idle and selection camera motion") {
     EXPECT_NEAR(pose.targetXOffset, 0.0F, 0.0001F);
     EXPECT_NEAR(pose.targetZOffset, 0.0F, 0.0001F);
     EXPECT_NEAR(pose.zoomScale, 1.0F, 0.0001F);
+}
+
+TEST_CASE("Living Hotel UI scale cycles through the shared supported sequence") {
+    float scale = 0.90F;
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.00F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.10F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.25F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.50F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::nextMainMenuUiScale(1.234F),
+                1.00F, 0.0001F);
 }

@@ -76,6 +76,15 @@ std::string DefaultMenuNumberFormatter::unsignedValue(std::uint64_t value) const
     return std::to_string(value);
 }
 
+float nextMainMenuUiScale(float currentScale) noexcept {
+    for (std::size_t index = 0; index < MainMenuUiScales.size(); ++index) {
+        if (std::fabs(MainMenuUiScales[index] - currentScale) < 0.001F) {
+            return MainMenuUiScales[(index + 1) % MainMenuUiScales.size()];
+        }
+    }
+    return 1.0F;
+}
+
 MainMenuView::MainMenuView() noexcept : formatter_(&defaultFormatter_) {}
 
 MainMenuView::MainMenuView(const IMenuNumberFormatter& formatter) noexcept : formatter_(&formatter) {}
@@ -116,21 +125,33 @@ LayoutMetrics MainMenuView::layout(
     result.viewportHeight = std::max(physicalHeight, 1.0F);
     result.logicalScale = std::min(result.viewportWidth / kReferenceWidth, result.viewportHeight / kReferenceHeight);
     result.uiScale = std::clamp(requestedUiScale, 0.90F, 1.50F);
+    result.uiContentScale = result.logicalScale * result.uiScale;
+    result.uiDensityScale =
+        result.logicalScale * std::min(result.uiScale, 1.15F);
 
     result.safeZoneWidth = kReferenceWidth * result.logicalScale;
     result.safeZoneHeight = kReferenceHeight * result.logicalScale;
     result.safeZoneLeft = (result.viewportWidth - result.safeZoneWidth) * 0.5F;
     result.safeZoneTop = (result.viewportHeight - result.safeZoneHeight) * 0.5F;
 
-    const float scaledUi = result.logicalScale * result.uiScale;
-    result.navigationLeft = result.safeZoneLeft + 72.0F * scaledUi;
-    result.navigationTop = result.safeZoneTop + 300.0F * scaledUi;
-    result.navigationWidth = 360.0F * scaledUi;
-    result.propertyCardWidth = 320.0F * scaledUi;
-    result.propertyCardLeft = result.safeZoneLeft + result.safeZoneWidth - 64.0F * scaledUi - result.propertyCardWidth;
-    result.propertyCardTop = result.safeZoneTop + result.safeZoneHeight * 0.48F - 170.0F * scaledUi;
-    result.versionLeft = result.safeZoneLeft + 72.0F * scaledUi;
-    result.versionBottom = result.safeZoneTop + result.safeZoneHeight - 48.0F * scaledUi;
+    result.navigationLeft =
+        result.safeZoneLeft + 72.0F * result.uiContentScale;
+    result.navigationTop =
+        result.safeZoneTop + 300.0F * result.uiDensityScale;
+    result.navigationWidth = 360.0F * result.uiContentScale;
+    result.propertyCardWidth = 320.0F * result.uiContentScale;
+    result.propertyCardLeft =
+        result.safeZoneLeft + result.safeZoneWidth -
+        64.0F * result.uiContentScale - result.propertyCardWidth;
+    result.propertyCardTop =
+        result.safeZoneTop + result.safeZoneHeight * 0.48F -
+        170.0F * result.uiContentScale;
+    result.versionLeft =
+        result.safeZoneLeft + result.safeZoneWidth -
+        300.0F * result.uiContentScale;
+    result.versionBottom =
+        result.safeZoneTop + result.safeZoneHeight -
+        48.0F * result.uiContentScale;
     return result;
 }
 

@@ -25,6 +25,14 @@ public:
     [[nodiscard]] MainMenuPanel panel() const noexcept { return panel_; }
     void setPanel(MainMenuPanel panel) noexcept { panel_ = panel; }
 
+    [[nodiscard]] MainMenuSettingsItem settingsSelection() const noexcept {
+        return settingsSelection_;
+    }
+    void selectSettings(MainMenuSettingsItem item) noexcept {
+        settingsSelection_ = item;
+    }
+    void navigateSettings(int delta) noexcept;
+
 private:
     [[nodiscard]] static std::size_t indexOf(MainMenuItem item) noexcept;
     [[nodiscard]] MainMenuItem firstEnabled() const noexcept;
@@ -33,6 +41,7 @@ private:
     MainMenuItem selected_{MainMenuItem::NewHotel};
     MainMenuModal modal_{MainMenuModal::None};
     MainMenuPanel panel_{MainMenuPanel::None};
+    MainMenuSettingsItem settingsSelection_{MainMenuSettingsItem::UiScale};
 };
 
 }  // namespace hh::frontend

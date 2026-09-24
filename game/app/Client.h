@@ -89,6 +89,8 @@ struct Client {
   std::size_t financeRuleIndex{};
   std::size_t financeOverbookingIndex{};
   FinanceView financeView{FinanceView::Overview};
+  FinanceControlView financeControlView{FinanceControlView::Pricing};
+  SettingsView settingsView{SettingsView::Display};
   hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
@@ -103,6 +105,7 @@ struct Client {
       tabScroll = 0, operationsFilter = 0;
   int hoverX = -1, hoverY = -1;
   int focusedButton = -1;
+  int hoveredButton = -1;
   double pendingSimulationSeconds = 0;
   std::int64_t previewCostCents{};
   hh::game::EntityId selected{};
@@ -114,6 +117,7 @@ struct Client {
   hh::renderer::WallRenderMode wallMode = hh::renderer::WallRenderMode::Cutaway;
   bool context = false, running = true, smoke = false, initialized = false;
   std::string fatalError;
+  std::string buildCategoryFilter;
   std::wstring notice = L"Welcome. Open the guide to begin your first hotel.";
   HFONT normal{}, small{}, title{}, number{};
   int fontScalePercent{100};
@@ -127,6 +131,8 @@ struct Client {
   void click(int, int);
   void mapClick(int, int);
   void hover(int, int);
+  void hoverUi(int, int);
+  void scrollPanel(int);
   void key(int);
   void changeFloor(int);
   bool save();

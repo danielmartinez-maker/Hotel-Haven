@@ -185,6 +185,11 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       if (wp < 256) {
         c->keys[wp] = true;
         c->uiSettings.setInputModality(hh::frontend::InputModality::Keyboard);
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         if ((lp & (1LL << 30)) == 0)
           c->key(static_cast<int>(wp));
       }
@@ -208,11 +213,40 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       }
       return 0;
     case WM_MOUSEMOVE:
-      if (view)
+      if (view) {
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         c->hover(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+      } else {
+        c->hoverUi(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+        TRACKMOUSEEVENT tracking{};
+        tracking.cbSize = sizeof(tracking);
+        tracking.dwFlags = TME_LEAVE;
+        tracking.hwndTrack = window;
+        TrackMouseEvent(&tracking);
+      }
+      return 0;
+    case WM_MOUSELEAVE:
+      if (!view && c->hoveredButton != -1) {
+        c->hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+        InvalidateRect(c->window, nullptr, FALSE);
+      }
       return 0;
     case WM_MOUSEWHEEL: {
-      const float steps = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      const float steps =
+          static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+      ScreenToClient(c->window, &point);
+      const bool overPanel = final07PointInManagementPanel(
+          c->width, c->height, c->uiSettings.scalePercent(),
+          point.x, point.y);
+      if (overPanel) {
+        c->scrollPanel(steps > 0.0f ? -1 : 1);
+        return 0;
+      }
       c->camera.setOrthoHeight(std::clamp(
           c->camera.orthoHeight() * std::pow(.85f, steps), 8.f, 150.f));
       return 0;
@@ -241,6 +275,28 @@ void updateBuildPreview(Client &c, Position position) {
   c.buildPreview.y = position.y;
   c.notice = check.ok ? L"Placement preview · click to build" : wide(check.message);
   c.refreshUi();
+}
+
+void resetCampaignUiState(Client &c) {
+  c.selected = 0;
+  c.selectedAlertId = 0;
+  c.tabScroll = 0;
+  c.operationsFilter = 0;
+  c.operationsSort = hh::frontend::OperationSort::SchedulerOrder;
+  c.financeView = FinanceView::Overview;
+  c.financeControlView = FinanceControlView::Pricing;
+  c.financeRuleIndex = 0;
+  c.financeOverbookingIndex = 0;
+  c.buildCategoryFilter.clear();
+  c.tool = Tool::Inspect;
+  c.buildPreview = {};
+  c.previewValid = false;
+  c.managementOverlay = hh::frontend::OverlayId::None;
+  c.overlay = Overlay::Natural;
+  c.focusedButton = -1;
+  c.hoveredButton = -1;
+  c.keyBindingEditor.cancel();
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
 }
 
 void performUiAction(Client &c, hh::frontend::UiAction action) {
@@ -317,6 +373,11 @@ void pollController(Client &c) {
     return;
   }
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
+  if (c.hoveredButton != -1) {
+    c.hoveredButton = -1;
+    SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+    InvalidateRect(c.window, nullptr, FALSE);
+  }
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
     performUiAction(c, hh::frontend::UiAction::NavigateNext);
   if (pressed & (XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_LEFT))
@@ -429,8 +490,14 @@ void Client::click(int x, int y) {
       const Page priorPage = page;
       auto fn = b.action;
       fn();
-      if (page != priorPage)
+      const bool pageChanged = page != priorPage;
+      const bool scaleChanged = uiSettings.scalePercent() != priorScale;
+      if (pageChanged)
         keyBindingEditor.cancel();
+      if (pageChanged || scaleChanged) {
+        hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+      }
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
@@ -647,12 +714,7 @@ bool Client::load() {
     simulation = std::move(restored);
     pendingSimulationSeconds = 0;
     speed = 0;
-    selected = 0;
-    tabScroll = 0;
-    buildPreview = {};
-    previewValid = false;
-    managementOverlay = hh::frontend::OverlayId::None;
-    overlay = Overlay::Natural;
+    resetCampaignUiState(*this);
     refresh();
     changeFloor(std::min(floor, snapshot.floors - 1));
     notice = L"Campaign restored and paused.";
@@ -682,14 +744,10 @@ void Client::newCampaign() {
   }
   simulation = std::move(campaign);
   pendingSimulationSeconds = 0;
-  selected = 0;
   speed = 0;
   floor = 0;
   page = Page::Guide;
-  managementOverlay = hh::frontend::OverlayId::None;
-  overlay = Overlay::Natural;
-  buildPreview = {};
-  previewValid = false;
+  resetCampaignUiState(*this);
   refresh();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
