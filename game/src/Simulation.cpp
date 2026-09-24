@@ -2,6 +2,8 @@
 #include "hh/game/BuildJobs.h"
 #include "hh/game/BuildingSystems.h"
 #include "hh/game/Construction.h"
+#include "hh/game/GuestGoals.h"
+#include "hh/game/GuestPsychology.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
 #include <array>
@@ -2741,6 +2743,115 @@ CommandResult Simulation::requestElevator(EntityId elevatorId, int pickupFloor,
 }
 BuildingSystemsSnapshot Simulation::buildingSystemsSnapshot() const {
   return impl_->buildingSystems;
+}
+
+std::vector<GuestGroup> Simulation::guestGroupsSnapshot() const {
+  std::unordered_map<EntityId, GuestGroup> groupsById;
+  const auto consume = [&](const Reservation &reservation) {
+    if (reservation.guestGroupArchive.empty())
+      return;
+    const auto group =
+        detail::deserializeGuestGroup(reservation.guestGroupArchive);
+    if (std::find(group.members.begin(), group.members.end(),
+                  reservation.id) == group.members.end())
+      throw std::logic_error("guest group archive omits owning guest");
+    const auto [found, inserted] = groupsById.emplace(group.id, group);
+    if (!inserted && found->second != group)
+      throw std::logic_error(
+          "guest group archive state diverged across members");
+  };
+  for (const auto &reservation : impl_->reservations)
+    consume(reservation);
+  for (const auto &reservation : impl_->completedReservationHistory)
+    consume(reservation);
+
+  std::vector<GuestGroup> groups;
+  groups.reserve(groupsById.size());
+  for (const auto &[id, group] : groupsById) {
+    (void)id;
+    const auto canonical = detail::serializeGuestGroup(group);
+    for (const auto memberId : group.members) {
+      const Reservation *member = nullptr;
+      for (const auto &reservation : impl_->reservations)
+        if (reservation.id == memberId) {
+          member = &reservation;
+          break;
+        }
+      if (!member)
+        for (const auto &reservation : impl_->completedReservationHistory)
+          if (reservation.id == memberId) {
+            member = &reservation;
+            break;
+          }
+      if (!member || member->guestGroupArchive != canonical)
+        throw std::logic_error(
+            "guest group membership is not authoritative");
+    }
+    groups.push_back(group);
+  }
+  std::sort(groups.begin(), groups.end(),
+            [](const GuestGroup &a, const GuestGroup &b) {
+              return a.id < b.id;
+            });
+  return groups;
+}
+
+CommandResult Simulation::createGuestGroup(const GuestGroup &specification) {
+  if (specification.id != 0)
+    return {false, "Guest group ID is assigned by the simulation", 0};
+
+  GuestGroup group = specification;
+  group.id = impl_->nextId;
+  if (!detail::validGuestGroup(group))
+    return {false, "Guest group specification is invalid", 0};
+
+  std::vector<Reservation *> members;
+  members.reserve(group.members.size());
+  for (const auto memberId : group.members) {
+    auto *reservation = impl_->getReservation(memberId);
+    if (!reservation || reservation->completed ||
+        reservation->walkedRelocated)
+      return {false, "Guest group members must be active reservations", 0};
+    if (!reservation->guestGroupArchive.empty())
+      return {false, "Guest is already assigned to a group", 0};
+    members.push_back(reservation);
+  }
+
+  const auto archive = detail::serializeGuestGroup(group);
+  ++impl_->nextId;
+  for (auto *reservation : members)
+    reservation->guestGroupArchive = archive;
+  return {true, "Guest group created", group.id};
+}
+
+CommandResult
+Simulation::recordGuestExperience(EntityId guestId,
+                                  const ExperienceEvent &event) {
+  Reservation *reservation = nullptr;
+  for (auto &candidate : impl_->reservations)
+    if (candidate.id == guestId) {
+      reservation = &candidate;
+      break;
+    }
+  if (!reservation)
+    for (auto &candidate : impl_->completedReservationHistory)
+      if (candidate.id == guestId) {
+        reservation = &candidate;
+        break;
+      }
+  if (!reservation)
+    return {false, "Guest psychology state not found", guestId};
+
+  GuestPsychology service(impl_->seed);
+  service.restoreGuest(guestPsychology(guestId));
+  try {
+    service.recordExperience(guestId, event);
+    reservation->psychologyArchive =
+        detail::serializeGuestPsychology(*service.snapshot(guestId));
+  } catch (const std::exception &error) {
+    return {false, error.what(), guestId};
+  }
+  return {true, "Guest experience recorded", guestId};
 }
 
 void Simulation::step(double seconds) {
