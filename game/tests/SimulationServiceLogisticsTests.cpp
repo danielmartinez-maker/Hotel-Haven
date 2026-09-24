@@ -246,8 +246,21 @@ int main() {
       [&](const auto &room) { return room.id == sellabilityRooms[1].id; });
   require(gatedRoomAfterPhysical != gatedAfterPhysical.rooms.end(),
           "sellability-gate room disappeared");
-  require(gatedRoomAfterPhysical->status == RoomStatus::Cleaning,
-          "room became sellable while FINAL-04 housekeeping was supply-blocked");
+  require(gatedRoomAfterPhysical->status == RoomStatus::VacantDirty,
+          "room left dirty state before canonical supplies were claimable");
+  const auto gatedPhysicalTask = std::find_if(
+      gatedAfterPhysical.tasks.begin(), gatedAfterPhysical.tasks.end(),
+      [&](const auto &task) {
+        return task.targetId == sellabilityRooms[1].id &&
+               task.kind == TaskKind::Turnover &&
+               task.status != TaskStatus::Completed;
+      });
+  require(gatedPhysicalTask != gatedAfterPhysical.tasks.end() &&
+              gatedPhysicalTask->status == TaskStatus::Blocked,
+          "physical turnover was not blocked by canonical FINAL-04 stock");
+  require(gatedPhysicalTask->blockedReason ==
+              "Required local supplies unavailable",
+          "canonical shortage did not propagate to physical task diagnostics");
   const auto gatedHousekeeping = sellabilityGate.housekeepingSnapshot();
   const auto gatedServiceJob = std::find_if(
       gatedHousekeeping.jobs.begin(), gatedHousekeeping.jobs.end(),
@@ -256,9 +269,7 @@ int main() {
                job.stage != HousekeepingStage::Completed;
       });
   require(gatedServiceJob != gatedHousekeeping.jobs.end(),
-          "blocked FINAL-04 housekeeping job disappeared after physical completion");
-  require(gatedServiceJob->blockedReason != BlockReason::None,
-          "FINAL-04 housekeeping was not explicitly blocked by canonical stock");
+          "pending FINAL-04 housekeeping job disappeared while pickup was blocked");
   require(sellabilityGate.orderSupplies({1, 2, 1, 1, 0}).ok,
           "sellability-gate replenishment order was rejected");
   sellabilityGate.step(2 * 86400);
@@ -377,7 +388,7 @@ int main() {
   require(linenOrder && towelOrder && amenityOrder && chemicalOrder && partOrder,
           "player supply order used incorrect FINAL-04 item mapping");
   require(purchasing.view().supplyOrders.size() == 1,
-          "legacy delivery bridge was not retained for the physical scheduler");
+          "legacy aggregate order record was not retained for save compatibility");
   require(purchasing.view().economy.cashCents == purchaseCashBefore - 10000,
           "mirrored supply order charged cash more than once");
 
@@ -450,7 +461,7 @@ int main() {
               legacyDefinitionInventory.amenities == 5 &&
               legacyDefinitionInventory.chemicals == 4 &&
               legacyDefinitionInventory.parts == 3,
-          "definition inventory override did not preserve legacy shadow stock");
+          "definition inventory override did not update canonical public stock");
   require(definitionInventory.loadDefinitions(R"({"initialLinen":600})").ok,
           "large scenario inventory did not provision overflow storage");
   int expandedLinen = 0;
