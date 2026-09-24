@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <iomanip>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -532,7 +533,7 @@ void Client::paint(HDC output) {
     heading(L"Build & construction");
     if (bottom - y >= vpx(420)) {
       paragraph(L"Choose a construction item, move it over the hotel to check placement and cost, then click to build.", 64);
-    } else {
+    } else if (bottom - y >= vpx(300)) {
       paragraph(L"Select an item, validate it over the hotel, then click to place.", 36, Muted);
     }
 
