@@ -18,6 +18,12 @@ WorldAssetVisual visual(std::uint32_t handle) {
   return WorldAssetVisual{
       AssetHandle{handle}, Aabb{{-0.5f, 0.0f, -0.5f}, {0.5f, 1.0f, 0.5f}}, false};
 }
+
+std::uint32_t assetNumber(std::string_view id) {
+  if (!id.starts_with("HH_A") || id.size() <= 4)
+    throw std::runtime_error("unexpected world asset id");
+  return static_cast<std::uint32_t>(std::stoul(std::string(id.substr(4))));
+}
 bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
   return std::any_of(scene.meshes.begin(), scene.meshes.end(),
                      [handle](const MeshRenderItem &item) {
@@ -49,35 +55,46 @@ bool hasDifferentDiagnosticColor(const RenderScene &baseline,
     if (a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a)
       return true;
   }
+  for (std::size_t i = 0; i < baseline.meshes.size(); ++i) {
+    const auto &a = baseline.meshes[i].tint;
+    const auto &b = candidate.meshes[i].tint;
+    if (a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a)
+      return true;
+  }
   return false;
 }
 } // namespace
 int main() {
   try {
-    const std::map<std::string, std::uint32_t> expectedIds{
-        {"HH_A030", 30},  {"HH_A113", 113}, {"HH_A121", 121},
-        {"HH_A126", 126}, {"HH_A166", 166}, {"HH_A169", 169},
-        {"HH_A171", 171}, {"HH_A186", 186}, {"HH_A396", 396},
-    };
     std::vector<std::string> requestedIds;
     const WorldAssetSet resolved = resolveWorldAssets(
         [&](std::string_view id) {
           requestedIds.emplace_back(id);
-          const auto found = expectedIds.find(std::string(id));
-          if (found == expectedIds.end())
-            throw std::runtime_error("unexpected world asset id");
-          return visual(found->second);
+          return visual(assetNumber(id));
         });
-    require(requestedIds.size() == expectedIds.size(),
-            "startup world asset resolver did not resolve exactly nine assets");
+    require(requiredWorldAssetIds().size() == 49u,
+            "world dependency contract should contain 49 assets");
+    require(requestedIds.size() == requiredWorldAssetIds().size(),
+            "startup world asset resolver did not resolve the complete dependency set");
+    auto uniqueIds = requestedIds;
+    std::sort(uniqueIds.begin(), uniqueIds.end());
+    require(std::adjacent_find(uniqueIds.begin(), uniqueIds.end()) ==
+                uniqueIds.end(),
+            "world dependency contract contains duplicate asset ids");
     require(resolved.straightStair->handle == AssetHandle{30},
             "straight stair startup binding mismatch");
+    require(resolved.standardGuestDoor->handle == AssetHandle{12},
+            "guest door startup binding mismatch");
     require(resolved.guestBed->handle == AssetHandle{113},
             "guest bed startup binding mismatch");
     require(resolved.nightstand->handle == AssetHandle{121},
             "nightstand startup binding mismatch");
+    require(resolved.bedsideLamp->handle == AssetHandle{125},
+            "bedside lamp startup binding mismatch");
     require(resolved.guestDesk->handle == AssetHandle{126},
             "guest desk startup binding mismatch");
+    require(resolved.deskChair->handle == AssetHandle{129},
+            "desk chair startup binding mismatch");
     require(resolved.bathroomVanity->handle == AssetHandle{166},
             "bathroom vanity startup binding mismatch");
     require(resolved.bathroomToilet->handle == AssetHandle{169},
@@ -86,24 +103,26 @@ int main() {
             "shower startup binding mismatch");
     require(resolved.receptionDesk->handle == AssetHandle{186},
             "reception desk startup binding mismatch");
+    require(resolved.cleaningSupplyCabinet->handle == AssetHandle{302},
+            "cleaning cabinet startup binding mismatch");
     require(resolved.pottedPlant->handle == AssetHandle{396},
             "potted plant startup binding mismatch");
+    require(resolved.guestCharacters.front()->handle == AssetHandle{451} &&
+                resolved.guestCharacters.back()->handle == AssetHandle{480},
+            "guest character variants were not fully resolved");
+    require(resolved.receptionistCharacters.front()->handle == AssetHandle{481},
+            "receptionist variants were not resolved");
+    require(resolved.housekeeperCharacters.front()->handle == AssetHandle{487},
+            "housekeeper variants were not resolved");
+    require(resolved.maintenanceCharacters.front()->handle == AssetHandle{495},
+            "maintenance variants were not resolved");
 
     auto game = hh::game::Simulation::tutorial(19);
     const auto before = game.save();
     const auto snapshot = game.view();
     require(!snapshot.rooms.empty(), "starter must contain furnished rooms");
 
-    WorldAssetSet assets;
-    assets.straightStair = visual(30);
-    assets.guestBed = visual(113);
-    assets.nightstand = visual(121);
-    assets.guestDesk = visual(126);
-    assets.bathroomVanity = visual(166);
-    assets.bathroomToilet = visual(169);
-    assets.showerGlass = visual(171);
-    assets.receptionDesk = visual(186);
-    assets.pottedPlant = visual(396);
+    const WorldAssetSet assets = resolved;
 
     WorldViewOptions options;
     options.selected = snapshot.rooms.front().id;
@@ -111,12 +130,27 @@ int main() {
     require(!scene.meshes.empty(), "world omitted asset-backed furnishing geometry");
     require(containsHandle(scene, 113), "guest bed did not use its asset handle");
     require(containsHandle(scene, 121), "nightstand did not use its asset handle");
+    require(containsHandle(scene, 125), "bedside lamp did not use its asset handle");
     require(containsHandle(scene, 126), "guest desk did not use its asset handle");
+    require(containsHandle(scene, 129), "desk chair did not use its asset handle");
     require(containsHandle(scene, 166), "bathroom vanity did not use its asset handle");
     require(containsHandle(scene, 169), "bathroom toilet did not use its asset handle");
     require(containsHandle(scene, 171), "shower glass did not use its asset handle");
     require(containsHandle(scene, 186), "front desk did not use its asset handle");
     require(containsHandle(scene, 396), "potted plants did not use their asset handle");
+    const bool hasDoor = std::any_of(
+        snapshot.tiles.begin(), snapshot.tiles.end(),
+        [](const auto &tile) { return tile.kind == hh::game::TileKind::Door; });
+    const bool hasSupplyCloset = std::any_of(
+        snapshot.tiles.begin(), snapshot.tiles.end(),
+        [](const auto &tile) {
+          return tile.kind == hh::game::TileKind::SupplyCloset;
+        });
+    if (hasDoor)
+      require(containsHandle(scene, 12), "doors did not use the guest door mesh");
+    if (hasSupplyCloset)
+      require(containsHandle(scene, 302),
+              "supply closets did not use the cleaning cabinet mesh");
     require(scene.focusTarget.has_value(), "selected room has no cutaway focus");
 
     for (const auto &item : scene.items) {
@@ -176,6 +210,24 @@ int main() {
     employee.onShift = true;
     diagnosticSnapshot.people.push_back(employee);
 
+    hh::game::PersonView receptionist;
+    receptionist.id = 900004;
+    receptionist.name = "Overlay receptionist";
+    receptionist.kind = hh::game::PersonKind::Receptionist;
+    receptionist.state = hh::game::PersonState::Working;
+    receptionist.position = {0, 5, 8};
+    receptionist.onShift = true;
+    diagnosticSnapshot.people.push_back(receptionist);
+
+    hh::game::PersonView maintenance;
+    maintenance.id = 900005;
+    maintenance.name = "Overlay maintenance";
+    maintenance.kind = hh::game::PersonKind::Maintenance;
+    maintenance.state = hh::game::PersonState::Working;
+    maintenance.position = {0, 7, 8};
+    maintenance.onShift = true;
+    diagnosticSnapshot.people.push_back(maintenance);
+
     hh::game::TaskView task;
     task.id = 900003;
     task.kind = hh::game::TaskKind::Turnover;
@@ -186,6 +238,14 @@ int main() {
 
     options.overlay = Overlay::Natural;
     const auto diagnosticBaseline = worldScene(diagnosticSnapshot, options, &assets);
+    require(containsHandle(diagnosticBaseline, 452),
+            "guest character variant was not rendered");
+    require(containsHandle(diagnosticBaseline, 487),
+            "housekeeper character variant was not rendered");
+    require(containsHandle(diagnosticBaseline, 481),
+            "receptionist character variant was not rendered");
+    require(containsHandle(diagnosticBaseline, 496),
+            "maintenance character variant was not rendered");
     for (const auto mode : std::array{
              Overlay::GuestSatisfaction, Overlay::StaffUtilization,
              Overlay::QueueWait, Overlay::OpenTaskDensity}) {
