@@ -10,6 +10,11 @@ SEMANTIC_NODE_REQUIREMENTS = {
         {'Door_Left', 'Door_Right', 'Handle_Left', 'Handle_Right',
          'WardrobeTopCap', 'WardrobePlinth', 'WardrobeDoorGap'},
     ),
+    'HH_A186': (
+        'Reception Desk Single',
+        {'Countertop', 'Monitor_0', 'ReceptionToeKick',
+         'ReceptionFrontRail', 'ReceptionPilaster_0', 'ReceptionPilaster_1'},
+    ),
     'HH_A302': (
         'Cleaning Supply Cabinet',
         {'CabinetDoor_0', 'CabinetDoor_1', 'CabinetHandle_0', 'CabinetHandle_1',
