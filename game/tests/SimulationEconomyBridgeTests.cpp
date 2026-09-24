@@ -38,14 +38,19 @@ int main() {
   require(!candidates.empty(),
           "bridge did not expose deterministic workforce applicants");
   const auto applicantCashBefore = bridge.financialSnapshot().economics.cashCents;
+  const auto laborCostBefore = bridge.economyDiagnostics().laborCostCents;
   const auto hiredApplicant = bridge.hireApplicant(candidates.front().id);
   require(hiredApplicant.ok && hiredApplicant.employeeId != 0,
           "bridge rejected a valid workforce applicant");
   require(bridge.financialSnapshot().economics.cashCents ==
               bridge.view().economy.cashCents,
           "applicant onboarding bypassed FINAL-06 cash reconciliation");
-  require(bridge.financialSnapshot().economics.cashCents < applicantCashBefore,
+  const auto applicantCashAfter = bridge.financialSnapshot().economics.cashCents;
+  require(applicantCashAfter < applicantCashBefore,
           "applicant onboarding did not charge its authoritative cost");
+  require(bridge.economyDiagnostics().laborCostCents - laborCostBefore ==
+              applicantCashBefore - applicantCashAfter,
+          "applicant onboarding cost was not classified as labor");
 
   EntityId housekeepingManager{};
   for (const auto &person : bridge.view().people) {
