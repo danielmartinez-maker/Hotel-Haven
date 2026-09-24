@@ -8,6 +8,7 @@ namespace {
 
 struct OverlayCameraConstants {
     DirectX::XMFLOAT4X4 viewProjection;
+    DirectX::XMFLOAT4 cameraWorldPosition;
 };
 
 std::string overlayHresultError(std::string_view operation, HRESULT result) {
@@ -37,6 +38,9 @@ RendererResult D3D11Renderer::renderWorld(const ComposedScene& scene, const Orth
     }
     auto* constants = static_cast<OverlayCameraConstants*>(mapped.pData);
     DirectX::XMStoreFloat4x4(&constants->viewProjection, camera.viewProjectionMatrix());
+    const Vec3 cameraPosition = camera.worldPosition();
+    constants->cameraWorldPosition = DirectX::XMFLOAT4(
+        cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
     context_->Unmap(cameraConstantBuffer_.Get(), 0);
 
     constexpr float clearColor[4] = {0.075f, 0.085f, 0.10f, 1.0f};
