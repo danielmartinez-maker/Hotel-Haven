@@ -264,6 +264,7 @@ public:
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;
+  [[nodiscard]] SimulationView view(bool includeCompletedReservationHistory) const;
   [[nodiscard]] bool isReachable(Position from, Position to) const;
   [[nodiscard]] std::string save() const;
   static Simulation load(std::string_view data);

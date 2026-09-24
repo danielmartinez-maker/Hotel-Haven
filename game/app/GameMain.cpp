@@ -333,7 +333,7 @@ Client::Client() : simulation(Simulation::tutorial(20260907)), hudController(hud
   if (!rebuildFonts(uiSettings.scalePercent()))
     throw std::runtime_error("Cannot create Hotel Haven UI fonts");
   applyClientUiScale(uiSettings.scalePercent());
-  snapshot = simulation.view();
+  snapshot = simulation.view(false);
   refreshUi();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
@@ -391,7 +391,7 @@ bool Client::rebuildFonts(int scalePercent) noexcept {
 }
 
 void Client::refresh() {
-  snapshot = simulation.view();
+  snapshot = simulation.view(false);
   refreshUi();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
@@ -803,7 +803,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         const auto seconds = static_cast<std::int64_t>(std::floor(c.pendingSimulationSeconds));
         if (seconds > 0) {
           c.simulation.step(static_cast<double>(seconds));
-          c.snapshot = c.simulation.view();
+          c.snapshot = c.simulation.view(false);
           c.pendingSimulationSeconds -= static_cast<double>(seconds);
         }
       }

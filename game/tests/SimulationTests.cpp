@@ -865,6 +865,14 @@ static void checkout_requires_physical_reception_service() {
   require(recovered.economy.completedStays > 0 && !recovered.reviews.empty() &&
               recovered.economy.revenueCents > 0,
           "checkout service did not finalize stays and revenue");
+  const auto liveView = s.view(false);
+  require(std::all_of(liveView.reservations.begin(), liveView.reservations.end(),
+                      [](const auto &reservation) {
+                        return !reservation.completed;
+                      }),
+          "client view retained completed reservation history");
+  require(s.view().reservations.size() > liveView.reservations.size(),
+          "full SimulationView no longer retained completed reservations");
 }
 
 static void room_commands_preserve_reservations_and_repair_state() {

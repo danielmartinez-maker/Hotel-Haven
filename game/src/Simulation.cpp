@@ -1664,6 +1664,10 @@ bool Simulation::isReachable(Position a, Position b) const {
          impl_->passable(b) && (same(a, b) || !impl_->path(a, b).empty());
 }
 SimulationView Simulation::view() const {
+  return view(true);
+}
+
+SimulationView Simulation::view(bool includeCompletedReservationHistory) const {
   SimulationView v;
   v.elapsedSeconds = impl_->elapsed;
   v.day = impl_->elapsed / 86400;
@@ -1673,8 +1677,11 @@ SimulationView Simulation::view() const {
   v.floors = impl_->floors;
   v.rooms.reserve(impl_->rooms.size());
   v.people.reserve(impl_->people.size());
-  v.reservations.reserve(impl_->reservations.size() +
-                         impl_->completedReservationHistory.size());
+  v.reservations.reserve(
+      impl_->reservations.size() +
+      (includeCompletedReservationHistory
+           ? impl_->completedReservationHistory.size()
+           : 0));
   v.tasks.reserve(impl_->tasks.size() + impl_->completedTaskHistory.size());
   v.supplyOrders.reserve(impl_->orders.size());
   impl_->refreshTileViewCache();
@@ -1685,8 +1692,9 @@ SimulationView Simulation::view() const {
     v.people.push_back(p);
   for (auto &r : impl_->reservations)
     v.reservations.push_back(r);
-  for (auto &r : impl_->completedReservationHistory)
-    v.reservations.push_back(r);
+  if (includeCompletedReservationHistory)
+    for (auto &r : impl_->completedReservationHistory)
+      v.reservations.push_back(r);
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)
