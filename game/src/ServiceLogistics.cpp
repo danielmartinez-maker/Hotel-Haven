@@ -125,14 +125,14 @@ bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
   engineering.rebuildActiveWorkOrders();
   return true;
 }
-LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot() const {
-  return impl_->logistics.snapshot();
+LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot(bool includeHistory) const {
+  return impl_->logistics.snapshot(includeHistory);
 }
-HousekeepingSnapshot ServiceLogisticsRuntime::housekeepingSnapshot() const {
-  return impl_->housekeeping.snapshot();
+HousekeepingSnapshot ServiceLogisticsRuntime::housekeepingSnapshot(bool includeHistory) const {
+  return impl_->housekeeping.snapshot(includeHistory);
 }
-EngineeringSnapshot ServiceLogisticsRuntime::engineeringSnapshot() const {
-  return impl_->engineering.snapshot();
+EngineeringSnapshot ServiceLogisticsRuntime::engineeringSnapshot(bool includeHistory) const {
+  return impl_->engineering.snapshot(includeHistory);
 }
 TaskId ServiceLogisticsRuntime::requestRoomTurn(RoomId room) {
   return impl_->housekeeping.requestRoomTurn(room);

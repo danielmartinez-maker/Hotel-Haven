@@ -1593,14 +1593,14 @@ void Simulation::step(double seconds) {
   }
 }
 
-LogisticsSnapshot Simulation::logisticsSnapshot() const {
-  return impl_->services.logisticsSnapshot();
+LogisticsSnapshot Simulation::logisticsSnapshot(bool includeHistory) const {
+  return impl_->services.logisticsSnapshot(includeHistory);
 }
-HousekeepingSnapshot Simulation::housekeepingSnapshot() const {
-  return impl_->services.housekeepingSnapshot();
+HousekeepingSnapshot Simulation::housekeepingSnapshot(bool includeHistory) const {
+  return impl_->services.housekeepingSnapshot(includeHistory);
 }
-EngineeringSnapshot Simulation::engineeringSnapshot() const {
-  return impl_->services.engineeringSnapshot();
+EngineeringSnapshot Simulation::engineeringSnapshot(bool includeHistory) const {
+  return impl_->services.engineeringSnapshot(includeHistory);
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
   if (!impl_->getRoom(roomId))
@@ -1649,14 +1649,14 @@ AmenityReservationResult Simulation::reserveAmenity(
     GuestId guestId, const AmenityRequest &request) {
   return impl_->amenities.reserveAmenity(guestId, request);
 }
-FoodServiceSnapshot Simulation::foodServiceSnapshot() const {
-  return impl_->food.snapshot();
+FoodServiceSnapshot Simulation::foodServiceSnapshot(bool includeHistory) const {
+  return impl_->food.snapshot(includeHistory);
 }
-EventsSnapshot Simulation::eventsSnapshot() const {
-  return impl_->events.snapshot();
+EventsSnapshot Simulation::eventsSnapshot(bool includeHistory) const {
+  return impl_->events.snapshot(includeHistory);
 }
-AmenitiesSnapshot Simulation::amenitiesSnapshot() const {
-  return impl_->amenities.snapshot();
+AmenitiesSnapshot Simulation::amenitiesSnapshot(bool includeHistory) const {
+  return impl_->amenities.snapshot(includeHistory);
 }
 
 bool Simulation::isReachable(Position a, Position b) const {

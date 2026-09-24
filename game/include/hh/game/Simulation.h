@@ -233,9 +233,9 @@ public:
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
 
-  [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
-  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;
-  [[nodiscard]] EngineeringSnapshot engineeringSnapshot() const;
+  [[nodiscard]] LogisticsSnapshot logisticsSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] EngineeringSnapshot engineeringSnapshot(bool includeHistory = true) const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId assetId, WorkOrderType type);
@@ -250,9 +250,9 @@ public:
   [[nodiscard]] EventBookingId confirmEvent(const EventRequest &request);
   [[nodiscard]] AmenityReservationResult reserveAmenity(
       GuestId guestId, const AmenityRequest &request);
-  [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
-  [[nodiscard]] EventsSnapshot eventsSnapshot() const;
-  [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot() const;
+  [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] EventsSnapshot eventsSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot(bool includeHistory = true) const;
   [[nodiscard]] std::vector<DepartmentView> departments() const;
 
   [[nodiscard]] OptimizerSnapshot

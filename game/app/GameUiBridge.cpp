@@ -373,12 +373,12 @@ hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
                          const hh::game::SimulationView& view,
                          const GameUiBridgeContext& context) {
-  const auto logistics = simulation.logisticsSnapshot();
-  const auto housekeeping = simulation.housekeepingSnapshot();
-  const auto engineering = simulation.engineeringSnapshot();
-  const auto food = simulation.foodServiceSnapshot();
-  const auto events = simulation.eventsSnapshot();
-  const auto amenities = simulation.amenitiesSnapshot();
+  const auto logistics = simulation.logisticsSnapshot(false);
+  const auto housekeeping = simulation.housekeepingSnapshot(false);
+  const auto engineering = simulation.engineeringSnapshot(false);
+  const auto food = simulation.foodServiceSnapshot(false);
+  const auto events = simulation.eventsSnapshot(false);
+  const auto amenities = simulation.amenitiesSnapshot(false);
 
   hh::frontend::SimulationSnapshot out;
   out.entities.reserve(view.rooms.size() + view.people.size() +
