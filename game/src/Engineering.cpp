@@ -41,6 +41,15 @@ WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
   return id;
 }
 
+std::optional<WorkOrderStage>
+EngineeringSystem::latestWorkOrderStage(AssetId assetId,
+                                        WorkOrderType type) const {
+  for (auto it = workOrders_.rbegin(); it != workOrders_.rend(); ++it)
+    if (it->assetId == assetId && it->type == type)
+      return it->stage;
+  return std::nullopt;
+}
+
 void EngineeringSystem::tickWorkOrderSecond(WorkOrder &order) {
   if (order.stage == WorkOrderStage::Completed)
     return;
