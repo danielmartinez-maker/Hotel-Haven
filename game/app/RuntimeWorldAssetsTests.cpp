@@ -117,7 +117,8 @@ std::uint32_t assetNumber(std::string_view id) {
 
 hh::assets::AssetType testAssetType(std::string_view id) {
   const auto number = assetNumber(id);
-  return id == "HH_A012" || id == "HH_A057" || number >= 451u
+  return id == "HH_A012" || id == "HH_A057" || id == "HH_A211" ||
+                 id == "HH_A291" || id == "HH_A320" || number >= 451u
              ? hh::assets::AssetType::SkinnedMesh
              : hh::assets::AssetType::StaticMesh;
 }
@@ -127,8 +128,8 @@ hh::assets::AssetType testAssetType(std::string_view id) {
 int main() {
   try {
     const auto required = hh::client::requiredWorldAssetIds();
-    require(required.size() == 64u,
-            "world presentation dependency set should contain 64 assets");
+    require(required.size() == 70u,
+            "world presentation dependency set should contain 70 assets");
 
     hh::renderer::RuntimeAssetRegistry registry;
     for (const std::string_view id : required) {
@@ -175,6 +176,8 @@ int main() {
             "luggage bench binding mismatch");
     require(assets.wardrobe->handle == registry.resolve("HH_A141"),
             "wardrobe binding mismatch");
+    require(assets.tvConsole->handle == registry.resolve("HH_A151"),
+            "TV console binding mismatch");
     require(assets.wallTelevision->handle == registry.resolve("HH_A153"),
             "wall television binding mismatch");
     require(assets.lobbySofa->handle == registry.resolve("HH_A194"),
@@ -183,6 +186,16 @@ int main() {
             "lobby armchair binding mismatch");
     require(assets.lobbyCoffeeTable->handle == registry.resolve("HH_A200"),
             "lobby coffee table binding mismatch");
+    require(assets.lobbyFloorLamp->handle == registry.resolve("HH_A205"),
+            "lobby floor lamp binding mismatch");
+    require(assets.lobbyPlanter->handle == registry.resolve("HH_A207"),
+            "lobby planter binding mismatch");
+    require(assets.luggageCart->handle == registry.resolve("HH_A211"),
+            "luggage cart binding mismatch");
+    require(assets.housekeepingCart->handle == registry.resolve("HH_A291"),
+            "housekeeping cart binding mismatch");
+    require(assets.utilityCart->handle == registry.resolve("HH_A320"),
+            "utility cart binding mismatch");
     require(assets.cleaningSupplyCabinet->handle == registry.resolve("HH_A302"),
             "supply cabinet binding mismatch");
     require(assets.staffLockerBank->handle == registry.resolve("HH_A338"),
