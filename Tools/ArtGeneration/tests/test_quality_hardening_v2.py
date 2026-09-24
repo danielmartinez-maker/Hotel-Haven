@@ -164,10 +164,11 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
 
 def test_runtime_binding_preview_contract_tracks_shipping_assets():
     ids = previews.runtime_binding_ids(ROOT)
-    assert len(ids) == 59
+    assert len(ids) == 64
     assert len(ids) == len(set(ids))
     assert ids[:3] == ['HH_A030', 'HH_A012', 'HH_A057']
-    assert ids[23:53] == [f'HH_A{i:03d}' for i in range(451, 481)]
+    assert ids[3:9] == [f'HH_A{i:03d}' for i in range(111, 117)]
+    assert ids[28:58] == [f'HH_A{i:03d}' for i in range(451, 481)]
     assert ids[-6:] == [
         'HH_A481', 'HH_A482',
         'HH_A487', 'HH_A488',
