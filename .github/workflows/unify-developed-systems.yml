@@ -54,7 +54,14 @@ jobs:
           # text-merging incompatible historical generations of this monolith.
           git restore --source=origin/fix/final07-authoritative-service-ops-ui -- \
             game/src/Simulation.cpp \
-            game/include/hh/game/Simulation.h
+            game/include/hh/game/Simulation.h \
+            game/src/Housekeeping.cpp \
+            game/include/hh/game/Housekeeping.h \
+            game/src/Engineering.cpp \
+            game/include/hh/game/Engineering.h \
+            game/src/ServiceLogistics.cpp \
+            game/include/hh/game/ServiceLogistics.h \
+            game/include/hh/game/ServiceTypes.h
 
           # Squash the integration result onto the integration base. This keeps the
           # developed source/content changes while avoiding GitHub App workflow-file
