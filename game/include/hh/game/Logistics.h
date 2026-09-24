@@ -177,6 +177,7 @@ private:
   std::int64_t elapsedSeconds_{};
   std::vector<StorageNode> storage_;
   std::vector<Stack> inventory_;
+  std::unordered_map<StorageNodeId, std::size_t> storageIndex_;
   std::vector<PurchaseOrder> orders_;
   std::vector<StockMove> moves_;
   std::unordered_map<PurchaseOrderId, std::size_t> orderIndex_;
