@@ -182,6 +182,20 @@ void validateAssetSmokeScene(
   }
 }
 
+void validateAssetCatalogSmokeScene(
+    const RenderScene &scene,
+    const RuntimeAssetRegistry &registry) {
+  for (const auto &asset : registry.assets()) {
+    const AssetHandle handle = registry.resolve(asset.assetId);
+    const bool present = std::any_of(
+        scene.meshes.begin(), scene.meshes.end(),
+        [handle](const MeshRenderItem &item) { return item.asset == handle; });
+    if (!present)
+      throw std::runtime_error(
+          "A700 catalog smoke scene omitted runtime asset " + asset.assetId);
+  }
+}
+
 void applyScaleIfChanged(Client &client, int priorScale) {
   const int requestedScale = client.uiSettings.scalePercent();
   if (requestedScale == priorScale)
@@ -894,10 +908,14 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         refreshTime = 0;
       }
       const bool assetSmokeFrame = c.smoke && frames == 24;
-      const bool restoreAfterAssetSmoke = c.smoke && frames == 25;
+      const bool assetCatalogSmokeFrame = c.smoke && frames == 25;
+      const bool restoreAfterAssetSmoke = c.smoke && frames == 26;
       if (assetSmokeFrame) {
         c.camera.setTarget({12.0f, 0.0f, 9.0f});
         c.camera.setOrthoHeight(34.0f);
+      } else if (assetCatalogSmokeFrame) {
+        c.camera.setTarget({17.0f, 0.0f, 19.0f});
+        c.camera.setOrthoHeight(48.0f);
       } else if (restoreAfterAssetSmoke) {
         c.camera.setTarget({static_cast<float>(c.snapshot.width) * .5f, 0.0f,
                             static_cast<float>(c.snapshot.height) * .5f});
@@ -908,16 +926,21 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
           assetSmokeFrame ? buildAssetSmokeSnapshot() : SimulationView{};
       const SimulationView &renderSnapshot =
           assetSmokeFrame ? assetSmokeSnapshot : c.snapshot;
-      const auto scene = worldScene(
-          renderSnapshot,
-          {assetSmokeFrame ? 0 : c.floor, c.selected, c.overlay,
-           assetSmokeFrame ? -1 : c.hoverX, assetSmokeFrame ? -1 : c.hoverY,
-           c.tool == Tool::Bedroom ? 6.f : 1.f,
-           !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
-           c.uiSettings.reducedMotion()},
-          &c.worldAssets);
+      const auto scene = assetCatalogSmokeFrame
+          ? runtimeAssetCatalogScene(c.worldAssets, 1u, 700u)
+          : worldScene(
+                renderSnapshot,
+                {assetSmokeFrame ? 0 : c.floor, c.selected, c.overlay,
+                 assetSmokeFrame ? -1 : c.hoverX,
+                 assetSmokeFrame ? -1 : c.hoverY,
+                 c.tool == Tool::Bedroom ? 6.f : 1.f,
+                 !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
+                 c.uiSettings.reducedMotion()},
+                &c.worldAssets);
       if (assetSmokeFrame)
         validateAssetSmokeScene(scene, c.assetRegistry);
+      if (assetCatalogSmokeFrame)
+        validateAssetCatalogSmokeScene(scene, c.assetRegistry);
 
       const auto frame = composeVisibleFrame(
           scene, composer,
@@ -961,6 +984,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       }
       if (c.smoke && frames == 25)
         captureClient(c.window, c.directory / L"smoke-assets.bmp");
+      if (c.smoke && frames == 26)
+        captureClient(c.window, c.directory / L"smoke-assets-a700.bmp");
       if (c.smoke && frames >= 30) {
         RECT viewSize{};
         GetClientRect(c.viewport, &viewSize);
