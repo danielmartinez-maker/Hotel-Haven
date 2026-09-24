@@ -288,8 +288,8 @@ def stair(name: str, mat: str) -> trimesh.Scene:
         rise = 0.17
         run = 0.27
         add(scene, box((width, run, rise), (0, i * run, rise / 2 + i * rise), mat), f'Step_{i}')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (-width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_L')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_R')
+    add(scene, box((0.08, steps * 0.27, steps * 0.17), (-width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'FrameStringer_L')
+    add(scene, box((0.08, steps * 0.27, steps * 0.17), (width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'FrameStringer_R')
     return scene
 
 
