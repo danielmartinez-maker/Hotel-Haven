@@ -1,6 +1,27 @@
 from __future__ import annotations
 
 SEMANTIC_NODE_REQUIREMENTS = {
+    'HH_A121': (
+        'Standard Nightstand',
+        {'CaseTop', 'CasePlinth', 'Drawer_0_0', 'DrawerPull_0_0', 'NightstandLowerReveal'},
+    ),
+    'HH_A141': (
+        'Standard Wardrobe',
+        {'Door_Left', 'Door_Right', 'Handle_Left', 'Handle_Right',
+         'WardrobeTopCap', 'WardrobePlinth', 'WardrobeDoorGap'},
+    ),
+    'HH_A302': (
+        'Cleaning Supply Cabinet',
+        {'CabinetDoor_0', 'CabinetDoor_1', 'CabinetHandle_0', 'CabinetHandle_1',
+         'CabinetDoorGap', 'CabinetPlinth', 'CleaningLabel', 'CleaningShelf'},
+    ),
+    'HH_A338': (
+        'Staff Locker Bank',
+        {'LockerDoor_0', 'LockerDoor_1', 'LockerDoor_2',
+         'LockerHandle_0', 'LockerHandle_1', 'LockerHandle_2',
+         'LockerVent_0_0', 'LockerVent_1_0', 'LockerVent_2_0',
+         'CabinetPlinth', 'LockerToeReveal'},
+    ),
     'HH_A352': ('Yoga Mat Rack', {'YogaMat_0', 'YogaMat_1'}),
     'HH_A357': ('Spa Treatment Chair', {'Pedestal', 'Footrest'}),
     'HH_A364': ('Pool Lounge Chair', {'PoolFrame'}),
