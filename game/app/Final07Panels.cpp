@@ -4,6 +4,7 @@
 #include "hh/frontend/OverlayModel.h"
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <string>
