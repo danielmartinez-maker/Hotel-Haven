@@ -718,7 +718,8 @@ struct Simulation::Impl {
                 }
               }
               if (t.kind == TaskKind::Repair) {
-                r->condition = 100;
+                // Physical labor completion alone does not repair the asset;
+                // FINAL-04 corrective completion owns the condition reset.
                 if (!r->closed)
                   r->status = RoomStatus::OutOfOrder;
               }
@@ -876,13 +877,15 @@ struct Simulation::Impl {
         }
       }
 
-      if (room.status == RoomStatus::OutOfOrder && room.condition >= 100 &&
+      if (room.status == RoomStatus::OutOfOrder &&
           !hasActiveTask(TaskKind::Repair, room.id)) {
         const auto engineeringStage =
             services.engineering().latestWorkOrderStage(
                 room.id, WorkOrderType::Corrective);
         if (engineeringStage &&
             *engineeringStage == WorkOrderStage::Completed) {
+          room.condition = 100;
+          services.synchronizeAssetConditionForSimulation(room.id, 10000, false);
           room.status = RoomStatus::VacantDirty;
           if (!createRoomTask(TaskKind::Turnover, room.id, room.door,
                               turnoverWork))
@@ -942,6 +945,11 @@ struct Simulation::Impl {
               0.85 + 0.3 * std::generate_canonical<double, 32>(rng);
           r.condition = std::max(0.0, r.condition - roomConditionLossPerDay *
                                                         wearVariation);
+          services.synchronizeAssetConditionForSimulation(
+              r.id,
+              std::clamp(static_cast<int>(std::llround(r.condition * 100.0)),
+                         0, 10000),
+              r.condition < 35);
           if (r.condition < 35 && r.reservationId == 0 &&
               r.status == RoomStatus::VacantReady) {
             r.status = RoomStatus::OutOfOrder;
@@ -1191,6 +1199,11 @@ CommandResult Simulation::requestRepair(EntityId id) {
         return task.targetId == id && task.status != TaskStatus::Completed;
       }))
     return {false, "Complete existing room service before requesting repair"};
+  impl_->services.synchronizeAssetConditionForSimulation(
+      id,
+      std::clamp(static_cast<int>(std::llround(r->condition * 100.0)), 0,
+                 10000),
+      r->condition < 35);
   if (!impl_->createRoomTask(TaskKind::Repair, id, r->door,
                              impl_->repairWork))
     return {false, "Engineering service could not accept the repair"};
