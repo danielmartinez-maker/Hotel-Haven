@@ -25,8 +25,8 @@ enum class AlertSeverity { Info, Warning, Critical };
 
 enum class UiCommandType {
     None, SetSimulationSpeed, OpenInspector, OpenManagementPanel, SetOverlay, BuildConfirm,
-    BuildRotate, BuildCancel, SetFutureRate, SetOverbookingPolicy, StartMarketingCampaign,
-    AcceptContract, SaveGame, LoadGame, PauseGame, OpenSettings
+    BuildRotate, BuildCancel, AssignDepartmentManager, SetFutureRate, SetOverbookingPolicy,
+    StartMarketingCampaign, AcceptContract, SaveGame, LoadGame, PauseGame, OpenSettings
 };
 
 struct UiCommand {
