@@ -131,7 +131,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
     assert callable(build)
 
     summary = {
-        'gameplay_asset_count': 500,
+        'gameplay_asset_count': 700,
         'generated_asset_records': 591,
         'animation_links': 87,
         'expected_animation_links': 87,
@@ -144,7 +144,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
     }
     report = {
         'status': 'PASS',
-        'asset_count': 500,
+        'asset_count': 700,
         'failure_count': 0,
         'max_faces': 3024,
         'unique_material_colors': 83,
@@ -156,7 +156,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
         'placement_failure_count': 0,
     }
 
-    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 11)})
+    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)})
 
     assert '- Interaction anchors normalized: **118 / 118**' in text
     assert '- Profile contract conformance: **PASS** with **0** failures' in text
