@@ -8,6 +8,8 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace hh::client {
@@ -394,6 +396,16 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
   const auto amenities = simulation.amenitiesSnapshot();
 
   hh::frontend::SimulationSnapshot out;
+  out.entities.reserve(view.rooms.size() + view.people.size() +
+                       view.tasks.size() + amenities.amenities.size() + 1);
+  out.alerts.reserve(view.rooms.size() * 2 + view.tasks.size() +
+                     food.orders.size());
+  out.operations.rows.reserve(
+      view.tasks.size() + housekeeping.jobs.size() +
+      engineering.workOrders.size() + logistics.purchaseOrders.size() +
+      logistics.stockMoves.size() + food.orders.size() +
+      events.bookings.size());
+  out.overlays.reserve(7);
   std::uint64_t revision = FnvOffset;
 
   out.hud.cashCents = view.economy.cashCents;
@@ -417,11 +429,22 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
   auto openTasks = makeOverlay(OverlayId::OpenTaskDensity, "tasks", 0, 1000);
   auto staffUtilization = makeOverlay(OverlayId::StaffUtilization, "%", 0, 1000);
   auto queueWait = makeOverlay(OverlayId::QueueWait, "seconds", 0, 86400);
+  cleanliness.samples.reserve(view.rooms.size());
+  maintenance.samples.reserve(view.rooms.size());
+  roomStatus.samples.reserve(view.rooms.size());
+  satisfaction.samples.reserve(view.people.size());
+  staffUtilization.samples.reserve(view.people.size());
+  queueWait.samples.reserve(view.people.size());
+  openTasks.samples.reserve(view.tasks.size());
+
+  std::unordered_map<hh::game::EntityId, hh::game::Position> roomDoors;
+  roomDoors.reserve(view.rooms.size());
 
   double guestSatisfactionTotal = 0.0;
   int guestSatisfactionCount = 0;
 
   for (const auto& room : view.rooms) {
+    roomDoors.emplace(room.id, room.door);
     UiEntitySnapshot entity;
     entity.id = room.id;
     entity.kind = InspectorKind::Room;
@@ -592,10 +615,8 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
   }
 
   const auto roomDoor = [&](hh::game::EntityId roomId) {
-    const auto room = std::find_if(
-        view.rooms.begin(), view.rooms.end(),
-        [&](const auto& candidate) { return candidate.id == roomId; });
-    return room == view.rooms.end() ? hh::game::Position{} : room->door;
+    const auto room = roomDoors.find(roomId);
+    return room == roomDoors.end() ? hh::game::Position{} : room->second;
   };
 
   for (const auto& job : housekeeping.jobs) {
@@ -640,14 +661,33 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
          target.y});
   }
 
-  const int cleanLinenUnits =
-      usableInventoryUnits(logistics, "clean_linen_set");
-  const int towelUnits = usableInventoryUnits(logistics, "towel_unit");
-  const int amenityUnits = usableInventoryUnits(logistics, "amenity_kit");
-  const int chemicalUnits =
-      usableInventoryUnits(logistics, "cleaning_chemical");
-  const int maintenanceParts =
-      usableInventoryUnits(logistics, "maintenance_part");
+  std::unordered_set<hh::game::StorageNodeId> usableStorageIds;
+  usableStorageIds.reserve(logistics.storage.size());
+  for (const auto& storage : logistics.storage)
+    if (storage.operational && inventoryUiStorageKind(storage.kind))
+      usableStorageIds.insert(storage.id);
+
+  int cleanLinenUnits = 0;
+  int towelUnits = 0;
+  int amenityUnits = 0;
+  int chemicalUnits = 0;
+  int maintenanceParts = 0;
+  for (const auto& stack : logistics.inventory) {
+    if (!usableStorageIds.contains(stack.storage))
+      continue;
+    const int usable =
+        std::max(0, stack.quantity - stack.reservedQuantity);
+    if (stack.item == "clean_linen_set")
+      cleanLinenUnits += usable;
+    else if (stack.item == "towel_unit")
+      towelUnits += usable;
+    else if (stack.item == "amenity_kit")
+      amenityUnits += usable;
+    else if (stack.item == "cleaning_chemical")
+      chemicalUnits += usable;
+    else if (stack.item == "maintenance_part")
+      maintenanceParts += usable;
+  }
 
   UiEntitySnapshot inventoryEntity;
   inventoryEntity.id = 0xF000000000000001ULL;
