@@ -4,13 +4,7 @@
 #include "hh/game/GuestPsychologyArchive.h"
 #include "hh/game/GuestReviews.h"
 
-#define save saveV10
-#define load loadV10
-#define step stepV10
 #include "Simulation.cpp"
-#undef step
-#undef load
-#undef save
 
 #include <algorithm>
 #include <iomanip>
