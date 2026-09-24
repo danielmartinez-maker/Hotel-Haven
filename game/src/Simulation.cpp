@@ -2210,6 +2210,7 @@ HireResult Simulation::hireApplicant(ApplicantId applicantId) {
   impl_->people.push_back(p);
   impl_->consumedApplicantIds.push_back(found->id);
   impl_->economy.cashCents -= impl_->onboardingCostCents;
+  impl_->economy.payrollCents += impl_->onboardingCostCents;
   return {true, "Applicant hired", p.id, found->id};
 }
 CommandResult Simulation::fireStaff(EntityId id) {
