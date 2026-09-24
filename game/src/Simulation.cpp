@@ -36,6 +36,15 @@ int manhattan(Position a, Position b) {
          std::abs(a.floor - b.floor) * 8;
 }
 template <class E> int ei(E e) { return static_cast<int>(e); }
+
+int simulationDay(std::int64_t elapsedSeconds, int offset = 0) noexcept {
+  constexpr std::int64_t secondsPerDay = 86400;
+  const auto elapsedDays =
+      std::max<std::int64_t>(0, elapsedSeconds) / secondsPerDay;
+  const auto withOffset = elapsedDays + static_cast<std::int64_t>(offset);
+  return static_cast<int>(std::clamp<std::int64_t>(
+      withOffset, 0, std::numeric_limits<int>::max()));
+}
 StaffRole staffRole(PersonKind kind) {
   switch (kind) {
   case PersonKind::Receptionist:
@@ -1292,7 +1301,8 @@ struct Simulation::Impl {
         static_cast<int>(std::clamp(z->satisfaction + z->checkoutCleanliness -
                                         80 - ((r && !r->reachable) ? 20 : 0),
                                     0.0, 100.0));
-    reviews.push_back({z->id, static_cast<int>(elapsed / 86400), score,
+    reviews.push_back({z->id, simulationDay(elapsed),
+                       static_cast<double>(score),
                        score >= 80   ? "A comfortable, well-run stay."
                        : score >= 60 ? "Fine, though service could improve."
                                      : "Service delays hurt the stay."});
@@ -1333,7 +1343,7 @@ struct Simulation::Impl {
   }
   void staffAndTasks() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
-    const int day = static_cast<int>(elapsed / 86400);
+    const int day = simulationDay(elapsed);
     std::vector<EntityId> failedRooms;
 
     for (auto &p : people) {
@@ -1908,7 +1918,7 @@ struct Simulation::Impl {
   void minute() {
     elapsed += 1;
     int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
-        day = elapsed / 86400;
+        day = simulationDay(elapsed);
     bool hourBoundary = (elapsed % 3600) == 0;
     if (hourBoundary)
       hourlyBookings(day, hour);
@@ -2149,7 +2159,7 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   return {true, "Staff hired", p.id};
 }
 std::vector<Applicant> Simulation::applicants() const {
-  const int day = static_cast<int>(impl_->elapsed / 86400);
+  const int day = simulationDay(impl_->elapsed);
   auto pool = Workforce::applicantPool(impl_->seed, day);
   if (impl_->consumedApplicantDay != day)
     return pool;
@@ -2164,7 +2174,7 @@ std::vector<Applicant> Simulation::applicants() const {
 HireResult Simulation::hireApplicant(ApplicantId applicantId) {
   if (!impl_->has(TileKind::Entrance))
     return {false, "Build an entrance before hiring staff", 0, applicantId};
-  const int day = static_cast<int>(impl_->elapsed / 86400);
+  const int day = simulationDay(impl_->elapsed);
   if (impl_->consumedApplicantDay != day) {
     impl_->consumedApplicantDay = day;
     impl_->consumedApplicantIds.clear();
@@ -2355,7 +2365,7 @@ DepartmentForecast Simulation::departmentForecast(DepartmentId department,
     for (const auto &reservation : impl_->reservations)
       if (!reservation.completed && reservation.departureDay == day)
         addRequired(11 * 60, roundedMinutes(impl_->turnoverWork));
-    if (day == static_cast<int>(impl_->elapsed / 86400))
+    if (day == simulationDay(impl_->elapsed))
       for (const auto &task : impl_->tasks)
         if (task.kind == TaskKind::Turnover &&
             task.status != TaskStatus::Completed)
@@ -2371,7 +2381,7 @@ DepartmentForecast Simulation::departmentForecast(DepartmentId department,
         addRequired(11 * 60, roundedMinutes(impl_->checkInWork * 0.6));
     }
   } else {
-    if (day == static_cast<int>(impl_->elapsed / 86400)) {
+    if (day == simulationDay(impl_->elapsed)) {
       for (const auto &task : impl_->tasks)
         if (task.kind == TaskKind::Repair &&
             task.status != TaskStatus::Completed)
@@ -2487,7 +2497,7 @@ OptimizerSnapshot Simulation::buildOptimizerSnapshot() const {
   OptimizerSnapshot snapshot;
   snapshot.capturedSecond = impl_->elapsed;
   snapshot.horizonEndSecond = impl_->elapsed + 86400;
-  const int currentDay = static_cast<int>(impl_->elapsed / 86400);
+  const int currentDay = simulationDay(impl_->elapsed);
 
   auto serviceRole = [](TaskKind kind) {
     if (kind == TaskKind::Turnover || kind == TaskKind::Restock)
@@ -2715,7 +2725,7 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   // and usable service inventory diverge immediately.
   auto stagedServices = impl_->services;
   auto &logistics = stagedServices.logistics();
-  const int etaDay = static_cast<int>(impl_->elapsed / 86400) + 2;
+  const int etaDay = simulationDay(impl_->elapsed, 2);
   const auto secondsUntilEta =
       std::max<std::int64_t>(0, static_cast<std::int64_t>(etaDay) * 86400 -
                                     impl_->elapsed);
@@ -3257,7 +3267,7 @@ bool Simulation::isReachable(Position a, Position b) const {
 SimulationView Simulation::view() const {
   SimulationView v;
   v.elapsedSeconds = impl_->elapsed;
-  v.day = impl_->elapsed / 86400;
+  v.day = simulationDay(impl_->elapsed);
   v.hour = (impl_->elapsed / 3600) % 24;
   v.width = impl_->width;
   v.height = impl_->height;
