@@ -121,7 +121,12 @@ void validate_cookable(const AssetRecord& record) {
 }
 
 bool is_runtime_mesh(AssetType type) noexcept {
-    return type == AssetType::StaticMesh || type == AssetType::SkinnedMesh;
+    // Hotel Haven prefab exports currently carry a directly renderable GLB
+    // payload. The runtime registry validates the payload before publication,
+    // so mesh-backed prefabs can share the same deterministic shipping path.
+    return type == AssetType::StaticMesh ||
+           type == AssetType::SkinnedMesh ||
+           type == AssetType::Prefab;
 }
 
 CookResult cook_internal(
