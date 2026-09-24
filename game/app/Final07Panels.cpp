@@ -377,6 +377,53 @@ void Client::paint(HDC output) {
         if (y + 42 >= bottom) break;
         paragraph(L"WHY · " + wide(diagnostic.code) + L" · " + wide(diagnostic.message), 36, Warning);
       }
+      if (page == Page::Staff &&
+          selectedEntity->kind == InspectorKind::Department) {
+        const auto departments = simulation.departments();
+        const auto department = std::find_if(
+            departments.begin(), departments.end(),
+            [&](const auto &value) { return value.name == selectedEntity->title; });
+        if (department != departments.end()) {
+          paragraph(L"Manager controls", 24, Muted);
+          const auto departmentId = department->id;
+          if (department->managerId != 0 && y + 38 < bottom) {
+            fullButton(L"Clear current manager", [this, departmentId] {
+              const auto result = ui.dispatchUiCommand(
+                  UiCommand{UiCommandType::AssignDepartmentManager, 0,
+                            static_cast<std::int64_t>(departmentId)});
+              notice = result.message.empty()
+                           ? (result.ok ? L"Department manager cleared."
+                                        : L"Manager change rejected.")
+                           : wide(result.message);
+              refreshUi();
+            });
+          }
+          for (const auto candidateId : department->directReports) {
+            if (y + 38 >= bottom)
+              break;
+            const auto person = std::find_if(
+                snapshot.people.begin(), snapshot.people.end(),
+                [&](const auto &value) { return value.id == candidateId; });
+            const auto candidateName =
+                person == snapshot.people.end()
+                    ? std::to_wstring(candidateId)
+                    : wide(person->name);
+            fullButton(L"Assign " + candidateName + L" as manager",
+                       [this, departmentId, candidateId] {
+                         const auto result = ui.dispatchUiCommand(
+                             UiCommand{UiCommandType::AssignDepartmentManager,
+                                       candidateId,
+                                       static_cast<std::int64_t>(departmentId)});
+                         notice = result.message.empty()
+                                      ? (result.ok
+                                             ? L"Department manager assigned."
+                                             : L"Manager change rejected.")
+                                      : wide(result.message);
+                         refreshUi();
+                       });
+          }
+        }
+      }
       separator();
     } else paragraph(L"Select an item below to inspect authoritative fields and reason codes.", 48);
     for (std::size_t index = static_cast<std::size_t>(tabScroll);
