@@ -59,6 +59,9 @@ private:
   [[nodiscard]] const RoomState *room(RoomId id) const;
   [[nodiscard]] bool beginStage(Job &job);
   void completeStage(Job &job);
+  void tickJobSecond(Job &job);
+  void tickSecondFor(const std::vector<RoomId> &managedRooms,
+                     const std::vector<RoomId> &workingRooms);
   [[nodiscard]] static int duration(HousekeepingStage stage);
 
   LogisticsSystem *logistics_{};
