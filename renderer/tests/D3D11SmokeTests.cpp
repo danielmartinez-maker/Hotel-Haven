@@ -179,6 +179,25 @@ TEST_CASE("D3D11 WARP device and production shader compile") {
         pixelShader.GetAddressOf(), pixelErrors.GetAddressOf());
     EXPECT_TRUE(SUCCEEDED(pixelResult));
     EXPECT_TRUE(pixelShader != nullptr);
+
+    const std::filesystem::path meshShaderPath = shaderPath("Mesh.hlsl");
+    Microsoft::WRL::ComPtr<ID3DBlob> meshVertexShader;
+    Microsoft::WRL::ComPtr<ID3DBlob> meshVertexErrors;
+    const HRESULT meshVertexResult = D3DCompileFromFile(
+        meshShaderPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        "VSMain", "vs_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
+        meshVertexShader.GetAddressOf(), meshVertexErrors.GetAddressOf());
+    EXPECT_TRUE(SUCCEEDED(meshVertexResult));
+    EXPECT_TRUE(meshVertexShader != nullptr);
+
+    Microsoft::WRL::ComPtr<ID3DBlob> meshPixelShader;
+    Microsoft::WRL::ComPtr<ID3DBlob> meshPixelErrors;
+    const HRESULT meshPixelResult = D3DCompileFromFile(
+        meshShaderPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        "PSMain", "ps_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
+        meshPixelShader.GetAddressOf(), meshPixelErrors.GetAddressOf());
+    EXPECT_TRUE(SUCCEEDED(meshPixelResult));
+    EXPECT_TRUE(meshPixelShader != nullptr);
 }
 
 TEST_CASE("renderWorld and present reject use before initialization") {
