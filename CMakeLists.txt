@@ -12,6 +12,15 @@ add_subdirectory(game)
 add_executable(hotel_haven_headless game/app/HeadlessMain.cpp)
 target_link_libraries(hotel_haven_headless PRIVATE hh_game)
 add_test(NAME hh_campaign COMMAND hotel_haven_headless --days 14 --restock)
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(
+        NAME hh_campaign_restock
+        COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/game/tests/headless_campaign_restock_test.py
+                $<TARGET_FILE:hotel_haven_headless>
+    )
+endif()
 install(TARGETS hotel_haven_headless RUNTIME DESTINATION .)
 add_library(hh_world_view STATIC game/app/WorldView.cpp game/app/WorldAssetBindings.cpp)
 target_include_directories(hh_world_view PUBLIC game/app renderer/include)
