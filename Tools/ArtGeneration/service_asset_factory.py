@@ -9,6 +9,8 @@ PALETTE = {
     'MAT_UPHOLSTERY': ((0.42, 0.31, 0.25, 1), 0.0, 0.84),
     'MAT_STAINLESS': ((0.58, 0.61, 0.62, 1), 0.85, 0.42),
     'MAT_SERVICE_PAINT': ((0.24, 0.30, 0.34, 1), 0.0, 0.68),
+    'MAT_SERVICE_PANEL': ((0.34, 0.41, 0.45, 1), 0.0, 0.60),
+    'MAT_SAFETY_YELLOW': ((0.86, 0.62, 0.08, 1), 0.05, 0.52),
     'MAT_PLASTIC_RUBBER': ((0.18, 0.18, 0.18, 1), 0.0, 0.64),
     'MAT_GLASS_CLEAR': ((0.34, 0.55, 0.64, 0.42), 0.0, 0.10),
     'MAT_BLACKENED_STEEL': ((0.10, 0.12, 0.13, 1), 0.78, 0.50),
@@ -218,17 +220,17 @@ def shelf_or_cabinet(name, mat):
             door_w = w / door_count * 0.88
             for i, x in enumerate(np.linspace(-w * 0.32, w * 0.32, door_count)):
                 add(scene, box((door_w, 0.032, h * 0.83),
-                               (x, -d / 2 - 0.018, h * 0.52), mat),
+                               (x, -d / 2 - 0.018, h * 0.52), 'MAT_SERVICE_PANEL'),
                     f'LockerDoor_{i}')
                 add(scene, box((0.028, 0.032, 0.18),
                                (x + door_w * 0.32, -d / 2 - 0.052, h * 0.54),
-                               'MAT_BLACKENED_STEEL'),
+                               'MAT_STAINLESS'),
                     f'LockerHandle_{i}')
                 for vent in range(3):
                     z = h * (0.76 + vent * 0.035)
                     add(scene, box((door_w * 0.50, 0.020, 0.018),
                                    (x, -d / 2 - 0.054, z),
-                                   'MAT_BLACKENED_STEEL'),
+                                   'MAT_STAINLESS'),
                         f'LockerVent_{i}_{vent}')
             add(scene, box((w * 0.94, 0.022, 0.025),
                            (0, -d / 2 - 0.055, h * 0.10),
@@ -237,12 +239,12 @@ def shelf_or_cabinet(name, mat):
             door_w = w * 0.43
             for i, x in enumerate((-w * 0.235, w * 0.235)):
                 add(scene, box((door_w, 0.032, h * 0.82),
-                               (x, -d / 2 - 0.018, h * 0.52), mat),
+                               (x, -d / 2 - 0.018, h * 0.52), 'MAT_SERVICE_PANEL'),
                     f'CabinetDoor_{i}')
                 add(scene, box((0.028, 0.035, 0.24),
                                (x + (-1 if i == 0 else 1) * door_w * 0.30,
                                 -d / 2 - 0.052, h * 0.54),
-                               'MAT_BLACKENED_STEEL'),
+                               'MAT_STAINLESS'),
                     f'CabinetHandle_{i}')
             add(scene, box((0.022, 0.026, h * 0.72),
                            (0, -d / 2 - 0.055, h * 0.52),
@@ -250,7 +252,7 @@ def shelf_or_cabinet(name, mat):
             if 'Cleaning Supply' in name:
                 add(scene, box((w * 0.42, 0.022, 0.12),
                                (0, -d / 2 - 0.057, h * 0.78),
-                               'MAT_SIGNAGE'), 'CleaningLabel')
+                               'MAT_SAFETY_YELLOW'), 'CleaningLabel')
                 add(scene, box((w * 0.72, d * 0.70, 0.04),
                                (0, 0, h * 0.42), 'MAT_STAINLESS'),
                     'CleaningShelf')
