@@ -21,7 +21,7 @@ WorldAssetSet worldAssetsFromRegistry(
 WorldAssetSet loadWorldAssetsFromDirectory(
     hh::renderer::RuntimeAssetRegistry& registry,
     const std::filesystem::path& cookedRoot) {
-  registry.loadDirectory(cookedRoot);
+  registry.loadDirectorySubset(cookedRoot, requiredWorldAssetIds());
   return worldAssetsFromRegistry(registry);
 }
 
