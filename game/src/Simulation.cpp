@@ -137,6 +137,8 @@ struct Simulation::Impl {
   std::vector<RoomId> workingHousekeepingScratch;
   std::vector<AssetId> managedEngineeringScratch;
   std::vector<AssetId> workingEngineeringScratch;
+  std::vector<AssetId> preventiveManagedEngineeringScratch;
+  std::vector<AssetId> preventiveWorkingEngineeringScratch;
   FoodServiceSystem food;
   EventsSystem events;
   AmenitiesSystem amenities;
@@ -1378,7 +1380,15 @@ struct Simulation::Impl {
               "failed to mirror turnover failure repair into FINAL-04");
 
     // Supply labor to authoritative FINAL-04 preventive engineering work
-    // without creating a second physical task authority.
+    // without creating a second physical task authority. The service runtime
+    // remains the only owner of work-order progress.
+    preventiveManagedEngineeringScratch.clear();
+    preventiveWorkingEngineeringScratch.clear();
+    for (auto &person : people)
+      if (person.goal == "Preventive maintenance" && person.task == 0) {
+        person.goal.clear();
+        person.state = person.onShift ? PersonState::Idle : PersonState::OffDuty;
+      }
     std::unordered_set<EntityId> preventiveWorkers;
     const auto engineering = services.engineering().snapshot();
     for (const auto &order : engineering.workOrders) {
@@ -1418,22 +1428,13 @@ struct Simulation::Impl {
         best->position = route.front();
         ++best->travelSeconds;
         best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);
+        preventiveManagedEngineeringScratch.push_back(order.assetId);
         continue;
       }
-      const auto serviceWork = services.workEngineeringSecond(
-          order.assetId, WorkOrderType::Preventive);
-      if (!serviceWork.valid ||
-          serviceWork.blockedReason != BlockReason::None) {
-        best->state = PersonState::Idle;
-        best->goal.clear();
-        continue;
-      }
+      preventiveManagedEngineeringScratch.push_back(order.assetId);
+      preventiveWorkingEngineeringScratch.push_back(order.assetId);
       best->state = PersonState::Working;
       best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);
-      if (serviceWork.completed) {
-        best->state = PersonState::Idle;
-        best->goal.clear();
-      }
     }
   }
   void guests() {
@@ -1553,6 +1554,15 @@ struct Simulation::Impl {
           workingEngineeringScratch.push_back(task.targetId);
       }
     }
+
+    managedEngineeringScratch.insert(
+        managedEngineeringScratch.end(),
+        preventiveManagedEngineeringScratch.begin(),
+        preventiveManagedEngineeringScratch.end());
+    workingEngineeringScratch.insert(
+        workingEngineeringScratch.end(),
+        preventiveWorkingEngineeringScratch.begin(),
+        preventiveWorkingEngineeringScratch.end());
 
     services.tickSimulationSecond(
         managedHousekeepingScratch, workingHousekeepingScratch,
