@@ -21,6 +21,7 @@ constexpr std::string_view kDeskChair = "HH_A129";
 constexpr std::string_view kGuestArmchair = "HH_A131";
 constexpr std::string_view kLuggageBench = "HH_A140";
 constexpr std::string_view kWardrobe = "HH_A141";
+constexpr std::string_view kTvConsole = "HH_A151";
 constexpr std::string_view kWallTelevision = "HH_A153";
 constexpr std::string_view kBathroomVanity = "HH_A166";
 constexpr std::string_view kBathroomToilet = "HH_A169";
@@ -29,6 +30,11 @@ constexpr std::string_view kReceptionDesk = "HH_A186";
 constexpr std::string_view kLobbySofa = "HH_A194";
 constexpr std::string_view kLobbyArmchair = "HH_A197";
 constexpr std::string_view kLobbyCoffeeTable = "HH_A200";
+constexpr std::string_view kLobbyFloorLamp = "HH_A205";
+constexpr std::string_view kLobbyPlanter = "HH_A207";
+constexpr std::string_view kLuggageCart = "HH_A211";
+constexpr std::string_view kHousekeepingCart = "HH_A291";
+constexpr std::string_view kUtilityCart = "HH_A320";
 constexpr std::string_view kCleaningSupplyCabinet = "HH_A302";
 constexpr std::string_view kStaffLockerBank = "HH_A338";
 constexpr std::string_view kStaffBench = "HH_A339";
@@ -51,7 +57,7 @@ constexpr std::array<std::string_view, WorldAssetSet::HousekeeperVariantCount>
 constexpr std::array<std::string_view, WorldAssetSet::MaintenanceVariantCount>
     kMaintenanceCharacterIds{{"HH_A495", "HH_A496"}};
 
-constexpr std::size_t kCoreAssetCount = 28;
+constexpr std::size_t kCoreAssetCount = 34;
 constexpr std::size_t kRequiredAssetCount =
     kCoreAssetCount + kGuestCharacterIds.size() +
     kReceptionistCharacterIds.size() + kHousekeeperCharacterIds.size() +
@@ -75,6 +81,7 @@ constexpr auto makeRequiredAssetIds() {
       kGuestArmchair,
       kLuggageBench,
       kWardrobe,
+      kTvConsole,
       kWallTelevision,
       kBathroomVanity,
       kBathroomToilet,
@@ -83,6 +90,11 @@ constexpr auto makeRequiredAssetIds() {
       kLobbySofa,
       kLobbyArmchair,
       kLobbyCoffeeTable,
+      kLobbyFloorLamp,
+      kLobbyPlanter,
+      kLuggageCart,
+      kHousekeepingCart,
+      kUtilityCart,
       kCleaningSupplyCabinet,
       kStaffLockerBank,
       kStaffBench,
@@ -135,6 +147,7 @@ WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver) {
   assets.guestArmchair = resolver(kGuestArmchair);
   assets.luggageBench = resolver(kLuggageBench);
   assets.wardrobe = resolver(kWardrobe);
+  assets.tvConsole = resolver(kTvConsole);
   assets.wallTelevision = resolver(kWallTelevision);
   assets.bathroomVanity = resolver(kBathroomVanity);
   assets.bathroomToilet = resolver(kBathroomToilet);
@@ -143,6 +156,11 @@ WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver) {
   assets.lobbySofa = resolver(kLobbySofa);
   assets.lobbyArmchair = resolver(kLobbyArmchair);
   assets.lobbyCoffeeTable = resolver(kLobbyCoffeeTable);
+  assets.lobbyFloorLamp = resolver(kLobbyFloorLamp);
+  assets.lobbyPlanter = resolver(kLobbyPlanter);
+  assets.luggageCart = resolver(kLuggageCart);
+  assets.housekeepingCart = resolver(kHousekeepingCart);
+  assets.utilityCart = resolver(kUtilityCart);
   assets.cleaningSupplyCabinet = resolver(kCleaningSupplyCabinet);
   assets.staffLockerBank = resolver(kStaffLockerBank);
   assets.staffBench = resolver(kStaffBench);
