@@ -87,6 +87,15 @@ struct Final07Typography {
   int focusInsetPixels{};
 };
 
+struct Final07PanelLayout {
+  int densityScalePercent{};
+  int contentWidthPixels{};
+  int contentTopPixels{};
+  int contentBottomPixels{};
+  int contentHeightPixels{};
+  int buildColumns{};
+};
+
 [[nodiscard]] constexpr int final07ScalePixel(int logicalPixels,
                                                int scalePercent) noexcept {
   return (logicalPixels * scalePercent + 50) / 100;
@@ -125,6 +134,27 @@ computeFinal07Layout(int clientWidth, int clientHeight,
   result.viewportWidth = clientWidth - result.sidebarPixels;
   result.viewportHeight =
       clientHeight - result.headerPixels - result.footerPixels;
+  return result;
+}
+
+[[nodiscard]] constexpr Final07PanelLayout
+computeFinal07PanelLayout(int clientWidth, int clientHeight,
+                          int scalePercent) noexcept {
+  const auto shell = computeFinal07Layout(clientWidth, clientHeight, scalePercent);
+  Final07PanelLayout result;
+  result.densityScalePercent = final07DensityScalePercent(scalePercent);
+  result.contentWidthPixels =
+      shell.sidebarPixels - final07ScalePixel(40, scalePercent);
+  result.contentTopPixels =
+      shell.headerPixels + final07ScalePixel(126, result.densityScalePercent);
+  result.contentBottomPixels =
+      clientHeight - shell.footerPixels -
+      final07ScalePixel(52, result.densityScalePercent);
+  result.contentHeightPixels =
+      result.contentBottomPixels > result.contentTopPixels
+          ? result.contentBottomPixels - result.contentTopPixels
+          : 0;
+  result.buildColumns = final07BuildCatalogColumns(result.contentWidthPixels);
   return result;
 }
 
