@@ -290,7 +290,12 @@ void Client::scrollPanel(int delta) {
 
   const int maximum =
       count == 0 ? 0 : static_cast<int>(count - 1);
-  const int next = std::clamp(tabScroll + delta, 0, maximum);
+  const int step =
+      page == Page::Build
+          ? computeFinal07PanelLayout(width, height, uiSettings.scalePercent())
+                .buildColumns
+          : 1;
+  const int next = std::clamp(tabScroll + delta * step, 0, maximum);
   if (next == tabScroll)
     return;
 
