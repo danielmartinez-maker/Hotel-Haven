@@ -1,5 +1,6 @@
 #include "hh/game/Simulation.h"
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <sstream>
 #include <stdexcept>
@@ -398,6 +399,30 @@ int main() {
   require(purchasingRestored.logisticsSnapshot().purchaseOrders.size() ==
               purchaseLogistics.purchaseOrders.size(),
           "mirrored FINAL-04 purchase orders did not survive save/load");
+
+  auto wearAuthority = Simulation::tutorial(333);
+  require(wearAuthority
+              .loadDefinitions(
+                  R"({"baseDemand":0,"roomConditionLossPerDay":1})")
+              .ok,
+          "wear-authority definitions rejected");
+  wearAuthority.step(3 * 86400);
+  const auto wearView = wearAuthority.view();
+  const auto wearEngineering = wearAuthority.engineeringSnapshot();
+  require(wearEngineering.failures == 0,
+          "integrated FINAL-04 engineering generated a duplicate reliability failure");
+  for (const auto &roomView : wearView.rooms) {
+    const auto asset = std::find_if(
+        wearEngineering.assets.begin(), wearEngineering.assets.end(),
+        [&](const auto &candidate) { return candidate.id == roomView.id; });
+    require(asset != wearEngineering.assets.end(),
+            "integrated room lost its FINAL-04 engineering asset");
+    require(asset->condition ==
+                std::clamp(
+                    static_cast<int>(std::llround(roomView.condition * 100.0)),
+                    0, 10000),
+            "FINAL-04 asset condition drifted from authoritative room wear");
+  }
 
   auto definitionInventory = Simulation::tutorial(325);
   require(definitionInventory
