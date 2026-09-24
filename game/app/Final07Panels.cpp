@@ -211,6 +211,18 @@ std::size_t financePageRows(const Client &client) {
   return 0;
 }
 
+int pageScrollStep(const Client &client) {
+  if (client.page == Page::Build) {
+    return computeFinal07PanelLayout(
+               client.width, client.height, client.uiSettings.scalePercent())
+        .buildColumns;
+  }
+  if (client.page == Page::Settings &&
+      client.settingsView == SettingsView::Controls)
+    return 2;
+  return 1;
+}
+
 std::size_t pageRows(const Client &client) {
   switch (client.page) {
   case Page::Rooms:
@@ -343,12 +355,9 @@ void Client::scrollPanel(int delta) {
 
   const int maximum =
       count == 0 ? 0 : static_cast<int>(count - 1);
-  const int step =
-      page == Page::Build
-          ? computeFinal07PanelLayout(width, height, uiSettings.scalePercent())
-                .buildColumns
-          : 1;
-  const int next = std::clamp(tabScroll + delta * step, 0, maximum);
+  const int step = pageScrollStep(*this);
+  const int next =
+      std::clamp(tabScroll + delta * step, 0, maximum);
   if (next == tabScroll)
     return;
 
@@ -1448,14 +1457,19 @@ void Client::paint(HDC output) {
   if (page != Page::Build && page != Page::Guide) {
     const std::size_t count = pageRows(*this);
     if (count > 0) {
+      const int scrollStep = pageScrollStep(*this);
       button(left, height - FooterHeight - vpx(42), halfControlWidth,
              std::max(px(20), vpx(28)), L"Previous",
-             [this] { tabScroll = std::max(0, tabScroll - 1); });
+             [this, scrollStep] {
+               tabScroll = std::max(0, tabScroll - scrollStep);
+             });
       button(left + halfControlWidth + controlGap,
              height - FooterHeight - vpx(42), halfControlWidth,
-             std::max(px(20), vpx(28)), L"Next", [this, count] {
+             std::max(px(20), vpx(28)), L"Next",
+             [this, count, scrollStep] {
                const int maximum = static_cast<int>(count - 1);
-               tabScroll = std::min(maximum, tabScroll + 1);
+               tabScroll =
+                   std::min(maximum, tabScroll + scrollStep);
              });
     }
   }
