@@ -109,16 +109,33 @@ void writeBytes(const std::filesystem::path& path,
     throw std::runtime_error("cannot write runtime test asset");
 }
 
+std::uint32_t assetNumber(std::string_view id) {
+  if (!id.starts_with("HH_A") || id.size() <= 4)
+    throw std::runtime_error("unexpected test asset id");
+  return static_cast<std::uint32_t>(std::stoul(std::string(id.substr(4))));
+}
+
+hh::assets::AssetType testAssetType(std::string_view id) {
+  const auto number = assetNumber(id);
+  return id == "HH_A012" || id == "HH_A057" || number >= 451u
+             ? hh::assets::AssetType::SkinnedMesh
+             : hh::assets::AssetType::StaticMesh;
+}
+
 } // namespace
 
 int main() {
   try {
+    const auto required = hh::client::requiredWorldAssetIds();
+    require(required.size() == 59u,
+            "world presentation dependency set should contain 59 assets");
+
     hh::renderer::RuntimeAssetRegistry registry;
-    const std::array<const char*, 9> ids{
-        "HH_A030", "HH_A113", "HH_A121", "HH_A126", "HH_A166",
-        "HH_A169", "HH_A171", "HH_A186", "HH_A396"};
-    for (const char* id : ids)
-      (void)registry.addHasset(makeHasset(id, std::string(id) == "HH_A171" ? 0.55f : 1.0f));
+    for (const std::string_view id : required) {
+      const float alpha = id == "HH_A171" ? 0.55f : 1.0f;
+      (void)registry.addHasset(
+          makeHasset(std::string(id), alpha, testAssetType(id)));
+    }
 
     const hh::client::WorldAssetSet assets =
         hh::client::worldAssetsFromRegistry(registry);
@@ -134,32 +151,89 @@ int main() {
             "opaque material incorrectly marked translucent");
     require(assets.showerGlass->translucent,
             "alpha material did not mark world asset translucent");
+    require(assets.standardGuestDoor->handle == registry.resolve("HH_A012"),
+            "guest door binding mismatch");
+    require(assets.lobbyEntranceDoor->handle == registry.resolve("HH_A057"),
+            "lobby entrance binding mismatch");
+    require(assets.bedsideLamp->handle == registry.resolve("HH_A125"),
+            "bedside lamp binding mismatch");
+    require(assets.deskChair->handle == registry.resolve("HH_A129"),
+            "desk chair binding mismatch");
+    require(assets.guestArmchair->handle == registry.resolve("HH_A131"),
+            "guest armchair binding mismatch");
+    require(assets.luggageBench->handle == registry.resolve("HH_A140"),
+            "luggage bench binding mismatch");
+    require(assets.wardrobe->handle == registry.resolve("HH_A141"),
+            "wardrobe binding mismatch");
+    require(assets.wallTelevision->handle == registry.resolve("HH_A153"),
+            "wall television binding mismatch");
+    require(assets.lobbySofa->handle == registry.resolve("HH_A194"),
+            "lobby sofa binding mismatch");
+    require(assets.lobbyArmchair->handle == registry.resolve("HH_A197"),
+            "lobby armchair binding mismatch");
+    require(assets.lobbyCoffeeTable->handle == registry.resolve("HH_A200"),
+            "lobby coffee table binding mismatch");
+    require(assets.cleaningSupplyCabinet->handle == registry.resolve("HH_A302"),
+            "supply cabinet binding mismatch");
+    require(assets.staffLockerBank->handle == registry.resolve("HH_A338"),
+            "staff locker binding mismatch");
+    require(assets.staffBench->handle == registry.resolve("HH_A339"),
+            "staff bench binding mismatch");
     require(assets.pottedPlant->handle == registry.resolve("HH_A396"),
             "potted plant handle mismatch");
+    require(assets.guestCharacters.front()->handle ==
+                registry.resolve("HH_A451") &&
+                assets.guestCharacters.back()->handle ==
+                registry.resolve("HH_A480"),
+            "guest character range was not fully bound");
+    require(assets.receptionistCharacters.front()->handle ==
+                registry.resolve("HH_A481"),
+            "receptionist character binding missing");
+    require(assets.housekeeperCharacters.front()->handle ==
+                registry.resolve("HH_A487"),
+            "housekeeper character binding missing");
+    require(assets.maintenanceCharacters.front()->handle ==
+                registry.resolve("HH_A495"),
+            "maintenance character binding missing");
 
     const auto root = std::filesystem::temp_directory_path() /
                       "hotel-haven-runtime-world-assets";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(root);
-    for (const char* id : ids) {
+    for (const std::string_view id : required) {
+      const float alpha = id == "HH_A171" ? 0.55f : 1.0f;
       writeBytes(root / (std::string(id) + ".hasset"),
-                 makeHasset(id, std::string(id) == "HH_A171" ? 0.55f : 1.0f));
+                 makeHasset(std::string(id), alpha, testAssetType(id)));
     }
-    writeBytes(root / "HH_A451.hasset",
-               makeHasset("HH_A451", 1.0f, hh::assets::AssetType::SkinnedMesh));
+
+    // A shipping package contains all 500 assets, but startup should decode only
+    // the world-view dependency set rather than eagerly materializing every GLB.
+    writeBytes(root / "HH_A001.hasset",
+               makeHasset("HH_A001", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
 
     hh::renderer::RuntimeAssetRegistry startupRegistry;
     const hh::client::WorldAssetSet startupAssets =
         hh::client::loadWorldAssetsFromDirectory(startupRegistry, root);
-    require(startupRegistry.size() == 10u,
-            "startup did not load the complete cooked asset directory");
-    require(startupAssets.guestBed->handle == startupRegistry.resolve("HH_A113"),
+    require(startupRegistry.size() == required.size(),
+            "startup decoded assets outside the world dependency set");
+    require(startupAssets.guestBed->handle ==
+                startupRegistry.resolve("HH_A113"),
             "startup asset set did not bind guest bed handle");
     require(startupRegistry.resolve("HH_A451").value < startupRegistry.size(),
-            "startup rejected a cooked skinned bind-pose mesh");
+            "startup rejected a cooked skinned bind-pose character");
+
+    bool strayLoaded = true;
+    try {
+      (void)startupRegistry.resolve("HH_A001");
+    } catch (const std::runtime_error&) {
+      strayLoaded = false;
+    }
+    require(!strayLoaded,
+            "startup eagerly decoded an unrelated package asset");
     std::filesystem::remove_all(root);
 
-    std::cout << "Runtime registry world asset bridge passed\n";
+    std::cout << "Selective runtime registry world asset bridge passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;

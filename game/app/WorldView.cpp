@@ -109,6 +109,39 @@ void plant(RenderScene &s, int f, float x, float z,
   box(s, f, x + .1f, z, .96f, .45f, .48f, .4f, {.31f, .51f, .29f, 1});
 }
 
+void lobbyDecoration(RenderScene &s, const TileView &tile, float x, float z,
+                     const WorldAssetSet *assets) {
+  if (!assets)
+    return;
+
+  int motif = (tile.position.x * 31 + tile.position.y * 17 +
+               tile.position.floor * 13) %
+              6;
+  if (motif < 0)
+    motif += 6;
+
+  if (motif == 0) {
+    (void)fittedMesh(s, tile.position.floor, x, z, .40f, .88f, .55f, .80f,
+                     assets->lobbySofa);
+  } else if (motif == 2) {
+    (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
+                     assets->lobbyArmchair);
+  } else if (motif == 4) {
+    (void)fittedMesh(s, tile.position.floor, x, z, .19f, .70f, .55f, .38f,
+                     assets->lobbyCoffeeTable);
+  }
+}
+
+void staffRoomFurniture(RenderScene &s, int floor, float x, float z,
+                        const WorldAssetSet *assets) {
+  if (!assets)
+    return;
+  (void)fittedMesh(s, floor, x, z + .24f, .75f, .70f, .34f, 1.50f,
+                   assets->staffLockerBank);
+  (void)fittedMesh(s, floor, x, z - .27f, .24f, .72f, .34f, .48f,
+                   assets->staffBench);
+}
+
 void bed(RenderScene &s, int f, float x, float z, const WorldAssetSet *assets) {
   const bool assetBed =
       assets && fittedMesh(s, f, x, z, .58f, 1.62f, 2.10f, 1.16f,
@@ -126,7 +159,11 @@ void bed(RenderScene &s, int f, float x, float z, const WorldAssetSet *assets) {
                            assets->nightstand);
   if (!assetNightstand)
     box(s, f, x + 1.10f, z - .65f, .40f, .50f, .52f, .8f, wood);
-  box(s, f, x + 1.10f, z - .65f, .98f, .32f, .32f, .28f, gold);
+  const bool assetLamp =
+      assets && fittedMesh(s, f, x + 1.10f, z - .65f, .98f, .32f, .32f, .28f,
+                           assets->bedsideLamp);
+  if (!assetLamp)
+    box(s, f, x + 1.10f, z - .65f, .98f, .32f, .32f, .28f, gold);
 }
 
 Color statusColor(RoomStatus st) {
@@ -149,6 +186,28 @@ Color statusColor(RoomStatus st) {
 Color diagnosticGoodness(float value) {
   const float v = std::clamp(value, 0.0f, 1.0f);
   return {.85f - .55f * v, .28f + .40f * v, .22f + .22f * v, 1};
+}
+
+const std::optional<WorldAssetVisual> &characterVisual(
+    const WorldAssetSet &assets, const PersonView &person) {
+  switch (person.kind) {
+  case PersonKind::Guest:
+    return assets.guestCharacters[
+        static_cast<std::size_t>(person.id) % assets.guestCharacters.size()];
+  case PersonKind::Receptionist:
+    return assets.receptionistCharacters[
+        static_cast<std::size_t>(person.id) %
+        assets.receptionistCharacters.size()];
+  case PersonKind::Housekeeper:
+    return assets.housekeeperCharacters[
+        static_cast<std::size_t>(person.id) %
+        assets.housekeeperCharacters.size()];
+  case PersonKind::Maintenance:
+    return assets.maintenanceCharacters[
+        static_cast<std::size_t>(person.id) %
+        assets.maintenanceCharacters.size()];
+  }
+  return assets.guestCharacters.front();
 }
 } // namespace
 
@@ -200,14 +259,20 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
       box(s, f, x, z, .075f, .88f, .88f, .04f,
           {.18f * shade, .45f * shade, .43f * shade, 1}, RenderCategory::Floor);
       box(s, f, x, z, .10f, .16f, .16f, .05f, gold, RenderCategory::Floor);
+      lobbyDecoration(s, t, x, z, assets);
     } else if (t.kind == TileKind::Wall) {
       box(s, f, x, z, 1.3f, .97f, .97f, 2.6f, {.87f, .82f, .70f, 1},
           RenderCategory::Wall);
       box(s, f, x, z, .12f, 1.0f, 1.0f, .15f, wood);
     } else if (t.kind == TileKind::Door) {
-      box(s, f, x - .43f, z, 1.f, .12f, .22f, 2.f, wood);
-      box(s, f, x + .43f, z, 1.f, .12f, .22f, 2.f, wood);
-      box(s, f, x, z, 2.02f, .98f, .22f, .13f, wood);
+      const bool assetDoor = assets &&
+          fittedMesh(s, f, x, z, 1.f, .98f, .22f, 2.f,
+                     assets->standardGuestDoor);
+      if (!assetDoor) {
+        box(s, f, x - .43f, z, 1.f, .12f, .22f, 2.f, wood);
+        box(s, f, x + .43f, z, 1.f, .12f, .22f, 2.f, wood);
+        box(s, f, x, z, 2.02f, .98f, .22f, .13f, wood);
+      }
     } else if (t.kind == TileKind::FrontDesk) {
       const bool assetDesk = assets &&
           fittedMesh(s, f, x, z, .70f, 1.73f, .83f, 1.40f,
@@ -220,12 +285,23 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
         box(s, f, x - .40f, z, 1.18f, .14f, .14f, .09f, gold);
       }
     } else if (t.kind == TileKind::SupplyCloset) {
-      box(s, f, x, z, .8f, .8f, .75f, 1.6f, wood);
-      for (int i = 0; i < 3; ++i)
-        box(s, f, x, z - .04f, .30f + static_cast<float>(i) * .48f, .70f,
-            .66f, .26f, cream);
+      const bool assetCabinet = assets &&
+          fittedMesh(s, f, x, z, .8f, .8f, .75f, 1.6f,
+                     assets->cleaningSupplyCabinet);
+      if (!assetCabinet) {
+        box(s, f, x, z, .8f, .8f, .75f, 1.6f, wood);
+        for (int i = 0; i < 3; ++i)
+          box(s, f, x, z - .04f, .30f + static_cast<float>(i) * .48f, .70f,
+              .66f, .26f, cream);
+      }
     } else if (t.kind == TileKind::Entrance) {
-      box(s, f, x, z, .05f, .96f, .96f, .05f, teal);
+      const bool assetEntrance = assets &&
+          fittedMesh(s, f, x, z, 1.02f, .92f, .18f, 2.04f,
+                     assets->lobbyEntranceDoor);
+      if (!assetEntrance)
+        box(s, f, x, z, .05f, .96f, .96f, .05f, teal);
+    } else if (t.kind == TileKind::StaffRoom) {
+      staffRoomFurniture(s, f, x, z, assets);
     } else if (t.kind == TileKind::Stairs) {
       const bool assetStair = assets &&
           fittedMesh(s, f, x, z, .48f, .85f, 1.0f, .96f,
@@ -296,7 +372,24 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
                    assets->guestDesk);
     if (!assetGuestDesk)
       box(s, f, x + 1.6f, z + d - 1.4f, .73f, 1.45f, .56f, .12f, wood);
-    box(s, f, x + 1.6f, z + d - 1.0f, .40f, .5f, .5f, .70f, teal);
+    const bool assetDeskChair = assets &&
+        fittedMesh(s, f, x + 1.6f, z + d - 1.0f, .40f, .50f, .50f, .70f,
+                   assets->deskChair);
+    if (!assetDeskChair)
+      box(s, f, x + 1.6f, z + d - 1.0f, .40f, .5f, .5f, .70f, teal);
+
+    if (assets && w >= 5.0f && d >= 5.0f) {
+      (void)fittedMesh(s, f, x + w - .72f, z + 1.10f, .88f,
+                       .76f, .50f, 1.76f, assets->wardrobe);
+      (void)fittedMesh(s, f, x + w - .11f, z + d * .50f, 1.46f,
+                       .12f, 1.00f, .58f, assets->wallTelevision);
+      (void)fittedMesh(s, f, x + w - 1.25f, z + 3.15f, .44f,
+                       .74f, .74f, .88f, assets->guestArmchair);
+      if (d >= 6.0f)
+        (void)fittedMesh(s, f, x + 2.0f, z + 4.15f, .24f,
+                         1.20f, .46f, .48f, assets->luggageBench);
+    }
+
     plant(s, f, x + w - 1.5f, z + 1.5f, assets);
     box(s, f, static_cast<float>(r.door.x) + .5f,
         static_cast<float>(r.door.y) + .5f, .05f, .7f, .7f, .09f,
@@ -316,7 +409,9 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
     }
   }
 
-  // Characters remain procedural until the skinned-mesh/animation runtime exists.
+  // Character GLBs are currently rendered in bind pose. Procedural characters
+  // remain a fallback for tests, incomplete packages, and future unsupported
+  // roles until skeletal animation playback is wired to the renderer.
   for (const auto &p : snapshot.people) {
     if (p.state == PersonState::CheckedOut || p.state == PersonState::OffDuty)
       continue;
@@ -339,9 +434,31 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
       shirt = diagnosticGoodness(active ? 1.0f : 0.0f);
     }
     if (c.overlay == Overlay::QueueWait) {
-      const float pressure = std::min(1.0f, static_cast<float>(p.queueWaitSeconds) / 300.0f);
+      const float pressure =
+          std::min(1.0f, static_cast<float>(p.queueWaitSeconds) / 300.0f);
       shirt = diagnosticGoodness(1.0f - pressure);
     }
+
+    Color characterTint{1, 1, 1, 1};
+    if ((c.overlay == Overlay::GuestSatisfaction &&
+         p.kind == PersonKind::Guest) ||
+        (c.overlay == Overlay::StaffUtilization &&
+         p.kind != PersonKind::Guest) ||
+        c.overlay == Overlay::QueueWait) {
+      characterTint = shirt;
+    }
+
+    box(s, f, x, z, .07f, .49f, .43f, .035f, {.18f, .20f, .17f, .35f});
+    if (assets) {
+      constexpr float halfPi = 1.57079632679f;
+      const float yaw =
+          static_cast<float>(static_cast<std::size_t>(p.id) % 4u) * halfPi;
+      if (fittedMesh(s, f, x, z, .825f, .58f, .46f, 1.65f,
+                     characterVisual(*assets, p), characterTint,
+                     RenderCategory::Object, yaw))
+        continue;
+    }
+
     const float stride =
         !c.reducedMotion && p.state == PersonState::Traveling
             ? .10f *
@@ -349,7 +466,6 @@ void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
                                1.2f +
                            static_cast<float>(p.id % 11))
             : 0;
-    box(s, f, x, z, .07f, .49f, .43f, .035f, {.18f, .20f, .17f, .35f});
     box(s, f, x - .11f, z + stride, .30f, .15f, .19f, .48f,
         {.19f, .23f, .27f, 1});
     box(s, f, x + .11f, z - stride, .30f, .15f, .19f, .48f,
