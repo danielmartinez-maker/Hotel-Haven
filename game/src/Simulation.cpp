@@ -30,6 +30,29 @@ int manhattan(Position a, Position b) {
          std::abs(a.floor - b.floor) * 8;
 }
 template <class E> int ei(E e) { return static_cast<int>(e); }
+StaffRole staffRole(PersonKind kind) {
+  switch (kind) {
+  case PersonKind::Receptionist:
+    return StaffRole::Receptionist;
+  case PersonKind::Maintenance:
+    return StaffRole::Maintenance;
+  case PersonKind::Housekeeper:
+  case PersonKind::Guest:
+    return StaffRole::Housekeeper;
+  }
+  return StaffRole::Housekeeper;
+}
+PersonKind personKind(StaffRole role) {
+  switch (role) {
+  case StaffRole::Receptionist:
+    return PersonKind::Receptionist;
+  case StaffRole::Maintenance:
+    return PersonKind::Maintenance;
+  case StaffRole::Housekeeper:
+    return PersonKind::Housekeeper;
+  }
+  return PersonKind::Housekeeper;
+}
 bool passableKind(TileKind kind) {
   return kind == TileKind::Floor || kind == TileKind::Door ||
          kind == TileKind::Entrance || kind == TileKind::FrontDesk ||
@@ -61,6 +84,9 @@ struct Person : PersonView {
   EntityId reservation{};
   EntityId task{};
   std::int64_t accruedWageUnits{};
+  std::int64_t shiftWorkedSeconds{};
+  std::int64_t shiftInstanceKey{std::numeric_limits<std::int64_t>::min()};
+  bool breakTaskCreated{};
 };
 struct Reservation : ReservationView {
   double satisfaction{70};
@@ -70,6 +96,7 @@ struct Reservation : ReservationView {
 struct Task : TaskView {
   double total{};
   bool resourcesClaimed{};
+  double trainingSkillGain{};
 };
 struct PendingOrder : SupplyOrderView {};
 bool materialsZero(const ConstructionMaterials &materials) {
@@ -101,6 +128,7 @@ struct Simulation::Impl {
   std::vector<Task> completedTaskHistory;
   std::vector<ReviewView> reviews;
   std::vector<PendingOrder> orders;
+  std::vector<ManagerAssignment> managers;
   ConstructionSnapshot construction;
   BuildingSystemsSnapshot buildingSystems;
   InventoryView inventory{24, 48, 36, 24, 8};
@@ -117,6 +145,14 @@ struct Simulation::Impl {
       checkInWork{300}, hungerRate{10.0 / 60.0}, restLoss{5.0 / 60.0},
       roomConditionLossPerDay{2.5};
   int utilityPerRoomDayCents{350};
+  int onboardingCostCents{0};
+  int staffBreakAfterMinutes{0};
+  int staffBreakDurationMinutes{30};
+  double missedBreakFatiguePerHour{0};
+  double missedBreakMoralePerHour{0};
+  double trainingSkillGain{5};
+  int consumedApplicantDay{-1};
+  std::vector<ApplicantId> consumedApplicantIds;
 
   void configureTutorialFinal05() {
     food.addRecipe({1, "Classic Breakfast", {{"eggs", 2}, {"bread", 2}},
