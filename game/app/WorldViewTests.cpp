@@ -72,8 +72,8 @@ int main() {
           requestedIds.emplace_back(id);
           return visual(assetNumber(id));
         });
-    require(requiredWorldAssetIds().size() == 49u,
-            "world dependency contract should contain 49 assets");
+    require(requiredWorldAssetIds().size() == 59u,
+            "world dependency contract should contain 59 assets");
     require(requestedIds.size() == requiredWorldAssetIds().size(),
             "startup world asset resolver did not resolve the complete dependency set");
     auto uniqueIds = requestedIds;
@@ -85,6 +85,8 @@ int main() {
             "straight stair startup binding mismatch");
     require(resolved.standardGuestDoor->handle == AssetHandle{12},
             "guest door startup binding mismatch");
+    require(resolved.lobbyEntranceDoor->handle == AssetHandle{57},
+            "lobby entrance startup binding mismatch");
     require(resolved.guestBed->handle == AssetHandle{113},
             "guest bed startup binding mismatch");
     require(resolved.nightstand->handle == AssetHandle{121},
@@ -95,6 +97,14 @@ int main() {
             "guest desk startup binding mismatch");
     require(resolved.deskChair->handle == AssetHandle{129},
             "desk chair startup binding mismatch");
+    require(resolved.guestArmchair->handle == AssetHandle{131},
+            "guest armchair startup binding mismatch");
+    require(resolved.luggageBench->handle == AssetHandle{140},
+            "luggage bench startup binding mismatch");
+    require(resolved.wardrobe->handle == AssetHandle{141},
+            "wardrobe startup binding mismatch");
+    require(resolved.wallTelevision->handle == AssetHandle{153},
+            "wall television startup binding mismatch");
     require(resolved.bathroomVanity->handle == AssetHandle{166},
             "bathroom vanity startup binding mismatch");
     require(resolved.bathroomToilet->handle == AssetHandle{169},
@@ -103,8 +113,18 @@ int main() {
             "shower startup binding mismatch");
     require(resolved.receptionDesk->handle == AssetHandle{186},
             "reception desk startup binding mismatch");
+    require(resolved.lobbySofa->handle == AssetHandle{194},
+            "lobby sofa startup binding mismatch");
+    require(resolved.lobbyArmchair->handle == AssetHandle{197},
+            "lobby armchair startup binding mismatch");
+    require(resolved.lobbyCoffeeTable->handle == AssetHandle{200},
+            "lobby coffee table startup binding mismatch");
     require(resolved.cleaningSupplyCabinet->handle == AssetHandle{302},
             "cleaning cabinet startup binding mismatch");
+    require(resolved.staffLockerBank->handle == AssetHandle{338},
+            "staff locker startup binding mismatch");
+    require(resolved.staffBench->handle == AssetHandle{339},
+            "staff bench startup binding mismatch");
     require(resolved.pottedPlant->handle == AssetHandle{396},
             "potted plant startup binding mismatch");
     require(resolved.guestCharacters.front()->handle == AssetHandle{451} &&
@@ -152,6 +172,41 @@ int main() {
       require(containsHandle(scene, 302),
               "supply closets did not use the cleaning cabinet mesh");
     require(scene.focusTarget.has_value(), "selected room has no cutaway focus");
+
+    hh::game::SimulationView placementSnapshot;
+    placementSnapshot.width = 12;
+    placementSnapshot.height = 10;
+    placementSnapshot.floors = 1;
+    placementSnapshot.tiles = {
+        {{0, 0, 0}, hh::game::TileKind::Lobby},
+        {{0, 2, 0}, hh::game::TileKind::Lobby},
+        {{0, 4, 0}, hh::game::TileKind::Lobby},
+        {{0, 6, 0}, hh::game::TileKind::StaffRoom},
+        {{0, 8, 0}, hh::game::TileKind::Entrance},
+    };
+    hh::game::RoomView placementRoom;
+    placementRoom.id = 700001;
+    placementRoom.name = "Asset placement room";
+    placementRoom.door = {0, 1, 1};
+    placementRoom.status = hh::game::RoomStatus::VacantReady;
+    placementRoom.floor = 0;
+    placementRoom.x = 1;
+    placementRoom.y = 2;
+    placementRoom.width = 7;
+    placementRoom.height = 7;
+    placementRoom.beds = 1;
+    placementRoom.baths = 1;
+    placementRoom.cleanliness = 100;
+    placementRoom.condition = 100;
+    placementSnapshot.rooms.push_back(placementRoom);
+
+    const auto placementScene =
+        worldScene(placementSnapshot, WorldViewOptions{}, &assets);
+    for (const auto handle : std::array<std::uint32_t, 10>{
+             57, 131, 140, 141, 153, 194, 197, 200, 338, 339}) {
+      require(containsHandle(placementScene, handle),
+              "world presentation omitted an integrated room/public-area asset");
+    }
 
     for (const auto &item : scene.items) {
       require(std::isfinite(item.center.x) && std::isfinite(item.center.y) &&
