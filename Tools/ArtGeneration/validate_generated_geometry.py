@@ -215,8 +215,10 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     for profile, budget in sorted(report.get('profile_face_budgets', {}).items()):
         lines.append(f'| {profile} | {budget} |')
     lines.extend(['', '## Batch status', '', '| Batch | Status |', '| --- | --- |'])
-    for batch in range(1, 11):
-        lines.append(f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |')
+    for batch_key in sorted(batch_statuses, key=int):
+        lines.append(
+            f'| Batch {int(batch_key):02d} | {batch_statuses[batch_key]} |'
+        )
     lines.extend([
         '',
         '## Operational note',
