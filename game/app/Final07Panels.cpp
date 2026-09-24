@@ -1228,13 +1228,28 @@ void Client::paint(HDC output) {
     label(L"Resolved", std::to_wstring(alertCenter.resolvedHistory().size())); separator();
     if (selectedAlertId != 0) {
       const auto chain = alertCenter.causalChain(selectedAlertId);
+      const int alertListReserve =
+          alertCenter.active().size() > 1 ? vpx(110) : vpx(45);
+      const int chainBottom =
+          std::max(y + vpx(48), bottom - alertListReserve);
       for (const auto &alert : chain) {
-        if (y + vpx(38) >= bottom) break;
-        paragraph(alertSeverity(alert.severity) + L" · " + wide(alert.reasonCode) + L" · " + wide(alert.message), 34, alertColor(alert.severity));
+        if (y + vpx(38) >= chainBottom)
+          break;
+        paragraph(alertSeverity(alert.severity) + L" · " +
+                      wide(alert.reasonCode) + L" · " + wide(alert.message),
+                  34, alertColor(alert.severity));
       }
-      if (const auto navigation = alertCenter.navigationFor(selectedAlertId); navigation && y + vpx(38) < bottom)
-        fullButton(L"Focus source", [this, command = *navigation] { const auto result = ui.dispatchUiCommand(command); if (!result.message.empty()) notice = wide(result.message); });
-      separator();
+      if (const auto navigation =
+              alertCenter.navigationFor(selectedAlertId);
+          navigation && y + vpx(38) < chainBottom) {
+        fullButton(L"Focus source", [this, command = *navigation] {
+          const auto result = ui.dispatchUiCommand(command);
+          if (!result.message.empty())
+            notice = wide(result.message);
+        });
+      }
+      if (y < chainBottom)
+        separator();
     }
     const auto &alerts = alertCenter.active();
     for (std::size_t index = static_cast<std::size_t>(tabScroll); index < alerts.size() && y + vpx(82) < bottom; ++index) {
