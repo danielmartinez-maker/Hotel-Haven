@@ -87,9 +87,6 @@ struct D3D11Renderer::MeshConstants {
     DirectX::XMFLOAT4 materialParameters;
 };
 
-static_assert(sizeof(D3D11Renderer::CameraConstants) % 16u == 0u);
-static_assert(sizeof(D3D11Renderer::MeshConstants) % 16u == 0u);
-
 D3D11Renderer::~D3D11Renderer() {
     shutdown();
 }
@@ -264,6 +261,8 @@ RendererResult D3D11Renderer::resize(std::uint32_t width, std::uint32_t height) 
 }
 
 RendererResult D3D11Renderer::createGeometryResources() {
+    static_assert(sizeof(CameraConstants) % 16u == 0u);
+    static_assert(sizeof(MeshConstants) % 16u == 0u);
     const std::array<Vertex, 8> vertices{{
         {{-0.5f, -0.5f, -0.5f}},
         {{-0.5f,  0.5f, -0.5f}},
