@@ -3,8 +3,7 @@ name: Renderer CI
 on:
   push:
     branches:
-      - feature/renderer-foundation-c
-      - feature/renderer-cooked-asset-runtime
+      - main
     paths:
       - 'renderer/**'
       - 'Tools/ContentPipeline/**'
@@ -15,12 +14,15 @@ on:
       - 'Tools/ContentPipeline/**'
       - '.github/workflows/renderer-ci.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure
         run: cmake -S renderer -B renderer/build -A x64

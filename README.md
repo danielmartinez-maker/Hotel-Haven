@@ -38,7 +38,7 @@ Standard room placement uses a 6×6 footprint. Its door is the third tile of the
 
 Room-status colors: green ready, blue occupied, purple reserved, amber cleaning, orange dirty, red unavailable. Cleanliness and condition overlays run from red (0) to green (100); the Rooms inspector gives exact values.
 
-Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The current v7 writer uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and migrates saves from formats v2 through v6.
+Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The current v9 writer uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and migrates saves from formats v2 through v6.
 
 ## Portable simulation and automated campaigns
 

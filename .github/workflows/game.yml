@@ -1,9 +1,12 @@
 name: Integrated Game
 on:
   push:
-    branches: [main, feature/full-game-integration]
+    branches: [main]
   pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   game:
     strategy:
@@ -12,11 +15,11 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python for production assets
         if: runner.os == 'Windows'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
@@ -63,7 +66,7 @@ jobs:
           $p = Start-Process build/Release/hotel_haven.exe -ArgumentList '--smoke-test' -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "Client smoke test failed: $($p.ExitCode)" }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && runner.os == 'Windows'
         with:
           name: Hotel-Haven-Visual-QA
@@ -94,7 +97,7 @@ jobs:
             $archive.Dispose()
           }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: runner.os == 'Windows'
         with:
           name: Hotel-Haven-Windows
