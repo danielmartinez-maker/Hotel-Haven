@@ -111,6 +111,8 @@ struct Simulation::Impl {
   mutable Position cachedEntrance{-1, -1, -1};
   mutable Position cachedSupply{-1, -1, -1};
   mutable Position cachedFrontDesk{-1, -1, -1};
+  mutable bool tileViewCacheValid{};
+  mutable std::vector<TileView> cachedTileViews;
   std::vector<PreparedRoomServiceHandoff> pendingRoomServiceHandoffsScratch;
   FoodServiceSystem food;
   EventsSystem events;
@@ -173,6 +175,18 @@ struct Simulation::Impl {
   void invalidateTopologyCaches() {
     routeCache.clear();
     specialTileCacheValid = false;
+    tileViewCacheValid = false;
+  }
+
+  void refreshTileViewCache() const {
+    if (tileViewCacheValid)
+      return;
+    cachedTileViews.clear();
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
+      if (map[i] != TileKind::Empty)
+        cachedTileViews.push_back(
+            {{i / (width * height), i % width, (i / width) % height}, map[i]});
+    tileViewCacheValid = true;
   }
 
   void refreshSpecialTileCache() const {
@@ -1625,11 +1639,8 @@ SimulationView Simulation::view() const {
                          impl_->completedReservationHistory.size());
   v.tasks.reserve(impl_->tasks.size() + impl_->completedTaskHistory.size());
   v.supplyOrders.reserve(impl_->orders.size());
-  for (int i = 0; i < (int)impl_->map.size(); ++i)
-    if (impl_->map[i] != TileKind::Empty)
-      v.tiles.push_back({{i / (impl_->width * impl_->height), i % impl_->width,
-                          (i / impl_->width) % impl_->height},
-                         impl_->map[i]});
+  impl_->refreshTileViewCache();
+  v.tiles = impl_->cachedTileViews;
   for (auto &r : impl_->rooms)
     v.rooms.push_back(r);
   for (auto &p : impl_->people)
