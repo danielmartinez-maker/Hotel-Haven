@@ -9,21 +9,19 @@ EngineeringSystem::EngineeringSystem(LogisticsSystem &logistics, std::uint64_t s
 void EngineeringSystem::registerAsset(AssetId id, int condition) {
   if (id == 0 || asset(id))
     return;
+  const auto index = assets_.size();
   assets_.push_back({id, std::clamp(condition, 0, 10000), 0, false});
+  assetIndex_.emplace(id, index);
 }
 
 EngineeringSystem::Asset *EngineeringSystem::asset(AssetId id) {
-  for (auto &entry : assets_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = assetIndex_.find(id);
+  return found == assetIndex_.end() ? nullptr : &assets_[found->second];
 }
 
 const EngineeringSystem::Asset *EngineeringSystem::asset(AssetId id) const {
-  for (const auto &entry : assets_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = assetIndex_.find(id);
+  return found == assetIndex_.end() ? nullptr : &assets_[found->second];
 }
 
 WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
@@ -101,6 +99,10 @@ void EngineeringSystem::tickReliabilitySecond() {
 }
 
 void EngineeringSystem::rebuildActiveWorkOrders() {
+  assetIndex_.clear();
+  assetIndex_.reserve(assets_.size());
+  for (std::size_t index = 0; index < assets_.size(); ++index)
+    assetIndex_.emplace(assets_[index].id, index);
   activeWorkOrders_.clear();
   activeWorkOrders_.reserve(workOrders_.size());
   for (std::size_t index = 0; index < workOrders_.size(); ++index)
