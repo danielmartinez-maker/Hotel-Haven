@@ -89,6 +89,9 @@ struct Simulation::Impl {
   std::vector<Room> rooms;
   std::vector<Person> people;
   std::vector<Reservation> reservations;
+  std::unordered_map<EntityId, std::size_t> roomIndex;
+  std::unordered_map<EntityId, std::size_t> personIndex;
+  std::unordered_map<EntityId, std::size_t> reservationIndex;
   std::vector<Reservation> completedReservationHistory;
   std::vector<Task> tasks;
   std::vector<Task> completedTaskHistory;
@@ -315,23 +318,47 @@ struct Simulation::Impl {
     return reachable;
   }
 
+  void rebuildRoomIndex() {
+    roomIndex.clear();
+    roomIndex.reserve(rooms.size());
+    for (std::size_t i = 0; i < rooms.size(); ++i)
+      roomIndex.emplace(rooms[i].id, i);
+  }
+  void rebuildPersonIndex() {
+    personIndex.clear();
+    personIndex.reserve(people.size());
+    for (std::size_t i = 0; i < people.size(); ++i)
+      personIndex.emplace(people[i].id, i);
+  }
+  void rebuildReservationIndex() {
+    reservationIndex.clear();
+    reservationIndex.reserve(reservations.size());
+    for (std::size_t i = 0; i < reservations.size(); ++i)
+      reservationIndex.emplace(reservations[i].id, i);
+  }
+  void rebuildEntityIndexes() {
+    rebuildRoomIndex();
+    rebuildPersonIndex();
+    rebuildReservationIndex();
+  }
+
   Room *getRoom(EntityId id) {
-    for (auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = roomIndex.find(id);
+    return it != roomIndex.end() && it->second < rooms.size()
+               ? &rooms[it->second]
+               : nullptr;
   }
   Person *getPerson(EntityId id) {
-    for (auto &x : people)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = personIndex.find(id);
+    return it != personIndex.end() && it->second < people.size()
+               ? &people[it->second]
+               : nullptr;
   }
   Reservation *getReservation(EntityId id) {
-    for (auto &x : reservations)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = reservationIndex.find(id);
+    return it != reservationIndex.end() && it->second < reservations.size()
+               ? &reservations[it->second]
+               : nullptr;
   }
   Position locate(TileKind kind) const {
     if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
@@ -557,6 +584,7 @@ struct Simulation::Impl {
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
+      reservationIndex[z.id] = reservations.size() - 1;
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
     }
@@ -584,6 +612,7 @@ struct Simulation::Impl {
         p.goal = "Reach front desk";
         p.reservation = z.id;
         people.push_back(p);
+        personIndex[p.id] = people.size() - 1;
       }
   }
   void beginDepartures(int day) {
@@ -888,9 +917,8 @@ struct Simulation::Impl {
           if (p.queueWaitSeconds > 8 * 60)
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation)
-            z.satisfaction = p.satisfaction;
+        if (auto *reservation = getReservation(p.reservation))
+          reservation->satisfaction = p.satisfaction;
       }
   }
   void compactTransientState() {
@@ -898,11 +926,14 @@ struct Simulation::Impl {
       if (person.kind == PersonKind::Guest &&
           person.state == PersonState::CheckedOut)
         routeCache.erase(person.id);
+    const auto peopleBefore = people.size();
     people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
                    return p.kind == PersonKind::Guest &&
                           p.state == PersonState::CheckedOut;
                  }),
                  people.end());
+    if (people.size() != peopleBefore)
+      rebuildPersonIndex();
 
     for (auto &task : tasks)
       if (task.status == TaskStatus::Completed)
@@ -921,12 +952,15 @@ struct Simulation::Impl {
     for (auto &reservation : reservations)
       if (reservation.completed)
         completedReservationHistory.push_back(std::move(reservation));
+    const auto reservationsBefore = reservations.size();
     reservations.erase(
         std::remove_if(reservations.begin(), reservations.end(),
                        [](const auto &reservation) {
                          return reservation.completed;
                        }),
         reservations.end());
+    if (reservations.size() != reservationsBefore)
+      rebuildReservationIndex();
   }
   void tickServicesWithPhysicalLabor() {
     managedHousekeepingScratch.clear();
@@ -1217,6 +1251,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->roomIndex[r.id] = impl_->rooms.size() - 1;
   impl_->services.registerRoom(
       r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
                                                  : ServiceRoomStatus::Blocked);
@@ -1251,6 +1286,7 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   p.hourlyWageCents =
       static_cast<std::int64_t>(std::llround(h.hourlyWage * 100));
   impl_->people.push_back(p);
+  impl_->personIndex[p.id] = impl_->people.size() - 1;
   return {true, "Staff hired", p.id};
 }
 CommandResult Simulation::fireStaff(EntityId id) {
@@ -1268,6 +1304,7 @@ CommandResult Simulation::fireStaff(EntityId id) {
   impl_->postAccruedWage(*it);
   impl_->routeCache.erase(id);
   impl_->people.erase(it);
+  impl_->rebuildPersonIndex();
   return {true, "Staff released", id};
 }
 CommandResult Simulation::setStaffShift(EntityId id, int a, int b) {
@@ -1352,6 +1389,7 @@ CommandResult Simulation::removeRoom(EntityId id) {
     for (int x = it->x; x < it->x + it->width; ++x)
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
   impl_->rooms.erase(it);
+  impl_->rebuildRoomIndex();
   impl_->invalidateTopologyCaches();
   impl_->refreshReachability();
   return {true, "Room removed", id};
@@ -2190,6 +2228,7 @@ Simulation Simulation::load(std::string_view data) {
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
   }
+  d.rebuildEntityIndexes();
   d.compactTransientState();
   return s;
 }
