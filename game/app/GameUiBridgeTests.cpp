@@ -27,9 +27,17 @@ int main() {
     context.activeFloor = 0;
     context.cutaway = true;
     context.currentTool = "Inspect";
-    auto source = hh::client::makeGameUiSnapshotSource(simulation, context);
-    hh::client::attachLiveBuildCatalog(source);
     const auto view = simulation.view();
+    auto source =
+        hh::client::makeGameUiSnapshotSource(simulation, view, context);
+    const auto legacySource =
+        hh::client::makeGameUiSnapshotSource(simulation, context);
+    require(source.revision == legacySource.revision &&
+                source.entities.size() == legacySource.entities.size() &&
+                source.operations.rows.size() ==
+                    legacySource.operations.rows.size(),
+            "shared-view UI projection diverged from legacy projection");
+    hh::client::attachLiveBuildCatalog(source);
     require(source.hud.cashCents == view.economy.cashCents, "HUD cash was not snapshot-bound");
     require(source.hud.day == view.day && source.hud.hour == view.hour, "HUD clock was not snapshot-bound");
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
