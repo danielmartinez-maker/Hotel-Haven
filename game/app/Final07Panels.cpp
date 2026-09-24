@@ -199,6 +199,33 @@ std::wstring money(std::int64_t cents) {
   return wide(hh::frontend::EconomyDashboard::formatMoney(cents));
 }
 
+std::wstring compactMoney(std::int64_t cents) {
+  const bool negative = cents < 0;
+  const std::uint64_t magnitude =
+      negative ? static_cast<std::uint64_t>(-(cents + 1)) + 1
+               : static_cast<std::uint64_t>(cents);
+  const double dollars = static_cast<double>(magnitude) / 100.0;
+
+  double value = dollars;
+  const wchar_t *suffix = L"";
+  if (magnitude >= 100000000ULL) {
+    value = dollars / 1000000.0;
+    suffix = L"M";
+  } else if (magnitude >= 100000ULL) {
+    value = dollars / 1000.0;
+    suffix = L"K";
+  } else {
+    return money(cents);
+  }
+
+  std::wostringstream out;
+  if (negative)
+    out << L"-";
+  out << L"$" << std::fixed << std::setprecision(value >= 100.0 ? 0 : 1)
+      << value << suffix;
+  return out.str();
+}
+
 std::wstring roomStatus(hh::game::RoomStatus status) {
   switch (status) {
   case hh::game::RoomStatus::VacantReady: return L"Ready to sell";
@@ -353,9 +380,12 @@ void Client::paint(HDC output) {
   std::wostringstream clock;
   clock << std::setw(2) << std::setfill(L'0') << hud.hour << L":" << std::setw(2)
         << hud.minute;
-  metric(0, L"CASH", money(hud.cashCents), false);
+  const bool compactHud = metricWidth < px(130);
+  metric(0, L"CASH",
+         compactHud ? compactMoney(hud.cashCents) : money(hud.cashCents),
+         compactHud);
   metric(1, L"OCCUPANCY", permille(hud.occupancyPermille), false);
-  metric(2, L"SATISFACTION / REP",
+  metric(2, compactHud ? L"SAT / REP" : L"SATISFACTION / REP",
          permille(hud.satisfactionPermille) + L" / " +
              permille(hud.reputationPermille),
          true);
