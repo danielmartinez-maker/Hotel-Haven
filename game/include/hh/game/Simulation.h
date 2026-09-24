@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hh/game/Amenities.h"
+#include "hh/game/Departments.h"
 #include "hh/game/Events.h"
 #include "hh/game/FoodService.h"
 #include "hh/game/ServiceLogistics.h"
@@ -252,6 +253,7 @@ public:
   [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
   [[nodiscard]] EventsSnapshot eventsSnapshot() const;
   [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot() const;
+  [[nodiscard]] std::vector<DepartmentView> departments() const;
 
   [[nodiscard]] OptimizerSnapshot
   buildOptimizerSnapshot(std::int64_t horizonSeconds = 24 * 60 * 60) const;
