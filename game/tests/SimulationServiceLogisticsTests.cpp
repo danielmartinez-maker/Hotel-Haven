@@ -77,7 +77,7 @@ int main() {
           "tutorial FINAL-04 clock did not start on the simulation clock");
   const auto room = view.rooms.front().id;
 
-  const auto turn = sim.requestRoomTurn(roomId);
+  const auto turn = sim.requestRoomTurn(room);
   require(turn != 0, "Simulation did not expose room-turn command");
 
   const auto work = sim.createWorkOrder(roomId, WorkOrderType::Preventive);
