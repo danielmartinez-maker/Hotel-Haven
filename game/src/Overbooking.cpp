@@ -41,7 +41,7 @@ RecoveryDecision OverbookingSystem::chooseRecovery(const RecoveryContext &contex
     const auto compensation =
         it == policies_.end() ? 0 : it->second.relocationCompensationCents;
     return {RecoveryAction::CompetitorRelocation, compensation,
-            "COMPETITOR_RELOCATION_AND_COMPENSATION"};
+            "COMPETITOR_RELOCATION_AND_COMPENSATION", false, ""};
   }
   return {RecoveryAction::Unresolved, 0, "NO_FEASIBLE_RECOVERY", true,
           "OVERBOOKING_UNRESOLVED_SEVERE"};
