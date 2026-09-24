@@ -76,21 +76,6 @@ bool inventoryUiStorageKind(hh::game::StorageKind kind) noexcept {
          kind == StorageKind::FloorCloset;
 }
 
-int usableInventoryUnits(const hh::game::LogisticsSnapshot& logistics,
-                         std::string_view item) {
-  int units = 0;
-  for (const auto& stack : logistics.inventory) {
-    const auto storage = std::find_if(
-        logistics.storage.begin(), logistics.storage.end(),
-        [&](const auto& candidate) { return candidate.id == stack.storage; });
-    if (storage == logistics.storage.end() || !storage->operational ||
-        !inventoryUiStorageKind(storage->kind) || stack.item != item)
-      continue;
-    units += std::max(0, stack.quantity - stack.reservedQuantity);
-  }
-  return units;
-}
-
 SimulationSpeed speedFromInt(int speed) noexcept {
   switch (speed) {
   case 0: return SimulationSpeed::Paused;
