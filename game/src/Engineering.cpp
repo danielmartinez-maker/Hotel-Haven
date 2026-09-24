@@ -30,14 +30,17 @@ WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
                                                WorkOrderType type) {
   if (!asset(assetId))
     return 0;
-  for (const auto &order : workOrders_)
-    if (order.assetId == assetId && order.type == type &&
-        order.stage != WorkOrderStage::Completed)
+  for (const auto index : activeWorkOrders_) {
+    const auto &order = workOrders_[index];
+    if (order.assetId == assetId && order.type == type)
       return order.id;
+  }
   const auto id = nextId_++;
   const int work = type == WorkOrderType::Preventive ? 15 * 60 : 25 * 60;
+  const auto index = workOrders_.size();
   workOrders_.push_back({id, assetId, type, WorkOrderStage::Queued, work,
                          BlockReason::None, false});
+  activeWorkOrders_.push_back(index);
   return id;
 }
 
@@ -97,10 +100,25 @@ void EngineeringSystem::tickReliabilitySecond() {
   }
 }
 
+void EngineeringSystem::rebuildActiveWorkOrders() {
+  activeWorkOrders_.clear();
+  activeWorkOrders_.reserve(workOrders_.size());
+  for (std::size_t index = 0; index < workOrders_.size(); ++index)
+    if (workOrders_[index].stage != WorkOrderStage::Completed)
+      activeWorkOrders_.push_back(index);
+}
+
 void EngineeringSystem::tickSecond() {
   ++elapsedSeconds_;
-  for (auto &order : workOrders_)
-    tickWorkOrderSecond(order);
+  for (const auto index : activeWorkOrders_)
+    tickWorkOrderSecond(workOrders_[index]);
+  activeWorkOrders_.erase(
+      std::remove_if(activeWorkOrders_.begin(), activeWorkOrders_.end(),
+                     [&](std::size_t index) {
+                       return workOrders_[index].stage ==
+                              WorkOrderStage::Completed;
+                     }),
+      activeWorkOrders_.end());
   tickReliabilitySecond();
 }
 
@@ -112,7 +130,8 @@ void EngineeringSystem::tickSecondFor(
       std::is_sorted(managedAssets.begin(), managedAssets.end());
   const bool workingSorted =
       std::is_sorted(workingAssets.begin(), workingAssets.end());
-  for (auto &order : workOrders_) {
+  for (const auto index : activeWorkOrders_) {
+    auto &order = workOrders_[index];
     const bool managed =
         managedSorted
             ? std::binary_search(managedAssets.begin(), managedAssets.end(),
@@ -128,6 +147,13 @@ void EngineeringSystem::tickSecondFor(
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
+  activeWorkOrders_.erase(
+      std::remove_if(activeWorkOrders_.begin(), activeWorkOrders_.end(),
+                     [&](std::size_t index) {
+                       return workOrders_[index].stage ==
+                              WorkOrderStage::Completed;
+                     }),
+      activeWorkOrders_.end());
   // Integrated Simulation owns room wear/failure generation. Standalone
   // EngineeringSystem::tickSecond() retains FINAL-04 reliability behavior.
 }
