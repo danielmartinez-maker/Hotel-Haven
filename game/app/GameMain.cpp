@@ -98,6 +98,90 @@ void captureClient(HWND window, const std::filesystem::path &path) {
             static_cast<std::streamsize>(pixels.size()));
 }
 
+SimulationView buildAssetSmokeSnapshot() {
+  SimulationView snapshot;
+  snapshot.width = 24;
+  snapshot.height = 20;
+  snapshot.floors = 1;
+  snapshot.tiles = {
+      {{0, 0, 0}, TileKind::Lobby},
+      {{0, 2, 0}, TileKind::Lobby},
+      {{0, 4, 0}, TileKind::Lobby},
+      {{0, 6, 0}, TileKind::Entrance},
+      {{0, 8, 0}, TileKind::StaffRoom},
+      {{0, 10, 0}, TileKind::SupplyCloset},
+      {{0, 12, 0}, TileKind::FrontDesk},
+      {{0, 14, 0}, TileKind::Stairs},
+      {{0, 16, 0}, TileKind::Door},
+  };
+
+  RoomView room;
+  room.id = 810001;
+  room.name = "Asset smoke room";
+  room.door = {0, 1, 4};
+  room.status = RoomStatus::VacantReady;
+  room.floor = 0;
+  room.x = 1;
+  room.y = 3;
+  room.width = 7;
+  room.height = 7;
+  room.beds = 1;
+  room.baths = 1;
+  room.cleanliness = 100;
+  room.condition = 100;
+  snapshot.rooms.push_back(room);
+
+  for (std::uint64_t index = 0; index < 30; ++index) {
+    PersonView guest;
+    guest.id = index + 1;
+    guest.name = "Asset smoke guest";
+    guest.kind = PersonKind::Guest;
+    guest.state = PersonState::Idle;
+    guest.position = {
+        0,
+        1 + static_cast<int>(index % 10) * 2,
+        12 + static_cast<int>(index / 10) * 2,
+    };
+    snapshot.people.push_back(guest);
+  }
+
+  const std::array<PersonKind, 6> staffKinds{
+      PersonKind::Receptionist, PersonKind::Receptionist,
+      PersonKind::Housekeeper, PersonKind::Housekeeper,
+      PersonKind::Maintenance, PersonKind::Maintenance,
+  };
+  for (std::size_t index = 0; index < staffKinds.size(); ++index) {
+    PersonView staff;
+    staff.id = 100 + index;
+    staff.name = "Asset smoke staff";
+    staff.kind = staffKinds[index];
+    staff.state = PersonState::Idle;
+    staff.onShift = true;
+    staff.position = {
+        0,
+        21 + static_cast<int>(index % 2),
+        12 + static_cast<int>(index / 2) * 2,
+    };
+    snapshot.people.push_back(staff);
+  }
+
+  return snapshot;
+}
+
+void validateAssetSmokeScene(
+    const RenderScene &scene,
+    const RuntimeAssetRegistry &registry) {
+  for (const std::string_view assetId : requiredWorldAssetIds()) {
+    const AssetHandle handle = registry.resolve(assetId);
+    const bool present = std::any_of(
+        scene.meshes.begin(), scene.meshes.end(),
+        [handle](const MeshRenderItem &item) { return item.asset == handle; });
+    if (!present)
+      throw std::runtime_error(
+          "Asset smoke scene omitted runtime binding " + std::string(assetId));
+  }
+}
+
 void applyScaleIfChanged(Client &client, int priorScale) {
   const int requestedScale = client.uiSettings.scalePercent();
   if (requestedScale == priorScale)
@@ -809,12 +893,32 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         c.refresh();
         refreshTime = 0;
       }
+      const bool assetSmokeFrame = c.smoke && frames == 24;
+      const bool restoreAfterAssetSmoke = c.smoke && frames == 25;
+      if (assetSmokeFrame) {
+        c.camera.setTarget({12.0f, 0.0f, 9.0f});
+        c.camera.setOrthoHeight(34.0f);
+      } else if (restoreAfterAssetSmoke) {
+        c.camera.setTarget({static_cast<float>(c.snapshot.width) * .5f, 0.0f,
+                            static_cast<float>(c.snapshot.height) * .5f});
+        c.camera.setOrthoHeight(28.0f);
+      }
+
+      const SimulationView assetSmokeSnapshot =
+          assetSmokeFrame ? buildAssetSmokeSnapshot() : SimulationView{};
+      const SimulationView &renderSnapshot =
+          assetSmokeFrame ? assetSmokeSnapshot : c.snapshot;
       const auto scene = worldScene(
-          c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX, c.hoverY,
-                       c.tool == Tool::Bedroom ? 6.f : 1.f,
-                       c.tool != Tool::Inspect, c.previewValid,
-                       c.uiSettings.reducedMotion()},
+          renderSnapshot,
+          {assetSmokeFrame ? 0 : c.floor, c.selected, c.overlay,
+           assetSmokeFrame ? -1 : c.hoverX, assetSmokeFrame ? -1 : c.hoverY,
+           c.tool == Tool::Bedroom ? 6.f : 1.f,
+           !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
+           c.uiSettings.reducedMotion()},
           &c.worldAssets);
+      if (assetSmokeFrame)
+        validateAssetSmokeScene(scene, c.assetRegistry);
+
       const auto frame = composeVisibleFrame(
           scene, composer,
           c.context ? hh::renderer::FloorContextMode::AdjacentContext
@@ -855,6 +959,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         c.refresh();
         UpdateWindow(c.window);
       }
+      if (c.smoke && frames == 25)
+        captureClient(c.window, c.directory / L"smoke-assets.bmp");
       if (c.smoke && frames >= 30) {
         RECT viewSize{};
         GetClientRect(c.viewport, &viewSize);
