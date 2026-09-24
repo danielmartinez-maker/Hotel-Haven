@@ -145,6 +145,13 @@ def screen_or_board(name, mat):
         add(scene, box((2.02, .08, .08), (0, 0, 1.53), 'MAT_BLACKENED_STEEL'), 'ScreenHousing')
     else:
         add(scene, box((1.92, .09, .06), (0, 0, .31), 'MAT_BLACKENED_STEEL'), 'MarkerTray')
+        if 'Mobile' in name:
+            # Mobile boards are floor-standing equipment, not wall-mounted
+            # panels. Add the missing frame/feet so the placement pivot is
+            # physically grounded.
+            for i, x in enumerate((-.70, .70)):
+                add(scene, box((.045, .045, .28), (x, 0, .14), 'MAT_BLACKENED_STEEL'), f'Stand_{i}')
+                add(scene, box((.28, .16, .05), (x, 0, .025), 'MAT_BLACKENED_STEEL'), f'Foot_{i}')
     return scene
 
 
