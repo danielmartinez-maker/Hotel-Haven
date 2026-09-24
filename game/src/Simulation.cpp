@@ -373,11 +373,16 @@ struct Simulation::Impl {
         r.status = RoomStatus::VacantReady;
     }
   }
+  [[nodiscard]] bool hasActiveTask(TaskKind kind, EntityId target) const {
+    return std::any_of(tasks.begin(), tasks.end(), [&](const auto &task) {
+      return task.targetId == target && task.kind == kind &&
+             task.status != TaskStatus::Completed;
+    });
+  }
+
   void createTask(TaskKind kind, EntityId target, Position pos, double work) {
-    for (auto &t : tasks)
-      if (t.targetId == target && t.kind == kind &&
-          t.status != TaskStatus::Completed)
-        return;
+    if (hasActiveTask(kind, target))
+      return;
     Task t;
     t.id = nextId++;
     t.kind = kind;
@@ -385,6 +390,31 @@ struct Simulation::Impl {
     t.target = pos;
     t.total = t.workRemainingSeconds = work;
     tasks.push_back(t);
+  }
+
+  [[nodiscard]] bool createRoomTask(TaskKind kind, EntityId target,
+                                    Position pos, double work) {
+    if (kind != TaskKind::Turnover && kind != TaskKind::Repair)
+      return false;
+
+    // An existing physical task already represents this lifecycle. Do not
+    // create a second FINAL-04 job merely because its faster service pipeline
+    // happened to finish first.
+    if (hasActiveTask(kind, target))
+      return true;
+
+    auto stagedServices = services;
+    const bool serviceAccepted =
+        kind == TaskKind::Turnover
+            ? stagedServices.requestRoomTurn(target) != 0
+            : stagedServices.createWorkOrder(target, WorkOrderType::Corrective) !=
+                  0;
+    if (!serviceAccepted)
+      return false;
+
+    services = std::move(stagedServices);
+    createTask(kind, target, pos, work);
+    return true;
   }
   void hourlyBookings(int day, int hour) {
     if (!has(TileKind::Entrance) || !has(TileKind::FrontDesk))
@@ -465,11 +495,16 @@ struct Simulation::Impl {
           r->cleanliness = 25;
           r->reservationId = 0;
           if (r->condition < 35) {
+            if (!createRoomTask(TaskKind::Repair, r->id, r->door, repairWork))
+              throw std::logic_error(
+                  "failed to mirror checkout repair into FINAL-04");
             r->status = RoomStatus::OutOfOrder;
-            createTask(TaskKind::Repair, r->id, r->door, repairWork);
           } else {
+            if (!createRoomTask(TaskKind::Turnover, r->id, r->door,
+                                turnoverWork))
+              throw std::logic_error(
+                  "failed to mirror checkout turnover into FINAL-04");
             r->status = RoomStatus::VacantDirty;
-            createTask(TaskKind::Turnover, r->id, r->door, turnoverWork);
           }
         }
         for (auto &p : people)
@@ -690,10 +725,15 @@ struct Simulation::Impl {
       }
     for (EntityId roomId : repairedRooms)
       if (auto *room = getRoom(roomId))
-        createTask(TaskKind::Turnover, roomId, room->door, turnoverWork);
+        if (!createRoomTask(TaskKind::Turnover, roomId, room->door,
+                            turnoverWork))
+          throw std::logic_error(
+              "failed to mirror post-repair turnover into FINAL-04");
     for (EntityId roomId : failedRooms)
       if (auto *room = getRoom(roomId))
-        createTask(TaskKind::Repair, roomId, room->door, repairWork);
+        if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
+          throw std::logic_error(
+              "failed to mirror turnover failure repair into FINAL-04");
   }
   void guests() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
@@ -833,7 +873,9 @@ struct Simulation::Impl {
         }
       for (const EntityId roomId : newlyFailedRooms)
         if (auto *room = getRoom(roomId))
-          createTask(TaskKind::Repair, roomId, room->door, repairWork);
+          if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
+            throw std::logic_error(
+                "failed to mirror wear failure repair into FINAL-04");
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
@@ -1058,8 +1100,10 @@ CommandResult Simulation::requestClean(EntityId id) {
   if (!r || r->reservationId != 0 || r->status == RoomStatus::Occupied ||
       r->status == RoomStatus::OutOfOrder || r->condition < 40)
     return {false, "Occupied, reserved, or closed room cannot be cleaned"};
+  if (!impl_->createRoomTask(TaskKind::Turnover, id, r->door,
+                             impl_->turnoverWork))
+    return {false, "Housekeeping service could not accept the room turn"};
   r->status = RoomStatus::VacantDirty;
-  impl_->createTask(TaskKind::Turnover, id, r->door, impl_->turnoverWork);
   return {true, "Cleaning requested", id};
 }
 CommandResult Simulation::requestRepair(EntityId id) {
@@ -1070,8 +1114,10 @@ CommandResult Simulation::requestRepair(EntityId id) {
         return task.targetId == id && task.status != TaskStatus::Completed;
       }))
     return {false, "Complete existing room service before requesting repair"};
+  if (!impl_->createRoomTask(TaskKind::Repair, id, r->door,
+                             impl_->repairWork))
+    return {false, "Engineering service could not accept the repair"};
   r->status = RoomStatus::OutOfOrder;
-  impl_->createTask(TaskKind::Repair, id, r->door, impl_->repairWork);
   return {true, "Repair requested", id};
 }
 CommandResult Simulation::closeRoom(EntityId id, bool closed) {
