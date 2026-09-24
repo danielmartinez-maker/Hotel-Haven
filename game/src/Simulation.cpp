@@ -563,7 +563,6 @@ struct Simulation::Impl {
   }
   void staffAndTasks() {
     int hour = (elapsed / 3600) % 24;
-    std::vector<EntityId> repairedRooms;
     std::vector<EntityId> failedRooms;
     for (auto &p : people)
       if (p.kind != PersonKind::Guest) {
@@ -711,28 +710,22 @@ struct Simulation::Impl {
                   r->status = RoomStatus::OutOfOrder;
                   failedRooms.push_back(r->id);
                 } else {
-                  r->status = RoomStatus::VacantReady;
+                  // Physical work is finished, but the room is not sellable
+                  // until the mirrored FINAL-04 service pipeline also closes.
+                  r->status = RoomStatus::Cleaning;
                   r->cleanliness = std::clamp(
                       70 + p->skill * 0.3 - p->fatigue * 0.1, 0.0, 100.0);
                 }
               }
               if (t.kind == TaskKind::Repair) {
                 r->condition = 100;
-                if (!r->closed) {
-                  r->status = RoomStatus::VacantDirty;
-                  repairedRooms.push_back(r->id);
-                }
+                if (!r->closed)
+                  r->status = RoomStatus::OutOfOrder;
               }
             }
           }
         }
       }
-    for (EntityId roomId : repairedRooms)
-      if (auto *room = getRoom(roomId))
-        if (!createRoomTask(TaskKind::Turnover, roomId, room->door,
-                            turnoverWork))
-          throw std::logic_error(
-              "failed to mirror post-repair turnover into FINAL-04");
     for (EntityId roomId : failedRooms)
       if (auto *room = getRoom(roomId))
         if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
@@ -860,6 +853,53 @@ struct Simulation::Impl {
     services.tickSimulationSecond(
         managedHousekeepingScratch, workingHousekeepingScratch,
         managedEngineeringScratch, workingEngineeringScratch);
+  }
+
+  void reconcileRoomServiceCompletion() {
+    for (auto &room : rooms) {
+      if (room.closed || room.reservationId != 0 ||
+          room.status == RoomStatus::Occupied ||
+          room.status == RoomStatus::Incomplete)
+        continue;
+
+      if (room.status == RoomStatus::Cleaning &&
+          !hasActiveTask(TaskKind::Turnover, room.id) &&
+          services.housekeeping().roomStatus(room.id) ==
+              ServiceRoomStatus::Ready) {
+        if (room.condition < 35) {
+          room.status = RoomStatus::OutOfOrder;
+          if (!createRoomTask(TaskKind::Repair, room.id, room.door, repairWork))
+            throw std::logic_error(
+                "failed to create repair after completed room turn");
+        } else {
+          room.status = RoomStatus::VacantReady;
+        }
+      }
+
+      if (room.status == RoomStatus::OutOfOrder && room.condition >= 100 &&
+          !hasActiveTask(TaskKind::Repair, room.id)) {
+        const auto engineeringStage =
+            services.engineering().latestWorkOrderStage(
+                room.id, WorkOrderType::Corrective);
+        if (engineeringStage &&
+            *engineeringStage == WorkOrderStage::Completed) {
+          room.status = RoomStatus::VacantDirty;
+          if (!createRoomTask(TaskKind::Turnover, room.id, room.door,
+                              turnoverWork))
+            throw std::logic_error(
+                "failed to create turnover after completed repair");
+        }
+      }
+    }
+
+    int available = 0;
+    int occupied = 0;
+    for (const auto &room : rooms)
+      if (!room.closed && room.status != RoomStatus::Incomplete) {
+        ++available;
+        occupied += room.status == RoomStatus::Occupied;
+      }
+    economy.occupancy = available ? double(occupied) / available : 0;
   }
 
   void minute() {
@@ -1375,6 +1415,7 @@ void Simulation::step(double seconds) {
     const auto revenueBefore = impl_->final05RevenueCents();
     impl_->minute();
     impl_->tickServicesWithPhysicalLabor();
+    impl_->reconcileRoomServiceCompletion();
     impl_->food.tickSecond();
     impl_->events.tickSecond();
     impl_->amenities.tickSecond();
