@@ -69,7 +69,7 @@ option(HH_GAME_BUILD_TESTS "Build simulation tests" ON)
 if(HH_GAME_BUILD_TESTS)
   enable_testing()
 
-  add_executable(hh_game_tests tests/SimulationTestsV11.cpp)
+  add_executable(hh_game_tests tests/SimulationTests.cpp)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
 
