@@ -27,15 +27,28 @@ TEST_CASE("layout remains inside supported resolution matrix") {
         {1600.0F, 1200.0F},
     }};
 
+    constexpr std::array<float, 5> uiScales{
+        0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
+
     for (const auto& [width, height] : sizes) {
-        const auto layout = view.layout(width, height, 1.0F);
-        EXPECT_TRUE(layout.logicalScale > 0.0F);
-        EXPECT_TRUE(layout.navigationLeft >= 0.0F);
-        EXPECT_TRUE(layout.navigationTop >= 0.0F);
-        EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
-        EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+        for (const float uiScale : uiScales) {
+            const auto layout = view.layout(width, height, uiScale);
+            EXPECT_TRUE(layout.logicalScale > 0.0F);
+            EXPECT_TRUE(layout.uiContentScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale <= layout.uiContentScale + 0.001F);
+            EXPECT_TRUE(layout.navigationLeft >= 0.0F);
+            EXPECT_TRUE(layout.navigationTop >= 0.0F);
+            EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
+            EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+
+            const float menuBottom =
+                layout.navigationTop +
+                (8.0F * 55.0F + 28.0F) * layout.uiDensityScale;
+            EXPECT_TRUE(menuBottom <= height + 0.01F);
+        }
     }
 }
 
