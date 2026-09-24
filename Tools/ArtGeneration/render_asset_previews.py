@@ -138,16 +138,42 @@ def names_for_batch(manifest: Path):
     return {row[0]: row[1] for group in data['groups'] for row in group['assets']}
 
 
-def contact_sheet(
-    batch_dir: Path,
-    manifest: Path,
+def all_asset_names(repo_root: Path) -> dict[str, str]:
+    names = {}
+    manifest_dir = repo_root / 'GameData' / 'AssetDefinitions' / 'Manifest'
+    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
+        names.update(names_for_batch(manifest))
+    return names
+
+
+def runtime_binding_ids(repo_root: Path) -> list[str]:
+    contract_path = (
+        repo_root / 'GameData' / 'AssetDefinitions' / 'runtime_world_bindings_v1.json'
+    )
+    contract = json.loads(contract_path.read_text(encoding='utf-8'))
+    ids = [
+        asset_id
+        for group_ids in contract.get('groups', {}).values()
+        for asset_id in group_ids
+    ]
+    expected = contract.get('asset_count')
+    if expected != len(ids):
+        raise RuntimeError(
+            f'runtime binding contract declares {expected!r} assets but contains {len(ids)} ids'
+        )
+    if len(ids) != len(set(ids)):
+        raise RuntimeError('runtime binding preview contract contains duplicate asset ids')
+    return ids
+
+
+def sheet_from_paths(
+    paths: list[Path],
+    names: dict[str, str],
     out: Path,
     cell: int = 160,
     cols: int = 10,
     expected_count: int | None = None,
 ):
-    paths = sorted(batch_dir.glob('HH_A*.glb'))
-    names = names_for_batch(manifest)
     rows = math.ceil(len(paths) / cols) if paths else 1
     label_h = 36
     sheet = Image.new('RGB', (cols * cell, rows * (cell + label_h)), BG)
@@ -183,6 +209,46 @@ def contact_sheet(
     }
 
 
+def contact_sheet(
+    batch_dir: Path,
+    manifest: Path,
+    out: Path,
+    cell: int = 160,
+    cols: int = 10,
+    expected_count: int | None = None,
+):
+    paths = sorted(batch_dir.glob('HH_A*.glb'))
+    return sheet_from_paths(
+        paths,
+        names_for_batch(manifest),
+        out,
+        cell=cell,
+        cols=cols,
+        expected_count=expected_count,
+    )
+
+
+def runtime_binding_sheet(repo_root: Path, out: Path):
+    ids = runtime_binding_ids(repo_root)
+    exported = {
+        path.stem: path
+        for path in (repo_root / 'Art' / 'Exports').glob('Batch*/HH_A*.glb')
+    }
+    missing = [asset_id for asset_id in ids if asset_id not in exported]
+    if missing:
+        raise RuntimeError(
+            f'runtime binding preview is missing generated exports: {missing}'
+        )
+    paths = [exported[asset_id] for asset_id in ids]
+    return sheet_from_paths(
+        paths,
+        all_asset_names(repo_root),
+        out,
+        cols=10,
+        expected_count=len(ids),
+    )
+
+
 def generate(repo_root: Path):
     preview_dir = repo_root / 'Art' / 'Validation' / 'Previews'
     results = {}
@@ -194,16 +260,24 @@ def generate(repo_root: Path):
             preview_dir / f'Batch{batch}.png',
             expected_count=50,
         )
+    runtime_bindings = runtime_binding_sheet(
+        repo_root,
+        preview_dir / 'RuntimeBindings.png',
+    )
     report = {
         'schema': 1,
         'status': 'PASS',
         'batch_count': len(results),
         'expected_assets_per_batch': 50,
         'batches': results,
+        'runtime_bindings': runtime_bindings,
     }
     preview_dir.mkdir(parents=True, exist_ok=True)
     (preview_dir / 'preview_qc.json').write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
-    print('generated 10 batch preview sheets; preview QA PASSED')
+    print(
+        'generated 10 batch preview sheets plus runtime binding sheet; '
+        'preview QA PASSED'
+    )
     return report
 
 
