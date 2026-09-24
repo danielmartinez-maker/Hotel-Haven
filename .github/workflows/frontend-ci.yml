@@ -34,3 +34,16 @@ jobs:
         run: cmake --build ui-build --config Release --target hh_final07_client_contract_tests --parallel 4
       - name: Test FINAL-07 UI contract
         run: ctest --test-dir ui-build -C Release -R hh_final07_client_contract_tests --output-on-failure
+
+  final07-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure FINAL-07 contract
+        run: cmake -S . -B ui-contract-build -DHH_GAME_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+      - name: Build FINAL-07 contract
+        run: cmake --build ui-contract-build --target hh_final07_client_contract_tests --parallel 2
+      - name: Test FINAL-07 contract
+        run: ctest --test-dir ui-contract-build -R hh_final07_client_contract_tests --output-on-failure
