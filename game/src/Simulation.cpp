@@ -1212,6 +1212,12 @@ void Simulation::step(double seconds) {
 LogisticsSnapshot Simulation::logisticsSnapshot() const {
   return impl_->services.logisticsSnapshot();
 }
+HousekeepingSnapshot Simulation::housekeepingSnapshot() const {
+  return impl_->services.housekeepingSnapshot();
+}
+EngineeringSnapshot Simulation::engineeringSnapshot() const {
+  return impl_->services.engineeringSnapshot();
+}
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
   if (!impl_->getRoom(roomId))
     return 0;
