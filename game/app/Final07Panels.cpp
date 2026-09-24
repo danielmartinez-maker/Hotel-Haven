@@ -28,8 +28,16 @@ constexpr COLORREF Muted = RGB(101, 112, 98);
 constexpr COLORREF Accent = RGB(42, 105, 92);
 constexpr COLORREF AccentSoft = RGB(224, 234, 226);
 constexpr COLORREF Warning = RGB(150, 102, 31);
+constexpr COLORREF WarningSoft = RGB(244, 235, 210);
 constexpr COLORREF Critical = RGB(145, 55, 50);
+constexpr COLORREF CriticalSoft = RGB(245, 224, 220);
 constexpr COLORREF Line = RGB(207, 208, 192);
+
+enum class ButtonTone {
+  Normal,
+  Warning,
+  Critical,
+};
 constexpr COLORREF Chrome = RGB(30, 46, 42);
 constexpr COLORREF ChromeRaised = RGB(39, 58, 53);
 constexpr COLORREF ChromeText = RGB(248, 244, 234);
@@ -398,21 +406,34 @@ void Client::paint(HDC output) {
   fill(dc, {0, height - FooterHeight, width, height}, Chrome);
 
   auto button = [&](int x, int y, int w, int h, std::wstring value,
-                    std::function<void()> action, bool active = false) {
+                    std::function<void()> action, bool active = false,
+                    ButtonTone tone = ButtonTone::Normal) {
     RECT rect{x, y, x + w, y + h};
     const int buttonIndex = static_cast<int>(buttons.size());
     const bool hovered = buttonIndex == hoveredButton;
     const bool chromeButton =
         rect.bottom <= HeaderHeight || rect.top >= height - FooterHeight;
-    const COLORREF idleFill = chromeButton ? ChromeRaised : Panel;
-    const COLORREF hoverFill = chromeButton ? ChromeLine : AccentSoft;
-    const COLORREF idleBorder = chromeButton ? ChromeLine : Line;
-    fill(dc, rect, active ? Accent : (hovered ? hoverFill : idleFill));
-    frame(dc, rect, active || hovered ? Accent : idleBorder);
+    const bool warningTone = tone == ButtonTone::Warning;
+    const bool criticalTone = tone == ButtonTone::Critical;
+    const COLORREF toneAccent =
+        criticalTone ? Critical : warningTone ? Warning : Accent;
+    const COLORREF softTone =
+        criticalTone ? CriticalSoft : warningTone ? WarningSoft : AccentSoft;
+    const COLORREF idleFill =
+        chromeButton ? ChromeRaised
+                     : (warningTone || criticalTone ? softTone : Panel);
+    const COLORREF hoverFill =
+        chromeButton ? ChromeLine : softTone;
+    const COLORREF idleBorder =
+        warningTone || criticalTone
+            ? toneAccent
+            : (chromeButton ? ChromeLine : Line);
+    fill(dc, rect, active ? toneAccent : (hovered ? hoverFill : idleFill));
+    frame(dc, rect, active || hovered ? toneAccent : idleBorder);
     if (active) {
       const int markerWidth = std::max(2, px(3));
       fill(dc, {rect.left, rect.top, rect.left + markerWidth, rect.bottom},
-           AccentSoft);
+           chromeButton ? ChromeText : Panel);
     }
     const int horizontalPadding = px(5);
     const int buttonTextHeight = std::max(px(13), vpx(16));
@@ -511,12 +532,16 @@ void Client::paint(HDC output) {
           : warningAlertCount > 0
                 ? L"Warnings " + std::to_wstring(warningAlertCount)
                 : L"Alerts " + std::to_wstring(hud.alertCount);
+  const ButtonTone alertTone =
+      criticalAlertCount > 0
+          ? ButtonTone::Critical
+          : warningAlertCount > 0 ? ButtonTone::Warning : ButtonTone::Normal;
   button(alertsX, actionY, alertWidth, actionHeight, alertLabel,
          [this] {
            page = Page::Alerts;
            tabScroll = 0;
          },
-         page == Page::Alerts);
+         page == Page::Alerts, alertTone);
   button(saveX, actionY, saveWidth, actionHeight, L"Save [F5]", [this] {
     const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::SaveGame});
     if (!result.message.empty())
@@ -601,7 +626,8 @@ void Client::paint(HDC output) {
     y = std::min(bottom, y + vpx(15));
   };
   auto fullButton = [&](std::wstring value, std::function<void()> action,
-                        bool active = false) {
+                        bool active = false,
+                        ButtonTone tone = ButtonTone::Normal) {
     const int controlHeight = std::max(px(24), vpx(32));
     const int advance = std::max(px(28), vpx(39));
     if (y + controlHeight > bottom) {
@@ -609,7 +635,7 @@ void Client::paint(HDC output) {
       return;
     }
     button(left, y, panelWidth, controlHeight, std::move(value),
-           std::move(action), active);
+           std::move(action), active, tone);
     y = std::min(bottom, y + advance);
   };
 
@@ -786,10 +812,13 @@ void Client::paint(HDC output) {
       label(L"Preview", buildPreview.valid ? L"VALID" : L"REJECTED");
       if (!buildPreview.reasonCode.empty()) label(L"Reason", wide(buildPreview.reasonCode));
       if (!buildPreview.reasonText.empty()) paragraph(wide(buildPreview.reasonText), 40, buildPreview.valid ? Accent : Critical);
-      if (y + vpx(38) < bottom) fullButton(L"Cancel construction", [this] {
-        const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::BuildCancel});
-        if (!result.message.empty()) notice = wide(result.message);
-      });
+      if (y + vpx(38) < bottom)
+        fullButton(L"Cancel construction", [this] {
+          const auto result =
+              ui.dispatchUiCommand(UiCommand{UiCommandType::BuildCancel});
+          if (!result.message.empty())
+            notice = wide(result.message);
+        }, false, ButtonTone::Warning);
     }
   } else if (page == Page::Rooms || page == Page::Guests || page == Page::Staff ||
              page == Page::Supplies) {
@@ -1457,7 +1486,9 @@ void Client::paint(HDC output) {
       const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::SetSimulationSpeed, 0, 1});
       if (!result.message.empty()) notice = wide(result.message); page = Page::Rooms;
     });
-    if (y + vpx(38) < bottom) fullButton(L"New starter campaign", [this] { newCampaign(); });
+    if (y + vpx(38) < bottom)
+      fullButton(L"New starter campaign", [this] { newCampaign(); }, false,
+                 ButtonTone::Warning);
   }
 
   if (page != Page::Build && page != Page::Guide) {
