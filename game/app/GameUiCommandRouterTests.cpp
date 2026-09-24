@@ -55,6 +55,12 @@ int main() {
                 forwarded == UiCommandType::SetFutureRate,
             "authoritative economy command was not forwarded verbatim");
 
+    result = hh::client::routeGameUiCommand(
+        UiCommand{UiCommandType::AssignDepartmentManager, 77, 1}, hooks);
+    require(!result.ok && result.reasonCode == "AUTH_REJECT" &&
+                forwarded == UiCommandType::AssignDepartmentManager,
+            "department manager command was not forwarded to authority");
+
     std::cout << "FINAL-07 UI command router passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
