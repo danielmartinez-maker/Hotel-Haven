@@ -261,6 +261,7 @@ void Client::scrollPanel(int delta) {
 
   tabScroll = next;
   hoveredButton = -1;
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
   if (window)
     InvalidateRect(window, nullptr, FALSE);
 }
@@ -485,7 +486,10 @@ void Client::paint(HDC output) {
     const int buildColumnWidth =
         std::max(1, (panelWidth - controlGap * (buildColumns - 1)) /
                          buildColumns);
-    const int buildDetailReserve = vpx(150);
+    const int buildDetailReserve =
+        buildPreview.requestId != 0
+            ? vpx(150)
+            : (tool == Tool::Inspect ? vpx(70) : vpx(105));
     const int gridHeight =
         std::max(buildRowHeight, bottom - buildDetailReserve - y);
     const int visibleRows = std::max(1, gridHeight / buildRowHeight);
