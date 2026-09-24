@@ -4,6 +4,7 @@
 #include "hh/game/Events.h"
 #include "hh/game/FoodService.h"
 #include "hh/game/ServiceLogistics.h"
+#include "hh/game/StaffOptimization.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -251,6 +252,12 @@ public:
   [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
   [[nodiscard]] EventsSnapshot eventsSnapshot() const;
   [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot() const;
+
+  [[nodiscard]] OptimizerSnapshot
+  buildOptimizerSnapshot(std::int64_t horizonSeconds = 24 * 60 * 60) const;
+  [[nodiscard]] PlanValidation
+  validatePlan(const OptimizerSnapshot &snapshot,
+               const AssignmentPlan &plan) const;
 
   void step(double seconds);
 
