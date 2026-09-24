@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -79,6 +80,7 @@ private:
   int failures_{};
   std::vector<Asset> assets_;
   std::vector<WorkOrder> workOrders_;
+  std::unordered_map<AssetId, std::size_t> assetIndex_;
   std::vector<std::size_t> activeWorkOrders_;
 };
 
