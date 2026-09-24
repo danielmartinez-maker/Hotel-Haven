@@ -141,8 +141,16 @@ int main() {
         });
     require(operation != source.operations.rows.end(),
             "physical workforce turnover task was omitted from operations dashboard");
-    require(source.operations.housekeepingBacklog == 0,
-            "legacy workforce task incorrectly inflated FINAL-04 housekeeping backlog");
+    require(source.operations.housekeepingBacklog == 1,
+            "mirrored room turnover was missing from FINAL-04 housekeeping backlog");
+    const auto mirroredHousekeeping = std::find_if(
+        source.operations.rows.begin(), source.operations.rows.end(),
+        [cleanedRoomId](const auto& row) {
+          return row.area == hh::frontend::OperationArea::Housekeeping &&
+                 row.targetId == cleanedRoomId;
+        });
+    require(mirroredHousekeeping != source.operations.rows.end(),
+            "physical room turnover did not expose its FINAL-04 counterpart");
     require(operation->assigneeId == task->employeeId,
             "operation assignee did not preserve authoritative employee id");
     require(operation->targetId == task->targetId,
