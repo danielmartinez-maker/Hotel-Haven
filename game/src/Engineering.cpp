@@ -118,7 +118,8 @@ void EngineeringSystem::tickSecondFor(
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
-  tickReliabilitySecond();
+  // Integrated Simulation owns room wear/failure generation. Standalone
+  // EngineeringSystem::tickSecond() retains FINAL-04 reliability behavior.
 }
 
 void EngineeringSystem::tickSeconds(std::int64_t seconds) {
