@@ -29,6 +29,11 @@ enum class FinanceView {
   Risk
 };
 
+enum class SettingsView {
+  Display,
+  Controls
+};
+
 enum class ClientUiIntent {
   None,
   FocusPrevious,
