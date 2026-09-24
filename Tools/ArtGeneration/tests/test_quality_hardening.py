@@ -88,7 +88,7 @@ def test_release_audit_markdown_reports_release_gate_evidence():
     build = getattr(qc, 'release_audit_markdown', None)
     assert callable(build)
     summary = {
-        'gameplay_asset_count': 500,
+        'gameplay_asset_count': 700,
         'generated_asset_records': 641,
         'animation_links': 71,
         'expected_animation_links': 71,
@@ -101,17 +101,17 @@ def test_release_audit_markdown_reports_release_gate_evidence():
     }
     report = {
         'status': 'PASS',
-        'asset_count': 500,
+        'asset_count': 700,
         'failure_count': 0,
         'max_faces': 2496,
         'unique_material_colors': 32,
         'nonwhite_material_ratio': 0.91,
         'profile_face_budgets': {'P_CHARACTER': 2500},
     }
-    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 11)})
-    assert '# Hotel Haven 500-Asset Library Release Audit V1' in text
-    assert '- Gameplay-facing assets: **500 / 500**' in text
+    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)})
+    assert '# Hotel Haven A700 Runtime Milestone Release Audit V1' in text
+    assert '- Gameplay-facing assets: **700 / 700**' in text
     assert '- Animation dependencies linked: **71 / 71**' in text
     assert '- Geometry QC: **PASS** with **0** failures' in text
     assert '- Unresolved BLOCKER/CRITICAL/MAJOR issues: **0**' in text
-    assert 'Batch 10 | PRODUCTION_GENERATOR_VALIDATED' in text
+    assert 'Batch 14 | PRODUCTION_GENERATOR_VALIDATED' in text
