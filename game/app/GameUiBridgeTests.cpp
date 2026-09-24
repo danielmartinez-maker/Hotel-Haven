@@ -86,17 +86,21 @@ int main() {
 
     hh::game::Simulation inventorySimulation =
         hh::game::Simulation::tutorial(20260910);
-    const auto legacyInventoryBefore = inventorySimulation.view().inventory;
+    const auto canonicalInventoryBefore = inventorySimulation.view().inventory;
     const auto inventoryRoom = inventorySimulation.view().rooms.front().id;
     require(inventorySimulation.requestRoomTurn(inventoryRoom) != 0,
             "FINAL-04 inventory fixture could not start a room turn");
     inventorySimulation.step(1500);
-    const auto legacyInventoryAfter = inventorySimulation.view().inventory;
-    require(legacyInventoryAfter.linen == legacyInventoryBefore.linen &&
-                legacyInventoryAfter.towels == legacyInventoryBefore.towels &&
-                legacyInventoryAfter.amenities == legacyInventoryBefore.amenities &&
-                legacyInventoryAfter.chemicals == legacyInventoryBefore.chemicals,
-            "FINAL-04-only room turn unexpectedly changed legacy inventory");
+    const auto canonicalInventoryAfter = inventorySimulation.view().inventory;
+    require(canonicalInventoryAfter.linen ==
+                canonicalInventoryBefore.linen - 1 &&
+                canonicalInventoryAfter.towels ==
+                    canonicalInventoryBefore.towels - 2 &&
+                canonicalInventoryAfter.amenities ==
+                    canonicalInventoryBefore.amenities - 1 &&
+                canonicalInventoryAfter.chemicals ==
+                    canonicalInventoryBefore.chemicals - 1,
+            "SimulationView inventory did not follow canonical FINAL-04 consumption");
 
     const auto inventorySource =
         hh::client::makeGameUiSnapshotSource(inventorySimulation, context);
