@@ -8,6 +8,86 @@
 
 using namespace hh::game;
 
+static void require(bool value, const char *message) {
+  if (!value)
+    throw std::runtime_error(message);
+}
+
+static const RoomView &room(const SimulationView &view, EntityId id) {
+  const auto it = std::find_if(view.rooms.begin(), view.rooms.end(),
+                               [id](const RoomView &candidate) {
+                                 return candidate.id == id;
+                               });
+  if (it == view.rooms.end())
+    throw std::runtime_error("room not found in simulation view");
+  return *it;
+}
+
+static ServiceLogisticsRuntime serviceRuntime(const Simulation &simulation) {
+  const auto state = simulation.save();
+  const auto headerStart = state.find("FINAL04 ");
+  if (headerStart == std::string::npos)
+    throw std::runtime_error("FINAL-04 section missing from simulation save");
+  const auto headerEnd = state.find('\n', headerStart);
+  if (headerEnd == std::string::npos)
+    throw std::runtime_error("FINAL-04 section header is truncated");
+  std::istringstream header(state.substr(headerStart, headerEnd - headerStart));
+  std::string tag;
+  std::size_t bytes{};
+  header >> tag >> bytes;
+  if (!header || tag != "FINAL04")
+    throw std::runtime_error("FINAL-04 section header could not be parsed");
+  const auto payloadStart = headerEnd + 1;
+  if (bytes > state.size() - payloadStart)
+    throw std::runtime_error("FINAL-04 section payload is truncated");
+  return ServiceLogisticsRuntime::load(state.substr(payloadStart, bytes));
+}
+
+static const WorkOrderView &workOrder(const EngineeringSnapshot &snapshot,
+                                      WorkOrderId id) {
+  const auto it = std::find_if(snapshot.workOrders.begin(),
+                               snapshot.workOrders.end(),
+                               [id](const WorkOrderView &candidate) {
+                                 return candidate.id == id;
+                               });
+  if (it == snapshot.workOrders.end())
+    throw std::runtime_error("work order missing from engineering snapshot");
+  return *it;
+}
+
+static const EngineeringAssetView &
+engineeringAsset(const EngineeringSnapshot &snapshot, AssetId id) {
+  const auto it = std::find_if(snapshot.assets.begin(), snapshot.assets.end(),
+                               [id](const EngineeringAssetView &candidate) {
+                                 return candidate.id == id;
+                               });
+  if (it == snapshot.assets.end())
+    throw std::runtime_error("asset missing from engineering snapshot");
+  return *it;
+}
+
+static int itemTotal(const LogisticsSnapshot &snapshot,
+                     const char *item) {
+  int total = 0;
+  for (const auto &stack : snapshot.inventory)
+    if (stack.item == item)
+      total += stack.quantity;
+  return total;
+}
+
+static int itemAt(const LogisticsSnapshot &snapshot, StorageKind kind,
+                  const char *item) {
+  int total = 0;
+  for (const auto &node : snapshot.storage) {
+    if (node.kind != kind)
+      continue;
+    for (const auto &stack : snapshot.inventory)
+      if (stack.storage == node.id && stack.item == item)
+        total += stack.quantity;
+  }
+  return total;
+}
+
 static std::string transformFinal04(
     const std::string &simulationState,
     const std::function<std::string(const std::string &)> &transform) {
@@ -69,7 +149,7 @@ static std::string replaceLegacyInventoryLine(const std::string &encoded,
          encoded.substr(lineEnd);
 }
 
-int main() {
+static void stable_commands_and_save_boundary() {
   auto sim = Simulation::tutorial(321);
   const auto view = sim.view();
   require(!view.rooms.empty(), "tutorial requires a serviceable room");
@@ -77,10 +157,10 @@ int main() {
           "tutorial FINAL-04 clock did not start on the simulation clock");
   const auto room = view.rooms.front().id;
 
-  const auto turn = sim.requestRoomTurn(roomId);
+  const auto turn = sim.requestRoomTurn(room);
   require(turn != 0, "Simulation did not expose room-turn command");
 
-  const auto work = sim.createWorkOrder(roomId, WorkOrderType::Preventive);
+  const auto work = sim.createWorkOrder(room, WorkOrderType::Preventive);
   require(work != 0, "Simulation did not expose engineering command");
 
   RoomServiceOrder order;

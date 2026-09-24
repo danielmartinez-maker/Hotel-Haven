@@ -4,6 +4,7 @@
 #include "hh/game/Construction.h"
 #include "hh/game/GuestGoals.h"
 #include "hh/game/GuestPsychology.h"
+#include "hh/game/GuestPsychologyArchive.h"
 #include "hh/game/GuestReviews.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
@@ -34,6 +35,15 @@ int manhattan(Position a, Position b) {
          std::abs(a.floor - b.floor) * 8;
 }
 template <class E> int ei(E e) { return static_cast<int>(e); }
+
+int simulationDay(std::int64_t elapsedSeconds, int offset = 0) noexcept {
+  constexpr std::int64_t secondsPerDay = 86400;
+  const auto elapsedDays =
+      std::max<std::int64_t>(0, elapsedSeconds) / secondsPerDay;
+  const auto withOffset = elapsedDays + static_cast<std::int64_t>(offset);
+  return static_cast<int>(std::clamp<std::int64_t>(
+      withOffset, 0, std::numeric_limits<int>::max()));
+}
 StaffRole staffRole(PersonKind kind) {
   switch (kind) {
   case PersonKind::Receptionist:
@@ -1207,6 +1217,10 @@ struct Simulation::Impl {
         continue;
       Reservation z;
       z.id = nextId++;
+      std::mt19937_64 profileRandom(
+          mixedSeed(seed, z.id, static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
+      z.profile = generateGuestProfile(profileRandom);
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = day + (hour > 15 ? 1 : 0);
@@ -1237,7 +1251,9 @@ struct Simulation::Impl {
         p.satisfaction = z.satisfaction;
         p.hunger = 90;
         p.rest = 90;
-        p.patience = 100;
+        p.profile = z.profile;
+        p.queueToleranceSeconds = queueToleranceFor(z.profile);
+        p.patience = std::clamp(z.profile.patience * 100.0, 0.0, 100.0);
         p.goal = "Reach front desk";
         p.reservation = z.id;
         people.push_back(p);
@@ -1290,11 +1306,17 @@ struct Simulation::Impl {
         static_cast<int>(std::clamp(z->satisfaction + z->checkoutCleanliness -
                                         80 - ((r && !r->reachable) ? 20 : 0),
                                     0.0, 100.0));
-    reviews.push_back({z->id, static_cast<int>(elapsed / 86400), score,
+    reviews.push_back({z->id, simulationDay(elapsed),
+                       static_cast<double>(score),
                        score >= 80   ? "A comfortable, well-run stay."
                        : score >= 60 ? "Fine, though service could improve."
                                      : "Service delays hurt the stay."});
-    economy.reputation = economy.reputation * 0.85 + score * 0.15;
+    const double reputationWeight =
+        z->profile.archetype == GuestArchetype::CriticReviewer
+            ? criticReviewReputationWeight
+            : normalReviewReputationWeight;
+    economy.reputation =
+        economy.reputation * (1.0 - reputationWeight) + score * reputationWeight;
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
@@ -1331,7 +1353,7 @@ struct Simulation::Impl {
   }
   void staffAndTasks() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
-    const int day = static_cast<int>(elapsed / 86400);
+    const int day = simulationDay(elapsed);
     std::vector<EntityId> failedRooms;
 
     for (auto &p : people) {
@@ -1747,7 +1769,8 @@ struct Simulation::Impl {
           else {
             p.queueWaitSeconds += 1;
             p.patience = std::max(0.0, p.patience - 1.0 / 120);
-            if (p.queueWaitSeconds > 8 * 60)
+            if (p.queueWaitSeconds >
+                (p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60))
               p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
           }
           if (same(p.position, p.destination)) {
@@ -1773,7 +1796,8 @@ struct Simulation::Impl {
         } else if (p.state == PersonState::Waiting) {
           p.queueWaitSeconds += 1;
           p.patience = std::max(0.0, p.patience - 1.0 / 120);
-          if (p.queueWaitSeconds > 8 * 60)
+          if (p.queueWaitSeconds >
+              (p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60))
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
         for (auto &z : reservations)
@@ -1906,7 +1930,7 @@ struct Simulation::Impl {
   void minute() {
     elapsed += 1;
     int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
-        day = elapsed / 86400;
+        day = simulationDay(elapsed);
     bool hourBoundary = (elapsed % 3600) == 0;
     if (hourBoundary)
       hourlyBookings(day, hour);
@@ -2147,7 +2171,7 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   return {true, "Staff hired", p.id};
 }
 std::vector<Applicant> Simulation::applicants() const {
-  const int day = static_cast<int>(impl_->elapsed / 86400);
+  const int day = simulationDay(impl_->elapsed);
   auto pool = Workforce::applicantPool(impl_->seed, day);
   if (impl_->consumedApplicantDay != day)
     return pool;
@@ -2162,7 +2186,7 @@ std::vector<Applicant> Simulation::applicants() const {
 HireResult Simulation::hireApplicant(ApplicantId applicantId) {
   if (!impl_->has(TileKind::Entrance))
     return {false, "Build an entrance before hiring staff", 0, applicantId};
-  const int day = static_cast<int>(impl_->elapsed / 86400);
+  const int day = simulationDay(impl_->elapsed);
   if (impl_->consumedApplicantDay != day) {
     impl_->consumedApplicantDay = day;
     impl_->consumedApplicantIds.clear();
@@ -2198,6 +2222,7 @@ HireResult Simulation::hireApplicant(ApplicantId applicantId) {
   impl_->people.push_back(p);
   impl_->consumedApplicantIds.push_back(found->id);
   impl_->economy.cashCents -= impl_->onboardingCostCents;
+  impl_->economy.payrollCents += impl_->onboardingCostCents;
   return {true, "Applicant hired", p.id, found->id};
 }
 CommandResult Simulation::fireStaff(EntityId id) {
@@ -2353,7 +2378,7 @@ DepartmentForecast Simulation::departmentForecast(DepartmentId department,
     for (const auto &reservation : impl_->reservations)
       if (!reservation.completed && reservation.departureDay == day)
         addRequired(11 * 60, roundedMinutes(impl_->turnoverWork));
-    if (day == static_cast<int>(impl_->elapsed / 86400))
+    if (day == simulationDay(impl_->elapsed))
       for (const auto &task : impl_->tasks)
         if (task.kind == TaskKind::Turnover &&
             task.status != TaskStatus::Completed)
@@ -2369,7 +2394,7 @@ DepartmentForecast Simulation::departmentForecast(DepartmentId department,
         addRequired(11 * 60, roundedMinutes(impl_->checkInWork * 0.6));
     }
   } else {
-    if (day == static_cast<int>(impl_->elapsed / 86400)) {
+    if (day == simulationDay(impl_->elapsed)) {
       for (const auto &task : impl_->tasks)
         if (task.kind == TaskKind::Repair &&
             task.status != TaskStatus::Completed)
@@ -2485,7 +2510,7 @@ OptimizerSnapshot Simulation::buildOptimizerSnapshot() const {
   OptimizerSnapshot snapshot;
   snapshot.capturedSecond = impl_->elapsed;
   snapshot.horizonEndSecond = impl_->elapsed + 86400;
-  const int currentDay = static_cast<int>(impl_->elapsed / 86400);
+  const int currentDay = simulationDay(impl_->elapsed);
 
   auto serviceRole = [](TaskKind kind) {
     if (kind == TaskKind::Turnover || kind == TaskKind::Restock)
@@ -2713,7 +2738,7 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   // and usable service inventory diverge immediately.
   auto stagedServices = impl_->services;
   auto &logistics = stagedServices.logistics();
-  const int etaDay = static_cast<int>(impl_->elapsed / 86400) + 2;
+  const int etaDay = simulationDay(impl_->elapsed, 2);
   const auto secondsUntilEta =
       std::max<std::int64_t>(0, static_cast<std::int64_t>(etaDay) * 86400 -
                                     impl_->elapsed);
@@ -3162,6 +3187,24 @@ void Simulation::step(double seconds) {
     impl_->economy.revenueCents += revenueDelta;
     impl_->economy.cashCents += revenueDelta;
   }
+
+  for (auto &review : impl_->reviews) {
+    const auto reservation = std::find_if(
+        impl_->completedReservationHistory.begin(),
+        impl_->completedReservationHistory.end(),
+        [&](const Reservation &candidate) {
+          return candidate.id == review.reservationId;
+        });
+    if (reservation == impl_->completedReservationHistory.end())
+      continue;
+    const auto psychology = guestPsychology(reservation->id);
+    const auto stableReviewTime =
+        static_cast<std::int64_t>(review.day) * 86400 + 12 * 3600;
+    const auto draft =
+        buildGuestReview(psychology, impl_->seed, stableReviewTime);
+    review.score = draft.score;
+    review.text = draft.text;
+  }
 }
 
 LogisticsSnapshot Simulation::logisticsSnapshot() const {
@@ -3237,7 +3280,7 @@ bool Simulation::isReachable(Position a, Position b) const {
 SimulationView Simulation::view() const {
   SimulationView v;
   v.elapsedSeconds = impl_->elapsed;
-  v.day = impl_->elapsed / 86400;
+  v.day = simulationDay(impl_->elapsed);
   v.hour = (impl_->elapsed / 3600) % 24;
   v.width = impl_->width;
   v.height = impl_->height;
@@ -3279,7 +3322,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 12 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -3500,6 +3543,27 @@ std::string Simulation::save() const {
   o.write(workforceState.data(),
           static_cast<std::streamsize>(workforceState.size()));
   o << '\n';
+
+  std::ostringstream psychology;
+  psychology << std::setprecision(17);
+  const std::size_t psychologyCount =
+      impl_->reservations.size() + impl_->completedReservationHistory.size();
+  psychology << psychologyCount << '\n';
+  const auto writePsychology = [&](const Reservation &reservation) {
+    psychology << reservation.id << ' ';
+    writeGuestProfile(psychology, reservation.profile);
+    psychology << ' ' << std::quoted(reservation.psychologyArchive) << ' '
+               << std::quoted(reservation.guestGroupArchive) << '\n';
+  };
+  for (const auto &reservation : impl_->reservations)
+    writePsychology(reservation);
+  for (const auto &reservation : impl_->completedReservationHistory)
+    writePsychology(reservation);
+  const auto psychologyState = psychology.str();
+  o << "FINAL02_PSYCHOLOGY " << psychologyState.size() << '\n';
+  o.write(psychologyState.data(),
+          static_cast<std::streamsize>(psychologyState.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -3509,7 +3573,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 10)
+  if (magic != "HHGS" || version < 2 || version > 12)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -3786,7 +3850,16 @@ Simulation Simulation::load(std::string_view data) {
     d.amenities.setElapsedSeconds(d.elapsed);
   }
 
-  if (version >= 10) {
+  bool hasConstructionSection = version >= 11;
+  if (version == 10) {
+    const auto sectionStart = i.tellg();
+    std::string nextTag;
+    i >> nextTag;
+    hasConstructionSection = nextTag == "FINAL01_CONSTRUCTION";
+    i.clear();
+    i.seekg(sectionStart);
+  }
+  if (hasConstructionSection) {
     std::string constructionTag;
     std::size_t constructionBytes{};
     i >> constructionTag >> constructionBytes;
@@ -4130,6 +4203,99 @@ Simulation Simulation::load(std::string_view data) {
         person.contract = {0, staffRole(person.kind), person.hourlyWageCents, 0,
                            person.shiftStartHour, person.shiftEndHour};
       }
+  }
+
+  if (version >= 12) {
+    std::string psychologyTag;
+    std::size_t psychologyBytes{};
+    i >> psychologyTag >> psychologyBytes;
+    if (!i || psychologyTag != "FINAL02_PSYCHOLOGY" ||
+        psychologyBytes > 32 * 1024 * 1024)
+      throw std::invalid_argument("invalid FINAL-02 psychology save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-02 psychology delimiter");
+    std::string psychologyState(psychologyBytes, '\0');
+    i.read(psychologyState.data(),
+           static_cast<std::streamsize>(psychologyBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != psychologyBytes)
+      throw std::invalid_argument("truncated FINAL-02 psychology section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-02 psychology terminator");
+
+    std::istringstream psychology{psychologyState};
+    std::size_t psychologyCount{};
+    psychology >> psychologyCount;
+    const std::size_t expectedPsychologyCount =
+        d.reservations.size() + d.completedReservationHistory.size();
+    if (!psychology || psychologyCount != expectedPsychologyCount ||
+        psychologyCount > 100000)
+      throw std::invalid_argument("FINAL-02 guests do not match simulation");
+
+    std::unordered_set<EntityId> psychologyIds;
+    for (std::size_t index = 0; index < psychologyCount; ++index) {
+      EntityId guestId{};
+      GuestProfileView profile;
+      std::string psychologyArchive;
+      std::string groupArchive;
+      psychology >> guestId;
+      if (!psychology || !readGuestProfile(psychology, profile))
+        throw std::invalid_argument("invalid FINAL-02 guest profile");
+      psychology >> std::quoted(psychologyArchive) >> std::quoted(groupArchive);
+      if (!psychology || guestId == 0 ||
+          !psychologyIds.insert(guestId).second)
+        throw std::invalid_argument("invalid FINAL-02 guest identity");
+
+      Reservation *reservation = nullptr;
+      for (auto &candidate : d.reservations)
+        if (candidate.id == guestId) {
+          reservation = &candidate;
+          break;
+        }
+      if (!reservation)
+        for (auto &candidate : d.completedReservationHistory)
+          if (candidate.id == guestId) {
+            reservation = &candidate;
+            break;
+          }
+      if (!reservation)
+        throw std::invalid_argument(
+            "FINAL-02 psychology references missing guest");
+
+      if (!psychologyArchive.empty()) {
+        const auto restored =
+            detail::deserializeGuestPsychology(psychologyArchive);
+        if (restored.guestId != guestId ||
+            !sameGuestProfile(restored.profile, profile))
+          throw std::invalid_argument(
+              "FINAL-02 psychology archive identity mismatch");
+      }
+      if (!groupArchive.empty()) {
+        const auto group = detail::deserializeGuestGroup(groupArchive);
+        if (std::find(group.members.begin(), group.members.end(), guestId) ==
+            group.members.end())
+          throw std::invalid_argument(
+              "FINAL-02 group archive omits owning guest");
+      }
+      reservation->profile = profile;
+      reservation->psychologyArchive = std::move(psychologyArchive);
+      reservation->guestGroupArchive = std::move(groupArchive);
+      for (auto &person : d.people)
+        if (person.kind == PersonKind::Guest &&
+            person.reservation == reservation->id) {
+          person.profile = reservation->profile;
+          person.queueToleranceSeconds =
+              queueToleranceFor(reservation->profile);
+        }
+    }
+    psychology >> std::ws;
+    if (!psychology.eof())
+      throw std::invalid_argument(
+          "unexpected FINAL-02 psychology trailing data");
+    try {
+      (void)s.guestGroupsSnapshot();
+    } catch (const std::exception &) {
+      throw std::invalid_argument("invalid FINAL-02 guest group state");
+    }
   }
 
   if (!i)

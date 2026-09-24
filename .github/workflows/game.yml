@@ -46,6 +46,10 @@ jobs:
         if: runner.os == 'Windows'
         run: build/Tools/ContentPipeline/Release/asset.exe cook --runtime
 
+      - name: Verify cooked runtime asset set
+        if: runner.os == 'Windows'
+        run: python Tools/ContentPipeline/scripts/verify_runtime_asset_set.py Art/Exports Build/CookedAssets
+
       - name: Audit all cooked renderer assets
         if: runner.os == 'Windows'
         run: build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
@@ -81,15 +85,36 @@ jobs:
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = Get-ChildItem build/package/*.zip | Select-Object -First 1
           if (-not $zip) { throw "Packaged Hotel Haven zip not found" }
+          $expected = @(
+            Get-ChildItem Art/Exports -Recurse -Filter *.asset.json -File |
+              ForEach-Object {
+                $metadata = Get-Content $_.FullName -Raw | ConvertFrom-Json
+                if ($metadata.asset_type -in @('StaticMeshAsset', 'SkinnedMeshAsset')) {
+                  [string]$metadata.asset_id
+                }
+              } |
+              Sort-Object -Unique
+          )
           $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
           try {
-            $assets = @($archive.Entries | Where-Object {
-              $_.FullName -match '(^|/)data/assets/HH_A\d{3}\.hasset$'
-            })
-            if ($assets.Count -ne 500) {
-              throw "Expected 500 packaged cooked assets; found $($assets.Count)"
+            $actual = @(
+              $archive.Entries |
+                Where-Object { $_.FullName -match '(^|/)data/assets/[^/]+\.hasset
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: Hotel-Haven-Windows
+          path: build/package/*.zip
+ } |
+                ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) } |
+                Sort-Object -Unique
+            )
+            $difference = @(Compare-Object -ReferenceObject $expected -DifferenceObject $actual)
+            if ($difference.Count -ne 0) {
+              $sample = ($difference | Select-Object -First 20 | Out-String)
+              throw "Packaged runtime asset set diverges from source mesh metadata. $sample"
             }
-            Write-Host "Verified 500 cooked runtime assets in $($zip.Name)"
+            Write-Host "Verified exact packaged runtime asset set: $($actual.Count) assets in $($zip.Name)"
           } finally {
             $archive.Dispose()
           }

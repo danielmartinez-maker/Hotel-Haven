@@ -73,7 +73,7 @@ void EngineeringSystem::tickWorkOrderSecond(WorkOrder &order) {
       target->failurePressure /= 4;
     } else {
       target->condition = std::max(target->condition, 8000);
-      target->failurePressure /= 2;
+      target->failurePressure = 0;
       target->failed = false;
     }
   }
@@ -90,7 +90,7 @@ void EngineeringSystem::tickReliabilitySecond() {
     entry.failurePressure =
         std::clamp(entry.failurePressure + pressureGain, 0, 9500);
     const auto draw = static_cast<int>(rng_() % 10000ULL);
-    if (draw < entry.failurePressure) {
+    if (!entry.failed && draw < entry.failurePressure) {
       ++failures_;
       entry.failed = true;
     }

@@ -45,3 +45,11 @@ def test_manifest_metadata_is_scoped_to_declared_batches_only(tmp_path):
     manifest = generation.AssetManifest(tmp_path, master)
     assets, _profiles = generation.gameplay_manifest_metadata(tmp_path, manifest)
     assert set(assets) == {'HH_A001'}
+
+
+def test_geometry_validator_uses_active_manifest_scope():
+    source = (ART / 'validate_generated_geometry.py').read_text(encoding='utf-8')
+    assert 'load_active_manifest' in source
+    assert 'len(paths) != 500' not in source
+    assert 'range(1, 11)' not in source
+    assert 'Gameplay-facing assets: **{gameplay} / 500**' not in source

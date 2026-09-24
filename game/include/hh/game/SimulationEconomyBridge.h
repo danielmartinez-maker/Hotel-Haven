@@ -22,8 +22,21 @@ public:
   CommandResult buildTile(Position position, TileKind kind);
   CommandResult buildFurnishedRoom(const RoomBlueprint &blueprint);
   CommandResult hireStaff(const StaffHire &hire);
+  [[nodiscard]] std::vector<Applicant> applicants() const;
+  HireResult hireApplicant(ApplicantId applicantId);
   CommandResult fireStaff(EntityId employeeId);
   CommandResult setStaffShift(EntityId employeeId, int startHour, int endHour);
+  CommandResult scheduleTraining(EntityId employeeId,
+                                 std::int64_t startSecond,
+                                 int durationMinutes = 60);
+  CommandResult assignDepartmentManager(DepartmentId department,
+                                        EntityId employeeId);
+  [[nodiscard]] std::vector<DepartmentView> departments() const;
+  [[nodiscard]] DepartmentForecast departmentForecast(DepartmentId department,
+                                                      SimDay day) const;
+  [[nodiscard]] OptimizerSnapshot buildOptimizerSnapshot() const;
+  [[nodiscard]] PlanValidation validatePlan(const OptimizerSnapshot &snapshot,
+                                            const AssignmentPlan &plan) const;
   CommandResult setRoomRate(EntityId roomId, double rate);
   CommandResult requestClean(EntityId roomId);
   CommandResult requestRepair(EntityId roomId);
