@@ -109,6 +109,7 @@ public:
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
   [[nodiscard]] AmenitiesSnapshot snapshot() const;
+  [[nodiscard]] std::int64_t revenueCents() const noexcept;
   [[nodiscard]] std::string save() const;
   static AmenitiesSystem load(std::string_view data);
 
