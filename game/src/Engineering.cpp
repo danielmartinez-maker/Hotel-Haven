@@ -108,13 +108,23 @@ void EngineeringSystem::tickSecondFor(
     const std::vector<AssetId> &managedAssets,
     const std::vector<AssetId> &workingAssets) {
   ++elapsedSeconds_;
+  const bool managedSorted =
+      std::is_sorted(managedAssets.begin(), managedAssets.end());
+  const bool workingSorted =
+      std::is_sorted(workingAssets.begin(), workingAssets.end());
   for (auto &order : workOrders_) {
     const bool managed =
-        std::find(managedAssets.begin(), managedAssets.end(), order.assetId) !=
-        managedAssets.end();
+        managedSorted
+            ? std::binary_search(managedAssets.begin(), managedAssets.end(),
+                                 order.assetId)
+            : std::find(managedAssets.begin(), managedAssets.end(),
+                        order.assetId) != managedAssets.end();
     const bool working =
-        std::find(workingAssets.begin(), workingAssets.end(), order.assetId) !=
-        workingAssets.end();
+        workingSorted
+            ? std::binary_search(workingAssets.begin(), workingAssets.end(),
+                                 order.assetId)
+            : std::find(workingAssets.begin(), workingAssets.end(),
+                        order.assetId) != workingAssets.end();
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
