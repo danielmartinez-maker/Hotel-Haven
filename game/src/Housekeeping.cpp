@@ -165,13 +165,23 @@ void HousekeepingSystem::tickSecondFor(
     const std::vector<RoomId> &managedRooms,
     const std::vector<RoomId> &workingRooms) {
   ++elapsedSeconds_;
+  const bool managedSorted =
+      std::is_sorted(managedRooms.begin(), managedRooms.end());
+  const bool workingSorted =
+      std::is_sorted(workingRooms.begin(), workingRooms.end());
   for (auto &job : jobs_) {
     const bool managed =
-        std::find(managedRooms.begin(), managedRooms.end(), job.roomId) !=
-        managedRooms.end();
+        managedSorted
+            ? std::binary_search(managedRooms.begin(), managedRooms.end(),
+                                 job.roomId)
+            : std::find(managedRooms.begin(), managedRooms.end(), job.roomId) !=
+                  managedRooms.end();
     const bool working =
-        std::find(workingRooms.begin(), workingRooms.end(), job.roomId) !=
-        workingRooms.end();
+        workingSorted
+            ? std::binary_search(workingRooms.begin(), workingRooms.end(),
+                                 job.roomId)
+            : std::find(workingRooms.begin(), workingRooms.end(), job.roomId) !=
+                  workingRooms.end();
     if (!managed || working)
       tickJobSecond(job);
   }
