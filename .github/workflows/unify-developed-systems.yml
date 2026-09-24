@@ -1,0 +1,87 @@
+name: Unify Developed Systems
+on:
+  push:
+    branches:
+      - integration/unify-developed-systems-2026-09-24
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure integration identity
+        run: |
+          git config user.name "Hotel Haven Integration"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+
+      - name: Merge developed system branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          merge_branch() {
+            local branch="$1"
+            echo "::group::Merging $branch"
+            if ! git merge --no-ff --no-edit -X ours "origin/$branch"; then
+              echo "::error::Automatic merge failed for $branch"
+              echo "Unresolved paths:"
+              git diff --name-only --diff-filter=U || true
+              git status --short
+              exit 1
+            fi
+            echo "::endgroup::"
+          }
+
+          merge_branch main
+          merge_branch feature/final-01-construction-building-systems
+          merge_branch feature/elevator-actor-routing-final02
+          merge_branch feature/asset-pipeline-v2-800-assets
+          merge_branch hardening/asset-quality-v3
+          merge_branch feature/full-game-integration
+          merge_branch feature/full-game-nvidia-integration
+          merge_branch feature/nvidia-optimization-openusd
+          merge_branch hardening/extensive-optimization-2026-09-10
+
+      - name: Verify expected developed systems are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f game/include/hh/game/Construction.h
+          test -f game/include/hh/game/GuestPsychology.h
+          test -f game/include/hh/game/Workforce.h
+          test -f game/include/hh/game/ServiceLogistics.h
+          test -f frontend/include/hh/frontend/GameUiRuntime.h
+          test -f game/audio/SoundtrackPlayer.h
+          test -f GameData/AssetDefinitions/hotel_haven_asset_manifest_v2.json
+          test -f Tools/OpenUsdPipeline/hh_usd.py
+          test -f Tools/BalanceLab/balance_lab.py
+
+      - name: Configure unified build
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build unified tree
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Test unified tree
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Validate Python tooling
+        run: |
+          python3 -m unittest Tools.BalanceLab.test_balance_lab
+          python3 -m unittest Tools.OpenUsdPipeline.test_hh_usd
+
+      - name: Commit and push unified tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet origin/integration/unify-developed-systems-2026-09-24..HEAD; then
+            echo "No integration changes to push."
+            exit 0
+          fi
+          git push origin HEAD:integration/unify-developed-systems-2026-09-24
