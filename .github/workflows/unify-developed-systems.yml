@@ -2,7 +2,8 @@ name: Unify Developed Systems
 on:
   push:
     branches:
-      - 'integration/**'
+      - integration/unify-developed-systems-2026-09-24
+  workflow_dispatch:
 
 permissions:
   contents: write
