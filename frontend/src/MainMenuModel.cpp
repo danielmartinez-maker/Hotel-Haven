@@ -62,6 +62,16 @@ void MainMenuModel::setContinueAvailable(bool available) noexcept {
     }
 }
 
+void MainMenuModel::navigateSettings(int delta) noexcept {
+    if (delta == 0) {
+        return;
+    }
+    settingsSelection_ =
+        settingsSelection_ == MainMenuSettingsItem::UiScale
+            ? MainMenuSettingsItem::ReducedMotion
+            : MainMenuSettingsItem::UiScale;
+}
+
 MainMenuItem MainMenuModel::firstEnabled() const noexcept {
     for (const MainMenuItem item : kMenuOrder) {
         if (isEnabled(item)) {
