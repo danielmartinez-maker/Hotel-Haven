@@ -96,6 +96,10 @@ struct Simulation::Impl {
   std::vector<PendingOrder> orders;
   InventoryView inventory{24, 48, 36, 24, 8};
   ServiceLogisticsRuntime services{1};
+  std::vector<RoomId> managedHousekeepingScratch;
+  std::vector<RoomId> workingHousekeepingScratch;
+  std::vector<AssetId> managedEngineeringScratch;
+  std::vector<AssetId> workingEngineeringScratch;
   FoodServiceSystem food;
   EventsSystem events;
   AmenitiesSystem amenities;
@@ -373,11 +377,16 @@ struct Simulation::Impl {
         r.status = RoomStatus::VacantReady;
     }
   }
+  [[nodiscard]] bool hasActiveTask(TaskKind kind, EntityId target) const {
+    return std::any_of(tasks.begin(), tasks.end(), [&](const auto &task) {
+      return task.targetId == target && task.kind == kind &&
+             task.status != TaskStatus::Completed;
+    });
+  }
+
   void createTask(TaskKind kind, EntityId target, Position pos, double work) {
-    for (auto &t : tasks)
-      if (t.targetId == target && t.kind == kind &&
-          t.status != TaskStatus::Completed)
-        return;
+    if (hasActiveTask(kind, target))
+      return;
     Task t;
     t.id = nextId++;
     t.kind = kind;
@@ -385,6 +394,31 @@ struct Simulation::Impl {
     t.target = pos;
     t.total = t.workRemainingSeconds = work;
     tasks.push_back(t);
+  }
+
+  [[nodiscard]] bool createRoomTask(TaskKind kind, EntityId target,
+                                    Position pos, double work) {
+    if (kind != TaskKind::Turnover && kind != TaskKind::Repair)
+      return false;
+
+    // An existing physical task already represents this lifecycle. Do not
+    // create a second FINAL-04 job merely because its faster service pipeline
+    // happened to finish first.
+    if (hasActiveTask(kind, target))
+      return true;
+
+    auto stagedServices = services;
+    const bool serviceAccepted =
+        kind == TaskKind::Turnover
+            ? stagedServices.requestRoomTurn(target) != 0
+            : stagedServices.createWorkOrder(target, WorkOrderType::Corrective) !=
+                  0;
+    if (!serviceAccepted)
+      return false;
+
+    services = std::move(stagedServices);
+    createTask(kind, target, pos, work);
+    return true;
   }
   void hourlyBookings(int day, int hour) {
     if (!has(TileKind::Entrance) || !has(TileKind::FrontDesk))
@@ -465,11 +499,16 @@ struct Simulation::Impl {
           r->cleanliness = 25;
           r->reservationId = 0;
           if (r->condition < 35) {
+            if (!createRoomTask(TaskKind::Repair, r->id, r->door, repairWork))
+              throw std::logic_error(
+                  "failed to mirror checkout repair into FINAL-04");
             r->status = RoomStatus::OutOfOrder;
-            createTask(TaskKind::Repair, r->id, r->door, repairWork);
           } else {
+            if (!createRoomTask(TaskKind::Turnover, r->id, r->door,
+                                turnoverWork))
+              throw std::logic_error(
+                  "failed to mirror checkout turnover into FINAL-04");
             r->status = RoomStatus::VacantDirty;
-            createTask(TaskKind::Turnover, r->id, r->door, turnoverWork);
           }
         }
         for (auto &p : people)
@@ -524,7 +563,6 @@ struct Simulation::Impl {
   }
   void staffAndTasks() {
     int hour = (elapsed / 3600) % 24;
-    std::vector<EntityId> repairedRooms;
     std::vector<EntityId> failedRooms;
     for (auto &p : people)
       if (p.kind != PersonKind::Guest) {
@@ -543,12 +581,14 @@ struct Simulation::Impl {
       if (t.status == TaskStatus::Ready || t.status == TaskStatus::Blocked) {
         bool resources = true;
         if (t.kind == TaskKind::Turnover)
-          resources = t.resourcesClaimed ||
-                      (has(TileKind::SupplyCloset) && inventory.linen >= 1 &&
-                       inventory.towels >= 2 && inventory.amenities >= 1 &&
-                       inventory.chemicals >= 1);
+          resources =
+              t.resourcesClaimed ||
+              (has(TileKind::SupplyCloset) &&
+               services.canClaimRoomTurnSuppliesForSimulation(t.targetId));
         if (t.kind == TaskKind::Repair)
-          resources = t.resourcesClaimed || inventory.parts >= 1;
+          resources =
+              t.resourcesClaimed ||
+              services.canClaimCorrectivePartForSimulation(t.targetId);
         if (t.kind == TaskKind::CheckIn || t.kind == TaskKind::CheckOut)
           resources = has(TileKind::FrontDesk);
         if (!resources) {
@@ -569,6 +609,14 @@ struct Simulation::Impl {
             }
           }
         if (best) {
+          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
+            if (!services.claimCorrectivePartForSimulation(t.targetId)) {
+              t.status = TaskStatus::Blocked;
+              t.blockedReason = "Canonical maintenance part unavailable";
+              continue;
+            }
+            t.resourcesClaimed = true;
+          }
           t.employeeId = best->id;
           best->task = t.id;
           best->destination =
@@ -576,10 +624,6 @@ struct Simulation::Impl {
                                                                     : t.target;
           best->state = PersonState::Traveling;
           t.status = TaskStatus::Traveling;
-          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
-            inventory.parts--;
-            t.resourcesClaimed = true;
-          }
           if (t.kind == TaskKind::Turnover)
             if (auto *r = getRoom(t.targetId))
               r->status = RoomStatus::Cleaning;
@@ -610,19 +654,14 @@ struct Simulation::Impl {
           if (same(p->position, p->destination)) {
             if (t.kind == TaskKind::Turnover &&
                 same(p->destination, supply()) && !t.resourcesClaimed) {
-              if (inventory.linen < 1 || inventory.towels < 2 ||
-                  inventory.amenities < 1 || inventory.chemicals < 1) {
+              if (!services.claimRoomTurnSuppliesForSimulation(t.targetId)) {
                 t.status = TaskStatus::Blocked;
-                t.blockedReason = "Required local supplies unavailable";
+                t.blockedReason = "Canonical room supplies unavailable";
                 t.employeeId = 0;
                 p->task = 0;
                 p->state = PersonState::Idle;
                 continue;
               }
-              inventory.linen--;
-              inventory.towels -= 2;
-              inventory.amenities--;
-              inventory.chemicals--;
               t.resourcesClaimed = true;
               p->destination = t.target;
               p->state = PersonState::Traveling;
@@ -672,28 +711,28 @@ struct Simulation::Impl {
                   r->status = RoomStatus::OutOfOrder;
                   failedRooms.push_back(r->id);
                 } else {
-                  r->status = RoomStatus::VacantReady;
+                  // Physical work is finished, but the room is not sellable
+                  // until the mirrored FINAL-04 service pipeline also closes.
+                  r->status = RoomStatus::Cleaning;
                   r->cleanliness = std::clamp(
                       70 + p->skill * 0.3 - p->fatigue * 0.1, 0.0, 100.0);
                 }
               }
               if (t.kind == TaskKind::Repair) {
-                r->condition = 100;
-                if (!r->closed) {
-                  r->status = RoomStatus::VacantDirty;
-                  repairedRooms.push_back(r->id);
-                }
+                // Physical labor completion alone does not repair the asset;
+                // FINAL-04 corrective completion owns the condition reset.
+                if (!r->closed)
+                  r->status = RoomStatus::OutOfOrder;
               }
             }
           }
         }
       }
-    for (EntityId roomId : repairedRooms)
-      if (auto *room = getRoom(roomId))
-        createTask(TaskKind::Turnover, roomId, room->door, turnoverWork);
     for (EntityId roomId : failedRooms)
       if (auto *room = getRoom(roomId))
-        createTask(TaskKind::Repair, roomId, room->door, repairWork);
+        if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
+          throw std::logic_error(
+              "failed to mirror turnover failure repair into FINAL-04");
   }
   void guests() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
@@ -785,6 +824,88 @@ struct Simulation::Impl {
                        }),
         reservations.end());
   }
+  void tickServicesWithPhysicalLabor() {
+    managedHousekeepingScratch.clear();
+    workingHousekeepingScratch.clear();
+    managedEngineeringScratch.clear();
+    workingEngineeringScratch.clear();
+
+    const auto requiredCapacity = tasks.size();
+    if (managedHousekeepingScratch.capacity() < requiredCapacity) {
+      managedHousekeepingScratch.reserve(requiredCapacity);
+      workingHousekeepingScratch.reserve(requiredCapacity);
+      managedEngineeringScratch.reserve(requiredCapacity);
+      workingEngineeringScratch.reserve(requiredCapacity);
+    }
+
+    for (const auto &task : tasks) {
+      if (task.status == TaskStatus::Completed)
+        continue;
+      if (task.kind == TaskKind::Turnover) {
+        managedHousekeepingScratch.push_back(task.targetId);
+        if (task.status == TaskStatus::Working)
+          workingHousekeepingScratch.push_back(task.targetId);
+      } else if (task.kind == TaskKind::Repair) {
+        managedEngineeringScratch.push_back(task.targetId);
+        if (task.status == TaskStatus::Working)
+          workingEngineeringScratch.push_back(task.targetId);
+      }
+    }
+
+    services.tickSimulationSecond(
+        managedHousekeepingScratch, workingHousekeepingScratch,
+        managedEngineeringScratch, workingEngineeringScratch);
+  }
+
+  void reconcileRoomServiceCompletion() {
+    for (auto &room : rooms) {
+      if (room.closed || room.reservationId != 0 ||
+          room.status == RoomStatus::Occupied ||
+          room.status == RoomStatus::Incomplete)
+        continue;
+
+      if (room.status == RoomStatus::Cleaning &&
+          !hasActiveTask(TaskKind::Turnover, room.id) &&
+          services.housekeeping().roomStatus(room.id) ==
+              ServiceRoomStatus::Ready) {
+        if (room.condition < 35) {
+          room.status = RoomStatus::OutOfOrder;
+          if (!createRoomTask(TaskKind::Repair, room.id, room.door, repairWork))
+            throw std::logic_error(
+                "failed to create repair after completed room turn");
+        } else {
+          room.status = RoomStatus::VacantReady;
+        }
+      }
+
+      if (room.status == RoomStatus::OutOfOrder &&
+          !hasActiveTask(TaskKind::Repair, room.id)) {
+        const auto engineeringStage =
+            services.engineering().latestWorkOrderStage(
+                room.id, WorkOrderType::Corrective);
+        if (engineeringStage &&
+            *engineeringStage == WorkOrderStage::Completed) {
+          room.condition = 100;
+          services.synchronizeAssetConditionForSimulation(room.id, 10000, false);
+          room.status = RoomStatus::VacantDirty;
+          if (!createRoomTask(TaskKind::Turnover, room.id, room.door,
+                              turnoverWork))
+            throw std::logic_error(
+                "failed to create turnover after completed repair");
+        }
+      }
+    }
+
+    int available = 0;
+    int occupied = 0;
+    for (const auto &room : rooms)
+      if (!room.closed && room.status != RoomStatus::Incomplete) {
+        ++available;
+        occupied += room.status == RoomStatus::Occupied;
+      }
+    economy.occupancy = available ? double(occupied) / available : 0;
+  }
+
   void minute() {
     elapsed += 1;
     int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
@@ -798,14 +919,8 @@ struct Simulation::Impl {
       arrivals(day);
     if (hourBoundary) {
       for (auto &o : orders)
-        if (!o.delivered && o.etaDay <= day) {
-          inventory.linen += o.items.linen;
-          inventory.towels += o.items.towels;
-          inventory.amenities += o.items.amenities;
-          inventory.chemicals += o.items.chemicals;
-          inventory.parts += o.items.parts;
+        if (!o.delivered && o.etaDay <= day)
           o.delivered = true;
-        }
     }
     staffAndTasks();
     guests();
@@ -825,6 +940,11 @@ struct Simulation::Impl {
               0.85 + 0.3 * std::generate_canonical<double, 32>(rng);
           r.condition = std::max(0.0, r.condition - roomConditionLossPerDay *
                                                         wearVariation);
+          services.synchronizeAssetConditionForSimulation(
+              r.id,
+              std::clamp(static_cast<int>(std::llround(r.condition * 100.0)),
+                         0, 10000),
+              r.condition < 35);
           if (r.condition < 35 && r.reservationId == 0 &&
               r.status == RoomStatus::VacantReady) {
             r.status = RoomStatus::OutOfOrder;
@@ -833,7 +953,9 @@ struct Simulation::Impl {
         }
       for (const EntityId roomId : newlyFailedRooms)
         if (auto *room = getRoom(roomId))
-          createTask(TaskKind::Repair, roomId, room->door, repairWork);
+          if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
+            throw std::logic_error(
+                "failed to mirror wear failure repair into FINAL-04");
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
@@ -1058,8 +1180,10 @@ CommandResult Simulation::requestClean(EntityId id) {
   if (!r || r->reservationId != 0 || r->status == RoomStatus::Occupied ||
       r->status == RoomStatus::OutOfOrder || r->condition < 40)
     return {false, "Occupied, reserved, or closed room cannot be cleaned"};
+  if (!impl_->createRoomTask(TaskKind::Turnover, id, r->door,
+                             impl_->turnoverWork))
+    return {false, "Housekeeping service could not accept the room turn"};
   r->status = RoomStatus::VacantDirty;
-  impl_->createTask(TaskKind::Turnover, id, r->door, impl_->turnoverWork);
   return {true, "Cleaning requested", id};
 }
 CommandResult Simulation::requestRepair(EntityId id) {
@@ -1070,8 +1194,15 @@ CommandResult Simulation::requestRepair(EntityId id) {
         return task.targetId == id && task.status != TaskStatus::Completed;
       }))
     return {false, "Complete existing room service before requesting repair"};
+  impl_->services.synchronizeAssetConditionForSimulation(
+      id,
+      std::clamp(static_cast<int>(std::llround(r->condition * 100.0)), 0,
+                 10000),
+      r->condition < 35);
+  if (!impl_->createRoomTask(TaskKind::Repair, id, r->door,
+                             impl_->repairWork))
+    return {false, "Engineering service could not accept the repair"};
   r->status = RoomStatus::OutOfOrder;
-  impl_->createTask(TaskKind::Repair, id, r->door, impl_->repairWork);
   return {true, "Repair requested", id};
 }
 CommandResult Simulation::closeRoom(EntityId id, bool closed) {
@@ -1129,10 +1260,44 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
                       static_cast<std::int64_t>(o.parts) * 3500;
   if (impl_->economy.cashCents < cost)
     return {false, "Insufficient cash"};
+
+  // Stage FINAL-04 logistics on a copy first. The legacy order remains in
+  // place for the physical scheduler until that subsystem is retired, but a
+  // player purchase must be visible to both authorities or the operations UI
+  // and usable service inventory diverge immediately.
+  auto stagedServices = impl_->services;
+  auto &logistics = stagedServices.logistics();
+  const int etaDay = static_cast<int>(impl_->elapsed / 86400) + 2;
+  const auto secondsUntilEta =
+      std::max<std::int64_t>(0, static_cast<std::int64_t>(etaDay) * 86400 -
+                                    impl_->elapsed);
+  const int leadSeconds = static_cast<int>(
+      std::min<std::int64_t>(secondsUntilEta, std::numeric_limits<int>::max()));
+
+  const auto stageItem = [&](std::string_view item, int quantity,
+                             StorageKind destinationKind) {
+    if (quantity == 0)
+      return true;
+    const auto destination = logistics.firstStorage(destinationKind);
+    if (destination == 0)
+      return false;
+    return logistics
+        .placePurchaseOrder(item, quantity, destination, leadSeconds)
+        .ok();
+  };
+
+  if (!stageItem("clean_linen_set", o.linen, StorageKind::CleanLinen) ||
+      !stageItem("towel_unit", o.towels, StorageKind::CentralStorage) ||
+      !stageItem("amenity_kit", o.amenities, StorageKind::CentralStorage) ||
+      !stageItem("cleaning_chemical", o.chemicals, StorageKind::CentralStorage) ||
+      !stageItem("maintenance_part", o.parts, StorageKind::CentralStorage))
+    return {false, "Service storage cannot accept this supply order"};
+
   PendingOrder p;
   p.id = impl_->nextId++;
   p.items = {o.linen, o.towels, o.amenities, o.chemicals, o.parts};
-  p.etaDay = impl_->elapsed / 86400 + 2;
+  p.etaDay = etaDay;
+  impl_->services = std::move(stagedServices);
   impl_->orders.push_back(p);
   impl_->economy.cashCents -= cost;
   impl_->economy.supplyCostCents += cost;
@@ -1148,6 +1313,15 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
   }
   if (!root.is_object())
     return {false, "Definitions must be a JSON object"};
+  const bool initialLinenOverride = root.find("initialLinen") != nullptr;
+  const bool initialTowelsOverride = root.find("initialTowels") != nullptr;
+  const bool initialAmenitiesOverride = root.find("initialAmenities") != nullptr;
+  const bool initialChemicalsOverride = root.find("initialChemicals") != nullptr;
+  const bool initialPartsOverride = root.find("initialParts") != nullptr;
+  const bool inventoryOverride =
+      initialLinenOverride || initialTowelsOverride ||
+      initialAmenitiesOverride || initialChemicalsOverride ||
+      initialPartsOverride;
   auto number = [&](std::string_view key, double &out) {
     const auto *value = root.find(key);
     if (!value)
@@ -1180,6 +1354,63 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
       d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100)
     return {false, "Definition values are invalid"};
+
+  if (inventoryOverride) {
+    const auto logisticsState = d.services.logisticsSnapshot();
+    const bool activePurchase = std::any_of(
+        logisticsState.purchaseOrders.begin(), logisticsState.purchaseOrders.end(),
+        [](const auto &order) {
+          return order.state != PurchaseOrderState::Completed &&
+                 order.state != PurchaseOrderState::RejectedNoCapacity &&
+                 order.state != PurchaseOrderState::Cancelled;
+        });
+    const bool activeMove = std::any_of(
+        logisticsState.stockMoves.begin(), logisticsState.stockMoves.end(),
+        [](const auto &move) { return !move.completed; });
+    if (activePurchase || activeMove)
+      return {false,
+              "Initial inventory overrides require idle service logistics"};
+
+    auto &serviceInventory = d.services.logistics();
+    const auto syncItem = [&](bool requested, std::string_view item, int target,
+                              StorageKind preferredStorage) {
+      if (!requested)
+        return true;
+      const int current = serviceInventory.inventoryUsable(item);
+      if (serviceInventory.totalInventory(item) != current)
+        return false;
+      if (current > target)
+        return serviceInventory.consumeUsable(item, current - target);
+      if (current == target)
+        return true;
+
+      const int additional = target - current;
+      if (serviceInventory.addToKind(preferredStorage, item, additional))
+        return true;
+
+      // Definition files describe starting scenario state, not a live
+      // procurement action. Preserve legacy scenarios with intentionally large
+      // starting stock by provisioning explicit overflow storage rather than
+      // clipping stock or rejecting an otherwise valid definition.
+      const auto overflow =
+          serviceInventory.addStorage({preferredStorage, additional, true});
+      return overflow != 0 &&
+             serviceInventory.addInventory(overflow, item, additional);
+    };
+
+    if (!syncItem(initialLinenOverride, "clean_linen_set", d.inventory.linen,
+                  StorageKind::CleanLinen) ||
+        !syncItem(initialTowelsOverride, "towel_unit", d.inventory.towels,
+                  StorageKind::CentralStorage) ||
+        !syncItem(initialAmenitiesOverride, "amenity_kit",
+                  d.inventory.amenities, StorageKind::CentralStorage) ||
+        !syncItem(initialChemicalsOverride, "cleaning_chemical",
+                  d.inventory.chemicals, StorageKind::CentralStorage) ||
+        !syncItem(initialPartsOverride, "maintenance_part", d.inventory.parts,
+                  StorageKind::CentralStorage))
+      return {false, "Initial inventory could not be synchronized"};
+  }
+
   *impl_ = std::move(d);
   return {true, "Definitions loaded"};
 }
@@ -1191,7 +1422,8 @@ void Simulation::step(double seconds) {
     impl_->remainderMillis -= 1000;
     const auto revenueBefore = impl_->final05RevenueCents();
     impl_->minute();
-    impl_->services.tickSecond();
+    impl_->tickServicesWithPhysicalLabor();
+    impl_->reconcileRoomServiceCompletion();
     impl_->food.tickSecond();
     impl_->events.tickSecond();
     impl_->amenities.tickSecond();
@@ -1211,6 +1443,12 @@ void Simulation::step(double seconds) {
 
 LogisticsSnapshot Simulation::logisticsSnapshot() const {
   return impl_->services.logisticsSnapshot();
+}
+HousekeepingSnapshot Simulation::housekeepingSnapshot() const {
+  return impl_->services.housekeepingSnapshot();
+}
+EngineeringSnapshot Simulation::engineeringSnapshot() const {
+  return impl_->services.engineeringSnapshot();
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
   if (!impl_->getRoom(roomId))
@@ -1299,7 +1537,16 @@ SimulationView Simulation::view() const {
   for (auto &t : impl_->completedTaskHistory)
     v.tasks.push_back(t);
   v.reviews = impl_->reviews;
-  v.inventory = impl_->inventory;
+  // Public inventory is the canonical FINAL-04 usable stock. The legacy
+  // inventory remains private scheduler/save compatibility state until the
+  // physical pickup path is fully migrated.
+  const auto &logistics = impl_->services.logistics();
+  v.inventory = {
+      logistics.inventoryUsable("clean_linen_set"),
+      logistics.inventoryUsable("towel_unit"),
+      logistics.inventoryUsable("amenity_kit"),
+      logistics.inventoryUsable("cleaning_chemical"),
+      logistics.inventoryUsable("maintenance_part")};
   v.economy = impl_->economy;
   for (auto &o : impl_->orders)
     v.supplyOrders.push_back(o);

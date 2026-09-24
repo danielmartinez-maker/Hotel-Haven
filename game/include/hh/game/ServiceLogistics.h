@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace hh::game {
 
@@ -46,6 +47,8 @@ public:
   [[nodiscard]] std::size_t registeredRoomCount() const noexcept;
   [[nodiscard]] std::size_t registeredAssetCount() const noexcept;
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
+  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;
+  [[nodiscard]] EngineeringSnapshot engineeringSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type);
@@ -64,6 +67,19 @@ public:
 private:
   friend class Simulation;
   void synchronizeElapsedSecondsForSimulation(std::int64_t seconds);
+  void synchronizeAssetConditionForSimulation(AssetId asset, int condition,
+                                               bool failed);
+  [[nodiscard]] bool
+  canClaimRoomTurnSuppliesForSimulation(RoomId room) const;
+  [[nodiscard]] bool claimRoomTurnSuppliesForSimulation(RoomId room);
+  [[nodiscard]] bool
+  canClaimCorrectivePartForSimulation(AssetId asset) const;
+  [[nodiscard]] bool claimCorrectivePartForSimulation(AssetId asset);
+  void tickSimulationSecond(
+      const std::vector<RoomId> &managedHousekeepingRooms,
+      const std::vector<RoomId> &workingHousekeepingRooms,
+      const std::vector<AssetId> &managedEngineeringAssets,
+      const std::vector<AssetId> &workingEngineeringAssets);
 
   struct Impl;
   std::unique_ptr<Impl> impl_;

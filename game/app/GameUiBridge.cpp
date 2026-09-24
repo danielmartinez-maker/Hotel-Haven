@@ -163,15 +163,41 @@ std::string taskStatusText(hh::game::TaskStatus status) {
   return "Unknown";
 }
 
-OperationArea taskArea(hh::game::TaskKind kind) noexcept {
-  switch (kind) {
-  case hh::game::TaskKind::Turnover: return OperationArea::Housekeeping;
-  case hh::game::TaskKind::Restock: return OperationArea::Logistics;
-  case hh::game::TaskKind::Repair: return OperationArea::Engineering;
-  case hh::game::TaskKind::CheckIn:
-  case hh::game::TaskKind::CheckOut: return OperationArea::Staffing;
-  }
+OperationArea taskArea(hh::game::TaskKind) noexcept {
+  // Legacy Simulation tasks are the physical workforce/scheduler layer. Keep
+  // them under Staffing so FINAL-04 service jobs remain the sole source for
+  // Housekeeping, Engineering and Logistics operational queues.
   return OperationArea::Staffing;
+}
+
+std::string housekeepingStageText(hh::game::HousekeepingStage stage) {
+  switch (stage) {
+  case hh::game::HousekeepingStage::StripLinen: return "Strip linen";
+  case hh::game::HousekeepingStage::CollectTrash: return "Collect trash";
+  case hh::game::HousekeepingStage::CleanBathroom: return "Clean bathroom";
+  case hh::game::HousekeepingStage::CleanSurfacesFloor:
+    return "Clean surfaces/floor";
+  case hh::game::HousekeepingStage::ReplaceLinen: return "Replace linen";
+  case hh::game::HousekeepingStage::ReplenishAmenities:
+    return "Replenish amenities";
+  case hh::game::HousekeepingStage::Inspect: return "Inspect";
+  case hh::game::HousekeepingStage::Completed: return "Completed";
+  }
+  return "Unknown";
+}
+
+std::string engineeringStageText(hh::game::WorkOrderStage stage) {
+  switch (stage) {
+  case hh::game::WorkOrderStage::Queued: return "Queued";
+  case hh::game::WorkOrderStage::Working: return "Working";
+  case hh::game::WorkOrderStage::Completed: return "Completed";
+  }
+  return "Unknown";
+}
+
+std::string engineeringTypeText(hh::game::WorkOrderType type) {
+  return type == hh::game::WorkOrderType::Preventive ? "Preventive maintenance"
+                                                      : "Corrective repair";
 }
 
 std::string blockReasonCode(hh::game::BlockReason reason) {
@@ -361,6 +387,8 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
                          const GameUiBridgeContext& context) {
   const auto view = simulation.view();
   const auto logistics = simulation.logisticsSnapshot();
+  const auto housekeeping = simulation.housekeepingSnapshot();
+  const auto engineering = simulation.engineeringSnapshot();
   const auto food = simulation.foodServiceSnapshot();
   const auto events = simulation.eventsSnapshot();
   const auto amenities = simulation.amenitiesSnapshot();
@@ -544,14 +572,6 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
          task.status == hh::game::TaskStatus::Blocked ? 3 : 1,
          task.blockedReason, 0, task.employeeId, task.targetId,
          task.target.floor, task.target.x, task.target.y});
-    if (task.kind == hh::game::TaskKind::Turnover &&
-        task.status != hh::game::TaskStatus::Completed) {
-      ++out.operations.housekeepingBacklog;
-    }
-    if (task.kind == hh::game::TaskKind::Repair &&
-        task.status != hh::game::TaskStatus::Completed) {
-      ++out.operations.engineeringOpenOrders;
-    }
     if (task.status != hh::game::TaskStatus::Completed)
       ++taskCountByTarget[task.targetId];
 
@@ -569,6 +589,55 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
     openTasks.samples.push_back(
         {target, count, std::to_string(count) + " open",
          count > 2 ? "High task density" : "Open tasks"});
+  }
+
+  const auto roomDoor = [&](hh::game::EntityId roomId) {
+    const auto room = std::find_if(
+        view.rooms.begin(), view.rooms.end(),
+        [&](const auto& candidate) { return candidate.id == roomId; });
+    return room == view.rooms.end() ? hh::game::Position{} : room->door;
+  };
+
+  for (const auto& job : housekeeping.jobs) {
+    if (job.stage == hh::game::HousekeepingStage::Completed)
+      continue;
+    ++out.operations.housekeepingBacklog;
+    const auto code = blockReasonCode(job.blockedReason);
+    const auto target = roomDoor(job.roomId);
+    out.operations.rows.push_back(
+        {alertId(0x4100000000000000ULL, job.id),
+         OperationArea::Housekeeping,
+         "Room turn #" + std::to_string(job.id),
+         housekeepingStageText(job.stage),
+         code.empty() ? 1 : 3,
+         code,
+         0,
+         0,
+         job.roomId,
+         target.floor,
+         target.x,
+         target.y});
+  }
+
+  for (const auto& order : engineering.workOrders) {
+    if (order.stage == hh::game::WorkOrderStage::Completed)
+      continue;
+    ++out.operations.engineeringOpenOrders;
+    const auto code = blockReasonCode(order.blockedReason);
+    const auto target = roomDoor(order.assetId);
+    out.operations.rows.push_back(
+        {alertId(0x4200000000000000ULL, order.id),
+         OperationArea::Engineering,
+         engineeringTypeText(order.type) + " #" + std::to_string(order.id),
+         engineeringStageText(order.stage),
+         code.empty() ? 1 : 3,
+         code,
+         0,
+         0,
+         order.assetId,
+         target.floor,
+         target.x,
+         target.y});
   }
 
   const int cleanLinenUnits =
@@ -591,11 +660,6 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
       {"Chemicals", std::to_string(chemicalUnits)},
       {"Parts", std::to_string(maintenanceParts)}};
   out.entities.push_back(std::move(inventoryEntity));
-
-  for (const auto& order : view.supplyOrders) {
-    if (!order.delivered)
-      ++out.operations.incomingOrders;
-  }
 
   out.operations.cleanLinenUnits = cleanLinenUnits;
   for (const auto& order : logistics.purchaseOrders) {
@@ -696,6 +760,34 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
     out.overlays.push_back(std::move(staffUtilization));
   if (!queueWait.samples.empty())
     out.overlays.push_back(std::move(queueWait));
+
+  for (const auto& stack : logistics.inventory) {
+    hashValue(revision, stack.storage);
+    hashText(revision, stack.item);
+    hashValue(revision, static_cast<std::uint64_t>(stack.quantity));
+    hashValue(revision, static_cast<std::uint64_t>(stack.reservedQuantity));
+  }
+  for (const auto& order : logistics.purchaseOrders) {
+    hashValue(revision, order.id);
+    hashValue(revision, static_cast<std::uint64_t>(order.state));
+    hashValue(revision, static_cast<std::uint64_t>(order.remainingSeconds));
+    hashValue(revision, static_cast<std::uint64_t>(order.blockedReason));
+  }
+  for (const auto& job : housekeeping.jobs) {
+    hashValue(revision, job.id);
+    hashValue(revision, job.roomId);
+    hashValue(revision, static_cast<std::uint64_t>(job.stage));
+    hashValue(revision, static_cast<std::uint64_t>(job.remainingSeconds));
+    hashValue(revision, static_cast<std::uint64_t>(job.blockedReason));
+  }
+  for (const auto& order : engineering.workOrders) {
+    hashValue(revision, order.id);
+    hashValue(revision, order.assetId);
+    hashValue(revision, static_cast<std::uint64_t>(order.type));
+    hashValue(revision, static_cast<std::uint64_t>(order.stage));
+    hashValue(revision, static_cast<std::uint64_t>(order.remainingSeconds));
+    hashValue(revision, static_cast<std::uint64_t>(order.blockedReason));
+  }
 
   hashValue(revision, static_cast<std::uint64_t>(view.elapsedSeconds));
   hashValue(revision, static_cast<std::uint64_t>(view.economy.cashCents));

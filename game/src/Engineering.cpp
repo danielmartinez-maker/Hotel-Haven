@@ -41,52 +41,85 @@ WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
   return id;
 }
 
-void EngineeringSystem::tickSecond() {
-  ++elapsedSeconds_;
+std::optional<WorkOrderStage>
+EngineeringSystem::latestWorkOrderStage(AssetId assetId,
+                                        WorkOrderType type) const {
+  for (auto it = workOrders_.rbegin(); it != workOrders_.rend(); ++it)
+    if (it->assetId == assetId && it->type == type)
+      return it->stage;
+  return std::nullopt;
+}
 
-  for (auto &order : workOrders_) {
-    if (order.stage == WorkOrderStage::Completed)
-      continue;
-    if (!order.partClaimed) {
-      if (!logistics_->consumeUsable("maintenance_part", 1)) {
-        order.blockedReason = BlockReason::AwaitingPart;
-        continue;
-      }
-      order.partClaimed = true;
-      order.stage = WorkOrderStage::Working;
-      order.blockedReason = BlockReason::None;
+void EngineeringSystem::tickWorkOrderSecond(WorkOrder &order) {
+  if (order.stage == WorkOrderStage::Completed)
+    return;
+  if (!order.partClaimed) {
+    if (!logistics_->consumeUsable("maintenance_part", 1)) {
+      order.blockedReason = BlockReason::AwaitingPart;
+      return;
     }
-    if (order.remainingSeconds > 0)
-      --order.remainingSeconds;
-    if (order.remainingSeconds > 0)
-      continue;
-    auto *target = asset(order.assetId);
-    if (target) {
-      if (order.type == WorkOrderType::Preventive) {
-        target->condition = std::min(10000, target->condition + 3000);
-        target->failurePressure /= 4;
-      } else {
-        target->condition = std::max(target->condition, 8000);
-        target->failurePressure /= 2;
-        target->failed = false;
-      }
-    }
-    order.stage = WorkOrderStage::Completed;
+    order.partClaimed = true;
+    order.stage = WorkOrderStage::Working;
     order.blockedReason = BlockReason::None;
   }
+  if (order.remainingSeconds > 0)
+    --order.remainingSeconds;
+  if (order.remainingSeconds > 0)
+    return;
+  auto *target = asset(order.assetId);
+  if (target) {
+    if (order.type == WorkOrderType::Preventive) {
+      target->condition = std::min(10000, target->condition + 3000);
+      target->failurePressure /= 4;
+    } else {
+      target->condition = std::max(target->condition, 8000);
+      target->failurePressure /= 2;
+      target->failed = false;
+    }
+  }
+  order.stage = WorkOrderStage::Completed;
+  order.blockedReason = BlockReason::None;
+}
 
+void EngineeringSystem::tickReliabilitySecond() {
   if (elapsedSeconds_ % 3600 != 0)
     return;
   for (auto &entry : assets_) {
     entry.condition = std::max(0, entry.condition - 10);
     const int pressureGain = std::max(1, (7000 - entry.condition) / 8);
-    entry.failurePressure = std::clamp(entry.failurePressure + pressureGain, 0, 9500);
+    entry.failurePressure =
+        std::clamp(entry.failurePressure + pressureGain, 0, 9500);
     const auto draw = static_cast<int>(rng_() % 10000ULL);
     if (draw < entry.failurePressure) {
       ++failures_;
       entry.failed = true;
     }
   }
+}
+
+void EngineeringSystem::tickSecond() {
+  ++elapsedSeconds_;
+  for (auto &order : workOrders_)
+    tickWorkOrderSecond(order);
+  tickReliabilitySecond();
+}
+
+void EngineeringSystem::tickSecondFor(
+    const std::vector<AssetId> &managedAssets,
+    const std::vector<AssetId> &workingAssets) {
+  ++elapsedSeconds_;
+  for (auto &order : workOrders_) {
+    const bool managed =
+        std::find(managedAssets.begin(), managedAssets.end(), order.assetId) !=
+        managedAssets.end();
+    const bool working =
+        std::find(workingAssets.begin(), workingAssets.end(), order.assetId) !=
+        workingAssets.end();
+    if (!managed || working)
+      tickWorkOrderSecond(order);
+  }
+  // Integrated Simulation owns room wear/failure generation. Standalone
+  // EngineeringSystem::tickSecond() retains FINAL-04 reliability behavior.
 }
 
 void EngineeringSystem::tickSeconds(std::int64_t seconds) {

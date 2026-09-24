@@ -126,6 +126,12 @@ bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
 LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot() const {
   return impl_->logistics.snapshot();
 }
+HousekeepingSnapshot ServiceLogisticsRuntime::housekeepingSnapshot() const {
+  return impl_->housekeeping.snapshot();
+}
+EngineeringSnapshot ServiceLogisticsRuntime::engineeringSnapshot() const {
+  return impl_->engineering.snapshot();
+}
 TaskId ServiceLogisticsRuntime::requestRoomTurn(RoomId room) {
   return impl_->housekeeping.requestRoomTurn(room);
 }
@@ -157,6 +163,22 @@ void ServiceLogisticsRuntime::tickSecond() {
   impl_->roomService.tickSecond();
   impl_->logistics.tickSecond();
 }
+
+void ServiceLogisticsRuntime::tickSimulationSecond(
+    const std::vector<RoomId> &managedHousekeepingRooms,
+    const std::vector<RoomId> &workingHousekeepingRooms,
+    const std::vector<AssetId> &managedEngineeringAssets,
+    const std::vector<AssetId> &workingEngineeringAssets) {
+  ++impl_->elapsedSeconds;
+  impl_->housekeeping.tickSecondFor(managedHousekeepingRooms,
+                                    workingHousekeepingRooms);
+  impl_->laundry.tickSecond();
+  impl_->engineering.tickSecondFor(managedEngineeringAssets,
+                                   workingEngineeringAssets);
+  impl_->roomService.tickSecond();
+  impl_->logistics.tickSecond();
+}
+
 void ServiceLogisticsRuntime::tickSeconds(std::int64_t seconds) {
   if (seconds < 0 || seconds > 1'000'000'000LL)
     throw std::invalid_argument("service tick seconds must be bounded and nonnegative");
@@ -179,9 +201,131 @@ void ServiceLogisticsRuntime::synchronizeElapsedSecondsForSimulation(
   impl_->roomService.elapsedSeconds_ = seconds;
 }
 
+void ServiceLogisticsRuntime::synchronizeAssetConditionForSimulation(
+    AssetId assetId, int condition, bool failed) {
+  auto *entry = impl_->engineering.asset(assetId);
+  if (!entry)
+    return;
+  entry->condition = std::clamp(condition, 0, 10000);
+  entry->failed = failed;
+  if (!failed)
+    entry->failurePressure = 0;
+}
+
+bool ServiceLogisticsRuntime::canClaimRoomTurnSuppliesForSimulation(
+    RoomId roomId) const {
+  const auto &housekeeping = impl_->housekeeping;
+  const auto job = std::find_if(
+      housekeeping.jobs_.begin(), housekeeping.jobs_.end(),
+      [roomId](const auto &candidate) {
+        return candidate.roomId == roomId &&
+               candidate.stage != HousekeepingStage::Completed;
+      });
+  if (job == housekeeping.jobs_.end())
+    return false;
+  if (job->suppliesPreclaimed)
+    return true;
+  const auto needsStageSupply = [&](HousekeepingStage stage) {
+    return enumValue(job->stage) < enumValue(stage) ||
+           (job->stage == stage && !job->stageStarted);
+  };
+  const auto &logistics = impl_->logistics;
+  const bool dirtyCapacity =
+      job->stage != HousekeepingStage::StripLinen ||
+      logistics.canAddToKind(StorageKind::DirtyLinen, 1);
+  const bool chemicals =
+      !needsStageSupply(HousekeepingStage::CleanBathroom) ||
+      logistics.inventoryUsable("cleaning_chemical") >= 1;
+  const bool linen =
+      !needsStageSupply(HousekeepingStage::ReplaceLinen) ||
+      (logistics.inventoryUsable("clean_linen_set") >= 1 &&
+       logistics.inventoryUsable("towel_unit") >= 2);
+  const bool amenities =
+      !needsStageSupply(HousekeepingStage::ReplenishAmenities) ||
+      logistics.inventoryUsable("amenity_kit") >= 1;
+  return dirtyCapacity && chemicals && linen && amenities;
+}
+
+bool ServiceLogisticsRuntime::claimRoomTurnSuppliesForSimulation(
+    RoomId roomId) {
+  auto &housekeeping = impl_->housekeeping;
+  auto job = std::find_if(
+      housekeeping.jobs_.begin(), housekeeping.jobs_.end(),
+      [roomId](const auto &candidate) {
+        return candidate.roomId == roomId &&
+               candidate.stage != HousekeepingStage::Completed;
+      });
+  if (job == housekeeping.jobs_.end())
+    return false;
+  if (job->suppliesPreclaimed)
+    return true;
+  if (!canClaimRoomTurnSuppliesForSimulation(roomId))
+    return false;
+
+  auto &logistics = impl_->logistics;
+  const auto needsStageSupply = [&](HousekeepingStage stage) {
+    return enumValue(job->stage) < enumValue(stage) ||
+           (job->stage == stage && !job->stageStarted);
+  };
+  const bool claimChemicals =
+      needsStageSupply(HousekeepingStage::CleanBathroom);
+  const bool claimLinen = needsStageSupply(HousekeepingStage::ReplaceLinen);
+  const bool claimAmenities =
+      needsStageSupply(HousekeepingStage::ReplenishAmenities);
+  if ((claimChemicals &&
+       !logistics.consumeUsable("cleaning_chemical", 1)) ||
+      (claimLinen && !logistics.consumeUsable("clean_linen_set", 1)) ||
+      (claimLinen && !logistics.consumeUsable("towel_unit", 2)) ||
+      (claimAmenities && !logistics.consumeUsable("amenity_kit", 1)))
+    throw std::logic_error("canonical room-turn preclaim lost validated stock");
+  job->suppliesPreclaimed = true;
+  job->blockedReason = BlockReason::None;
+  return true;
+}
+
+bool ServiceLogisticsRuntime::canClaimCorrectivePartForSimulation(
+    AssetId assetId) const {
+  const auto &engineering = impl_->engineering;
+  const auto order = std::find_if(
+      engineering.workOrders_.begin(), engineering.workOrders_.end(),
+      [assetId](const auto &candidate) {
+        return candidate.assetId == assetId &&
+               candidate.type == WorkOrderType::Corrective &&
+               candidate.stage != WorkOrderStage::Completed;
+      });
+  if (order == engineering.workOrders_.end())
+    return false;
+  return order->partClaimed ||
+         impl_->logistics.inventoryUsable("maintenance_part") >= 1;
+}
+
+bool ServiceLogisticsRuntime::claimCorrectivePartForSimulation(
+    AssetId assetId) {
+  auto &engineering = impl_->engineering;
+  auto order = std::find_if(
+      engineering.workOrders_.begin(), engineering.workOrders_.end(),
+      [assetId](const auto &candidate) {
+        return candidate.assetId == assetId &&
+               candidate.type == WorkOrderType::Corrective &&
+               candidate.stage != WorkOrderStage::Completed;
+      });
+  if (order == engineering.workOrders_.end())
+    return false;
+  if (order->partClaimed)
+    return true;
+  if (impl_->logistics.inventoryUsable("maintenance_part") < 1)
+    return false;
+  if (!impl_->logistics.consumeUsable("maintenance_part", 1))
+    throw std::logic_error("canonical corrective-part claim lost validated stock");
+  order->partClaimed = true;
+  order->stage = WorkOrderStage::Working;
+  order->blockedReason = BlockReason::None;
+  return true;
+}
+
 std::string ServiceLogisticsRuntime::save() const {
   std::ostringstream out;
-  out << "HHSL 1 " << impl_->seed << ' ' << impl_->elapsedSeconds << '\n';
+  out << "HHSL 2 " << impl_->seed << ' ' << impl_->elapsedSeconds << '\n';
 
   const auto &l = impl_->logistics;
   out << "L " << l.nextId_ << ' ' << l.elapsedSeconds_ << ' '
@@ -216,7 +360,7 @@ std::string ServiceLogisticsRuntime::save() const {
   for (const auto &job : h.jobs_)
     out << job.id << ' ' << job.roomId << ' ' << enumValue(job.stage) << ' '
         << job.remainingSeconds << ' ' << enumValue(job.blockedReason) << ' '
-        << job.stageStarted << '\n';
+        << job.stageStarted << ' ' << job.suppliesPreclaimed << '\n';
 
   const auto &laundry = impl_->laundry;
   out << "A " << laundry.nextId_ << ' ' << laundry.elapsedSeconds_ << ' '
@@ -266,7 +410,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
   std::uint64_t seed{};
   std::int64_t elapsed{};
   in >> magic >> version >> seed >> elapsed;
-  if (!in || magic != "HHSL" || version != 1 || elapsed < 0)
+  if (!in || magic != "HHSL" || version < 1 || version > 2 || elapsed < 0)
     throw std::invalid_argument("unsupported or corrupt service save");
 
   ServiceLogisticsRuntime result(seed);
@@ -368,6 +512,8 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     int stage{}, block{};
     in >> job.id >> job.roomId >> stage >> job.remainingSeconds >> block >>
         job.stageStarted;
+    if (version >= 2)
+      in >> job.suppliesPreclaimed;
     if (!in || job.id == 0 || job.roomId == 0 ||
         stage < enumValue(HousekeepingStage::StripLinen) ||
         stage > enumValue(HousekeepingStage::Completed) ||

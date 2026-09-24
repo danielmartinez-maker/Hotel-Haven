@@ -35,19 +35,72 @@ int main() {
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
     require(source.entities.size() >= view.rooms.size(), "room inspectors were not composed");
 
+    hh::game::Simulation serviceSimulation =
+        hh::game::Simulation::tutorial(20260911);
+    const auto serviceRoom = serviceSimulation.view().rooms.front().id;
+    const auto serviceBefore =
+        hh::client::makeGameUiSnapshotSource(serviceSimulation, context);
+    const auto roomTurnId = serviceSimulation.requestRoomTurn(serviceRoom);
+    require(roomTurnId != 0,
+            "FINAL-04 housekeeping fixture could not start a room turn");
+    const auto engineeringId = serviceSimulation.createWorkOrder(
+        serviceRoom, hh::game::WorkOrderType::Corrective);
+    require(engineeringId != 0,
+            "FINAL-04 engineering fixture could not create a work order");
+    const auto serviceSource =
+        hh::client::makeGameUiSnapshotSource(serviceSimulation, context);
+    require(serviceSource.revision != serviceBefore.revision,
+            "paused FINAL-04 service mutation did not invalidate UI revision");
+    require(serviceSource.operations.housekeepingBacklog == 1,
+            "housekeeping KPI did not follow FINAL-04 room-turn queue");
+    require(serviceSource.operations.engineeringOpenOrders == 1,
+            "engineering KPI did not follow FINAL-04 work-order queue");
+    const auto serviceHousekeeping = std::find_if(
+        serviceSource.operations.rows.begin(), serviceSource.operations.rows.end(),
+        [&](const auto& row) {
+          return row.area == hh::frontend::OperationArea::Housekeeping &&
+                 row.targetId == serviceRoom &&
+                 row.name == "Room turn #" + std::to_string(roomTurnId);
+        });
+    require(serviceHousekeeping != serviceSource.operations.rows.end(),
+            "FINAL-04 housekeeping operation was omitted from dashboard");
+    const auto serviceEngineering = std::find_if(
+        serviceSource.operations.rows.begin(), serviceSource.operations.rows.end(),
+        [&](const auto& row) {
+          return row.area == hh::frontend::OperationArea::Engineering &&
+                 row.targetId == serviceRoom;
+        });
+    require(serviceEngineering != serviceSource.operations.rows.end(),
+            "FINAL-04 engineering operation was omitted from dashboard");
+
+    hh::game::Simulation legacyOrderSimulation =
+        hh::game::Simulation::tutorial(20260912);
+    require(legacyOrderSimulation.orderSupplies({1, 0, 0, 0, 0}).ok,
+            "legacy supply-order fixture could not submit an order");
+    require(!legacyOrderSimulation.view().supplyOrders.empty(),
+            "legacy supply-order fixture did not create legacy order state");
+    const auto legacyOrderSource =
+        hh::client::makeGameUiSnapshotSource(legacyOrderSimulation, context);
+    require(legacyOrderSource.operations.incomingOrders == 1,
+            "FINAL-07 operations dashboard did not project the mirrored FINAL-04 order exactly once");
+
     hh::game::Simulation inventorySimulation =
         hh::game::Simulation::tutorial(20260910);
-    const auto legacyInventoryBefore = inventorySimulation.view().inventory;
+    const auto canonicalInventoryBefore = inventorySimulation.view().inventory;
     const auto inventoryRoom = inventorySimulation.view().rooms.front().id;
     require(inventorySimulation.requestRoomTurn(inventoryRoom) != 0,
             "FINAL-04 inventory fixture could not start a room turn");
     inventorySimulation.step(1500);
-    const auto legacyInventoryAfter = inventorySimulation.view().inventory;
-    require(legacyInventoryAfter.linen == legacyInventoryBefore.linen &&
-                legacyInventoryAfter.towels == legacyInventoryBefore.towels &&
-                legacyInventoryAfter.amenities == legacyInventoryBefore.amenities &&
-                legacyInventoryAfter.chemicals == legacyInventoryBefore.chemicals,
-            "FINAL-04-only room turn unexpectedly changed legacy inventory");
+    const auto canonicalInventoryAfter = inventorySimulation.view().inventory;
+    require(canonicalInventoryAfter.linen ==
+                canonicalInventoryBefore.linen - 1 &&
+                canonicalInventoryAfter.towels ==
+                    canonicalInventoryBefore.towels - 2 &&
+                canonicalInventoryAfter.amenities ==
+                    canonicalInventoryBefore.amenities - 1 &&
+                canonicalInventoryAfter.chemicals ==
+                    canonicalInventoryBefore.chemicals - 1,
+            "SimulationView inventory did not follow canonical FINAL-04 consumption");
 
     const auto inventorySource =
         hh::client::makeGameUiSnapshotSource(inventorySimulation, context);
@@ -87,11 +140,21 @@ int main() {
         source.operations.rows.begin(), source.operations.rows.end(),
         [task](const auto& row) {
           return row.id == task->id &&
-                 row.area == hh::frontend::OperationArea::Housekeeping &&
+                 row.area == hh::frontend::OperationArea::Staffing &&
                  row.name == "Room turnover";
         });
     require(operation != source.operations.rows.end(),
-            "authoritative turnover task was omitted from operations dashboard");
+            "physical workforce turnover task was omitted from operations dashboard");
+    require(source.operations.housekeepingBacklog == 1,
+            "mirrored room turnover was missing from FINAL-04 housekeeping backlog");
+    const auto mirroredHousekeeping = std::find_if(
+        source.operations.rows.begin(), source.operations.rows.end(),
+        [cleanedRoomId](const auto& row) {
+          return row.area == hh::frontend::OperationArea::Housekeeping &&
+                 row.targetId == cleanedRoomId;
+        });
+    require(mirroredHousekeeping != source.operations.rows.end(),
+            "physical room turnover did not expose its FINAL-04 counterpart");
     require(operation->assigneeId == task->employeeId,
             "operation assignee did not preserve authoritative employee id");
     require(operation->targetId == task->targetId,

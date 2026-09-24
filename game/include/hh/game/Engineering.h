@@ -3,6 +3,7 @@
 #include "hh/game/Logistics.h"
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -39,6 +40,8 @@ public:
   EngineeringSystem(LogisticsSystem &logistics, std::uint64_t seed = 1);
   void registerAsset(AssetId asset, int condition = 10000);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type);
+  [[nodiscard]] std::optional<WorkOrderStage>
+  latestWorkOrderStage(AssetId asset, WorkOrderType type) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
   [[nodiscard]] EngineeringSnapshot snapshot() const;
@@ -63,6 +66,10 @@ private:
   };
   [[nodiscard]] Asset *asset(AssetId id);
   [[nodiscard]] const Asset *asset(AssetId id) const;
+  void tickWorkOrderSecond(WorkOrder &order);
+  void tickReliabilitySecond();
+  void tickSecondFor(const std::vector<AssetId> &managedAssets,
+                     const std::vector<AssetId> &workingAssets);
 
   LogisticsSystem *logistics_{};
   std::mt19937_64 rng_;
