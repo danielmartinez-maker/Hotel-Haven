@@ -50,6 +50,7 @@ struct WorldAssetSet {
   std::optional<WorldAssetVisual> guestArmchair;
   std::optional<WorldAssetVisual> luggageBench;
   std::optional<WorldAssetVisual> wardrobe;
+  std::optional<WorldAssetVisual> tvConsole;
   std::optional<WorldAssetVisual> wallTelevision;
   std::optional<WorldAssetVisual> bathroomVanity;
   std::optional<WorldAssetVisual> bathroomToilet;
@@ -58,6 +59,11 @@ struct WorldAssetSet {
   std::optional<WorldAssetVisual> lobbySofa;
   std::optional<WorldAssetVisual> lobbyArmchair;
   std::optional<WorldAssetVisual> lobbyCoffeeTable;
+  std::optional<WorldAssetVisual> lobbyFloorLamp;
+  std::optional<WorldAssetVisual> lobbyPlanter;
+  std::optional<WorldAssetVisual> luggageCart;
+  std::optional<WorldAssetVisual> housekeepingCart;
+  std::optional<WorldAssetVisual> utilityCart;
   std::optional<WorldAssetVisual> cleaningSupplyCabinet;
   std::optional<WorldAssetVisual> staffLockerBank;
   std::optional<WorldAssetVisual> staffBench;
