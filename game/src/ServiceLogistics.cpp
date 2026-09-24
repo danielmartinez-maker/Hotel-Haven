@@ -163,6 +163,22 @@ void ServiceLogisticsRuntime::tickSecond() {
   impl_->roomService.tickSecond();
   impl_->logistics.tickSecond();
 }
+
+void ServiceLogisticsRuntime::tickSimulationSecond(
+    const std::vector<RoomId> &managedHousekeepingRooms,
+    const std::vector<RoomId> &workingHousekeepingRooms,
+    const std::vector<AssetId> &managedEngineeringAssets,
+    const std::vector<AssetId> &workingEngineeringAssets) {
+  ++impl_->elapsedSeconds;
+  impl_->housekeeping.tickSecondFor(managedHousekeepingRooms,
+                                    workingHousekeepingRooms);
+  impl_->laundry.tickSecond();
+  impl_->engineering.tickSecondFor(managedEngineeringAssets,
+                                   workingEngineeringAssets);
+  impl_->roomService.tickSecond();
+  impl_->logistics.tickSecond();
+}
+
 void ServiceLogisticsRuntime::tickSeconds(std::int64_t seconds) {
   if (seconds < 0 || seconds > 1'000'000'000LL)
     throw std::invalid_argument("service tick seconds must be bounded and nonnegative");
