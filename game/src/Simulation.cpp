@@ -1156,9 +1156,9 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   };
 
   if (!stageItem("clean_linen_set", o.linen, StorageKind::CleanLinen) ||
-      !stageItem("towel_unit", o.towels, StorageKind::FloorCloset) ||
-      !stageItem("amenity_kit", o.amenities, StorageKind::FloorCloset) ||
-      !stageItem("cleaning_chemical", o.chemicals, StorageKind::FloorCloset) ||
+      !stageItem("towel_unit", o.towels, StorageKind::CentralStorage) ||
+      !stageItem("amenity_kit", o.amenities, StorageKind::CentralStorage) ||
+      !stageItem("cleaning_chemical", o.chemicals, StorageKind::CentralStorage) ||
       !stageItem("maintenance_part", o.parts, StorageKind::CentralStorage))
     return {false, "Service storage cannot accept this supply order"};
 
