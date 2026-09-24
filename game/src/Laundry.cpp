@@ -21,52 +21,61 @@ LaundryBatchId LaundrySystem::requestBatch(int quantity) {
   return id;
 }
 
-int LaundrySystem::activeIn(LaundryStage stage) const {
-  return static_cast<int>(std::count_if(
-      batches_.begin(), batches_.end(),
-      [stage](const Batch &batch) { return batch.stage == stage; }));
-}
-
 void LaundrySystem::tickSecond() {
   ++elapsedSeconds_;
+
+  int washing = 0;
+  int drying = 0;
+  int folding = 0;
+  for (const auto &batch : batches_) {
+    washing += batch.stage == LaundryStage::Washing;
+    drying += batch.stage == LaundryStage::Drying;
+    folding += batch.stage == LaundryStage::Folding;
+  }
+
   for (auto &batch : batches_) {
     switch (batch.stage) {
     case LaundryStage::AwaitingWasher:
-      if (stations_.washers <= activeIn(LaundryStage::Washing)) {
+      if (stations_.washers <= washing) {
         batch.blockedReason = BlockReason::MissingWasher;
         break;
       }
       batch.stage = LaundryStage::Washing;
+      ++washing;
       batch.remainingSeconds = 35 * 60;
       batch.blockedReason = BlockReason::None;
       break;
     case LaundryStage::Washing:
       if (--batch.remainingSeconds <= 0) {
+        --washing;
         batch.stage = LaundryStage::AwaitingDryer;
         batch.remainingSeconds = 0;
       }
       break;
     case LaundryStage::AwaitingDryer:
-      if (stations_.dryers <= activeIn(LaundryStage::Drying)) {
+      if (stations_.dryers <= drying) {
         batch.blockedReason = BlockReason::MissingDryer;
         break;
       }
       batch.stage = LaundryStage::Drying;
+      ++drying;
       batch.remainingSeconds = 40 * 60;
       batch.blockedReason = BlockReason::None;
       break;
     case LaundryStage::Drying:
       if (--batch.remainingSeconds <= 0) {
+        --drying;
         batch.stage = LaundryStage::AwaitingFold;
         batch.remainingSeconds = 0;
       }
       break;
     case LaundryStage::AwaitingFold:
-      if (stations_.foldingStations <= activeIn(LaundryStage::Folding)) {
+      if (stations_.foldingStations <= folding) {
         batch.blockedReason = BlockReason::MissingFoldingStation;
         break;
       }
       batch.stage = LaundryStage::Folding;
+      ++folding;
       batch.remainingSeconds = 15 * 60;
       batch.blockedReason = BlockReason::None;
       break;
@@ -84,6 +93,7 @@ void LaundrySystem::tickSecond() {
         batch.blockedReason = BlockReason::MissingCleanStorage;
         break;
       }
+      --folding;
       batch.stage = LaundryStage::Completed;
       batch.blockedReason = BlockReason::None;
       break;
