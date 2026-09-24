@@ -129,6 +129,17 @@ int main() {
                 smallestLargeUi.buildColumns == 3,
             "1280x720 at 150 percent must preserve a usable compact management workspace");
 
+    require(hh::client::final07PointInManagementPanel(
+                1280, 720, 150, 1279, 300),
+            "pointer inside scaled sidebar must route wheel input to the panel");
+    require(!hh::client::final07PointInManagementPanel(
+                1280, 720, 150, 700, 300) &&
+                !hh::client::final07PointInManagementPanel(
+                    1280, 720, 150, 1279, 100) &&
+                !hh::client::final07PointInManagementPanel(
+                    1280, 720, 150, 1279, 700),
+            "world, header, and footer points must stay outside management-panel wheel routing");
+
     const auto normal = hh::client::computeFinal07Layout(1500, 960, 100);
     require(normal.headerPixels == 88 && normal.footerPixels == 58 &&
                 normal.sidebarPixels == 356,
