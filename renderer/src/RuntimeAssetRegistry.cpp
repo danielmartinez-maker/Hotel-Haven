@@ -39,6 +39,19 @@ bool isRenderableMeshType(hh::assets::AssetType type) noexcept {
            type == hh::assets::AssetType::SkinnedMesh;
 }
 
+void validateRequestedAssetId(std::string_view assetId) {
+    if (assetId.empty()) {
+        throw std::runtime_error("required runtime asset id must not be empty");
+    }
+    if (assetId.find('/') != std::string_view::npos ||
+        assetId.find('\\') != std::string_view::npos ||
+        assetId == "." || assetId == "..") {
+        throw std::runtime_error(
+            "required runtime asset id is not a safe package filename: " +
+            std::string(assetId));
+    }
+}
+
 }  // namespace
 
 AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
@@ -53,7 +66,8 @@ AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     if (handlesById_.find(document.asset_id) != handlesById_.end()) {
         throw std::runtime_error("duplicate runtime asset id: " + document.asset_id);
     }
-    if (assets_.size() > static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())) {
+    if (assets_.size() >
+        static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())) {
         throw std::runtime_error("runtime asset handle space exhausted");
     }
 
@@ -69,11 +83,13 @@ AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     const AssetHandle handle{static_cast<std::uint32_t>(assets_.size())};
     assets_.push_back(std::move(candidate));
     try {
-        const auto [it, inserted] = handlesById_.emplace(assets_.back().assetId, handle);
+        const auto [it, inserted] =
+            handlesById_.emplace(assets_.back().assetId, handle);
         static_cast<void>(it);
         if (!inserted) {
             assets_.pop_back();
-            throw std::runtime_error("duplicate runtime asset id: " + document.asset_id);
+            throw std::runtime_error("duplicate runtime asset id: " +
+                                     document.asset_id);
         }
     } catch (...) {
         if (assets_.size() == static_cast<std::size_t>(handle.value) + 1u &&
@@ -85,9 +101,37 @@ AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     return handle;
 }
 
-void RuntimeAssetRegistry::loadDirectory(const std::filesystem::path& cookedRoot) {
-    if (!std::filesystem::exists(cookedRoot) || !std::filesystem::is_directory(cookedRoot)) {
-        throw std::runtime_error("cooked asset root is not a directory: " + cookedRoot.string());
+void RuntimeAssetRegistry::loadFiles(
+    std::span<const std::filesystem::path> paths) {
+    if (paths.empty()) {
+        throw std::runtime_error("runtime asset load set is empty");
+    }
+
+    // Build a temporary registry first. Package loading is therefore atomic:
+    // one missing, corrupt, duplicate, or mismatched asset leaves the current
+    // registry intact.
+    RuntimeAssetRegistry staged;
+    for (const auto& path : paths) {
+        const auto bytes = readBinaryFile(path);
+        const AssetHandle handle = staged.addHasset(bytes);
+        const std::string expectedId = path.stem().string();
+        if (staged.asset(handle).assetId != expectedId) {
+            throw std::runtime_error(
+                "cooked asset filename/id mismatch: expected " + expectedId +
+                ", payload contains " + staged.asset(handle).assetId);
+        }
+    }
+
+    assets_ = std::move(staged.assets_);
+    handlesById_ = std::move(staged.handlesById_);
+}
+
+void RuntimeAssetRegistry::loadDirectory(
+    const std::filesystem::path& cookedRoot) {
+    if (!std::filesystem::exists(cookedRoot) ||
+        !std::filesystem::is_directory(cookedRoot)) {
+        throw std::runtime_error("cooked asset root is not a directory: " +
+                                 cookedRoot.string());
     }
 
     std::vector<std::filesystem::path> paths;
@@ -100,25 +144,56 @@ void RuntimeAssetRegistry::loadDirectory(const std::filesystem::path& cookedRoot
         return lhs.generic_string() < rhs.generic_string();
     });
     if (paths.empty()) {
-        throw std::runtime_error("cooked asset root contains no .hasset files: " + cookedRoot.string());
+        throw std::runtime_error(
+            "cooked asset root contains no .hasset files: " +
+            cookedRoot.string());
     }
 
-    // Build a temporary registry first. Directory loading is therefore atomic:
-    // one corrupt or duplicate cooked asset leaves the current registry intact.
-    RuntimeAssetRegistry staged;
-    for (const auto& path : paths) {
-        const auto bytes = readBinaryFile(path);
-        (void)staged.addHasset(bytes);
+    loadFiles(paths);
+}
+
+void RuntimeAssetRegistry::loadDirectorySubset(
+    const std::filesystem::path& cookedRoot,
+    std::span<const std::string_view> requiredAssetIds) {
+    if (!std::filesystem::exists(cookedRoot) ||
+        !std::filesystem::is_directory(cookedRoot)) {
+        throw std::runtime_error("cooked asset root is not a directory: " +
+                                 cookedRoot.string());
+    }
+    if (requiredAssetIds.empty()) {
+        throw std::runtime_error("required runtime asset set must not be empty");
     }
 
-    assets_ = std::move(staged.assets_);
-    handlesById_ = std::move(staged.handlesById_);
+    std::vector<std::string> ids;
+    ids.reserve(requiredAssetIds.size());
+    for (const std::string_view assetId : requiredAssetIds) {
+        validateRequestedAssetId(assetId);
+        ids.emplace_back(assetId);
+    }
+    std::sort(ids.begin(), ids.end());
+    if (std::adjacent_find(ids.begin(), ids.end()) != ids.end()) {
+        throw std::runtime_error("required runtime asset set contains duplicate ids");
+    }
+
+    std::vector<std::filesystem::path> paths;
+    paths.reserve(ids.size());
+    for (const std::string& assetId : ids) {
+        const auto path = cookedRoot / (assetId + ".hasset");
+        if (!std::filesystem::is_regular_file(path)) {
+            throw std::runtime_error(
+                "required cooked runtime asset is missing: " + path.string());
+        }
+        paths.push_back(path);
+    }
+
+    loadFiles(paths);
 }
 
 AssetHandle RuntimeAssetRegistry::resolve(std::string_view assetId) const {
     const auto it = handlesById_.find(std::string(assetId));
     if (it == handlesById_.end()) {
-        throw std::runtime_error("unknown runtime asset id: " + std::string(assetId));
+        throw std::runtime_error("unknown runtime asset id: " +
+                                 std::string(assetId));
     }
     return it->second;
 }
