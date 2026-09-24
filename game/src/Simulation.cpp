@@ -6,7 +6,6 @@
 #include "hh/game/GuestPsychology.h"
 #include "hh/game/GuestPsychologyArchive.h"
 #include "hh/game/GuestReviews.h"
-#include "hh/game/GuestReviews.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
 #include <array>
@@ -1218,6 +1217,10 @@ struct Simulation::Impl {
         continue;
       Reservation z;
       z.id = nextId++;
+      std::mt19937_64 profileRandom(
+          mixedSeed(seed, z.id, static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
+      z.profile = generateGuestProfile(profileRandom);
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = day + (hour > 15 ? 1 : 0);
@@ -1248,7 +1251,9 @@ struct Simulation::Impl {
         p.satisfaction = z.satisfaction;
         p.hunger = 90;
         p.rest = 90;
-        p.patience = 100;
+        p.profile = z.profile;
+        p.queueToleranceSeconds = queueToleranceFor(z.profile);
+        p.patience = std::clamp(z.profile.patience * 100.0, 0.0, 100.0);
         p.goal = "Reach front desk";
         p.reservation = z.id;
         people.push_back(p);
@@ -1306,7 +1311,12 @@ struct Simulation::Impl {
                        score >= 80   ? "A comfortable, well-run stay."
                        : score >= 60 ? "Fine, though service could improve."
                                      : "Service delays hurt the stay."});
-    economy.reputation = economy.reputation * 0.85 + score * 0.15;
+    const double reputationWeight =
+        z->profile.archetype == GuestArchetype::CriticReviewer
+            ? criticReviewReputationWeight
+            : normalReviewReputationWeight;
+    economy.reputation =
+        economy.reputation * (1.0 - reputationWeight) + score * reputationWeight;
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
@@ -1759,7 +1769,8 @@ struct Simulation::Impl {
           else {
             p.queueWaitSeconds += 1;
             p.patience = std::max(0.0, p.patience - 1.0 / 120);
-            if (p.queueWaitSeconds > 8 * 60)
+            if (p.queueWaitSeconds >
+                (p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60))
               p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
           }
           if (same(p.position, p.destination)) {
@@ -1785,7 +1796,8 @@ struct Simulation::Impl {
         } else if (p.state == PersonState::Waiting) {
           p.queueWaitSeconds += 1;
           p.patience = std::max(0.0, p.patience - 1.0 / 120);
-          if (p.queueWaitSeconds > 8 * 60)
+          if (p.queueWaitSeconds >
+              (p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60))
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
         for (auto &z : reservations)
@@ -4267,6 +4279,13 @@ Simulation Simulation::load(std::string_view data) {
       reservation->profile = profile;
       reservation->psychologyArchive = std::move(psychologyArchive);
       reservation->guestGroupArchive = std::move(groupArchive);
+      for (auto &person : d.people)
+        if (person.kind == PersonKind::Guest &&
+            person.reservation == reservation->id) {
+          person.profile = reservation->profile;
+          person.queueToleranceSeconds =
+              queueToleranceFor(reservation->profile);
+        }
     }
     psychology >> std::ws;
     if (!psychology.eof())
