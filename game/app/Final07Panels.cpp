@@ -181,6 +181,36 @@ std::wstring operationSortLabel(hh::frontend::OperationSort sort) {
   return L"Scheduler";
 }
 
+std::size_t fieldSectionRows(
+    const std::vector<hh::frontend::FieldSnapshot> &values) {
+  return values.empty() ? 0 : values.size() + 1;
+}
+
+std::size_t financePageRows(const Client &client) {
+  const auto &economy = client.economyDashboard.snapshot();
+  switch (client.financeView) {
+  case FinanceView::Overview:
+    return 10;
+  case FinanceView::Revenue:
+    return fieldSectionRows(economy.departmentContribution) +
+           fieldSectionRows(economy.bookingPace) +
+           fieldSectionRows(economy.cancellationAndNoShow) +
+           fieldSectionRows(economy.channelMix) +
+           fieldSectionRows(economy.futureRateCalendar);
+  case FinanceView::Market:
+    return fieldSectionRows(economy.competitors) +
+           fieldSectionRows(economy.demandBySegment);
+  case FinanceView::Controls:
+    return 0;
+  case FinanceView::Risk:
+    return fieldSectionRows(economy.debtSchedule) +
+           economy.financingDiagnostics.size() +
+           fieldSectionRows(economy.campaigns) +
+           fieldSectionRows(economy.contracts);
+  }
+  return 0;
+}
+
 std::size_t pageRows(const Client &client) {
   switch (client.page) {
   case Page::Rooms:
@@ -204,7 +234,7 @@ std::size_t pageRows(const Client &client) {
     }
     return count;
   }
-  case Page::Finance:
+  case Page::Finance: return financePageRows(client);
   case Page::Settings:
   case Page::Guide: return 0;
   }
@@ -937,13 +967,31 @@ void Client::paint(HDC output) {
     y += std::max(px(28), vpx(39));
     separator();
 
+    std::size_t financeCursor = 0;
+    auto financeParagraph = [&](const std::wstring &value, int h,
+                                COLORREF color) {
+      const std::size_t row = financeCursor++;
+      if (row < static_cast<std::size_t>(std::max(0, tabScroll)))
+        return;
+      if (y + vpx(h) >= bottom)
+        return;
+      paragraph(value, h, color);
+    };
+    auto financeLabel = [&](const std::wstring &name,
+                            const std::wstring &value) {
+      const std::size_t row = financeCursor++;
+      if (row < static_cast<std::size_t>(std::max(0, tabScroll)))
+        return;
+      if (y + vpx(28) >= bottom)
+        return;
+      label(name, value);
+    };
     auto fields = [&](const std::wstring &name, const auto &values) {
-      if (values.empty() || y + vpx(40) >= bottom) return;
-      paragraph(name, 22, Muted);
-      for (const auto &field : values) {
-        if (y + vpx(28) >= bottom) break;
-        label(wide(field.label), wide(field.value));
-      }
+      if (values.empty())
+        return;
+      financeParagraph(name, 22, Muted);
+      for (const auto &field : values)
+        financeLabel(wide(field.label), wide(field.value));
     };
     auto dispatchFinance = [&](auto command, const std::wstring &unavailable) {
       if (!command) {
@@ -960,16 +1008,24 @@ void Client::paint(HDC output) {
 
     switch (financeView) {
     case FinanceView::Overview:
-      label(L"Occupancy today", permille(kpi.todayOccupancyPermille));
-      label(L"7d / 30d", permille(kpi.sevenDayOccupancyPermille) + L" / " + permille(kpi.thirtyDayOccupancyPermille));
-      label(L"ADR", money(kpi.adrCents));
-      label(L"RevPAR / TRevPAR", money(kpi.revParCents) + L" / " + money(kpi.trevParCents));
-      label(L"GOP", money(kpi.gopCents));
-      label(L"Room / total rev", money(kpi.roomRevenueCents) + L" / " + money(kpi.totalRevenueCents));
-      label(L"Labor / utilities", money(kpi.laborCostCents) + L" / " + money(kpi.utilitiesCostCents));
-      label(L"F&B cost", money(kpi.foodCostCents));
-      label(L"Cash", money(kpi.cashCents));
-      label(L"Cash runway", std::to_wstring(kpi.cashRunwayDays) + L" days");
+      financeLabel(L"Occupancy today", permille(kpi.todayOccupancyPermille));
+      financeLabel(L"7d / 30d",
+                   permille(kpi.sevenDayOccupancyPermille) + L" / " +
+                       permille(kpi.thirtyDayOccupancyPermille));
+      financeLabel(L"ADR", money(kpi.adrCents));
+      financeLabel(L"RevPAR / TRevPAR",
+                   money(kpi.revParCents) + L" / " + money(kpi.trevParCents));
+      financeLabel(L"GOP", money(kpi.gopCents));
+      financeLabel(L"Room / total rev",
+                   money(kpi.roomRevenueCents) + L" / " +
+                       money(kpi.totalRevenueCents));
+      financeLabel(L"Labor / utilities",
+                   money(kpi.laborCostCents) + L" / " +
+                       money(kpi.utilitiesCostCents));
+      financeLabel(L"F&B cost", money(kpi.foodCostCents));
+      financeLabel(L"Cash", money(kpi.cashCents));
+      financeLabel(L"Cash runway",
+                   std::to_wstring(kpi.cashRunwayDays) + L" days");
       break;
     case FinanceView::Revenue:
       fields(L"Department contribution", economy.departmentContribution);
@@ -1050,15 +1106,16 @@ void Client::paint(HDC output) {
       break;
     case FinanceView::Risk:
       fields(L"Debt schedule", economy.debtSchedule);
-      for (const auto &diagnostic : economy.financingDiagnostics) {
-        if (y + vpx(42) >= bottom) break;
-        paragraph(L"WHY · " + wide(diagnostic.code) + L" · " + wide(diagnostic.message), 36, Warning);
-      }
+      for (const auto &diagnostic : economy.financingDiagnostics)
+        financeParagraph(L"WHY · " + wide(diagnostic.code) + L" · " +
+                             wide(diagnostic.message),
+                         36, Warning);
       fields(L"Active campaigns", economy.campaigns);
       fields(L"Accepted contracts", economy.contracts);
       if (economy.debtSchedule.empty() && economy.financingDiagnostics.empty() &&
           economy.campaigns.empty() && economy.contracts.empty())
-        paragraph(L"No financing or commercial-risk data is available yet.", 44, Muted);
+        paragraph(L"No financing or commercial-risk data is available yet.", 44,
+                  Muted);
       break;
     }
   } else if (page == Page::Alerts) {
@@ -1211,17 +1268,19 @@ void Client::paint(HDC output) {
     if (y + vpx(38) < bottom) fullButton(L"New starter campaign", [this] { newCampaign(); });
   }
 
-  if (page != Page::Build && page != Page::Finance && page != Page::Settings && page != Page::Guide) {
+  if (page != Page::Build && page != Page::Settings && page != Page::Guide) {
     const std::size_t count = pageRows(*this);
-    button(left, height - FooterHeight - vpx(42), halfControlWidth, std::max(px(20), vpx(28)),
-           L"Previous", [this] { tabScroll = std::max(0, tabScroll - 1); });
-    button(left + halfControlWidth + controlGap,
-           height - FooterHeight - vpx(42), halfControlWidth, std::max(px(20), vpx(28)), L"Next",
-           [this, count] {
-             const int maximum =
-                 count == 0 ? 0 : static_cast<int>(count - 1);
-             tabScroll = std::min(maximum, tabScroll + 1);
-           });
+    if (count > 0) {
+      button(left, height - FooterHeight - vpx(42), halfControlWidth,
+             std::max(px(20), vpx(28)), L"Previous",
+             [this] { tabScroll = std::max(0, tabScroll - 1); });
+      button(left + halfControlWidth + controlGap,
+             height - FooterHeight - vpx(42), halfControlWidth,
+             std::max(px(20), vpx(28)), L"Next", [this, count] {
+               const int maximum = static_cast<int>(count - 1);
+               tabScroll = std::min(maximum, tabScroll + 1);
+             });
+    }
   }
 
   const std::size_t scrollCount = pageRows(*this);
