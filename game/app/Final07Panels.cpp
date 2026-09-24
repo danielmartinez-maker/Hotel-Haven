@@ -1554,6 +1554,13 @@ void Client::paint(HDC output) {
            std::max(1, sidebarX - px(44)), px(18), ChromeMuted,
            DT_LEFT | DT_SINGLELINE | DT_END_ELLIPSIS);
 
+  focusedButton =
+      final07ValidatedControlIndex(focusedButton, buttons.size());
+  hoveredButton =
+      final07ValidatedControlIndex(hoveredButton, buttons.size());
+  if (hoveredButton < 0)
+    SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+
   BitBlt(output, 0, 0, width, HeaderHeight, dc, 0, 0, SRCCOPY);
   BitBlt(output, sidebarX, HeaderHeight, SidebarWidth, height - HeaderHeight - FooterHeight,
          dc, sidebarX, HeaderHeight, SRCCOPY);
