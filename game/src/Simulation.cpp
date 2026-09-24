@@ -107,6 +107,10 @@ struct Simulation::Impl {
     std::size_t nextIndex{};
   };
   std::unordered_map<EntityId, CachedRoute> routeCache;
+  mutable bool specialTileCacheValid{};
+  mutable Position cachedEntrance{-1, -1, -1};
+  mutable Position cachedSupply{-1, -1, -1};
+  mutable Position cachedFrontDesk{-1, -1, -1};
   std::vector<PreparedRoomServiceHandoff> pendingRoomServiceHandoffsScratch;
   FoodServiceSystem food;
   EventsSystem events;
@@ -164,6 +168,33 @@ struct Simulation::Impl {
     if (!inside(p))
       return false;
     return passableKind(map[index(p)]);
+  }
+
+  void invalidateTopologyCaches() {
+    routeCache.clear();
+    specialTileCacheValid = false;
+  }
+
+  void refreshSpecialTileCache() const {
+    if (specialTileCacheValid)
+      return;
+    cachedEntrance = {-1, -1, -1};
+    cachedSupply = {-1, -1, -1};
+    cachedFrontDesk = {-1, -1, -1};
+    for (int i = 0; i < static_cast<int>(map.size()); ++i) {
+      Position position{i / (width * height), i % width,
+                        (i / width) % height};
+      if (map[i] == TileKind::Entrance && cachedEntrance.floor < 0)
+        cachedEntrance = position;
+      else if (map[i] == TileKind::SupplyCloset && cachedSupply.floor < 0)
+        cachedSupply = position;
+      else if (map[i] == TileKind::FrontDesk && cachedFrontDesk.floor < 0)
+        cachedFrontDesk = position;
+      if (cachedEntrance.floor >= 0 && cachedSupply.floor >= 0 &&
+          cachedFrontDesk.floor >= 0)
+        break;
+    }
+    specialTileCacheValid = true;
   }
   template <typename Visitor>
   void forEachNeighbor(Position p, Visitor &&visit) const {
@@ -289,7 +320,16 @@ struct Simulation::Impl {
     return nullptr;
   }
   Position locate(TileKind kind) const {
-    for (int i = 0; i < (int)map.size(); ++i)
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk) {
+      refreshSpecialTileCache();
+      if (kind == TileKind::Entrance)
+        return cachedEntrance;
+      if (kind == TileKind::SupplyCloset)
+        return cachedSupply;
+      return cachedFrontDesk;
+    }
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
       if (map[i] == kind)
         return {i / (width * height), i % width, (i / width) % height};
     return {-1, -1, -1};
@@ -298,6 +338,9 @@ struct Simulation::Impl {
   Position supply() const { return locate(TileKind::SupplyCloset); }
   Position frontDesk() const { return locate(TileKind::FrontDesk); }
   bool has(TileKind kind) const {
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk)
+      return locate(kind).floor >= 0;
     return std::find(map.begin(), map.end(), kind) != map.end();
   }
 
@@ -1017,13 +1060,6 @@ struct Simulation::Impl {
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
-    int available = 0, occupied = 0;
-    for (auto &r : rooms)
-      if (!r.closed && r.status != RoomStatus::Incomplete) {
-        available++;
-        occupied += r.status == RoomStatus::Occupied;
-      }
-    economy.occupancy = available ? double(occupied) / available : 0;
   }
 };
 
@@ -1120,7 +1156,7 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
   if (impl_->map[impl_->index(p)] == k)
     return validation;
   impl_->map[impl_->index(p)] = k;
-  impl_->routeCache.clear();
+  impl_->invalidateTopologyCaches();
   impl_->economy.cashCents -= 500;
   impl_->economy.constructionCostCents += 500;
   impl_->refreshReachability();
@@ -1147,7 +1183,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
                                                     : TileKind::Floor;
     }
   impl_->map[impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
-  impl_->routeCache.clear();
+  impl_->invalidateTopologyCaches();
   Room r;
   r.id = impl_->nextId++;
   r.name = b.name;
@@ -1302,7 +1338,7 @@ CommandResult Simulation::removeRoom(EntityId id) {
     for (int x = it->x; x < it->x + it->width; ++x)
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
   impl_->rooms.erase(it);
-  impl_->routeCache.clear();
+  impl_->invalidateTopologyCaches();
   impl_->refreshReachability();
   return {true, "Room removed", id};
 }
