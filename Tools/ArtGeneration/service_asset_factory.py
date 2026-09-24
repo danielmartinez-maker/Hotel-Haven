@@ -320,7 +320,7 @@ def security(name, mat):
             add(scene, box((0.05, 0.08, 0.18), (x, -0.18, 0.79), 'MAT_BLACKENED_STEEL'), f'MonitorStand_{i}')
         return scene
     if 'Time Clock' in name:
-        add(scene, box((0.38, 0.20, 0.55), (0, 0, 0.275), 'MAT_ELECTRONICS'), 'TimeClockBody')
+        add(scene, box((0.38, 0.20, 0.55), (0, 0, 0.275), 'MAT_ELECTRONICS'), 'PrimaryTimeClockBody')
         add(scene, box((0.24, 0.025, 0.16), (0, -0.115, 0.39), 'MAT_GLASS_CLEAR'), 'Screen')
         return scene
     if 'First Aid' in name:
