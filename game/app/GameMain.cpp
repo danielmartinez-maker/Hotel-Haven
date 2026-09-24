@@ -235,10 +235,9 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
           static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
       POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
       ScreenToClient(c->window, &point);
-      const bool overPanel =
-          point.x >= c->width - SidebarWidth &&
-          point.y >= HeaderHeight &&
-          point.y < c->height - FooterHeight;
+      const bool overPanel = final07PointInManagementPanel(
+          c->width, c->height, c->uiSettings.scalePercent(),
+          point.x, point.y);
       if (overPanel) {
         c->scrollPanel(steps > 0.0f ? -1 : 1);
         return 0;
