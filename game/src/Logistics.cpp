@@ -208,9 +208,12 @@ OrderResult LogisticsSystem::placePurchaseOrder(std::string_view item, int quant
 
   const auto id = nextId_++;
   target->reservedUnits += quantity;
+  const auto index = orders_.size();
   orders_.push_back({id, std::string(item), quantity, destination,
                      PurchaseOrderState::InTransit, leadSeconds,
                      BlockReason::None});
+  orderIndex_.emplace(id, index);
+  transitOrders_.push_back(index);
   return {id, OrderError::None};
 }
 
@@ -224,12 +227,28 @@ void LogisticsSystem::requestWastePickup() {
     wastePickupRemaining_ = 120;
 }
 
+void LogisticsSystem::rebuildDerivedState() {
+  orderIndex_.clear();
+  transitOrders_.clear();
+  activeMoves_.clear();
+  orderIndex_.reserve(orders_.size());
+  transitOrders_.reserve(orders_.size());
+  activeMoves_.reserve(moves_.size());
+  for (std::size_t index = 0; index < orders_.size(); ++index) {
+    orderIndex_.emplace(orders_[index].id, index);
+    if (orders_[index].state == PurchaseOrderState::InTransit)
+      transitOrders_.push_back(index);
+  }
+  for (std::size_t index = 0; index < moves_.size(); ++index)
+    if (!moves_[index].completed)
+      activeMoves_.push_back(index);
+}
+
 void LogisticsSystem::tickSecond() {
   ++elapsedSeconds_;
 
-  for (auto &order : orders_) {
-    if (order.state != PurchaseOrderState::InTransit)
-      continue;
+  for (const auto index : transitOrders_) {
+    auto &order = orders_[index];
     if (order.remainingSeconds > 0)
       --order.remainingSeconds;
     if (order.remainingSeconds > 0)
@@ -241,13 +260,21 @@ void LogisticsSystem::tickSecond() {
       continue;
     }
     order.state = PurchaseOrderState::Unloading;
+    const auto moveIndex = moves_.size();
     moves_.push_back({nextId_++, order.id, order.item, order.quantity, receiving,
                       order.destination, 120, false, BlockReason::None});
+    activeMoves_.push_back(moveIndex);
   }
+  transitOrders_.erase(
+      std::remove_if(transitOrders_.begin(), transitOrders_.end(),
+                     [&](std::size_t index) {
+                       return orders_[index].state !=
+                              PurchaseOrderState::InTransit;
+                     }),
+      transitOrders_.end());
 
-  for (auto &move : moves_) {
-    if (move.completed)
-      continue;
+  for (const auto index : activeMoves_) {
+    auto &move = moves_[index];
     auto *destination = node(move.to);
     if (!destination || !destination->operational) {
       move.blockedReason = BlockReason::MissingRoute;
@@ -270,13 +297,16 @@ void LogisticsSystem::tickSecond() {
     destination->reservedUnits = std::max(0, destination->reservedUnits - move.quantity);
     move.completed = true;
     move.blockedReason = BlockReason::None;
-    for (auto &order : orders_)
-      if (order.id == move.orderId) {
-        order.state = PurchaseOrderState::Completed;
-        order.blockedReason = BlockReason::None;
-        break;
-      }
+    const auto order = orderIndex_.find(move.orderId);
+    if (order != orderIndex_.end()) {
+      orders_[order->second].state = PurchaseOrderState::Completed;
+      orders_[order->second].blockedReason = BlockReason::None;
+    }
   }
+  activeMoves_.erase(
+      std::remove_if(activeMoves_.begin(), activeMoves_.end(),
+                     [&](std::size_t index) { return moves_[index].completed; }),
+      activeMoves_.end());
 
   if (wasteAtSources_ > 0 && wasteCollectionRemaining_ < 0)
     wasteCollectionRemaining_ = 120;
