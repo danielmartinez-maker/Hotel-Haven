@@ -75,7 +75,7 @@ int main() {
   require(forecast.department == DepartmentId::Housekeeping,
           "department forecast did not preserve requested department");
   require(bridge
-              .scheduleTraining(housekeepingManager,
+              .scheduleTraining(hiredApplicant.employeeId,
                                 bridge.view().elapsedSeconds + 600, 30)
               .ok,
           "bridge rejected valid scheduled training");
