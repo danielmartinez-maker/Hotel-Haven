@@ -218,6 +218,112 @@ int main() {
               repairWorking.remainingSeconds < repairBefore.remainingSeconds,
           "mirrored engineering did not resume when physical labor started");
 
+  auto sellabilityGate = Simulation::tutorial(331);
+  require(sellabilityGate
+              .loadDefinitions(
+                  R"({"baseDemand":0,"initialLinen":1,"initialTowels":2,"initialAmenities":1,"initialChemicals":1})")
+              .ok,
+          "sellability-gate inventory definitions rejected");
+  const auto sellabilityRooms = sellabilityGate.view().rooms;
+  require(sellabilityRooms.size() >= 2,
+          "sellability-gate fixture requires two rooms");
+  require(sellabilityGate.requestRoomTurn(sellabilityRooms[0].id) != 0,
+          "sellability-gate fixture could not drain canonical room supplies");
+  sellabilityGate.step(2400);
+  require(itemTotal(sellabilityGate.logisticsSnapshot(), "clean_linen_set") == 0 &&
+              itemTotal(sellabilityGate.logisticsSnapshot(), "towel_unit") == 0 &&
+              itemTotal(sellabilityGate.logisticsSnapshot(), "amenity_kit") == 0 &&
+              itemTotal(sellabilityGate.logisticsSnapshot(),
+                        "cleaning_chemical") == 0,
+          "standalone FINAL-04 turn did not drain canonical room supplies");
+  require(sellabilityGate.requestClean(sellabilityRooms[1].id).ok,
+          "sellability-gate physical clean request was rejected");
+  sellabilityGate.step(3000);
+  const auto gatedAfterPhysical = sellabilityGate.view();
+  const auto gatedRoomAfterPhysical = std::find_if(
+      gatedAfterPhysical.rooms.begin(), gatedAfterPhysical.rooms.end(),
+      [&](const auto &room) { return room.id == sellabilityRooms[1].id; });
+  require(gatedRoomAfterPhysical != gatedAfterPhysical.rooms.end(),
+          "sellability-gate room disappeared");
+  require(gatedRoomAfterPhysical->status == RoomStatus::Cleaning,
+          "room became sellable while FINAL-04 housekeeping was supply-blocked");
+  const auto gatedServiceJob = std::find_if(
+      sellabilityGate.housekeepingSnapshot().jobs.begin(),
+      sellabilityGate.housekeepingSnapshot().jobs.end(),
+      [&](const auto &job) {
+        return job.roomId == sellabilityRooms[1].id &&
+               job.stage != HousekeepingStage::Completed;
+      });
+  require(gatedServiceJob != sellabilityGate.housekeepingSnapshot().jobs.end(),
+          "blocked FINAL-04 housekeeping job disappeared after physical completion");
+  require(gatedServiceJob->blockedReason != BlockReason::None,
+          "FINAL-04 housekeeping was not explicitly blocked by canonical stock");
+  require(sellabilityGate.orderSupplies({1, 2, 1, 1, 0}).ok,
+          "sellability-gate replenishment order was rejected");
+  sellabilityGate.step(2 * 86400);
+  sellabilityGate.step(3600);
+  const auto gatedRecovered = sellabilityGate.view();
+  const auto gatedRoomRecovered = std::find_if(
+      gatedRecovered.rooms.begin(), gatedRecovered.rooms.end(),
+      [&](const auto &room) { return room.id == sellabilityRooms[1].id; });
+  require(gatedRoomRecovered != gatedRecovered.rooms.end() &&
+              gatedRoomRecovered->status == RoomStatus::VacantReady,
+          "room did not become sellable after physical and FINAL-04 work both completed");
+
+  auto repairSellabilityGate = Simulation::tutorial(332);
+  require(repairSellabilityGate
+              .loadDefinitions(R"({"baseDemand":0,"initialParts":1})")
+              .ok,
+          "repair sellability-gate inventory definitions rejected");
+  const auto repairGateRooms = repairSellabilityGate.view().rooms;
+  require(repairGateRooms.size() >= 2,
+          "repair sellability-gate fixture requires two rooms");
+  require(repairSellabilityGate.createWorkOrder(
+              repairGateRooms[0].id, WorkOrderType::Preventive) != 0,
+          "repair sellability-gate could not drain canonical part");
+  repairSellabilityGate.step(1000);
+  require(itemTotal(repairSellabilityGate.logisticsSnapshot(),
+                    "maintenance_part") == 0,
+          "standalone engineering work did not drain canonical maintenance part");
+  require(repairSellabilityGate
+              .hireStaff({"Always Tech", PersonKind::Maintenance, 0, 0, 25})
+              .ok,
+          "repair sellability-gate could not hire always-on technician");
+  require(repairSellabilityGate.requestRepair(repairGateRooms[1].id).ok,
+          "repair sellability-gate physical repair request was rejected");
+  repairSellabilityGate.step(2600);
+  const auto repairBlockedView = repairSellabilityGate.view();
+  const auto repairBlockedRoom = std::find_if(
+      repairBlockedView.rooms.begin(), repairBlockedView.rooms.end(),
+      [&](const auto &room) { return room.id == repairGateRooms[1].id; });
+  require(repairBlockedRoom != repairBlockedView.rooms.end() &&
+              repairBlockedRoom->status == RoomStatus::OutOfOrder,
+          "room left out-of-service state before FINAL-04 repair completed");
+  const auto repairEngineeringBlocked =
+      repairSellabilityGate.engineeringSnapshot();
+  const auto repairOrderBlocked = std::find_if(
+      repairEngineeringBlocked.workOrders.begin(),
+      repairEngineeringBlocked.workOrders.end(),
+      [&](const auto &order) {
+        return order.assetId == repairGateRooms[1].id &&
+               order.type == WorkOrderType::Corrective;
+      });
+  require(repairOrderBlocked != repairEngineeringBlocked.workOrders.end() &&
+              repairOrderBlocked->stage != WorkOrderStage::Completed,
+          "canonical repair unexpectedly completed without a maintenance part");
+  require(repairSellabilityGate.orderSupplies({0, 0, 0, 0, 1}).ok,
+          "repair sellability-gate replenishment order was rejected");
+  repairSellabilityGate.step(2 * 86400);
+  repairSellabilityGate.step(3600);
+  const auto repairRecoveredView = repairSellabilityGate.view();
+  bool postRepairTurnover = false;
+  for (const auto &task : repairRecoveredView.tasks)
+    postRepairTurnover |=
+        task.targetId == repairGateRooms[1].id &&
+        task.kind == TaskKind::Turnover;
+  require(postRepairTurnover,
+          "completed FINAL-04 repair did not create the post-repair turnover");
+
   auto automaticTurn = Simulation::tutorial(328);
   require(automaticTurn.loadDefinitions(R"({"baseDemand":100})").ok,
           "automatic-turn definitions rejected");
