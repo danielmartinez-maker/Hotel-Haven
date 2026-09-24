@@ -85,9 +85,14 @@ static void event_state_round_trips_deterministically() {
   require(events.confirmEvent(standardEvent()) != 0,
           "event was not confirmed for persistence test");
   events.tickSeconds(11);
-  const auto restored = EventsSystem::load(events.save());
+  auto restored = EventsSystem::load(events.save());
   require(restored.save() == events.save(),
           "event save/load changed authoritative state");
+  restored.tickSeconds(10);
+  require(restored.phase(1) == EventPhase::Completed,
+          "restored active-event index did not continue event progression");
+  require(restored.snapshot().revenueCents == standardEvent().contractCents,
+          "restored event did not post contract revenue");
 }
 
 int main() {
