@@ -62,6 +62,10 @@ void complete_construction_state_round_trips_and_migrates_v10() {
   auto legacy = empty.save();
   const auto marker = legacy.find("HHGS 12 ");
   require(marker == 0, "v12 migration fixture header missing");
+  const auto final02 = legacy.find("FINAL02_PSYCHOLOGY ");
+  require(final02 != std::string::npos,
+          "v12 migration fixture FINAL-02 section missing");
+  legacy.erase(final02);
   legacy.replace(5, 2, "10");
   auto migrated = Simulation::load(legacy);
   require(migrated.save().starts_with("HHGS 12 ") &&
