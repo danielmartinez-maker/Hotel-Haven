@@ -26,3 +26,11 @@ jobs:
         run: cmake --build renderer/build --config Release
       - name: Test renderer
         run: ctest --test-dir renderer/build -C Release --output-on-failure
+      - name: Configure integrated UI compile check
+        run: cmake -S . -B ui-build -A x64 -DHH_GAME_BUILD_TESTS=OFF
+      - name: Compile integrated FINAL-07 UI
+        run: cmake --build ui-build --config Release --target hh_final07_ui_compile --parallel 4
+      - name: Build FINAL-07 UI contract tests
+        run: cmake --build ui-build --config Release --target hh_final07_client_contract_tests --parallel 4
+      - name: Test FINAL-07 UI contract
+        run: ctest --test-dir ui-build -C Release -R hh_final07_client_contract_tests --output-on-failure
