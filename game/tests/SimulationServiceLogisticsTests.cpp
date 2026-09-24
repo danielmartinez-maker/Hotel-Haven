@@ -247,14 +247,14 @@ int main() {
           "sellability-gate room disappeared");
   require(gatedRoomAfterPhysical->status == RoomStatus::Cleaning,
           "room became sellable while FINAL-04 housekeeping was supply-blocked");
+  const auto gatedHousekeeping = sellabilityGate.housekeepingSnapshot();
   const auto gatedServiceJob = std::find_if(
-      sellabilityGate.housekeepingSnapshot().jobs.begin(),
-      sellabilityGate.housekeepingSnapshot().jobs.end(),
+      gatedHousekeeping.jobs.begin(), gatedHousekeeping.jobs.end(),
       [&](const auto &job) {
         return job.roomId == sellabilityRooms[1].id &&
                job.stage != HousekeepingStage::Completed;
       });
-  require(gatedServiceJob != sellabilityGate.housekeepingSnapshot().jobs.end(),
+  require(gatedServiceJob != gatedHousekeeping.jobs.end(),
           "blocked FINAL-04 housekeeping job disappeared after physical completion");
   require(gatedServiceJob->blockedReason != BlockReason::None,
           "FINAL-04 housekeeping was not explicitly blocked by canonical stock");
