@@ -61,6 +61,7 @@ private:
   [[nodiscard]] bool beginStage(Job &job);
   void completeStage(Job &job);
   void tickJobSecond(Job &job);
+  void rebuildActiveJobs();
   void tickSecondFor(const std::vector<RoomId> &managedRooms,
                      const std::vector<RoomId> &workingRooms);
   [[nodiscard]] static int duration(HousekeepingStage stage);
@@ -70,6 +71,7 @@ private:
   std::int64_t elapsedSeconds_{};
   std::vector<RoomState> rooms_;
   std::vector<Job> jobs_;
+  std::vector<std::size_t> activeJobs_;
 };
 
 } // namespace hh::game
