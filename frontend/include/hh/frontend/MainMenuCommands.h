@@ -38,4 +38,9 @@ enum class MainMenuPanel : std::uint8_t {
     Credits,
 };
 
+enum class MainMenuSettingsItem : std::uint8_t {
+    UiScale,
+    ReducedMotion,
+};
+
 }  // namespace hh::frontend
