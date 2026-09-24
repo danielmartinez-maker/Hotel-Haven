@@ -338,12 +338,12 @@ def security(name, mat):
 def gym(name, mat):
     scene = trimesh.Scene()
     if 'Weight Bench' in name:
-        add(scene, box((1.25, 0.38, 0.14), (0, 0, 0.48), 'MAT_UPHOLSTERY'), 'Bench')
+        add(scene, box((1.25, 0.38, 0.14), (0, 0, 0.48), 'MAT_UPHOLSTERY'), 'SeatBench')
         for i, x in enumerate((-0.48, 0.48)):
             add(scene, box((0.08, 0.32, 0.46), (x, 0, 0.23), 'MAT_BLACKENED_STEEL'), f'Leg_{i}')
         return scene
     if 'Treadmill' in name:
-        add(scene, box((1.35, 0.55, 0.12), (0, 0, 0.06), 'MAT_BLACKENED_STEEL'), 'Deck')
+        add(scene, box((1.35, 0.55, 0.12), (0, 0, 0.06), 'MAT_BLACKENED_STEEL'), 'BaseDeck')
         for i, x in enumerate((-0.20, 0.20)):
             add(scene, box((0.05, 0.05, 1.02), (x, 0.22, 0.57), 'MAT_BLACKENED_STEEL'), f'Handrail_{i}')
         add(scene, box((0.45, 0.12, 0.28), (0, 0.22, 1.12), 'MAT_ELECTRONICS'), 'Console')
@@ -365,7 +365,7 @@ def gym(name, mat):
     if 'Elliptical' in name:
         add(scene, cyl(0.26, 0.06, (0, 0, 0.26), 'MAT_BLACKENED_STEEL', 24), 'MOV_Flywheel')
         for i, x in enumerate((-0.20, 0.20)):
-            add(scene, box((0.05, 0.05, 1.30), (x, 0, 0.70), 'MAT_BLACKENED_STEEL'), f'Handle_{i}')
+            add(scene, box((0.05, 0.05, 1.30), (x, 0, 0.70), 'MAT_BLACKENED_STEEL'), f'FrameHandle_{i}')
         add(scene, box((0.60, 0.16, 0.05), (-0.22, -0.10, 0.18), 'MAT_BLACKENED_STEEL'), 'Pedal_Left')
         add(scene, box((0.60, 0.16, 0.05), (0.22, 0.10, 0.18), 'MAT_BLACKENED_STEEL'), 'Pedal_Right')
         return scene
