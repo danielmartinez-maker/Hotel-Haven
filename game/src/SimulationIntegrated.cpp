@@ -4,9 +4,9 @@
 #include "hh/game/GuestPsychologyArchive.h"
 #include "hh/game/GuestReviews.h"
 
-#define save saveV11
-#define load loadV11
-#define step stepV11
+#define save saveV10
+#define load loadV10
+#define step stepV10
 #include "Simulation.cpp"
 #undef step
 #undef load
@@ -36,7 +36,7 @@ int saveVersion(std::string_view data) {
 } // namespace
 
 void Simulation::step(double seconds) {
-  stepV11(seconds);
+  stepV10(seconds);
 
   for (auto &review : impl_->reviews) {
     const auto reservation = std::find_if(
@@ -132,9 +132,9 @@ CommandResult Simulation::createGuestGroup(const GuestGroup &specification) {
 }
 
 std::string Simulation::save() const {
-  std::string base = saveV11();
-  if (!base.starts_with("HHGS 11 "))
-    throw std::logic_error("legacy save writer did not emit v11 state");
+  std::string base = saveV10();
+  if (!base.starts_with("HHGS 10 "))
+    throw std::logic_error("base save writer did not emit HHGS10 state");
   base.replace(5, 2, "12");
 
   const auto snapshot = view();
@@ -158,20 +158,20 @@ Simulation Simulation::load(std::string_view data) {
   if (data.size() > 64 * 1024 * 1024)
     throw std::invalid_argument("simulation save too large");
   const int version = saveVersion(data);
-  if (version < 2 || version > 12)
+  if (version < 2 || (version > 10 && version != 12))
     throw std::invalid_argument("unsupported simulation save");
 
   const auto marker = data.rfind(final02Marker);
   if (marker == std::string_view::npos) {
     if (version == 12)
       throw std::invalid_argument("missing FINAL-02 save state");
-    return loadV11(data);
+    return loadV10(data);
   }
 
   std::string legacy(data.substr(0, marker + 1));
   if (legacy.starts_with("HHGS 12 "))
-    legacy.replace(5, 2, "11");
-  Simulation simulation = loadV11(legacy);
+    legacy.replace(5, 2, "10");
+  Simulation simulation = loadV10(legacy);
 
   std::istringstream appendix{
       std::string(data.substr(marker + final02Marker.size()))};
