@@ -1075,67 +1075,139 @@ void Client::paint(HDC output) {
       if (economy.competitors.empty() && economy.demandBySegment.empty())
         paragraph(L"No market comparison data is available yet.", 44, Muted);
       break;
-    case FinanceView::Controls:
-      paragraph(L"Adjust room pricing and the standard overbooking policy here. Other commercial controls remain read-only.", 66, Muted);
-      if (economy.pricingRules.empty()) {
-        paragraph(L"No pricing rule is available to adjust.", 34, Muted);
-      } else {
-        financeRuleIndex = std::min(financeRuleIndex, economy.pricingRules.size() - 1);
+    case FinanceView::Controls: {
+      const bool compactFinanceControls =
+          panelLayout.contentHeightPixels < vpx(480);
+      const int financeControlTabHeight = std::max(px(24), vpx(32));
+      button(left, y, halfControlWidth, financeControlTabHeight, L"Pricing",
+             [this] {
+               financeControlView = FinanceControlView::Pricing;
+               tabScroll = 0;
+             },
+             financeControlView == FinanceControlView::Pricing);
+      button(left + halfControlWidth + controlGap, y, halfControlWidth,
+             financeControlTabHeight, L"Overbooking", [this] {
+               financeControlView = FinanceControlView::Overbooking;
+               tabScroll = 0;
+             },
+             financeControlView == FinanceControlView::Overbooking);
+      y += std::max(px(28), vpx(39));
+      separator();
+
+      if (!compactFinanceControls) {
+        paragraph(
+            financeControlView == FinanceControlView::Pricing
+                ? L"Adjust the active room-rate rule. Changes use the existing pricing policy."
+                : L"Adjust the standard-room overbooking allowance. Other policy fields are read-only.",
+            44, Muted);
+      }
+
+      if (financeControlView == FinanceControlView::Pricing) {
+        if (economy.pricingRules.empty()) {
+          paragraph(L"No pricing rule is available to adjust.", 34, Muted);
+          break;
+        }
+
+        financeRuleIndex =
+            std::min(financeRuleIndex, economy.pricingRules.size() - 1);
         const auto &rule = economy.pricingRules[financeRuleIndex];
-        fullButton(L"Pricing rule " + std::to_wstring(financeRuleIndex + 1) + L" / " +
-                       std::to_wstring(economy.pricingRules.size()),
-                   [this, count = economy.pricingRules.size()] {
-                     financeRuleIndex = (financeRuleIndex + 1) % count;
-                   });
-        label(L"Category", wide(rule.roomCategory));
-        label(L"Days", std::to_wstring(rule.startDay) + L"–" + std::to_wstring(rule.endDay));
-        label(L"Rate", money(rule.rateCents));
+        const std::wstring ruleSelector =
+            compactFinanceControls
+                ? L"Rule " + std::to_wstring(financeRuleIndex + 1) + L" / " +
+                      std::to_wstring(economy.pricingRules.size()) + L" · " +
+                      wide(rule.roomCategory) + L" · " + money(rule.rateCents)
+                : L"Pricing rule " + std::to_wstring(financeRuleIndex + 1) +
+                      L" / " + std::to_wstring(economy.pricingRules.size());
+        fullButton(ruleSelector, [this, count = economy.pricingRules.size()] {
+          financeRuleIndex = (financeRuleIndex + 1) % count;
+        });
+
+        if (!compactFinanceControls) {
+          label(L"Category", wide(rule.roomCategory));
+          label(L"Days", std::to_wstring(rule.startDay) + L"–" +
+                             std::to_wstring(rule.endDay));
+          label(L"Rate", money(rule.rateCents));
+        }
+
         if (y + vpx(38) < bottom) {
-          button(left, y, halfControlWidth, std::max(px(24), vpx(32)), L"Rate − $5",
+          const int controlHeight = std::max(px(24), vpx(32));
+          button(left, y, halfControlWidth, controlHeight, L"Rate − $5",
                  [this, dispatchFinance] {
-            dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, -500),
-                            L"This pricing rule cannot be reduced safely.");
-          });
+                   dispatchFinance(
+                       economyDashboard.adjustPricingRuleCommand(
+                           financeRuleIndex, -500),
+                       L"This pricing rule cannot be reduced safely.");
+                 });
           button(left + halfControlWidth + controlGap, y, halfControlWidth,
-                 std::max(px(24), vpx(32)), L"Rate + $5", [this, dispatchFinance] {
-            dispatchFinance(economyDashboard.adjustPricingRuleCommand(financeRuleIndex, 500),
-                            L"This pricing rule cannot be increased safely.");
-          });
+                 controlHeight, L"Rate + $5", [this, dispatchFinance] {
+                   dispatchFinance(
+                       economyDashboard.adjustPricingRuleCommand(
+                           financeRuleIndex, 500),
+                       L"This pricing rule cannot be increased safely.");
+                 });
           y += std::max(px(28), vpx(39));
         }
-      }
-      separator();
-      if (economy.overbookingPolicies.empty()) {
-        paragraph(L"No overbooking policy is available.", 34, Muted);
       } else {
-        financeOverbookingIndex = std::min(financeOverbookingIndex, economy.overbookingPolicies.size() - 1);
-        const auto &policy = economy.overbookingPolicies[financeOverbookingIndex];
-        fullButton(L"Overbooking " + std::to_wstring(financeOverbookingIndex + 1) + L" / " +
-                       std::to_wstring(economy.overbookingPolicies.size()),
-                   [this, count = economy.overbookingPolicies.size()] {
-                     financeOverbookingIndex = (financeOverbookingIndex + 1) % count;
-                   });
-        label(L"Category", wide(policy.roomCategory));
-        label(L"Allowance", std::to_wstring(policy.allowance));
-        label(L"Relocation", money(policy.relocationCompensationCents));
-        label(L"Days", std::to_wstring(policy.startDay) + L"–" + std::to_wstring(policy.endDay));
+        if (economy.overbookingPolicies.empty()) {
+          paragraph(L"No overbooking policy is available.", 34, Muted);
+          break;
+        }
+
+        financeOverbookingIndex = std::min(
+            financeOverbookingIndex, economy.overbookingPolicies.size() - 1);
+        const auto &policy =
+            economy.overbookingPolicies[financeOverbookingIndex];
+        const std::wstring policySelector =
+            compactFinanceControls
+                ? L"Policy " + std::to_wstring(financeOverbookingIndex + 1) +
+                      L" / " +
+                      std::to_wstring(economy.overbookingPolicies.size()) +
+                      L" · " + wide(policy.roomCategory) + L" · +" +
+                      std::to_wstring(policy.allowance)
+                : L"Overbooking " +
+                      std::to_wstring(financeOverbookingIndex + 1) + L" / " +
+                      std::to_wstring(economy.overbookingPolicies.size());
+        fullButton(
+            policySelector,
+            [this, count = economy.overbookingPolicies.size()] {
+              financeOverbookingIndex =
+                  (financeOverbookingIndex + 1) % count;
+            });
+
+        if (!compactFinanceControls) {
+          label(L"Category", wide(policy.roomCategory));
+          label(L"Allowance", std::to_wstring(policy.allowance));
+          label(L"Relocation", money(policy.relocationCompensationCents));
+          label(L"Days", std::to_wstring(policy.startDay) + L"–" +
+                             std::to_wstring(policy.endDay));
+        }
+
         if (policy.roomCategory == "standard" && y + vpx(38) < bottom) {
-          button(left, y, halfControlWidth, std::max(px(24), vpx(32)), L"Allowance − 1",
+          const int controlHeight = std::max(px(24), vpx(32));
+          button(left, y, halfControlWidth, controlHeight, L"Allowance − 1",
                  [this, dispatchFinance] {
-            dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, -1),
-                            L"Overbooking allowance cannot be reduced further.");
-          });
+                   dispatchFinance(
+                       economyDashboard.adjustOverbookingCommand(
+                           financeOverbookingIndex, -1),
+                       L"Overbooking allowance cannot be reduced further.");
+                 });
           button(left + halfControlWidth + controlGap, y, halfControlWidth,
-                 std::max(px(24), vpx(32)), L"Allowance + 1", [this, dispatchFinance] {
-            dispatchFinance(economyDashboard.adjustOverbookingCommand(financeOverbookingIndex, 1),
-                            L"Overbooking allowance cannot be increased safely.");
-          });
+                 controlHeight, L"Allowance + 1",
+                 [this, dispatchFinance] {
+                   dispatchFinance(
+                       economyDashboard.adjustOverbookingCommand(
+                           financeOverbookingIndex, 1),
+                       L"Overbooking allowance cannot be increased safely.");
+                 });
           y += std::max(px(28), vpx(39));
         } else if (policy.roomCategory != "standard") {
-          paragraph(L"This policy is read-only here. Only the standard-room overbooking allowance can currently be changed.", 54, Muted);
+          paragraph(
+              L"This policy is read-only here. Choose the standard-room policy to change its allowance.",
+              compactFinanceControls ? 28 : 44, Muted);
         }
       }
       break;
+    }
     case FinanceView::Risk:
       fields(L"Debt schedule", economy.debtSchedule);
       for (const auto &diagnostic : economy.financingDiagnostics)
