@@ -35,6 +35,69 @@ int main() {
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
     require(source.entities.size() >= view.rooms.size(), "room inspectors were not composed");
 
+    hh::game::Simulation departmentSimulation =
+        hh::game::Simulation::tutorial(20260913);
+    hh::game::EntityId departmentManager = 0;
+    for (const auto& person : departmentSimulation.view().people) {
+      if (person.kind == hh::game::PersonKind::Housekeeper) {
+        departmentManager = person.id;
+        break;
+      }
+    }
+    require(departmentManager != 0,
+            "department UI fixture could not find a housekeeping manager");
+    require(departmentSimulation
+                .assignDepartmentManager(hh::game::DepartmentId::Housekeeping,
+                                         departmentManager)
+                .ok,
+            "department UI fixture could not assign a manager");
+    const auto departmentBefore = departmentSimulation.save();
+    const auto departmentSource =
+        hh::client::makeGameUiSnapshotSource(departmentSimulation, context);
+    require(departmentSimulation.save() == departmentBefore,
+            "department UI projection mutated simulation state");
+
+    const auto departmentEntity = std::find_if(
+        departmentSource.entities.begin(), departmentSource.entities.end(),
+        [](const auto& entity) {
+          return entity.kind == hh::frontend::InspectorKind::Department &&
+                 entity.title == "Housekeeping";
+        });
+    require(departmentEntity != departmentSource.entities.end(),
+            "housekeeping department inspector was omitted");
+
+    const auto departmentField =
+        [&](const char* label) -> std::string {
+      const auto field = std::find_if(
+          departmentEntity->fields.begin(), departmentEntity->fields.end(),
+          [&](const auto& candidate) { return candidate.label == label; });
+      require(field != departmentEntity->fields.end(),
+              "department inspector field was omitted");
+      return field->value;
+    };
+    const auto departmentForecast = departmentSimulation.departmentForecast(
+        hh::game::DepartmentId::Housekeeping,
+        departmentSimulation.view().day);
+    require(departmentField("Manager") == std::to_string(departmentManager),
+            "department inspector did not expose authoritative manager");
+    require(departmentField("Required today") ==
+                std::to_string(departmentForecast.requiredMinutes) + " min" &&
+                departmentField("Scheduled today") ==
+                    std::to_string(departmentForecast.scheduledMinutes) + " min" &&
+                departmentField("Uncovered today") ==
+                    std::to_string(departmentForecast.uncoveredMinutes) + " min",
+            "department inspector forecast drifted from authoritative state");
+
+    const auto managedRevision = departmentSource.revision;
+    require(departmentSimulation
+                .assignDepartmentManager(hh::game::DepartmentId::Housekeeping, 0)
+                .ok,
+            "department UI fixture could not clear manager");
+    const auto unmanagedSource =
+        hh::client::makeGameUiSnapshotSource(departmentSimulation, context);
+    require(unmanagedSource.revision != managedRevision,
+            "department manager mutation did not invalidate UI revision");
+
     hh::game::Simulation serviceSimulation =
         hh::game::Simulation::tutorial(20260911);
     const auto serviceRoom = serviceSimulation.view().rooms.front().id;
