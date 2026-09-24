@@ -35,3 +35,34 @@ def test_cart_has_moving_wheels(tmp_path):
     scene=trimesh.load(p,force='scene')
     nodes=set(scene.graph.nodes_geometry)
     assert sum(str(n).startswith('MOV_Wheel_') for n in nodes)==4
+
+def test_service_storage_has_readable_front_identity():
+    from service_asset_factory import build_asset
+
+    cabinet = build_asset('Cleaning Supply Cabinet', 'MAT_SERVICE_PAINT')
+    cabinet_nodes = set(map(str, cabinet.graph.nodes_geometry))
+    assert {
+        'CabinetDoor_0', 'CabinetDoor_1',
+        'CabinetHandle_0', 'CabinetHandle_1',
+        'CabinetDoorGap', 'CabinetPlinth',
+        'CleaningLabel', 'CleaningShelf',
+    } <= cabinet_nodes
+
+    lockers = build_asset('Staff Locker Bank', 'MAT_SERVICE_PAINT')
+    locker_nodes = set(map(str, lockers.graph.nodes_geometry))
+    for index in range(3):
+        assert f'LockerDoor_{index}' in locker_nodes
+        assert f'LockerHandle_{index}' in locker_nodes
+        assert {f'LockerVent_{index}_{vent}' for vent in range(3)} <= locker_nodes
+    assert {'CabinetPlinth', 'LockerToeReveal'} <= locker_nodes
+
+
+def test_service_storage_stays_floor_supported_and_nontrivial():
+    from service_asset_factory import build_asset
+
+    for name in ('Cleaning Supply Cabinet', 'Staff Locker Bank'):
+        scene = build_asset(name, 'MAT_SERVICE_PAINT')
+        assert scene.bounds is not None
+        assert float(scene.bounds[0][2]) <= 0.01
+        assert len(scene.geometry) >= 10
+
