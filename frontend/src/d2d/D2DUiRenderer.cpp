@@ -16,6 +16,7 @@ constexpr D2D1_COLOR_F kMuted{0.722F, 0.690F, 0.643F, 1.0F};
 constexpr D2D1_COLOR_F kBrass{0.725F, 0.592F, 0.357F, 1.0F};
 constexpr D2D1_COLOR_F kPanel{0.082F, 0.078F, 0.071F, 0.78F};
 constexpr D2D1_COLOR_F kSelected{0.725F, 0.592F, 0.357F, 0.34F};
+constexpr D2D1_COLOR_F kDivider{0.725F, 0.592F, 0.357F, 0.16F};
 constexpr D2D1_COLOR_F kDisabled{0.949F, 0.925F, 0.882F, 0.30F};
 
 std::wstring widen(const std::string& value) {
@@ -181,14 +182,22 @@ UiRendererResult D2DUiRenderer::draw(
                     frameState.height),
         kPanel);
 
+    const float brandTop = layout.safeZoneTop + 64.0F * ui;
     drawText(L"HOTEL HAVEN",
-             D2D1::RectF(layout.navigationLeft, 64.0F * ui,
-                         layout.navigationLeft + 430.0F * ui, 125.0F * ui),
+             D2D1::RectF(layout.navigationLeft, brandTop,
+                         layout.navigationLeft + 430.0F * ui,
+                         brandTop + 61.0F * ui),
              brandFormat.Get(), kIvory);
     drawText(L"BUILD · MANAGE · BELONG",
-             D2D1::RectF(layout.navigationLeft, 126.0F * ui,
-                         layout.navigationLeft + 430.0F * ui, 155.0F * ui),
+             D2D1::RectF(layout.navigationLeft, brandTop + 62.0F * ui,
+                         layout.navigationLeft + 430.0F * ui,
+                         brandTop + 91.0F * ui),
              smallFormat.Get(), kMuted);
+    primitives.fillRect(
+        D2D1::RectF(layout.navigationLeft, brandTop + 105.0F * ui,
+                    layout.navigationLeft + 84.0F * ui,
+                    brandTop + 108.0F * ui),
+        kBrass);
 
     float y = layout.navigationTop;
     for (const MainMenuItem item : MainMenuModel::orderedItems()) {
@@ -246,23 +255,51 @@ UiRendererResult D2DUiRenderer::draw(
                                         top - 22.0F * ui,
                                         right + 24.0F * ui,
                                         top + 390.0F * ui), kPanel);
-        drawText(widen(card.hotelName), D2D1::RectF(left, top, right, top + 48.0F * ui), propertyFormat.Get(), kIvory);
-        drawText(widen(card.location), D2D1::RectF(left, top + 48.0F * ui, right, top + 78.0F * ui), smallFormat.Get(), kMuted);
+        primitives.fillRect(D2D1::RectF(left - 24.0F * ui,
+                                        top - 22.0F * ui,
+                                        right + 24.0F * ui,
+                                        top - 19.0F * ui), kBrass);
+        drawText(L"LATEST PROPERTY",
+                 D2D1::RectF(left, top - 12.0F * ui,
+                             right, top + 10.0F * ui),
+                 smallFormat.Get(), kMuted);
+        const float contentTop = top + 18.0F * ui;
+        drawText(widen(card.hotelName),
+                 D2D1::RectF(left, contentTop, right,
+                             contentTop + 48.0F * ui),
+                 propertyFormat.Get(), kIvory);
+        drawText(widen(card.location),
+                 D2D1::RectF(left, contentTop + 48.0F * ui, right,
+                             contentTop + 78.0F * ui),
+                 smallFormat.Get(), kMuted);
         std::wstring stars;
         for (int i = 0; i < 5; ++i) {
             stars += i < card.visualStars ? L"★" : L"☆";
         }
-        drawText(stars, D2D1::RectF(left, top + 80.0F * ui, right, top + 112.0F * ui), menuFormat.Get(), kBrass);
+        drawText(stars,
+                 D2D1::RectF(left, contentTop + 80.0F * ui, right,
+                             contentTop + 112.0F * ui),
+                 menuFormat.Get(), kBrass);
 
         const std::array<std::pair<std::wstring, std::string>, 5> stats{{
             {L"DAY", card.day}, {L"OCCUPANCY", card.occupancy},
             {L"GUEST SATISFACTION", card.satisfaction}, {L"CASH", card.cash},
             {L"ROOMS", card.rooms}
         }};
-        float sy = top + 145.0F * ui;
+        float sy = contentTop + 145.0F * ui;
         for (const auto& [label, value] : stats) {
-            drawText(label, D2D1::RectF(left, sy, left + 190.0F * ui, sy + 26.0F * ui), smallFormat.Get(), kMuted);
-            drawText(widen(value), D2D1::RectF(left + 180.0F * ui, sy, right, sy + 26.0F * ui), smallFormat.Get(), kIvory);
+            drawText(label,
+                     D2D1::RectF(left, sy, left + 190.0F * ui,
+                                 sy + 26.0F * ui),
+                     smallFormat.Get(), kMuted);
+            drawText(widen(value),
+                     D2D1::RectF(left + 180.0F * ui, sy, right,
+                                 sy + 26.0F * ui),
+                     smallFormat.Get(), kIvory);
+            primitives.fillRect(
+                D2D1::RectF(left, sy + 31.0F * ui, right,
+                            sy + 32.0F * ui),
+                kDivider);
             sy += 43.0F * ui;
         }
     }
