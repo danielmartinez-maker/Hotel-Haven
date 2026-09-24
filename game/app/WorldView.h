@@ -36,16 +36,26 @@ struct WorldAssetSet {
 
   std::optional<WorldAssetVisual> straightStair;
   std::optional<WorldAssetVisual> standardGuestDoor;
+  std::optional<WorldAssetVisual> lobbyEntranceDoor;
   std::optional<WorldAssetVisual> guestBed;
   std::optional<WorldAssetVisual> nightstand;
   std::optional<WorldAssetVisual> bedsideLamp;
   std::optional<WorldAssetVisual> guestDesk;
   std::optional<WorldAssetVisual> deskChair;
+  std::optional<WorldAssetVisual> guestArmchair;
+  std::optional<WorldAssetVisual> luggageBench;
+  std::optional<WorldAssetVisual> wardrobe;
+  std::optional<WorldAssetVisual> wallTelevision;
   std::optional<WorldAssetVisual> bathroomVanity;
   std::optional<WorldAssetVisual> bathroomToilet;
   std::optional<WorldAssetVisual> showerGlass;
   std::optional<WorldAssetVisual> receptionDesk;
+  std::optional<WorldAssetVisual> lobbySofa;
+  std::optional<WorldAssetVisual> lobbyArmchair;
+  std::optional<WorldAssetVisual> lobbyCoffeeTable;
   std::optional<WorldAssetVisual> cleaningSupplyCabinet;
+  std::optional<WorldAssetVisual> staffLockerBank;
+  std::optional<WorldAssetVisual> staffBench;
   std::optional<WorldAssetVisual> pottedPlant;
 
   std::array<std::optional<WorldAssetVisual>, GuestCharacterVariantCount>
