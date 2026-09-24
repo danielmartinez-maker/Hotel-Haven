@@ -232,6 +232,8 @@ public:
   CommandResult loadDefinitions(std::string_view jsonText);
 
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
+  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;
+  [[nodiscard]] EngineeringSnapshot engineeringSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId assetId, WorkOrderType type);
