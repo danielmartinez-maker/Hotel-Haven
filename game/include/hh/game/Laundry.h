@@ -56,11 +56,14 @@ private:
     int remainingSeconds{};
     BlockReason blockedReason{BlockReason::None};
   };
+  void rebuildActiveBatches();
+
   LogisticsSystem *logistics_{};
   LaundryStations stations_{};
   ServiceId nextId_{1};
   std::int64_t elapsedSeconds_{};
   std::vector<Batch> batches_;
+  std::vector<std::size_t> activeBatches_;
 };
 
 } // namespace hh::game
