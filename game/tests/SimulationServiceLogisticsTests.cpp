@@ -121,6 +121,30 @@ int main() {
   require(physicalTurnsAfterFirst == 1 && physicalTurnsAfterSecond == 1,
           "duplicate physical clean request created duplicate worker tasks");
 
+  auto preclaimPersistence = Simulation::tutorial(334);
+  const auto preclaimRoom = preclaimPersistence.view().rooms.front().id;
+  const auto preclaimInventoryBefore = preclaimPersistence.view().inventory;
+  require(preclaimPersistence.requestClean(preclaimRoom).ok,
+          "preclaim persistence clean request was rejected");
+  preclaimPersistence.step(20);
+  const auto preclaimInventoryAfter = preclaimPersistence.view().inventory;
+  require(preclaimInventoryAfter.linen == preclaimInventoryBefore.linen - 1 &&
+              preclaimInventoryAfter.towels ==
+                  preclaimInventoryBefore.towels - 2 &&
+              preclaimInventoryAfter.amenities ==
+                  preclaimInventoryBefore.amenities - 1 &&
+              preclaimInventoryAfter.chemicals ==
+                  preclaimInventoryBefore.chemicals - 1,
+          "physical pickup did not atomically claim canonical room supplies");
+  const auto preclaimState = preclaimPersistence.save();
+  auto preclaimRestored = Simulation::load(preclaimState);
+  require(preclaimRestored.save() == preclaimState,
+          "physical room-supply preclaim did not round-trip");
+  preclaimPersistence.step(600);
+  preclaimRestored.step(600);
+  require(preclaimPersistence.save() == preclaimRestored.save(),
+          "room-supply preclaim replayed or diverged after save/load");
+
   auto laborGatedClean = Simulation::tutorial(329);
   const auto laborRoom = laborGatedClean.view().rooms.front().id;
   EntityId housekeeperId = 0;
