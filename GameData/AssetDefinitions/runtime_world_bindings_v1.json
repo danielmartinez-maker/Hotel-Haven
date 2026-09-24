@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "binding_set_id": "HH_RUNTIME_WORLD_BINDINGS_V1",
+  "asset_count": 59,
+  "source": "game/app/WorldAssetBindings.cpp",
+  "runtime_supported_asset_types": [
+    "StaticMeshAsset",
+    "SkinnedMeshAsset"
+  ],
+  "groups": {
+    "world_core": [
+      "HH_A030",
+      "HH_A012",
+      "HH_A057",
+      "HH_A113",
+      "HH_A121",
+      "HH_A125",
+      "HH_A126",
+      "HH_A129",
+      "HH_A131",
+      "HH_A140",
+      "HH_A141",
+      "HH_A153",
+      "HH_A166",
+      "HH_A169",
+      "HH_A171",
+      "HH_A186",
+      "HH_A194",
+      "HH_A197",
+      "HH_A200",
+      "HH_A302",
+      "HH_A338",
+      "HH_A339",
+      "HH_A396"
+    ],
+    "guest_characters": [
+      "HH_A451",
+      "HH_A452",
+      "HH_A453",
+      "HH_A454",
+      "HH_A455",
+      "HH_A456",
+      "HH_A457",
+      "HH_A458",
+      "HH_A459",
+      "HH_A460",
+      "HH_A461",
+      "HH_A462",
+      "HH_A463",
+      "HH_A464",
+      "HH_A465",
+      "HH_A466",
+      "HH_A467",
+      "HH_A468",
+      "HH_A469",
+      "HH_A470",
+      "HH_A471",
+      "HH_A472",
+      "HH_A473",
+      "HH_A474",
+      "HH_A475",
+      "HH_A476",
+      "HH_A477",
+      "HH_A478",
+      "HH_A479",
+      "HH_A480"
+    ],
+    "receptionist_characters": [
+      "HH_A481",
+      "HH_A482"
+    ],
+    "housekeeper_characters": [
+      "HH_A487",
+      "HH_A488"
+    ],
+    "maintenance_characters": [
+      "HH_A495",
+      "HH_A496"
+    ]
+  },
+  "authority_note": "This manifest validates renderer presentation bindings only. It does not create gameplay placement, collision, navigation, room, service, staffing, or simulation authority."
+}
