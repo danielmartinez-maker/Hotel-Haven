@@ -207,7 +207,16 @@ UiRendererResult D2DUiRenderer::draw(
             primitives.strokeRect(rect, kBrass, 1.0F * ui);
         }
         const float shift = selected && enabled ? 10.0F * ui : 0.0F;
-        drawText(labelFor(item),
+        if (selected && enabled) {
+            primitives.fillRect(
+                D2D1::RectF(rect.left, rect.top, rect.left + 4.0F * ui, rect.bottom),
+                kBrass);
+        }
+        std::wstring itemLabel = labelFor(item);
+        if (!enabled && item == MainMenuItem::Continue) {
+            itemLabel += L"  ·  NO SAVE";
+        }
+        drawText(itemLabel,
                  D2D1::RectF(layout.navigationLeft + shift, y + 9.0F * ui,
                              layout.navigationLeft + layout.navigationWidth, y + itemHeight),
                  menuFormat.Get(), enabled ? kIvory : kDisabled);
@@ -217,6 +226,12 @@ UiRendererResult D2DUiRenderer::draw(
     drawText(widen(frameState.version),
              D2D1::RectF(layout.versionLeft, layout.versionBottom - 28.0F * ui,
                          layout.versionLeft + 250.0F * ui, layout.versionBottom),
+             smallFormat.Get(), kMuted);
+    drawText(L"ENTER / A  SELECT    ESC / B  BACK",
+             D2D1::RectF(layout.navigationLeft,
+                         layout.versionBottom - 62.0F * ui,
+                         layout.navigationLeft + 430.0F * ui,
+                         layout.versionBottom - 32.0F * ui),
              smallFormat.Get(), kMuted);
 
     if (frameState.property != nullptr) {
