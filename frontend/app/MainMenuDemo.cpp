@@ -1,10 +1,7 @@
 #include <windows.h>
 
-#include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <filesystem>
-#include <iterator>
 #include <optional>
 #include <string>
 
@@ -164,18 +161,6 @@ void toggleReducedMotion(
     }
 }
 
-void cycleUiScale(float& uiScale) noexcept {
-    const auto& scales = hh::frontend::MainMenuUiScales;
-    const auto current = std::find_if(
-        scales.begin(), scales.end(),
-        [uiScale](float value) { return std::fabs(value - uiScale) < 0.001F; });
-    const std::size_t index =
-        current == scales.end()
-            ? std::size_t{1}
-            : static_cast<std::size_t>(std::distance(scales.begin(), current));
-    uiScale = scales[(index + 1) % scales.size()];
-}
-
 void activateSelectedSetting(
     const hh::frontend::MainMenuModel& model,
     float& uiScale,
@@ -185,7 +170,7 @@ void activateSelectedSetting(
     hh::renderer::RenderScene& scene) {
     if (model.settingsSelection() ==
         hh::frontend::MainMenuSettingsItem::UiScale) {
-        cycleUiScale(uiScale);
+        uiScale = hh::frontend::nextMainMenuUiScale(uiScale);
         return;
     }
     toggleReducedMotion(
