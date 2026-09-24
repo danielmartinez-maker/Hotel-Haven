@@ -1,19 +1,28 @@
 #include "hh/game/RoomService.h"
+#include <algorithm>
 
 namespace hh::game {
 
 RoomServiceSystem::ActiveOrder *RoomServiceSystem::order(RoomServiceOrderId id) {
-  for (auto &entry : orders_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = orderIndex_.find(id);
+  return found == orderIndex_.end() ? nullptr : &orders_[found->second];
 }
 
 const RoomServiceSystem::ActiveOrder *RoomServiceSystem::order(RoomServiceOrderId id) const {
-  for (const auto &entry : orders_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = orderIndex_.find(id);
+  return found == orderIndex_.end() ? nullptr : &orders_[found->second];
+}
+
+void RoomServiceSystem::rebuildDerivedState() {
+  orderIndex_.clear();
+  activeOrders_.clear();
+  orderIndex_.reserve(orders_.size());
+  activeOrders_.reserve(orders_.size());
+  for (std::size_t index = 0; index < orders_.size(); ++index) {
+    orderIndex_.emplace(orders_[index].id, index);
+    if (orders_[index].stage != RoomServiceStage::Completed)
+      activeOrders_.push_back(index);
+  }
 }
 
 void RoomServiceSystem::enter(ActiveOrder &entry, RoomServiceStage stage,
@@ -35,7 +44,10 @@ RoomServiceOrderId RoomServiceSystem::placeRoomServiceOrder(
   entry.promisedSeconds = spec.promisedSeconds;
   entry.blockedReason = BlockReason::AwaitingProduction;
   entry.stageHistory.push_back(RoomServiceStage::AwaitingProduction);
+  const auto index = orders_.size();
   orders_.push_back(entry);
+  orderIndex_.emplace(id, index);
+  activeOrders_.push_back(index);
   return id;
 }
 
@@ -67,9 +79,8 @@ std::vector<RoomServiceStage> RoomServiceSystem::history(RoomServiceOrderId id) 
 
 void RoomServiceSystem::tickSecond() {
   ++elapsedSeconds_;
-  for (auto &entry : orders_) {
-    if (entry.stage == RoomServiceStage::Completed)
-      continue;
+  for (const auto index : activeOrders_) {
+    auto &entry = orders_[index];
     ++entry.ageSeconds;
     if (entry.stage == RoomServiceStage::AwaitingProduction ||
         entry.stage == RoomServiceStage::AwaitingTrayPickup)
@@ -95,6 +106,12 @@ void RoomServiceSystem::tickSecond() {
       break;
     }
   }
+  activeOrders_.erase(
+      std::remove_if(activeOrders_.begin(), activeOrders_.end(),
+                     [&](std::size_t index) {
+                       return orders_[index].stage == RoomServiceStage::Completed;
+                     }),
+      activeOrders_.end());
 }
 
 void RoomServiceSystem::tickSeconds(std::int64_t seconds) {
