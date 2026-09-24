@@ -67,6 +67,7 @@ private:
   [[nodiscard]] Asset *asset(AssetId id);
   [[nodiscard]] const Asset *asset(AssetId id) const;
   void tickWorkOrderSecond(WorkOrder &order);
+  void rebuildActiveWorkOrders();
   void tickReliabilitySecond();
   void tickSecondFor(const std::vector<AssetId> &managedAssets,
                      const std::vector<AssetId> &workingAssets);
@@ -78,6 +79,7 @@ private:
   int failures_{};
   std::vector<Asset> assets_;
   std::vector<WorkOrder> workOrders_;
+  std::vector<std::size_t> activeWorkOrders_;
 };
 
 } // namespace hh::game
