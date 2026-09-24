@@ -1250,10 +1250,21 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
         return false;
       if (current > target)
         return serviceInventory.consumeUsable(item, current - target);
-      if (current < target)
-        return serviceInventory.addToKind(preferredStorage, item,
-                                          target - current);
-      return true;
+      if (current == target)
+        return true;
+
+      const int additional = target - current;
+      if (serviceInventory.addToKind(preferredStorage, item, additional))
+        return true;
+
+      // Definition files describe starting scenario state, not a live
+      // procurement action. Preserve legacy scenarios with intentionally large
+      // starting stock by provisioning explicit overflow storage rather than
+      // clipping stock or rejecting an otherwise valid definition.
+      const auto overflow =
+          serviceInventory.addStorage({preferredStorage, additional, true});
+      return overflow != 0 &&
+             serviceInventory.addInventory(overflow, item, additional);
     };
 
     if (!syncItem(initialLinenOverride, "clean_linen_set", d.inventory.linen,
@@ -1266,8 +1277,7 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
                   d.inventory.chemicals, StorageKind::CentralStorage) ||
         !syncItem(initialPartsOverride, "maintenance_part", d.inventory.parts,
                   StorageKind::CentralStorage))
-      return {false,
-              "Initial inventory exceeds FINAL-04 storage capacity"};
+      return {false, "Initial inventory could not be synchronized"};
   }
 
   *impl_ = std::move(d);
