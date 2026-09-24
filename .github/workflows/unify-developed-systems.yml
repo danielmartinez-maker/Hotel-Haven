@@ -63,6 +63,19 @@ jobs:
             game/include/hh/game/ServiceLogistics.h \
             game/include/hh/game/ServiceTypes.h
 
+          # Graft the verified FINAL-03 workforce/organization simulation hooks
+          # onto the newer authoritative simulation core using FINAL-03's own
+          # base blobs for a true three-way application.
+          git show 61cf91be477c3a79a17dce38ea080d5cc5972f81 -- \
+            game/include/hh/game/Simulation.h \
+            game/src/Simulation.cpp > /tmp/final03-simulation.patch
+          if ! git apply --3way --index /tmp/final03-simulation.patch; then
+            echo "::error::FINAL-03 simulation graft produced conflicts"
+            git status --short
+            git diff --cc -- game/include/hh/game/Simulation.h game/src/Simulation.cpp || true
+            exit 1
+          fi
+
           # Squash the integration result onto the integration base. This keeps the
           # developed source/content changes while avoiding GitHub App workflow-file
           # write restrictions from historical branch workflow commits.
