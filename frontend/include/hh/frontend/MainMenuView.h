@@ -12,6 +12,8 @@ namespace hh::frontend {
 inline constexpr std::array<float, 5> MainMenuUiScales{
     0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
 
+[[nodiscard]] float nextMainMenuUiScale(float currentScale) noexcept;
+
 struct PropertyCardText {
     std::string hotelName;
     std::string location;
