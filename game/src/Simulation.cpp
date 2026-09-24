@@ -1018,12 +1018,22 @@ struct Simulation::Impl {
       return hour >= p.shiftStartHour && hour < p.shiftEndHour;
     return hour >= p.shiftStartHour || hour < p.shiftEndHour;
   }
-  bool eligible(const Person &p, TaskKind k) const {
-    return (k == TaskKind::Turnover || k == TaskKind::Restock)
-               ? p.kind == PersonKind::Housekeeper
-           : (k == TaskKind::Repair || k == TaskKind::Build)
-               ? p.kind == PersonKind::Maintenance
-               : p.kind == PersonKind::Receptionist;
+  std::int64_t shiftInstanceKey(const Person &p, int day, int hour) const {
+    if (p.shiftStartHour == p.shiftEndHour)
+      return static_cast<std::int64_t>(day) * 24 + p.shiftStartHour;
+    int startDay = day;
+    if (p.shiftStartHour > p.shiftEndHour && hour < p.shiftEndHour)
+      --startDay;
+    return static_cast<std::int64_t>(startDay) * 24 + p.shiftStartHour;
+  }
+  bool eligible(const Person &p, const Task &task) const {
+    if (task.kind == TaskKind::Break || task.kind == TaskKind::Training)
+      return p.id == task.targetId;
+    if (task.kind == TaskKind::Turnover || task.kind == TaskKind::Restock)
+      return p.kind == PersonKind::Housekeeper;
+    if (task.kind == TaskKind::Repair || task.kind == TaskKind::Build)
+      return p.kind == PersonKind::Maintenance;
+    return p.kind == PersonKind::Receptionist;
   }
   void postAccruedWage(Person &person) {
     const std::int64_t cents = person.accruedWageUnits / 3600;
@@ -1032,183 +1042,398 @@ struct Simulation::Impl {
     economy.cashCents -= cents;
   }
   void staffAndTasks() {
-    int hour = (elapsed / 3600) % 24;
+    const int hour = static_cast<int>((elapsed / 3600) % 24);
+    const int day = static_cast<int>(elapsed / 86400);
     std::vector<EntityId> failedRooms;
-    for (auto &p : people)
-      if (p.kind != PersonKind::Guest) {
-        p.onShift = shiftActive(p, hour);
+
+    for (auto &p : people) {
+      if (p.kind == PersonKind::Guest)
+        continue;
+
+      const bool scheduled = shiftActive(p, hour);
+      if (scheduled) {
+        const auto key = shiftInstanceKey(p, day, hour);
+        if (p.shiftInstanceKey != key) {
+          for (auto &task : tasks)
+            if (task.kind == TaskKind::Break && task.targetId == p.id &&
+                task.status != TaskStatus::Completed) {
+              task.employeeId = 0;
+              task.status = TaskStatus::Completed;
+            }
+          p.shiftInstanceKey = key;
+          p.shiftWorkedSeconds = 0;
+          p.breakMinutesTakenToday = 0;
+          p.breakTaskCreated = false;
+          p.onBreak = false;
+          p.inTraining = false;
+          p.absent = Workforce::absentForShift(seed, p.id, key, p.reliability);
+        }
+
+        p.onShift = !p.absent;
         if (!p.onShift) {
           p.state = PersonState::OffDuty;
-          p.fatigue = std::max(0.0, p.fatigue - 12.0 / 3600.0);
+          p.onBreak = false;
+          p.inTraining = false;
           p.task = 0;
-        } else {
-          p.accruedWageUnits += p.hourlyWageCents;
-          if (p.state == PersonState::OffDuty)
-            p.state = PersonState::Idle;
-        }
-      }
-    for (auto &t : tasks)
-      if (t.status == TaskStatus::Ready || t.status == TaskStatus::Blocked) {
-        bool resources = true;
-        if (t.kind == TaskKind::Turnover)
-          resources =
-              t.resourcesClaimed ||
-              (has(TileKind::SupplyCloset) &&
-               services.canClaimRoomTurnSuppliesForSimulation(t.targetId));
-        if (t.kind == TaskKind::Repair)
-          resources =
-              t.resourcesClaimed ||
-              services.canClaimCorrectivePartForSimulation(t.targetId);
-        if (t.kind == TaskKind::CheckIn || t.kind == TaskKind::CheckOut)
-          resources = has(TileKind::FrontDesk);
-        if (!resources) {
-          t.status = TaskStatus::Blocked;
-          t.blockedReason = "Required local supplies unavailable";
           continue;
         }
-        t.blockedReason.clear();
-        t.status = TaskStatus::Ready;
+
+        p.accruedWageUnits += p.hourlyWageCents;
+        if (p.state == PersonState::OffDuty)
+          p.state = PersonState::Idle;
+        if (!p.onBreak && !p.inTraining)
+          ++p.shiftWorkedSeconds;
+
+        const int breakDueSeconds = staffBreakAfterMinutes * 60;
+        if (staffBreakAfterMinutes > 0 &&
+            p.shiftWorkedSeconds >= breakDueSeconds &&
+            p.breakMinutesTakenToday == 0 && !p.breakTaskCreated) {
+          Task task;
+          task.id = nextId++;
+          task.kind = TaskKind::Break;
+          task.targetId = p.id;
+          task.target = p.position;
+          task.total = task.workRemainingSeconds =
+              static_cast<double>(staffBreakDurationMinutes * 60);
+          task.notBeforeSecond = elapsed;
+          tasks.push_back(task);
+          p.breakTaskCreated = true;
+        }
+        if (staffBreakAfterMinutes > 0 &&
+            p.shiftWorkedSeconds > breakDueSeconds &&
+            p.breakMinutesTakenToday == 0 && !p.onBreak) {
+          p.fatigue = std::min(
+              100.0, p.fatigue + missedBreakFatiguePerHour / 3600.0);
+          p.morale = std::max(
+              0.0, p.morale - missedBreakMoralePerHour / 3600.0);
+        }
+      } else {
+        p.onShift = false;
+        p.absent = false;
+        p.onBreak = false;
+        p.inTraining = false;
+        p.state = PersonState::OffDuty;
+        p.fatigue = std::max(0.0, p.fatigue - 12.0 / 3600.0);
+        p.task = 0;
+      }
+    }
+
+    auto assignReady = [&](int priority) {
+      for (auto &task : tasks) {
+        const int taskPriority = task.kind == TaskKind::Break
+                                     ? 0
+                                     : task.kind == TaskKind::Training ? 1 : 2;
+        if (taskPriority != priority || elapsed < task.notBeforeSecond ||
+            (task.status != TaskStatus::Ready &&
+             task.status != TaskStatus::Blocked))
+          continue;
+
+        if (task.kind == TaskKind::Break) {
+          auto *owner = getPerson(task.targetId);
+          if (!owner || !owner->onShift || owner->absent) {
+            if (owner)
+              owner->breakTaskCreated = false;
+            task.employeeId = 0;
+            task.status = TaskStatus::Completed;
+            continue;
+          }
+          task.target = owner->position;
+        } else if (task.kind == TaskKind::Training) {
+          auto *owner = getPerson(task.targetId);
+          if (!owner || !owner->onShift || owner->absent)
+            continue;
+          task.target = owner->position;
+        }
+
+        bool resources = true;
+        if (task.kind == TaskKind::Turnover)
+          resources =
+              task.resourcesClaimed ||
+              (has(TileKind::SupplyCloset) &&
+               services.canClaimRoomTurnSuppliesForSimulation(task.targetId));
+        if (task.kind == TaskKind::Repair)
+          resources =
+              task.resourcesClaimed ||
+              services.canClaimCorrectivePartForSimulation(task.targetId);
+        if (task.kind == TaskKind::CheckIn || task.kind == TaskKind::CheckOut)
+          resources = has(TileKind::FrontDesk);
+        if (!resources) {
+          task.status = TaskStatus::Blocked;
+          task.blockedReason = "Required local supplies unavailable";
+          continue;
+        }
+
+        task.blockedReason.clear();
+        task.status = TaskStatus::Ready;
         Person *best = nullptr;
-        int dist = 999999;
+        int bestDistance = std::numeric_limits<int>::max();
         for (auto &p : people)
-          if (p.onShift && p.task == 0 && eligible(p, t.kind)) {
-            int d = manhattan(p.position, t.target);
-            if (d < dist) {
-              dist = d;
+          if (p.onShift && !p.absent && p.task == 0 &&
+              p.goal != "Preventive maintenance" && eligible(p, task)) {
+            const int distance = manhattan(p.position, task.target);
+            if (distance < bestDistance ||
+                (distance == bestDistance && (!best || p.id < best->id))) {
+              bestDistance = distance;
               best = &p;
             }
           }
-        if (best) {
-          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
-            if (!services.claimCorrectivePartForSimulation(t.targetId)) {
-              t.status = TaskStatus::Blocked;
-              t.blockedReason = "Canonical maintenance part unavailable";
-              continue;
-            }
-            t.resourcesClaimed = true;
-          }
-          t.employeeId = best->id;
-          best->task = t.id;
-          best->destination =
-              (t.kind == TaskKind::Turnover && !t.resourcesClaimed) ? supply()
-                                                                    : t.target;
-          best->state = PersonState::Traveling;
-          t.status = TaskStatus::Traveling;
-          if (t.kind == TaskKind::Turnover)
-            if (auto *r = getRoom(t.targetId))
-              r->status = RoomStatus::Cleaning;
-        }
-      }
-    for (auto &t : tasks)
-      if (t.employeeId && t.status != TaskStatus::Completed &&
-          t.status != TaskStatus::Blocked) {
-        auto *p = getPerson(t.employeeId);
-        if (!p || !p->onShift) {
-          t.employeeId = 0;
-          t.status = TaskStatus::Ready;
+        if (!best)
           continue;
-        }
-        if (p->state == PersonState::Traveling) {
-          p->fatigue = std::min(100.0, p->fatigue + 4.0 / 3600.0);
-          ++p->travelSeconds;
-          auto route = path(p->position, p->destination);
-          if (route.empty() && !same(p->position, p->destination)) {
-            t.status = TaskStatus::Ready;
-            t.employeeId = 0;
-            p->task = 0;
-            p->state = PersonState::Idle;
+
+        if (task.kind == TaskKind::Repair && !task.resourcesClaimed) {
+          if (!services.claimCorrectivePartForSimulation(task.targetId)) {
+            task.status = TaskStatus::Blocked;
+            task.blockedReason = "Canonical maintenance part unavailable";
             continue;
           }
-          if (!route.empty())
-            p->position = route.front();
-          if (same(p->position, p->destination)) {
-            if (t.kind == TaskKind::Turnover &&
-                same(p->destination, supply()) && !t.resourcesClaimed) {
-              if (!services.claimRoomTurnSuppliesForSimulation(t.targetId)) {
-                t.status = TaskStatus::Blocked;
-                t.blockedReason = "Canonical room supplies unavailable";
-                t.employeeId = 0;
-                p->task = 0;
-                p->state = PersonState::Idle;
-                continue;
-              }
-              t.resourcesClaimed = true;
-              p->destination = t.target;
-              p->state = PersonState::Traveling;
-            } else {
-              p->state = PersonState::Working;
-              t.status = TaskStatus::Working;
-              markBuildStarted(t);
+          task.resourcesClaimed = true;
+        }
+
+        task.employeeId = best->id;
+        best->task = task.id;
+        best->destination =
+            (task.kind == TaskKind::Turnover && !task.resourcesClaimed)
+                ? supply()
+                : task.target;
+        best->state = PersonState::Traveling;
+        task.status = TaskStatus::Traveling;
+        if (task.kind == TaskKind::Turnover)
+          if (auto *room = getRoom(task.targetId))
+            room->status = RoomStatus::Cleaning;
+      }
+    };
+
+    assignReady(0);
+    assignReady(1);
+    assignReady(2);
+
+    for (auto &task : tasks) {
+      if (!task.employeeId || task.status == TaskStatus::Completed ||
+          task.status == TaskStatus::Blocked)
+        continue;
+      auto *p = getPerson(task.employeeId);
+      if (!p || !p->onShift || p->absent) {
+        if (p) {
+          p->task = 0;
+          p->onBreak = false;
+          p->inTraining = false;
+          p->state = PersonState::OffDuty;
+        }
+        task.employeeId = 0;
+        if (task.kind == TaskKind::Break) {
+          task.status = TaskStatus::Completed;
+          if (p)
+            p->breakTaskCreated = false;
+        } else {
+          task.status = TaskStatus::Ready;
+        }
+        continue;
+      }
+
+      if (p->state == PersonState::Traveling) {
+        if (task.kind != TaskKind::Break && task.kind != TaskKind::Training) {
+          p->fatigue = std::min(100.0, p->fatigue + 4.0 / 3600.0);
+          ++p->travelSeconds;
+        }
+        auto route = path(p->position, p->destination);
+        if (route.empty() && !same(p->position, p->destination)) {
+          task.status = TaskStatus::Ready;
+          task.employeeId = 0;
+          p->task = 0;
+          p->state = PersonState::Idle;
+          continue;
+        }
+        if (!route.empty())
+          p->position = route.front();
+        if (same(p->position, p->destination)) {
+          if (task.kind == TaskKind::Turnover &&
+              same(p->destination, supply()) && !task.resourcesClaimed) {
+            if (!services.claimRoomTurnSuppliesForSimulation(task.targetId)) {
+              task.status = TaskStatus::Blocked;
+              task.blockedReason = "Canonical room supplies unavailable";
+              task.employeeId = 0;
+              p->task = 0;
+              p->state = PersonState::Idle;
+              continue;
             }
-          }
-        } else if (p->state == PersonState::Working) {
-          const double fatiguePerHour =
-              t.kind == TaskKind::Turnover
-                  ? 10.0
-                  : t.kind == TaskKind::Build
-                        ? 8.0
-                        : (t.kind == TaskKind::CheckIn ||
-                                   t.kind == TaskKind::CheckOut
-                               ? 4.0
-                               : 6.0);
-          p->fatigue = std::min(100.0, p->fatigue + fatiguePerHour / 3600.0);
-          double efficiency = 0.75 + 0.75 * p->skill / 100.0;
-          if (p->fatigue > 80)
-            efficiency /= 1.25;
-          else if (p->fatigue > 60)
-            efficiency /= 1.10;
-          t.workRemainingSeconds -= efficiency;
-          if (t.workRemainingSeconds <= 0) {
-            t.status = TaskStatus::Completed;
-            p->task = 0;
-            p->state = PersonState::Idle;
-            if (t.kind == TaskKind::CheckIn) {
-              if (auto *g = getPerson(t.targetId)) {
-                for (auto &z : reservations)
-                  if (z.id == g->reservation) {
-                    if (auto *r = getRoom(z.roomId)) {
-                      g->destination = r->door;
-                      g->state = PersonState::Traveling;
-                      g->goal = "Reach assigned room";
-                      z.checkedIn = true;
-                      r->status = RoomStatus::Occupied;
-                    }
-                  }
-              }
-            }
-            if (t.kind == TaskKind::CheckOut)
-              if (auto *g = getPerson(t.targetId))
-                completeCheckout(*g);
-            if (t.kind == TaskKind::Build)
-              completeBuildJob(t);
-            if (auto *r = getRoom(t.targetId)) {
-              if (t.kind == TaskKind::Turnover && !r->closed) {
-                if (r->condition < 35) {
-                  r->status = RoomStatus::OutOfOrder;
-                  failedRooms.push_back(r->id);
-                } else {
-                  // Physical work is finished, but the room is not sellable
-                  // until the mirrored FINAL-04 service pipeline also closes.
-                  r->status = RoomStatus::Cleaning;
-                  r->cleanliness = std::clamp(
-                      70 + p->skill * 0.3 - p->fatigue * 0.1, 0.0, 100.0);
-                }
-              }
-              if (t.kind == TaskKind::Repair) {
-                // Physical labor completion alone does not repair the asset;
-                // FINAL-04 corrective completion owns the condition reset.
-                if (!r->closed)
-                  r->status = RoomStatus::OutOfOrder;
-              }
-            }
+            task.resourcesClaimed = true;
+            p->destination = task.target;
+            p->state = PersonState::Traveling;
+          } else {
+            p->state = PersonState::Working;
+            task.status = TaskStatus::Working;
+            markBuildStarted(task);
           }
         }
+        continue;
       }
+
+      if (p->state != PersonState::Working)
+        continue;
+
+      if (task.kind == TaskKind::Break) {
+        p->onBreak = true;
+        p->inTraining = false;
+        p->fatigue = std::max(0.0, p->fatigue - 12.0 / 3600.0);
+        task.workRemainingSeconds -= 1.0;
+      } else if (task.kind == TaskKind::Training) {
+        p->onBreak = false;
+        p->inTraining = true;
+        task.workRemainingSeconds -= 1.0;
+        p->trainingProgress =
+            task.total > 0
+                ? std::clamp(
+                      100.0 * (1.0 - task.workRemainingSeconds / task.total),
+                      0.0, 100.0)
+                : 100.0;
+      } else {
+        p->onBreak = false;
+        p->inTraining = false;
+        const double fatiguePerHour =
+            task.kind == TaskKind::Turnover
+                ? 10.0
+                : task.kind == TaskKind::Build
+                      ? 8.0
+                      : (task.kind == TaskKind::CheckIn ||
+                                 task.kind == TaskKind::CheckOut
+                             ? 4.0
+                             : 6.0);
+        p->fatigue =
+            std::min(100.0, p->fatigue + fatiguePerHour / 3600.0);
+        double efficiency = 0.75 + 0.75 * p->skill / 100.0;
+        if (p->fatigue > 80)
+          efficiency /= 1.25;
+        else if (p->fatigue > 60)
+          efficiency /= 1.10;
+        task.workRemainingSeconds -= efficiency;
+      }
+
+      if (task.workRemainingSeconds > 0)
+        continue;
+
+      task.status = TaskStatus::Completed;
+      p->task = 0;
+      p->state = PersonState::Idle;
+      if (task.kind == TaskKind::Break) {
+        p->onBreak = false;
+        p->breakTaskCreated = false;
+        p->breakMinutesTakenToday +=
+            static_cast<int>(std::ceil(task.total / 60.0));
+        continue;
+      }
+      if (task.kind == TaskKind::Training) {
+        p->inTraining = false;
+        p->trainingProgress = 100.0;
+        p->skill =
+            std::clamp(p->skill + task.trainingSkillGain, 0.0, 100.0);
+        continue;
+      }
+      if (task.kind == TaskKind::CheckIn) {
+        if (auto *guest = getPerson(task.targetId)) {
+          for (auto &reservation : reservations)
+            if (reservation.id == guest->reservation) {
+              if (auto *room = getRoom(reservation.roomId)) {
+                guest->destination = room->door;
+                guest->state = PersonState::Traveling;
+                guest->goal = "Reach assigned room";
+                reservation.checkedIn = true;
+                room->status = RoomStatus::Occupied;
+              }
+            }
+        }
+      }
+      if (task.kind == TaskKind::CheckOut)
+        if (auto *guest = getPerson(task.targetId))
+          completeCheckout(*guest);
+      if (task.kind == TaskKind::Build)
+        completeBuildJob(task);
+
+      if (auto *room = getRoom(task.targetId)) {
+        if (task.kind == TaskKind::Turnover && !room->closed) {
+          if (room->condition < 35) {
+            room->status = RoomStatus::OutOfOrder;
+            failedRooms.push_back(room->id);
+          } else {
+            // Physical labor is complete; FINAL-04 service completion remains
+            // authoritative for final sellability.
+            room->status = RoomStatus::Cleaning;
+            room->cleanliness = std::clamp(
+                70 + p->skill * 0.3 - p->fatigue * 0.1, 0.0, 100.0);
+          }
+        }
+        if (task.kind == TaskKind::Repair) {
+          // Physical completion does not reset condition. FINAL-04
+          // engineering owns the repair state and condition reset.
+          if (!room->closed)
+            room->status = RoomStatus::OutOfOrder;
+        }
+      }
+    }
+
     for (EntityId roomId : failedRooms)
       if (auto *room = getRoom(roomId))
         if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
           throw std::logic_error(
               "failed to mirror turnover failure repair into FINAL-04");
+
+    // Supply labor to authoritative FINAL-04 preventive engineering work
+    // without creating a second physical task authority.
+    std::unordered_set<EntityId> preventiveWorkers;
+    const auto engineering = services.engineering().snapshot();
+    for (const auto &order : engineering.workOrders) {
+      if (order.type != WorkOrderType::Preventive ||
+          order.stage == WorkOrderStage::Completed)
+        continue;
+      auto *target = getRoom(order.assetId);
+      if (!target)
+        continue;
+      Person *best = nullptr;
+      int bestDistance = std::numeric_limits<int>::max();
+      for (auto &person : people) {
+        if (person.kind != PersonKind::Maintenance || !person.onShift ||
+            person.absent || person.task != 0 ||
+            preventiveWorkers.contains(person.id))
+          continue;
+        const int distance = manhattan(person.position, target->door);
+        if (distance < bestDistance ||
+            (distance == bestDistance && (!best || person.id < best->id))) {
+          bestDistance = distance;
+          best = &person;
+        }
+      }
+      if (!best)
+        continue;
+      preventiveWorkers.insert(best->id);
+      best->destination = target->door;
+      best->goal = "Preventive maintenance";
+      if (!same(best->position, best->destination)) {
+        auto route = path(best->position, best->destination);
+        if (route.empty()) {
+          best->state = PersonState::Idle;
+          best->goal.clear();
+          continue;
+        }
+        best->state = PersonState::Traveling;
+        best->position = route.front();
+        ++best->travelSeconds;
+        best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);
+        continue;
+      }
+      const auto serviceWork = services.workEngineeringSecond(
+          order.assetId, WorkOrderType::Preventive);
+      if (!serviceWork.valid ||
+          serviceWork.blockedReason != BlockReason::None) {
+        best->state = PersonState::Idle;
+        best->goal.clear();
+        continue;
+      }
+      best->state = PersonState::Working;
+      best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);
+      if (serviceWork.completed) {
+        best->state = PersonState::Idle;
+        best->goal.clear();
+      }
+    }
   }
   void guests() {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
