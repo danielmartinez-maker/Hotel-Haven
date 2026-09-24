@@ -69,6 +69,12 @@ private:
   void synchronizeElapsedSecondsForSimulation(std::int64_t seconds);
   void synchronizeAssetConditionForSimulation(AssetId asset, int condition,
                                                bool failed);
+  [[nodiscard]] bool
+  canClaimRoomTurnSuppliesForSimulation(RoomId room) const;
+  [[nodiscard]] bool claimRoomTurnSuppliesForSimulation(RoomId room);
+  [[nodiscard]] bool
+  canClaimCorrectivePartForSimulation(AssetId asset) const;
+  [[nodiscard]] bool claimCorrectivePartForSimulation(AssetId asset);
   void tickSimulationSecond(
       const std::vector<RoomId> &managedHousekeepingRooms,
       const std::vector<RoomId> &workingHousekeepingRooms,
