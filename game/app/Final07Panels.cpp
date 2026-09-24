@@ -84,9 +84,16 @@ COLORREF alertColor(AlertSeverity severity) {
 
 std::wstring pageLabel(Page page) {
   constexpr std::array<const wchar_t *, 12> labels{
-      L"Build", L"Rooms", L"Staff", L"Guests", L"Supplies", L"Ops",
-      L"Finance", L"Alerts", L"Objectives", L"Overlays", L"Settings", L"Guide"};
+      L"Build",      L"Rooms",      L"Staff",      L"Guests",
+      L"Supplies",   L"Operations", L"Finance",    L"Alerts",
+      L"Objectives", L"Overlays",   L"Settings",   L"Guide"};
   return labels[static_cast<std::size_t>(page)];
+}
+
+std::wstring navPageLabel(Page page, bool compact) {
+  if (compact && page == Page::Operations)
+    return L"Ops";
+  return pageLabel(page);
 }
 
 bool belongs(Page page, InspectorKind kind) {
@@ -392,9 +399,24 @@ void Client::paint(HDC output) {
          true);
   metric(3, L"DAY " + std::to_wstring(hud.day + 1), clock.str(), false);
 
-  button(alertsX, actionY, alertWidth, actionHeight,
-         L"Alerts " + std::to_wstring(hud.alertCount),
-         [this] { page = Page::Alerts; tabScroll = 0; });
+  int criticalAlertCount = 0;
+  int warningAlertCount = 0;
+  for (const auto &alert : alertCenter.active()) {
+    criticalAlertCount += alert.severity == AlertSeverity::Critical;
+    warningAlertCount += alert.severity == AlertSeverity::Warning;
+  }
+  const std::wstring alertLabel =
+      criticalAlertCount > 0
+          ? L"Critical " + std::to_wstring(criticalAlertCount)
+          : warningAlertCount > 0
+                ? L"Warnings " + std::to_wstring(warningAlertCount)
+                : L"Alerts " + std::to_wstring(hud.alertCount);
+  button(alertsX, actionY, alertWidth, actionHeight, alertLabel,
+         [this] {
+           page = Page::Alerts;
+           tabScroll = 0;
+         },
+         page == Page::Alerts);
   button(saveX, actionY, saveWidth, actionHeight, L"Save [F5]", [this] {
     const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::SaveGame});
     if (!result.message.empty())
@@ -422,7 +444,7 @@ void Client::paint(HDC output) {
     const int column = index % 4;
     button(sidebarX + navMargin + column * (navWidth + navGap),
            HeaderHeight + vpx(12) + row * (navHeight + navRowGap), navWidth,
-           navHeight, pageLabel(target),
+           navHeight, navPageLabel(target, navWidth < px(90)),
            [this, target] {
              page = target;
              tabScroll = 0;
