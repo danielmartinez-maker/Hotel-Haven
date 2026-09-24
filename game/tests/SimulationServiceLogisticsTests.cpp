@@ -80,6 +80,51 @@ int main() {
   require(restored.logisticsSnapshot().elapsedSeconds == after,
           "Simulation save/load dropped FINAL-04 state");
 
+  auto purchasing = Simulation::tutorial(324);
+  const auto purchaseCashBefore = purchasing.view().economy.cashCents;
+  const auto purchase = purchasing.orderSupplies({2, 4, 2, 2, 1});
+  require(purchase.ok, "player supply order was rejected");
+  const auto purchaseLogistics = purchasing.logisticsSnapshot();
+  require(purchaseLogistics.purchaseOrders.size() == 5,
+          "player supply order did not mirror all FINAL-04 item lines");
+  bool linenOrder = false;
+  bool towelOrder = false;
+  bool amenityOrder = false;
+  bool chemicalOrder = false;
+  bool partOrder = false;
+  for (const auto &line : purchaseLogistics.purchaseOrders) {
+    linenOrder |= line.item == "clean_linen_set" && line.quantity == 2;
+    towelOrder |= line.item == "towel_unit" && line.quantity == 4;
+    amenityOrder |= line.item == "amenity_kit" && line.quantity == 2;
+    chemicalOrder |= line.item == "cleaning_chemical" && line.quantity == 2;
+    partOrder |= line.item == "maintenance_part" && line.quantity == 1;
+  }
+  require(linenOrder && towelOrder && amenityOrder && chemicalOrder && partOrder,
+          "player supply order used incorrect FINAL-04 item mapping");
+  require(purchasing.view().supplyOrders.size() == 1,
+          "legacy delivery bridge was not retained for the physical scheduler");
+  require(purchasing.view().economy.cashCents == purchaseCashBefore - 10000,
+          "mirrored supply order charged cash more than once");
+
+  const auto cashBeforeRejected = purchasing.view().economy.cashCents;
+  const auto legacyOrdersBeforeRejected = purchasing.view().supplyOrders.size();
+  const auto serviceOrdersBeforeRejected =
+      purchasing.logisticsSnapshot().purchaseOrders.size();
+  require(!purchasing.orderSupplies({600, 0, 0, 0, 0}).ok,
+          "supply order exceeding FINAL-04 storage capacity was accepted");
+  require(purchasing.view().economy.cashCents == cashBeforeRejected &&
+              purchasing.view().supplyOrders.size() ==
+                  legacyOrdersBeforeRejected &&
+              purchasing.logisticsSnapshot().purchaseOrders.size() ==
+                  serviceOrdersBeforeRejected,
+          "rejected mirrored supply order mutated one authority");
+
+  const auto purchasingState = purchasing.save();
+  auto purchasingRestored = Simulation::load(purchasingState);
+  require(purchasingRestored.logisticsSnapshot().purchaseOrders.size() ==
+              purchaseLogistics.purchaseOrders.size(),
+          "mirrored FINAL-04 purchase orders did not survive save/load");
+
   Simulation demolition(322, 16, 10, 1);
   require(demolition.loadDefinitions(R"({"baseDemand":0})").ok,
           "demolition test definitions rejected");
