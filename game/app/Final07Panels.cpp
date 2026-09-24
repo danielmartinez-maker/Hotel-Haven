@@ -826,12 +826,10 @@ void Client::paint(HDC output) {
       label(L"Staff active / scheduled",
             std::to_wstring(ops.activeStaff) + L" / " +
                 std::to_wstring(ops.scheduledStaff));
-      label(L"HK / engineering",
+      label(L"HK / Eng / Service",
             std::to_wstring(ops.housekeepingBacklog) + L" / " +
-                std::to_wstring(ops.engineeringOpenOrders));
-      label(L"Service / blocked moves",
-            permille(ops.serviceLevelPermille) + L" / " +
-                std::to_wstring(ops.blockedInventoryMoves));
+                std::to_wstring(ops.engineeringOpenOrders) + L" / " +
+                permille(ops.serviceLevelPermille));
     } else {
       label(L"Scheduled / active",
             std::to_wstring(ops.scheduledStaff) + L" / " +
@@ -886,7 +884,18 @@ void Client::paint(HDC output) {
     separator();
 
     auto drawOperation = [&](const auto &row) {
-      if (y + vpx(58) >= bottom)
+      if (compactOperations) {
+        if (y + vpx(52) >= bottom)
+          return false;
+        std::wstring summary = wide(row.name) + L" · " + wide(row.state);
+        if (!row.reasonCode.empty())
+          summary += L" · " + wide(row.reasonCode);
+        paragraph(summary, 36, row.reasonCode.empty() ? Ink : Warning);
+        separator();
+        return true;
+      }
+
+      if (y + vpx(82) >= bottom)
         return false;
       paragraph(wide(row.name) + L" · " + wide(row.state), 24);
       if (!row.reasonCode.empty())
