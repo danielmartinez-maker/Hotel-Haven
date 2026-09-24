@@ -142,28 +142,59 @@ void staffRoomFurniture(RenderScene &s, int floor, float x, float z,
                    assets->staffBench);
 }
 
-void bed(RenderScene &s, int f, float x, float z, const WorldAssetSet *assets) {
-  const bool assetBed =
-      assets && fittedMesh(s, f, x, z, .58f, 1.62f, 2.10f, 1.16f,
-                           assets->guestBed);
-  if (!assetBed) {
-    box(s, f, x, z, .28f, 1.5f, 2.1f, .38f, wood);
-    box(s, f, x, z, .52f, 1.46f, 2.0f, .23f, cream);
-    box(s, f, x, z + .3f, .65f, 1.48f, 1.35f, .12f, teal);
-    box(s, f, x, z - .72f, .72f, 1.24f, .42f, .17f,
-        {.99f, .97f, .88f, 1});
-    box(s, f, x, z - 1.05f, .67f, 1.62f, .13f, 1.0f, wood);
+struct BedPresentation {
+  const std::optional<WorldAssetVisual> *visual{};
+  float width{1.62f};
+};
+
+BedPresentation roomBedPresentation(
+    const WorldAssetSet *assets, const RoomView &room, int bedIndex) {
+  const bool twinLayout = room.beds > 1 && room.width >= 8;
+  if (twinLayout) {
+    return {
+        assets ? (bedIndex == 0 ? &assets->twinBedLeft : &assets->twinBedRight)
+               : nullptr,
+        .95f,
+    };
   }
+
+  if (room.width <= 4)
+    return {assets ? &assets->singleBed : nullptr, 1.00f};
+  if (room.width <= 5)
+    return {assets ? &assets->doubleBed : nullptr, 1.40f};
+  if (room.width >= 8)
+    return {assets ? &assets->kingBed : nullptr, 1.90f};
+  return {assets ? &assets->queenBed : nullptr, 1.62f};
+}
+
+void bed(RenderScene &s, int f, float x, float z,
+         const BedPresentation &presentation, const WorldAssetSet *assets) {
+  const bool assetBed =
+      presentation.visual &&
+      fittedMesh(s, f, x, z, .58f, presentation.width, 2.10f, 1.16f,
+                 *presentation.visual);
+  if (!assetBed) {
+    const float frameWidth = presentation.width * .94f;
+    const float linenWidth = presentation.width * .90f;
+    box(s, f, x, z, .28f, frameWidth, 2.1f, .38f, wood);
+    box(s, f, x, z, .52f, linenWidth, 2.0f, .23f, cream);
+    box(s, f, x, z + .3f, .65f, linenWidth, 1.35f, .12f, teal);
+    box(s, f, x, z - .72f, .72f, presentation.width * .77f, .42f, .17f,
+        {.99f, .97f, .88f, 1});
+    box(s, f, x, z - 1.05f, .67f, presentation.width, .13f, 1.0f, wood);
+  }
+
+  const float nightstandX = x + presentation.width * .5f + .40f;
   const bool assetNightstand =
-      assets && fittedMesh(s, f, x + 1.10f, z - .65f, .40f, .50f, .52f, .80f,
+      assets && fittedMesh(s, f, nightstandX, z - .65f, .40f, .50f, .52f, .80f,
                            assets->nightstand);
   if (!assetNightstand)
-    box(s, f, x + 1.10f, z - .65f, .40f, .50f, .52f, .8f, wood);
+    box(s, f, nightstandX, z - .65f, .40f, .50f, .52f, .8f, wood);
   const bool assetLamp =
-      assets && fittedMesh(s, f, x + 1.10f, z - .65f, .98f, .32f, .32f, .28f,
+      assets && fittedMesh(s, f, nightstandX, z - .65f, .98f, .32f, .32f, .28f,
                            assets->bedsideLamp);
   if (!assetLamp)
-    box(s, f, x + 1.10f, z - .65f, .98f, .32f, .32f, .28f, gold);
+    box(s, f, nightstandX, z - .65f, .98f, .32f, .32f, .28f, gold);
 }
 
 Color statusColor(RoomStatus st) {
@@ -320,9 +351,11 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
     }
     box(s, f, x + w * .5f, z + d * .5f, .07f, std::max(1.f, w - 2.1f),
         std::max(1.f, d - 2.1f), .05f, rug);
-    bed(s, f, x + 2.f, z + 2.5f, assets);
+    bed(s, f, x + 2.f, z + 2.5f,
+        roomBedPresentation(assets, r, 0), assets);
     if (r.beds > 1 && w >= 8)
-      bed(s, f, x + w - 2.f, z + 2.5f, assets);
+      bed(s, f, x + w - 2.f, z + 2.5f,
+          roomBedPresentation(assets, r, 1), assets);
 
     // Bathroom fixtures remain presentation-only; room simulation owns baths.
     if (r.baths > 0) {
