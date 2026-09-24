@@ -536,6 +536,41 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
     hashValue(revision, static_cast<std::uint64_t>(person.queueWaitSeconds));
   }
 
+  for (const auto& department : view.departments) {
+    const auto forecast = simulation.departmentForecast(department.id, view.day);
+    const auto departmentEntityId =
+        0xF100000000000001ULL +
+        static_cast<std::uint64_t>(department.id);
+    const auto teamSize =
+        department.directReports.size() + (department.managerId != 0 ? 1U : 0U);
+
+    UiEntitySnapshot entity;
+    entity.id = departmentEntityId;
+    entity.kind = InspectorKind::Department;
+    entity.title = department.name;
+    entity.fields = {
+        {"Manager",
+         department.managerId == 0 ? "Unassigned"
+                                   : std::to_string(department.managerId)},
+        {"Team size", std::to_string(teamSize)},
+        {"Required today", std::to_string(forecast.requiredMinutes) + " min"},
+        {"Scheduled today", std::to_string(forecast.scheduledMinutes) + " min"},
+        {"Uncovered today", std::to_string(forecast.uncoveredMinutes) + " min"}};
+    out.entities.push_back(std::move(entity));
+
+    hashValue(revision, departmentEntityId);
+    hashValue(revision, department.managerId);
+    hashValue(revision, static_cast<std::uint64_t>(teamSize));
+    hashValue(revision,
+              static_cast<std::uint64_t>(forecast.requiredMinutes));
+    hashValue(revision,
+              static_cast<std::uint64_t>(forecast.scheduledMinutes));
+    hashValue(revision,
+              static_cast<std::uint64_t>(forecast.uncoveredMinutes));
+    for (const auto reportId : department.directReports)
+      hashValue(revision, reportId);
+  }
+
   if (guestSatisfactionCount > 0) {
     out.hud.satisfactionPermille = static_cast<int>(std::lround(
         guestSatisfactionTotal * 10.0 / static_cast<double>(guestSatisfactionCount)));
