@@ -72,6 +72,7 @@ struct D3D11Renderer::InstanceData {
 
 struct D3D11Renderer::CameraConstants {
     DirectX::XMFLOAT4X4 viewProjection;
+    DirectX::XMFLOAT4 cameraWorldPosition;
 };
 
 struct D3D11Renderer::MeshGpuVertex {
@@ -83,6 +84,7 @@ struct D3D11Renderer::MeshConstants {
     DirectX::XMFLOAT4X4 world;
     DirectX::XMFLOAT4X4 normalWorld;
     DirectX::XMFLOAT4 color;
+    DirectX::XMFLOAT4 materialParameters;
 };
 
 D3D11Renderer::~D3D11Renderer() {
@@ -739,6 +741,11 @@ RendererResult D3D11Renderer::drawMeshBatch(
                 material.baseColor.g * composed.item.tint.g,
                 material.baseColor.b * composed.item.tint.b,
                 material.baseColor.a * composed.item.tint.a);
+            constants->materialParameters = DirectX::XMFLOAT4(
+                std::clamp(material.metallic, 0.0f, 1.0f),
+                std::clamp(material.roughness, 0.04f, 1.0f),
+                0.0f,
+                0.0f);
             context_->Unmap(meshConstantBuffer_.Get(), 0);
 
             ID3D11Buffer* vertexBuffer = primitive.vertexBuffer.Get();
@@ -772,6 +779,9 @@ RendererResult D3D11Renderer::render(const ComposedScene& scene, const OrthoCame
     }
     auto* constants = static_cast<CameraConstants*>(mapped.pData);
     DirectX::XMStoreFloat4x4(&constants->viewProjection, camera.viewProjectionMatrix());
+    const Vec3 cameraPosition = camera.worldPosition();
+    constants->cameraWorldPosition = DirectX::XMFLOAT4(
+        cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
     context_->Unmap(cameraConstantBuffer_.Get(), 0);
 
     constexpr float clearColor[4] = {0.075f, 0.085f, 0.10f, 1.0f};
