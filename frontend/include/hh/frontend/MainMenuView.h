@@ -24,6 +24,8 @@ struct LayoutMetrics {
     float viewportHeight{};
     float logicalScale{1.0F};
     float uiScale{1.0F};
+    float uiContentScale{1.0F};
+    float uiDensityScale{1.0F};
     float safeZoneLeft{};
     float safeZoneTop{};
     float safeZoneWidth{};
