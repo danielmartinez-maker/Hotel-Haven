@@ -37,7 +37,8 @@ std::vector<std::byte> readBinaryFile(const std::filesystem::path& path) {
 
 bool isRenderableMeshType(hh::assets::AssetType type) noexcept {
     return type == hh::assets::AssetType::StaticMesh ||
-           type == hh::assets::AssetType::SkinnedMesh;
+           type == hh::assets::AssetType::SkinnedMesh ||
+           type == hh::assets::AssetType::Prefab;
 }
 
 std::optional<std::uint32_t> parseAssetNumber(
@@ -76,7 +77,7 @@ AssetHandle RuntimeAssetRegistry::addHasset(std::span<const std::byte> bytes) {
     const hh::assets::HassetDocument document = hh::assets::parse_hasset(bytes);
     if (!isRenderableMeshType(document.type)) {
         throw std::runtime_error(
-            "runtime mesh registry accepts only StaticMesh/SkinnedMesh cooked assets");
+            "runtime mesh registry accepts only StaticMesh/SkinnedMesh/Prefab GLB cooked assets");
     }
     if (document.asset_id.empty()) {
         throw std::runtime_error("cooked runtime asset has an empty asset_id");
