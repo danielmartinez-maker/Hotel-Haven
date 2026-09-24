@@ -123,12 +123,21 @@ void lobbyDecoration(RenderScene &s, const TileView &tile, float x, float z,
   if (motif == 0) {
     (void)fittedMesh(s, tile.position.floor, x, z, .40f, .88f, .55f, .80f,
                      assets->lobbySofa);
+  } else if (motif == 1) {
+    (void)fittedMesh(s, tile.position.floor, x, z, .68f, .34f, .34f, 1.36f,
+                     assets->lobbyFloorLamp);
   } else if (motif == 2) {
     (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
                      assets->lobbyArmchair);
+  } else if (motif == 3) {
+    (void)fittedMesh(s, tile.position.floor, x, z, .58f, .58f, .58f, 1.16f,
+                     assets->lobbyPlanter);
   } else if (motif == 4) {
     (void)fittedMesh(s, tile.position.floor, x, z, .19f, .70f, .55f, .38f,
                      assets->lobbyCoffeeTable);
+  } else {
+    (void)fittedMesh(s, tile.position.floor, x, z, .60f, .58f, .68f, 1.20f,
+                     assets->luggageCart);
   }
 }
 
@@ -401,6 +410,8 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
     if (assets && w >= 5.0f && d >= 5.0f) {
       (void)fittedMesh(s, f, x + w - .72f, z + 1.10f, .88f,
                        .76f, .50f, 1.76f, assets->wardrobe);
+      (void)fittedMesh(s, f, x + w - .42f, z + d * .50f, .36f,
+                       .62f, 1.08f, .72f, assets->tvConsole);
       (void)fittedMesh(s, f, x + w - .11f, z + d * .50f, 1.46f,
                        .12f, 1.00f, .58f, assets->wallTelevision);
       (void)fittedMesh(s, f, x + w - 1.25f, z + 3.15f, .44f,
@@ -470,6 +481,16 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
 
     box(s, f, x, z, .07f, .49f, .43f, .035f, {.18f, .20f, .17f, .35f});
     if (assets) {
+      const bool serviceActive =
+          p.state == PersonState::Working || p.state == PersonState::Traveling;
+      if (serviceActive && p.kind == PersonKind::Housekeeper) {
+        (void)fittedMesh(s, f, x + .55f, z + .34f, .48f,
+                         .52f, .66f, .96f, assets->housekeepingCart);
+      } else if (serviceActive && p.kind == PersonKind::Maintenance) {
+        (void)fittedMesh(s, f, x + .55f, z - .34f, .44f,
+                         .62f, .72f, .88f, assets->utilityCart);
+      }
+
       constexpr float halfPi = 1.57079632679f;
       const float yaw =
           static_cast<float>(static_cast<std::size_t>(p.id) % 4u) * halfPi;
