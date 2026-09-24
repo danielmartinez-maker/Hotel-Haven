@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "binding_set_id": "HH_RUNTIME_WORLD_BINDINGS_V1",
-  "asset_count": 64,
+  "asset_count": 70,
   "source": "game/app/WorldAssetBindings.cpp",
   "runtime_supported_asset_types": [
     "StaticMeshAsset",
@@ -25,6 +25,7 @@
       "HH_A131",
       "HH_A140",
       "HH_A141",
+      "HH_A151",
       "HH_A153",
       "HH_A166",
       "HH_A169",
@@ -33,6 +34,11 @@
       "HH_A194",
       "HH_A197",
       "HH_A200",
+      "HH_A205",
+      "HH_A207",
+      "HH_A211",
+      "HH_A291",
+      "HH_A320",
       "HH_A302",
       "HH_A338",
       "HH_A339",
