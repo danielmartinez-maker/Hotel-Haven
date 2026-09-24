@@ -127,8 +127,8 @@ hh::assets::AssetType testAssetType(std::string_view id) {
 int main() {
   try {
     const auto required = hh::client::requiredWorldAssetIds();
-    require(required.size() == 59u,
-            "world presentation dependency set should contain 59 assets");
+    require(required.size() == 64u,
+            "world presentation dependency set should contain 64 assets");
 
     hh::renderer::RuntimeAssetRegistry registry;
     for (const std::string_view id : required) {
@@ -139,15 +139,25 @@ int main() {
 
     const hh::client::WorldAssetSet assets =
         hh::client::worldAssetsFromRegistry(registry);
-    require(assets.guestBed.has_value(), "guest bed binding missing");
-    require(assets.guestBed->handle == registry.resolve("HH_A113"),
-            "guest bed handle mismatch");
-    require(assets.guestBed->localBounds.min.x == -1.0f &&
-                assets.guestBed->localBounds.max.x == 1.0f,
+    require(assets.queenBed.has_value(), "queen bed binding missing");
+    require(assets.singleBed->handle == registry.resolve("HH_A111"),
+            "single bed binding mismatch");
+    require(assets.doubleBed->handle == registry.resolve("HH_A112"),
+            "double bed binding mismatch");
+    require(assets.queenBed->handle == registry.resolve("HH_A113"),
+            "queen bed handle mismatch");
+    require(assets.kingBed->handle == registry.resolve("HH_A114"),
+            "king bed binding mismatch");
+    require(assets.twinBedLeft->handle == registry.resolve("HH_A115"),
+            "left twin binding mismatch");
+    require(assets.twinBedRight->handle == registry.resolve("HH_A116"),
+            "right twin binding mismatch");
+    require(assets.queenBed->localBounds.min.x == -1.0f &&
+                assets.queenBed->localBounds.max.x == 1.0f,
             "decoded local bounds not propagated");
-    require(assets.guestBed->localBounds.max.y == 2.0f,
+    require(assets.queenBed->localBounds.max.y == 2.0f,
             "decoded vertical local bounds not propagated");
-    require(!assets.guestBed->translucent,
+    require(!assets.queenBed->translucent,
             "opaque material incorrectly marked translucent");
     require(assets.showerGlass->translucent,
             "alpha material did not mark world asset translucent");
@@ -217,9 +227,9 @@ int main() {
         hh::client::loadWorldAssetsFromDirectory(startupRegistry, root);
     require(startupRegistry.size() == required.size(),
             "startup decoded assets outside the world dependency set");
-    require(startupAssets.guestBed->handle ==
+    require(startupAssets.queenBed->handle ==
                 startupRegistry.resolve("HH_A113"),
-            "startup asset set did not bind guest bed handle");
+            "startup asset set did not bind queen bed handle");
     require(startupRegistry.resolve("HH_A451").value < startupRegistry.size(),
             "startup rejected a cooked skinned bind-pose character");
 
