@@ -332,8 +332,13 @@ void Client::paint(HDC output) {
     RECT rect{x, y, x + w, y + h};
     const int buttonIndex = static_cast<int>(buttons.size());
     const bool hovered = buttonIndex == hoveredButton;
-    fill(dc, rect, active ? Accent : (hovered ? AccentSoft : Panel));
-    frame(dc, rect, active || hovered ? Accent : Line);
+    const bool chromeButton =
+        rect.bottom <= HeaderHeight || rect.top >= height - FooterHeight;
+    const COLORREF idleFill = chromeButton ? ChromeRaised : Panel;
+    const COLORREF hoverFill = chromeButton ? ChromeLine : AccentSoft;
+    const COLORREF idleBorder = chromeButton ? ChromeLine : Line;
+    fill(dc, rect, active ? Accent : (hovered ? hoverFill : idleFill));
+    frame(dc, rect, active || hovered ? Accent : idleBorder);
     if (active) {
       const int markerWidth = std::max(2, px(3));
       fill(dc, {rect.left, rect.top, rect.left + markerWidth, rect.bottom},
@@ -345,7 +350,7 @@ void Client::paint(HDC output) {
     drawText(dc, small, value, x + horizontalPadding, y + verticalPadding,
              std::max(1, w - horizontalPadding * 2),
              std::max(1, h - verticalPadding),
-             active ? ChromeText : Ink,
+             active || chromeButton ? ChromeText : Ink,
              DT_CENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     buttons.push_back({rect, std::move(value), std::move(action), active});
   };
