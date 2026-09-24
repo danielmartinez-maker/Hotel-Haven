@@ -6,6 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -91,6 +93,29 @@ std::vector<std::byte> makeHasset(std::string id, hh::assets::AssetType type) {
     return hh::assets::serialize_hasset(document);
 }
 
+void writeBytes(
+    const std::filesystem::path& path,
+    const std::vector<std::byte>& bytes) {
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output) {
+        throw std::runtime_error("cannot create runtime registry test asset");
+    }
+    output.write(
+        reinterpret_cast<const char*>(bytes.data()),
+        static_cast<std::streamsize>(bytes.size()));
+    if (!output) {
+        throw std::runtime_error("cannot write runtime registry test asset");
+    }
+}
+
+std::filesystem::path resetTempRoot(std::string_view suffix) {
+    auto root = std::filesystem::temp_directory_path() /
+                ("hotel-haven-runtime-registry-" + std::string(suffix));
+    std::filesystem::remove_all(root);
+    std::filesystem::create_directories(root);
+    return root;
+}
+
 }  // namespace
 
 TEST_CASE("runtime asset registry resolves cooked static meshes to stable handles") {
@@ -135,4 +160,57 @@ TEST_CASE("runtime asset registry rejects cooked non-mesh assets") {
         threw = true;
     }
     EXPECT_TRUE(threw);
+}
+
+TEST_CASE("runtime asset registry selectively loads only required package assets") {
+    const auto root = resetTempRoot("subset");
+    writeBytes(root / "HH_A001.hasset",
+               makeHasset("HH_A001", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A002.hasset",
+               makeHasset("HH_A002", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A451.hasset",
+               makeHasset("HH_A451", hh::assets::AssetType::SkinnedMesh));
+
+    const std::array<std::string_view, 2> required{"HH_A451", "HH_A001"};
+    hh::renderer::RuntimeAssetRegistry registry;
+    registry.loadDirectorySubset(root, required);
+
+    EXPECT_EQ(registry.size(), 2u);
+    EXPECT_EQ(registry.asset(registry.resolve("HH_A001")).assetId,
+              std::string("HH_A001"));
+    EXPECT_EQ(registry.asset(registry.resolve("HH_A451")).assetType,
+              hh::assets::AssetType::SkinnedMesh);
+
+    bool rejectedUnloadedAsset = false;
+    try {
+        (void)registry.resolve("HH_A002");
+    } catch (const std::runtime_error&) {
+        rejectedUnloadedAsset = true;
+    }
+    EXPECT_TRUE(rejectedUnloadedAsset);
+    std::filesystem::remove_all(root);
+}
+
+TEST_CASE("selective runtime asset loading is atomic on package failure") {
+    const auto root = resetTempRoot("atomic");
+    writeBytes(root / "HH_A001.hasset",
+               makeHasset("HH_A002", hh::assets::AssetType::StaticMesh));
+
+    hh::renderer::RuntimeAssetRegistry registry;
+    (void)registry.addHasset(
+        makeHasset("HH_KEEP", hh::assets::AssetType::StaticMesh));
+
+    const std::array<std::string_view, 1> required{"HH_A001"};
+    bool threw = false;
+    try {
+        registry.loadDirectorySubset(root, required);
+    } catch (const std::runtime_error&) {
+        threw = true;
+    }
+
+    EXPECT_TRUE(threw);
+    EXPECT_EQ(registry.size(), 1u);
+    EXPECT_EQ(registry.asset(registry.resolve("HH_KEEP")).assetId,
+              std::string("HH_KEEP"));
+    std::filesystem::remove_all(root);
 }
