@@ -2982,6 +2982,85 @@ std::string Simulation::save() const {
   o.write(amenityState.data(), static_cast<std::streamsize>(amenityState.size()));
   o << '\n';
 
+  std::ostringstream constructionStateStream;
+  constructionStateStream << std::setprecision(17);
+  auto writeMaterials = [&](const ConstructionMaterials &materials) {
+    constructionStateStream << materials.lumber << ' ' << materials.drywall
+                            << ' ' << materials.electrical << ' '
+                            << materials.plumbing << ' ' << materials.hardware;
+  };
+  constructionStateStream << impl_->construction.objects.size() << '\n';
+  for (const auto &object : impl_->construction.objects)
+    constructionStateStream
+        << object.id << ' ' << std::quoted(object.typeId) << ' '
+        << object.origin.floor << ' ' << object.origin.x << ' '
+        << object.origin.y << ' ' << object.width << ' ' << object.height
+        << ' ' << object.rotationQuarterTurns << ' '
+        << object.blocksMovement << '\n';
+  writeMaterials(impl_->construction.availableMaterials);
+  constructionStateStream << '\n';
+  writeMaterials(impl_->construction.reservedMaterials);
+  constructionStateStream << '\n'
+                          << impl_->construction.buildJobs.size() << '\n';
+  for (const auto &job : impl_->construction.buildJobs) {
+    constructionStateStream
+        << job.id << ' ' << ei(job.state) << ' ' << job.reservedCashCents
+        << ' ' << job.workSeconds << ' ' << job.materialsConsumed << ' '
+        << job.taskId << ' ' << std::quoted(job.blockedReason) << ' ';
+    writeMaterials(job.reservedMaterials);
+    constructionStateStream << ' ' << job.construction.placements.size();
+    for (const auto &placement : job.construction.placements)
+      constructionStateStream
+          << ' ' << std::quoted(placement.typeId) << ' '
+          << placement.origin.floor << ' ' << placement.origin.x << ' '
+          << placement.origin.y << ' ' << placement.rotationQuarterTurns;
+    constructionStateStream
+        << ' ' << job.construction.removeObjectIds.size();
+    for (const auto id : job.construction.removeObjectIds)
+      constructionStateStream << ' ' << id;
+    constructionStateStream << '\n';
+  }
+
+  constructionStateStream << impl_->buildingSystems.utilityNodes.size()
+                          << '\n';
+  for (const auto &node : impl_->buildingSystems.utilityNodes)
+    constructionStateStream
+        << node.id << ' ' << ei(node.kind) << ' ' << node.roomId << ' '
+        << node.source << ' ' << node.capacity << ' ' << node.load << '\n';
+  constructionStateStream << impl_->buildingSystems.utilityEdges.size()
+                          << '\n';
+  for (const auto &edge : impl_->buildingSystems.utilityEdges)
+    constructionStateStream << edge.from << ' ' << edge.to << '\n';
+  constructionStateStream << impl_->buildingSystems.rooms.size() << '\n';
+  for (const auto &room : impl_->buildingSystems.rooms)
+    constructionStateStream
+        << room.roomId << ' ' << room.powerConnected << ' '
+        << room.waterConnected << ' ' << room.egress << ' '
+        << room.accessible << ' ' << room.fireCovered << ' '
+        << room.securityCovered << '\n';
+  constructionStateStream << impl_->buildingSystems.elevators.size() << '\n';
+  for (const auto &elevator : impl_->buildingSystems.elevators) {
+    constructionStateStream
+        << elevator.id << ' ' << ei(elevator.kind) << ' '
+        << elevator.minFloor << ' ' << elevator.maxFloor << ' '
+        << elevator.currentFloor << ' ' << elevator.targetFloor << ' '
+        << elevator.capacity << ' ' << elevator.travelSecondsPerFloor << ' '
+        << elevator.doorSeconds << ' ' << ei(elevator.state) << ' '
+        << elevator.phaseSecondsRemaining << ' '
+        << elevator.activeRequestId << ' ' << elevator.requests.size();
+    for (const auto &request : elevator.requests)
+      constructionStateStream << ' ' << request.id << ' '
+                              << request.pickupFloor << ' '
+                              << request.destinationFloor << ' '
+                              << request.boarded;
+    constructionStateStream << '\n';
+  }
+  const auto constructionState = constructionStateStream.str();
+  o << "FINAL01_CONSTRUCTION " << constructionState.size() << '\n';
+  o.write(constructionState.data(),
+          static_cast<std::streamsize>(constructionState.size()));
+  o << '\n';
+
   std::ostringstream workforce;
   workforce << std::setprecision(17)
             << impl_->onboardingCostCents << ' '
@@ -3311,6 +3390,188 @@ Simulation Simulation::load(std::string_view data) {
     d.food.setElapsedSeconds(d.elapsed);
     d.events.setElapsedSeconds(d.elapsed);
     d.amenities.setElapsedSeconds(d.elapsed);
+  }
+
+  if (version >= 10) {
+    std::string constructionTag;
+    std::size_t constructionBytes{};
+    i >> constructionTag >> constructionBytes;
+    if (!i || constructionTag != "FINAL01_CONSTRUCTION" ||
+        constructionBytes > 16 * 1024 * 1024)
+      throw std::invalid_argument("invalid FINAL-01 construction save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-01 construction delimiter");
+    std::string constructionState(constructionBytes, '\0');
+    i.read(constructionState.data(),
+           static_cast<std::streamsize>(constructionBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != constructionBytes)
+      throw std::invalid_argument("truncated FINAL-01 construction section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-01 construction terminator");
+
+    std::istringstream state{constructionState};
+    auto readMaterials = [&](ConstructionMaterials &materials) {
+      state >> materials.lumber >> materials.drywall >>
+          materials.electrical >> materials.plumbing >> materials.hardware;
+      return static_cast<bool>(state) && detail::validMaterials(materials);
+    };
+    std::size_t count{};
+    state >> count;
+    if (!state || count > 100000)
+      throw std::invalid_argument("invalid FINAL-01 construction object count");
+    d.construction.objects.resize(count);
+    for (auto &object : d.construction.objects) {
+      state >> object.id >> std::quoted(object.typeId) >>
+          object.origin.floor >> object.origin.x >> object.origin.y >>
+          object.width >> object.height >> object.rotationQuarterTurns >>
+          object.blocksMovement;
+      const auto *definition = detail::constructionDefinition(object.typeId);
+      if (!state || object.id == 0 || object.id >= d.nextId || !definition ||
+          !d.inside(object.origin) || object.width <= 0 || object.height <= 0 ||
+          object.width !=
+              ((detail::normalizedQuarterTurns(object.rotationQuarterTurns) %
+                2)
+                   ? definition->height
+                   : definition->width) ||
+          object.height !=
+              ((detail::normalizedQuarterTurns(object.rotationQuarterTurns) %
+                2)
+                   ? definition->width
+                   : definition->height))
+        throw std::invalid_argument("invalid FINAL-01 construction object");
+    }
+    if (!readMaterials(d.construction.availableMaterials) ||
+        !readMaterials(d.construction.reservedMaterials))
+      throw std::invalid_argument("invalid FINAL-01 construction materials");
+
+    state >> count;
+    if (!state || count > 100000)
+      throw std::invalid_argument("invalid FINAL-01 build-job count");
+    d.construction.buildJobs.resize(count);
+    for (auto &job : d.construction.buildJobs) {
+      int jobState{};
+      std::size_t placements{}, removals{};
+      state >> job.id >> jobState >> job.reservedCashCents >>
+          job.workSeconds >> job.materialsConsumed >> job.taskId >>
+          std::quoted(job.blockedReason);
+      if (!readMaterials(job.reservedMaterials))
+        throw std::invalid_argument("invalid FINAL-01 reserved materials");
+      state >> placements;
+      if (!state || placements > 100000)
+        throw std::invalid_argument("invalid FINAL-01 placement count");
+      job.construction.placements.resize(placements);
+      for (auto &placement : job.construction.placements) {
+        state >> std::quoted(placement.typeId) >> placement.origin.floor >>
+            placement.origin.x >> placement.origin.y >>
+            placement.rotationQuarterTurns;
+        if (!state || !detail::constructionDefinition(placement.typeId) ||
+            !d.inside(placement.origin))
+          throw std::invalid_argument("invalid FINAL-01 saved placement");
+      }
+      state >> removals;
+      if (!state || removals > 100000)
+        throw std::invalid_argument("invalid FINAL-01 removal count");
+      job.construction.removeObjectIds.resize(removals);
+      for (auto &id : job.construction.removeObjectIds)
+        state >> id;
+      if (!state || job.id == 0 || job.id >= d.nextId ||
+          jobState < ei(BuildJobState::WaitingForMaterials) ||
+          jobState > ei(BuildJobState::Cancelled) ||
+          job.reservedCashCents < 0 || job.workSeconds <= 0 ||
+          job.workSeconds > 7 * 86400)
+        throw std::invalid_argument("invalid FINAL-01 build job");
+      job.state = static_cast<BuildJobState>(jobState);
+    }
+
+    state >> count;
+    if (!state || count > 100000)
+      throw std::invalid_argument("invalid FINAL-01 utility-node count");
+    d.buildingSystems.utilityNodes.resize(count);
+    for (auto &node : d.buildingSystems.utilityNodes) {
+      int kind{};
+      state >> node.id >> kind >> node.roomId >> node.source >>
+          node.capacity >> node.load;
+      if (!state || node.id == 0 || node.id >= d.nextId ||
+          kind < ei(UtilityKind::Power) || kind > ei(UtilityKind::Water) ||
+          node.capacity < 0 || node.load < 0 || node.load > node.capacity)
+        throw std::invalid_argument("invalid FINAL-01 utility node");
+      node.kind = static_cast<UtilityKind>(kind);
+    }
+
+    state >> count;
+    if (!state || count > 200000)
+      throw std::invalid_argument("invalid FINAL-01 utility-edge count");
+    d.buildingSystems.utilityEdges.resize(count);
+    for (auto &edge : d.buildingSystems.utilityEdges) {
+      state >> edge.from >> edge.to;
+      if (!state || edge.from == 0 || edge.to == 0)
+        throw std::invalid_argument("invalid FINAL-01 utility edge");
+    }
+
+    state >> count;
+    if (!state || count > 100000)
+      throw std::invalid_argument("invalid FINAL-01 room-system count");
+    d.buildingSystems.rooms.resize(count);
+    for (auto &room : d.buildingSystems.rooms) {
+      state >> room.roomId >> room.powerConnected >> room.waterConnected >>
+          room.egress >> room.accessible >> room.fireCovered >>
+          room.securityCovered;
+      if (!state || room.roomId == 0)
+        throw std::invalid_argument("invalid FINAL-01 room system");
+    }
+
+    state >> count;
+    if (!state || count > 10000)
+      throw std::invalid_argument("invalid FINAL-01 elevator count");
+    d.buildingSystems.elevators.resize(count);
+    for (auto &elevator : d.buildingSystems.elevators) {
+      int kind{}, elevatorState{};
+      std::size_t requestCount{};
+      state >> elevator.id >> kind >> elevator.minFloor >>
+          elevator.maxFloor >> elevator.currentFloor >>
+          elevator.targetFloor >> elevator.capacity >>
+          elevator.travelSecondsPerFloor >> elevator.doorSeconds >>
+          elevatorState >> elevator.phaseSecondsRemaining >>
+          elevator.activeRequestId >> requestCount;
+      if (!state || elevator.id == 0 || elevator.id >= d.nextId ||
+          kind < ei(ElevatorKind::Passenger) ||
+          kind > ei(ElevatorKind::Service) ||
+          elevatorState < ei(ElevatorState::Idle) ||
+          elevatorState > ei(ElevatorState::Alighting) ||
+          elevator.minFloor < 0 || elevator.maxFloor >= d.floors ||
+          elevator.minFloor > elevator.maxFloor ||
+          elevator.currentFloor < elevator.minFloor ||
+          elevator.currentFloor > elevator.maxFloor ||
+          elevator.targetFloor < elevator.minFloor ||
+          elevator.targetFloor > elevator.maxFloor ||
+          elevator.capacity < 1 || elevator.capacity > 100 ||
+          elevator.travelSecondsPerFloor < 1 ||
+          elevator.travelSecondsPerFloor > 600 ||
+          elevator.doorSeconds < 1 || elevator.doorSeconds > 120 ||
+          elevator.phaseSecondsRemaining < 0 || requestCount > 100000)
+        throw std::invalid_argument("invalid FINAL-01 elevator");
+      elevator.kind = static_cast<ElevatorKind>(kind);
+      elevator.state = static_cast<ElevatorState>(elevatorState);
+      elevator.requests.resize(requestCount);
+      for (auto &request : elevator.requests) {
+        state >> request.id >> request.pickupFloor >>
+            request.destinationFloor >> request.boarded;
+        if (!state || request.id == 0 || request.id >= d.nextId ||
+            request.pickupFloor < elevator.minFloor ||
+            request.pickupFloor > elevator.maxFloor ||
+            request.destinationFloor < elevator.minFloor ||
+            request.destinationFloor > elevator.maxFloor)
+          throw std::invalid_argument("invalid FINAL-01 elevator request");
+      }
+    }
+    state >> std::ws;
+    if (!state.eof())
+      throw std::invalid_argument(
+          "unexpected FINAL-01 construction trailing data");
+    detail::refreshRoomUtilityFlags(d.buildingSystems);
+  } else {
+    for (const auto &room : d.rooms)
+      d.initializeLegacyRoomSystems(room.id);
   }
 
   if (version >= 10) {
