@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
+from asset_manifest import load_active_manifest
 from semantic_asset_quality import semantic_contract_failures, variant_signature_failures
 
 EXPECTED_MOVING = {
@@ -54,24 +55,16 @@ CONTEXTUAL_PLACEMENT_OVERRIDES = {
 }
 
 
-def manifest_rows(manifest_dir: Path):
+def manifest_rows(manifest):
     out = {}
-    for path in sorted(manifest_dir.glob('asset_batch_*.json')):
-        data = json.loads(path.read_text())
-        for group in data['groups']:
-            for row in group['assets']:
-                out[row[0]] = {
-                    'name': row[1],
-                    'profile': row[4],
-                    'animation_set': row[5],
-                    'interaction_anchors': list(row[6]),
-                }
+    for _family, _batch_path, row in manifest.iter_rows():
+        out[row[0]] = {
+            'name': row[1],
+            'profile': row[4],
+            'animation_set': row[5],
+            'interaction_anchors': list(row[6]),
+        }
     return out
-
-
-def profile_contracts(repo_root: Path) -> dict[str, dict]:
-    path = repo_root / 'GameData' / 'AssetDefinitions' / 'hotel_haven_asset_manifest_v1.json'
-    return json.loads(path.read_text(encoding='utf-8'))['profiles']
 
 
 def material_rgb(geom):
@@ -171,6 +164,7 @@ def placement_failures(asset_id: str, pivot_profile: str, bounds_min, bounds_max
 
 def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str, str]) -> str:
     gameplay = summary.get('gameplay_asset_count', 0)
+    target = report.get('expected_asset_count', gameplay)
     linked = summary.get('animation_links', 0)
     expected = summary.get('expected_animation_links', 0)
     deferred = summary.get('animation_links_deferred', 0)
@@ -186,17 +180,17 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     expected_anchor_bindings = report.get('expected_interaction_anchor_bindings', 0)
 
     unresolved = qc_failures + deferred
-    if gameplay != 500:
+    if gameplay != target:
         unresolved += 1
     if linked != expected:
         unresolved += 1
 
     lines = [
-        '# Hotel Haven 500-Asset Library Release Audit V1',
+        f'# Hotel Haven {target}-Asset Library Release Audit V{report.get("manifest_schema", 1)}',
         '',
         '## Release gate',
         '',
-        f'- Gameplay-facing assets: **{gameplay} / 500**',
+        f'- Gameplay-facing assets: **{gameplay} / {target}**',
         f'- Generated asset records (gameplay + animation support): **{summary.get("generated_asset_records", 0)}**',
         f'- Animation dependencies linked: **{linked} / {expected}**',
         f'- Deferred animation dependencies: **{deferred}**',
@@ -221,8 +215,10 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     for profile, budget in sorted(report.get('profile_face_budgets', {}).items()):
         lines.append(f'| {profile} | {budget} |')
     lines.extend(['', '## Batch status', '', '| Batch | Status |', '| --- | --- |'])
-    for batch in range(1, 11):
-        lines.append(f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |')
+    for batch_key in sorted(batch_statuses, key=int):
+        lines.append(
+            f'| Batch {int(batch_key):02d} | {batch_statuses[batch_key]} |'
+        )
     lines.extend([
         '',
         '## Operational note',
@@ -234,9 +230,10 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
 
 
 def validate(repo_root: Path) -> dict:
-    manifest_dir = repo_root / 'GameData' / 'AssetDefinitions' / 'Manifest'
-    manifests = manifest_rows(manifest_dir)
-    contracts = profile_contracts(repo_root)
+    active_manifest = load_active_manifest(repo_root)
+    manifests = manifest_rows(active_manifest)
+    contracts = active_manifest.profiles
+    expected_asset_count = active_manifest.asset_count
     exports = repo_root / 'Art' / 'Exports'
     failures = []
     contract_failure_details = []
@@ -254,8 +251,11 @@ def validate(repo_root: Path) -> dict:
         for path in exports.rglob('ANSET_*.animset.json.asset.json')
     }
     paths = sorted(exports.glob('Batch*/*.glb'))
-    if len(paths) != 500:
-        failures.append(f'expected 500 GLBs, found {len(paths)}')
+    if len(paths) != expected_asset_count:
+        failures.append(
+            f'expected {expected_asset_count} GLBs from {active_manifest.path.name}, '
+            f'found {len(paths)}'
+        )
 
     for path in paths:
         asset_id = path.stem
@@ -408,6 +408,9 @@ def validate(repo_root: Path) -> dict:
         'schema': 1,
         'status': 'PASS' if not failures else 'FAIL',
         'asset_count': len(stats),
+        'expected_asset_count': expected_asset_count,
+        'manifest_id': active_manifest.data.get('manifest_id', active_manifest.path.stem),
+        'manifest_schema': int(active_manifest.data.get('schema', 1)),
         'failure_count': len(failures),
         'failures': failures,
         'profile_contract_failure_count': len(contract_failure_details),
@@ -442,12 +445,15 @@ def validate(repo_root: Path) -> dict:
         summary = json.loads(summary_path.read_text())
         counts = summary.get('batch_counts', {})
         batch_statuses = {
-            f'{i:02d}': (
+            f'{entry.batch:02d}': (
                 'PRODUCTION_GENERATOR_VALIDATED'
-                if counts.get(f'{i:02d}') == 50
-                else f'INCOMPLETE_{counts.get(f"{i:02d}", 0)}_OF_50'
+                if counts.get(f'{entry.batch:02d}') == entry.asset_count
+                else (
+                    f'INCOMPLETE_{counts.get(f"{entry.batch:02d}", 0)}'
+                    f'_OF_{entry.asset_count}'
+                )
             )
-            for i in range(1, 11)
+            for entry in active_manifest.batch_entries
         }
         (validation_dir / 'library_release_audit_v1.md').write_text(
             release_audit_markdown(summary, report, batch_statuses)
