@@ -2744,7 +2744,7 @@ BuildingSystemsSnapshot Simulation::buildingSystemsSnapshot() const {
   return impl_->buildingSystems;
 }
 
-void Simulation::step(double seconds) {
+void Simulation::stepV10(double seconds) {
   if (!std::isfinite(seconds) || seconds < 0 || seconds > 1.0e9)
     throw std::invalid_argument("step seconds must be finite and bounded");
   impl_->remainderMillis += (std::int64_t)std::llround(seconds * 1000);
@@ -2884,7 +2884,7 @@ SimulationView Simulation::view() const {
   return v;
 }
 
-std::string Simulation::save() const {
+std::string Simulation::saveV10() const {
   std::ostringstream o;
   o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
@@ -3030,7 +3030,7 @@ std::string Simulation::save() const {
   o << '\n';
   return o.str();
 }
-Simulation Simulation::load(std::string_view data) {
+Simulation Simulation::loadV10(std::string_view data) {
   if (data.size() > 64 * 1024 * 1024)
     throw std::invalid_argument("simulation save too large");
   std::istringstream i{std::string(data)};
