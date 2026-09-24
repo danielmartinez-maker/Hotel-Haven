@@ -92,8 +92,18 @@ def test_curtains_expose_moving_nodes_and_parent_all_moving_detail():
 
 def test_storage_and_amenity_casegoods_have_readable_feature_nodes():
     cases = {
-        'Standard Wardrobe': {'Door_Left', 'Door_Right', 'Handle_Left', 'Handle_Right'},
-        'Luxury Armoire': {'Door_Left', 'Door_Right', 'CrownMolding'},
+        'Standard Nightstand': {
+            'CaseTop', 'CasePlinth', 'Drawer_0_0', 'DrawerPull_0_0',
+            'NightstandLowerReveal',
+        },
+        'Standard Wardrobe': {
+            'Door_Left', 'Door_Right', 'Handle_Left', 'Handle_Right',
+            'WardrobeTopCap', 'WardrobePlinth', 'WardrobeDoorGap',
+        },
+        'Luxury Armoire': {
+            'Door_Left', 'Door_Right', 'CrownMolding',
+            'WardrobeTopCap', 'WardrobePlinth', 'WardrobeDoorGap',
+        },
         'Minibar Cabinet': {'MinibarDoor', 'MinibarHandle'},
         'Coffee Station Cabinet': {'CoffeeMachine', 'CupStack'},
         'TV Console Luxury': {'ConsoleShelf', 'CablePort'},
