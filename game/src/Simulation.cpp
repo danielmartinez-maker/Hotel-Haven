@@ -96,6 +96,10 @@ struct Simulation::Impl {
   std::vector<PendingOrder> orders;
   InventoryView inventory{24, 48, 36, 24, 8};
   ServiceLogisticsRuntime services{1};
+  std::vector<RoomId> managedHousekeepingScratch;
+  std::vector<RoomId> workingHousekeepingScratch;
+  std::vector<AssetId> managedEngineeringScratch;
+  std::vector<AssetId> workingEngineeringScratch;
   FoodServiceSystem food;
   EventsSystem events;
   AmenitiesSystem amenities;
@@ -825,6 +829,39 @@ struct Simulation::Impl {
                        }),
         reservations.end());
   }
+  void tickServicesWithPhysicalLabor() {
+    managedHousekeepingScratch.clear();
+    workingHousekeepingScratch.clear();
+    managedEngineeringScratch.clear();
+    workingEngineeringScratch.clear();
+
+    const auto requiredCapacity = tasks.size();
+    if (managedHousekeepingScratch.capacity() < requiredCapacity) {
+      managedHousekeepingScratch.reserve(requiredCapacity);
+      workingHousekeepingScratch.reserve(requiredCapacity);
+      managedEngineeringScratch.reserve(requiredCapacity);
+      workingEngineeringScratch.reserve(requiredCapacity);
+    }
+
+    for (const auto &task : tasks) {
+      if (task.status == TaskStatus::Completed)
+        continue;
+      if (task.kind == TaskKind::Turnover) {
+        managedHousekeepingScratch.push_back(task.targetId);
+        if (task.status == TaskStatus::Working)
+          workingHousekeepingScratch.push_back(task.targetId);
+      } else if (task.kind == TaskKind::Repair) {
+        managedEngineeringScratch.push_back(task.targetId);
+        if (task.status == TaskStatus::Working)
+          workingEngineeringScratch.push_back(task.targetId);
+      }
+    }
+
+    services.tickSimulationSecond(
+        managedHousekeepingScratch, workingHousekeepingScratch,
+        managedEngineeringScratch, workingEngineeringScratch);
+  }
+
   void minute() {
     elapsed += 1;
     int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
@@ -1337,31 +1374,7 @@ void Simulation::step(double seconds) {
     impl_->remainderMillis -= 1000;
     const auto revenueBefore = impl_->final05RevenueCents();
     impl_->minute();
-
-    std::vector<RoomId> managedHousekeepingRooms;
-    std::vector<RoomId> workingHousekeepingRooms;
-    std::vector<AssetId> managedEngineeringAssets;
-    std::vector<AssetId> workingEngineeringAssets;
-    managedHousekeepingRooms.reserve(impl_->tasks.size());
-    workingHousekeepingRooms.reserve(impl_->tasks.size());
-    managedEngineeringAssets.reserve(impl_->tasks.size());
-    workingEngineeringAssets.reserve(impl_->tasks.size());
-    for (const auto &task : impl_->tasks) {
-      if (task.status == TaskStatus::Completed)
-        continue;
-      if (task.kind == TaskKind::Turnover) {
-        managedHousekeepingRooms.push_back(task.targetId);
-        if (task.status == TaskStatus::Working)
-          workingHousekeepingRooms.push_back(task.targetId);
-      } else if (task.kind == TaskKind::Repair) {
-        managedEngineeringAssets.push_back(task.targetId);
-        if (task.status == TaskStatus::Working)
-          workingEngineeringAssets.push_back(task.targetId);
-      }
-    }
-    impl_->services.tickSimulationSecond(
-        managedHousekeepingRooms, workingHousekeepingRooms,
-        managedEngineeringAssets, workingEngineeringAssets);
+    impl_->tickServicesWithPhysicalLabor();
     impl_->food.tickSecond();
     impl_->events.tickSecond();
     impl_->amenities.tickSecond();
