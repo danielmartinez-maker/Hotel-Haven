@@ -62,6 +62,16 @@ jobs:
             game/src/ServiceLogistics.cpp \
             game/include/hh/game/ServiceLogistics.h \
             game/include/hh/game/ServiceTypes.h
+          git add \
+            game/src/Simulation.cpp \
+            game/include/hh/game/Simulation.h \
+            game/src/Housekeeping.cpp \
+            game/include/hh/game/Housekeeping.h \
+            game/src/Engineering.cpp \
+            game/include/hh/game/Engineering.h \
+            game/src/ServiceLogistics.cpp \
+            game/include/hh/game/ServiceLogistics.h \
+            game/include/hh/game/ServiceTypes.h
 
           # Graft the verified FINAL-03 workforce/organization simulation hooks
           # onto the newer authoritative simulation core using FINAL-03's own
