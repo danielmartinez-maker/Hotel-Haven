@@ -115,4 +115,11 @@ hh::renderer::RenderScene worldScene(
     const hh::game::SimulationView &,
     const WorldViewOptions &,
     const WorldAssetSet *assets = nullptr);
+
+// Deterministic renderer smoke/gallery scene for the bounded runtime catalog.
+// It has no simulation or placement authority.
+hh::renderer::RenderScene runtimeAssetCatalogScene(
+    const WorldAssetSet &assets,
+    std::uint32_t firstAssetNumber = 1u,
+    std::uint32_t lastAssetNumber = 700u);
 } // namespace hh::client
