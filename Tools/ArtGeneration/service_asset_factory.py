@@ -253,11 +253,11 @@ def small_cleaning(name, mat):
             add(scene, cyl(0.16, 0.35, (0.24, 0, 0.175), mat, 18), 'Canister')
         return scene
     if 'Mop Bucket' in name:
-        add(scene, box((0.48, 0.34, 0.38), (0, 0, 0.19), mat), 'Bucket')
+        add(scene, box((0.48, 0.34, 0.38), (0, 0, 0.19), mat), 'PrimaryBucket')
         add(scene, box((0.20, 0.30, 0.24), (0.18, 0, 0.48), 'MAT_BLACKENED_STEEL'), 'Wringer')
         return scene
     if 'Caddy' in name or 'Toolbox' in name:
-        add(scene, box((0.48, 0.26, 0.26), (0, 0, 0.13), mat), 'Box')
+        add(scene, box((0.48, 0.26, 0.26), (0, 0, 0.13), mat), 'PrimaryBox')
         add(scene, box((0.25, 0.04, 0.20), (0, 0, 0.36), 'MAT_BLACKENED_STEEL'), 'Handle')
         return scene
     if any(k in name for k in ('Hamper', 'Sorting Bin', 'Trash Bin', 'Recycling Bin', 'Compactor Bin')):
@@ -278,7 +278,7 @@ def ladder(name, mat):
     h = 1.65 if 'Portable' in name else 1.20
     w = 0.48
     for i, x in enumerate((-w / 2, w / 2)):
-        add(scene, box((0.045, 0.05, h), (x, 0, h / 2), mat), f'Rail_{i}')
+        add(scene, box((0.045, 0.05, h), (x, 0, h / 2), mat), f'FrameRail_{i}')
     for i, z in enumerate(np.linspace(0.20, h - 0.18, 6)):
         add(scene, box((w, 0.12, 0.045), (0, 0, z), mat), f'Step_{i}')
     return scene
