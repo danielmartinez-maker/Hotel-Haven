@@ -310,10 +310,11 @@ void Client::paint(HDC output) {
   buttons.clear();
 
   const int uiScale = uiSettings.scalePercent();
+  const auto panelLayout = computeFinal07PanelLayout(width, height, uiScale);
   const auto px = [uiScale](int logicalPixels) {
     return final07ScalePixel(logicalPixels, uiScale);
   };
-  const int densityScale = final07DensityScalePercent(uiScale);
+  const int densityScale = panelLayout.densityScalePercent;
   const auto vpx = [densityScale](int logicalPixels) {
     return final07ScalePixel(logicalPixels, densityScale);
   };
@@ -453,11 +454,11 @@ void Client::paint(HDC output) {
   }
 
   const int left = sidebarX + px(20);
-  const int panelWidth = SidebarWidth - px(40);
+  const int panelWidth = panelLayout.contentWidthPixels;
   const int controlGap = px(12);
   const int halfControlWidth = std::max(1, (panelWidth - controlGap) / 2);
-  int y = HeaderHeight + vpx(126);
-  const int bottom = height - FooterHeight - vpx(52);
+  int y = panelLayout.contentTopPixels;
+  const int bottom = panelLayout.contentBottomPixels;
 
   auto heading = [&](const std::wstring &value) {
     drawText(dc, small, L"MANAGEMENT  /  " + pageLabel(page), left, y,
@@ -535,7 +536,7 @@ void Client::paint(HDC output) {
 
     const int buildRowHeight = vpx(35);
     const int buildButtonHeight = std::max(px(22), vpx(30));
-    const int buildColumns = final07BuildCatalogColumns(panelWidth);
+    const int buildColumns = panelLayout.buildColumns;
     const int buildColumnWidth =
         std::max(1, (panelWidth - controlGap * (buildColumns - 1)) /
                          buildColumns);
