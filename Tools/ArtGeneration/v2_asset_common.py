@@ -297,10 +297,10 @@ def luggage_or_accessibility(name: str, mat: str) -> trimesh.Scene:
     scene = trimesh.Scene()
     if 'Wheelchair' in name:
         for side, x in (('L', -0.32), ('R', 0.32)):
-            wheel = cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28)
+            wheel = cyl(0.31, 0.045, (x, 0, 0.31), 'MAT_BLACKENED_STEEL', 28)
             wheel.apply_transform(
                 trimesh.transformations.rotation_matrix(
-                    np.pi / 2, [1, 0, 0], [x, 0, 0.36]
+                    np.pi / 2, [1, 0, 0], [x, 0, 0.31]
                 )
             )
             add(scene, wheel, f'Wheel_{side}')
