@@ -2,7 +2,7 @@ name: Unify Developed Systems
 on:
   push:
     branches:
-      - integration/unify-developed-systems-2026-09-24
+      - 'integration/**'
 
 permissions:
   contents: write
