@@ -4,6 +4,8 @@
 #include "hh/game/Construction.h"
 #include "hh/game/GuestGoals.h"
 #include "hh/game/GuestPsychology.h"
+#include "hh/game/GuestPsychologyArchive.h"
+#include "hh/game/GuestReviews.h"
 #include "hh/game/GuestReviews.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
@@ -3162,6 +3164,24 @@ void Simulation::step(double seconds) {
     impl_->economy.revenueCents += revenueDelta;
     impl_->economy.cashCents += revenueDelta;
   }
+
+  for (auto &review : impl_->reviews) {
+    const auto reservation = std::find_if(
+        impl_->completedReservationHistory.begin(),
+        impl_->completedReservationHistory.end(),
+        [&](const Reservation &candidate) {
+          return candidate.id == review.reservationId;
+        });
+    if (reservation == impl_->completedReservationHistory.end())
+      continue;
+    const auto psychology = guestPsychology(reservation->id);
+    const auto stableReviewTime =
+        static_cast<std::int64_t>(review.day) * 86400 + 12 * 3600;
+    const auto draft =
+        buildGuestReview(psychology, impl_->seed, stableReviewTime);
+    review.score = draft.score;
+    review.text = draft.text;
+  }
 }
 
 LogisticsSnapshot Simulation::logisticsSnapshot() const {
@@ -3279,7 +3299,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 12 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -3500,6 +3520,27 @@ std::string Simulation::save() const {
   o.write(workforceState.data(),
           static_cast<std::streamsize>(workforceState.size()));
   o << '\n';
+
+  std::ostringstream psychology;
+  psychology << std::setprecision(17);
+  const std::size_t psychologyCount =
+      impl_->reservations.size() + impl_->completedReservationHistory.size();
+  psychology << psychologyCount << '\n';
+  const auto writePsychology = [&](const Reservation &reservation) {
+    psychology << reservation.id << ' ';
+    writeGuestProfile(psychology, reservation.profile);
+    psychology << ' ' << std::quoted(reservation.psychologyArchive) << ' '
+               << std::quoted(reservation.guestGroupArchive) << '\n';
+  };
+  for (const auto &reservation : impl_->reservations)
+    writePsychology(reservation);
+  for (const auto &reservation : impl_->completedReservationHistory)
+    writePsychology(reservation);
+  const auto psychologyState = psychology.str();
+  o << "FINAL02_PSYCHOLOGY " << psychologyState.size() << '\n';
+  o.write(psychologyState.data(),
+          static_cast<std::streamsize>(psychologyState.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -3509,7 +3550,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 10)
+  if (magic != "HHGS" || version < 2 || version > 12)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -3786,7 +3827,16 @@ Simulation Simulation::load(std::string_view data) {
     d.amenities.setElapsedSeconds(d.elapsed);
   }
 
-  if (version >= 10) {
+  bool hasConstructionSection = version >= 11;
+  if (version == 10) {
+    const auto sectionStart = i.tellg();
+    std::string nextTag;
+    i >> nextTag;
+    hasConstructionSection = nextTag == "FINAL01_CONSTRUCTION";
+    i.clear();
+    i.seekg(sectionStart);
+  }
+  if (hasConstructionSection) {
     std::string constructionTag;
     std::size_t constructionBytes{};
     i >> constructionTag >> constructionBytes;
@@ -4130,6 +4180,92 @@ Simulation Simulation::load(std::string_view data) {
         person.contract = {0, staffRole(person.kind), person.hourlyWageCents, 0,
                            person.shiftStartHour, person.shiftEndHour};
       }
+  }
+
+  if (version >= 12) {
+    std::string psychologyTag;
+    std::size_t psychologyBytes{};
+    i >> psychologyTag >> psychologyBytes;
+    if (!i || psychologyTag != "FINAL02_PSYCHOLOGY" ||
+        psychologyBytes > 32 * 1024 * 1024)
+      throw std::invalid_argument("invalid FINAL-02 psychology save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-02 psychology delimiter");
+    std::string psychologyState(psychologyBytes, '\0');
+    i.read(psychologyState.data(),
+           static_cast<std::streamsize>(psychologyBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != psychologyBytes)
+      throw std::invalid_argument("truncated FINAL-02 psychology section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-02 psychology terminator");
+
+    std::istringstream psychology{psychologyState};
+    std::size_t psychologyCount{};
+    psychology >> psychologyCount;
+    const std::size_t expectedPsychologyCount =
+        d.reservations.size() + d.completedReservationHistory.size();
+    if (!psychology || psychologyCount != expectedPsychologyCount ||
+        psychologyCount > 100000)
+      throw std::invalid_argument("FINAL-02 guests do not match simulation");
+
+    std::unordered_set<EntityId> psychologyIds;
+    for (std::size_t index = 0; index < psychologyCount; ++index) {
+      EntityId guestId{};
+      GuestProfileView profile;
+      std::string psychologyArchive;
+      std::string groupArchive;
+      psychology >> guestId;
+      if (!psychology || !readGuestProfile(psychology, profile))
+        throw std::invalid_argument("invalid FINAL-02 guest profile");
+      psychology >> std::quoted(psychologyArchive) >> std::quoted(groupArchive);
+      if (!psychology || guestId == 0 ||
+          !psychologyIds.insert(guestId).second)
+        throw std::invalid_argument("invalid FINAL-02 guest identity");
+
+      Reservation *reservation = nullptr;
+      for (auto &candidate : d.reservations)
+        if (candidate.id == guestId) {
+          reservation = &candidate;
+          break;
+        }
+      if (!reservation)
+        for (auto &candidate : d.completedReservationHistory)
+          if (candidate.id == guestId) {
+            reservation = &candidate;
+            break;
+          }
+      if (!reservation)
+        throw std::invalid_argument(
+            "FINAL-02 psychology references missing guest");
+
+      if (!psychologyArchive.empty()) {
+        const auto restored =
+            detail::deserializeGuestPsychology(psychologyArchive);
+        if (restored.guestId != guestId ||
+            restored.profile != profile)
+          throw std::invalid_argument(
+              "FINAL-02 psychology archive identity mismatch");
+      }
+      if (!groupArchive.empty()) {
+        const auto group = detail::deserializeGuestGroup(groupArchive);
+        if (std::find(group.members.begin(), group.members.end(), guestId) ==
+            group.members.end())
+          throw std::invalid_argument(
+              "FINAL-02 group archive omits owning guest");
+      }
+      reservation->profile = profile;
+      reservation->psychologyArchive = std::move(psychologyArchive);
+      reservation->guestGroupArchive = std::move(groupArchive);
+    }
+    psychology >> std::ws;
+    if (!psychology.eof())
+      throw std::invalid_argument(
+          "unexpected FINAL-02 psychology trailing data");
+    try {
+      (void)s.guestGroupsSnapshot();
+    } catch (const std::exception &) {
+      throw std::invalid_argument("invalid FINAL-02 guest group state");
+    }
   }
 
   if (!i)
