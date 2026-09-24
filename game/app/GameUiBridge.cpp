@@ -371,8 +371,8 @@ void mapEconomy(const hh::game::SimulationView& view,
 
 hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
+                         const hh::game::SimulationView& view,
                          const GameUiBridgeContext& context) {
-  const auto view = simulation.view();
   const auto logistics = simulation.logisticsSnapshot();
   const auto housekeeping = simulation.housekeepingSnapshot();
   const auto engineering = simulation.engineeringSnapshot();
@@ -825,6 +825,13 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
   hashText(revision, context.buildPreview.reasonCode);
   out.revision = revision;
   return out;
+}
+
+hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
+                         const GameUiBridgeContext& context) {
+  const auto view = simulation.view();
+  return makeGameUiSnapshotSource(simulation, view, context);
 }
 
 } // namespace hh::client
