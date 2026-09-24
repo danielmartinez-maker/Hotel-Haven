@@ -46,6 +46,10 @@ jobs:
         if: runner.os == 'Windows'
         run: build/Tools/ContentPipeline/Release/asset.exe cook --runtime
 
+      - name: Verify cooked runtime asset set
+        if: runner.os == 'Windows'
+        run: python Tools/ContentPipeline/scripts/verify_runtime_asset_set.py Art/Exports Build/CookedAssets
+
       - name: Audit all cooked renderer assets
         if: runner.os == 'Windows'
         run: build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
