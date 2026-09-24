@@ -242,13 +242,19 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         const hh::frontend::MenuInputFrame gamepadInput = gamepad.poll();
         if (window.consumeKeyPressed(VK_UP) || window.consumeKeyPressed('W') ||
             gamepadInput.navigationDelta < 0) {
+            const auto previousSelection = model.selected();
             controller.navigate(-1);
-            transitions.retarget(model.selected(), reducedMotion);
+            if (model.selected() != previousSelection) {
+                transitions.retarget(model.selected(), reducedMotion);
+            }
         }
         if (window.consumeKeyPressed(VK_DOWN) || window.consumeKeyPressed('S') ||
             gamepadInput.navigationDelta > 0) {
+            const auto previousSelection = model.selected();
             controller.navigate(1);
-            transitions.retarget(model.selected(), reducedMotion);
+            if (model.selected() != previousSelection) {
+                transitions.retarget(model.selected(), reducedMotion);
+            }
         }
 
         const bool activatePressed =
