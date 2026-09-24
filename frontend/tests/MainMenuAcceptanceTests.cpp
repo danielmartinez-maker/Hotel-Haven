@@ -84,3 +84,19 @@ TEST_CASE("reduced motion removes idle and selection camera motion") {
     EXPECT_NEAR(pose.targetZOffset, 0.0F, 0.0001F);
     EXPECT_NEAR(pose.zoomScale, 1.0F, 0.0001F);
 }
+
+TEST_CASE("Living Hotel UI scale cycles through the shared supported sequence") {
+    float scale = 0.90F;
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.00F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.10F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.25F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.50F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::nextMainMenuUiScale(1.234F),
+                1.00F, 0.0001F);
+}
