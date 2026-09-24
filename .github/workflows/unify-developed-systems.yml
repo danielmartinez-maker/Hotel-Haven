@@ -49,6 +49,13 @@ jobs:
           merge_branch feature/nvidia-optimization-openusd
           merge_branch hardening/extensive-optimization-2026-09-10
 
+          # The latest FINAL-07/FINAL-04 simulation core is authoritative.
+          # Older completed systems are integrated around it rather than
+          # text-merging incompatible historical generations of this monolith.
+          git restore --source=origin/fix/final07-authoritative-service-ops-ui -- \
+            game/src/Simulation.cpp \
+            game/include/hh/game/Simulation.h
+
           # Squash the integration result onto the integration base. This keeps the
           # developed source/content changes while avoiding GitHub App workflow-file
           # write restrictions from historical branch workflow commits.
