@@ -176,4 +176,11 @@ WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver) {
   return assets;
 }
 
+const WorldAssetVisual* findWorldAsset(
+    const WorldAssetSet& assets,
+    std::string_view assetId) noexcept {
+  const auto found = assets.catalog.find(std::string(assetId));
+  return found == assets.catalog.end() ? nullptr : &found->second;
+}
+
 } // namespace hh::client
