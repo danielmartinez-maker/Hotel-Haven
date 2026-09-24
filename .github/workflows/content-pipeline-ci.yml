@@ -20,6 +20,10 @@ on:
       - 'game/app/WorldAssetBindings.cpp'
       - '.github/workflows/content-pipeline-ci.yml'
 
+concurrency:
+  group: content-pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test-validate:
     runs-on: windows-latest
