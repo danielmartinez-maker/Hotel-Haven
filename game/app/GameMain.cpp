@@ -333,7 +333,7 @@ Client::Client() : simulation(Simulation::tutorial(20260907)), hudController(hud
   if (!rebuildFonts(uiSettings.scalePercent()))
     throw std::runtime_error("Cannot create Hotel Haven UI fonts");
   applyClientUiScale(uiSettings.scalePercent());
-  snapshot = simulation.view();
+  snapshot = simulation.view(false);
   refreshUi();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
@@ -391,7 +391,7 @@ bool Client::rebuildFonts(int scalePercent) noexcept {
 }
 
 void Client::refresh() {
-  snapshot = simulation.view();
+  snapshot = simulation.view(false);
   refreshUi();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
@@ -767,6 +767,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
     double refreshTime = 0;
     int frames = 0;
     hh::renderer::SceneComposer composer;
+    hh::renderer::RenderScene scene;
+    hh::renderer::ComposedScene composedScratch;
+    hh::renderer::ComposedScene frame;
     while (c.running) {
       MSG msg{};
       while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -800,7 +803,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         const auto seconds = static_cast<std::int64_t>(std::floor(c.pendingSimulationSeconds));
         if (seconds > 0) {
           c.simulation.step(static_cast<double>(seconds));
-          c.snapshot = c.simulation.view();
+          c.snapshot = c.simulation.view(false);
           c.pendingSimulationSeconds -= static_cast<double>(seconds);
         }
       }
@@ -809,17 +812,18 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         c.refresh();
         refreshTime = 0;
       }
-      const auto scene = worldScene(
-          c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX, c.hoverY,
-                       c.tool == Tool::Bedroom ? 6.f : 1.f,
-                       c.tool != Tool::Inspect, c.previewValid,
-                       c.uiSettings.reducedMotion()},
+      buildWorldScene(
+          scene, c.snapshot,
+          {c.floor, c.selected, c.overlay, c.hoverX, c.hoverY,
+           c.tool == Tool::Bedroom ? 6.f : 1.f,
+           c.tool != Tool::Inspect, c.previewValid,
+           c.uiSettings.reducedMotion()},
           &c.worldAssets);
-      const auto frame = composeVisibleFrame(
+      composeVisibleFrame(
           scene, composer,
           c.context ? hh::renderer::FloorContextMode::AdjacentContext
                     : hh::renderer::FloorContextMode::Normal,
-          c.wallMode, c.camera);
+          c.wallMode, c.camera, composedScratch, frame);
       const auto draw = c.renderer.render(frame, c.camera);
       if (!draw)
         throw std::runtime_error(draw.error);

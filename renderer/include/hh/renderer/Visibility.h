@@ -5,6 +5,11 @@
 
 namespace hh::renderer {
 
+void prepareVisibleScene(
+    const ComposedScene& scene,
+    const OrthoCamera& camera,
+    ComposedScene& visible);
+
 [[nodiscard]] ComposedScene prepareVisibleScene(
     const ComposedScene& scene,
     const OrthoCamera& camera);

@@ -102,7 +102,8 @@ public:
   [[nodiscard]] std::vector<EventPhase> phaseHistory(EventBookingId id) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
-  [[nodiscard]] EventsSnapshot snapshot() const;
+  [[nodiscard]] EventsSnapshot snapshot(bool includeHistory = true) const;
+  [[nodiscard]] std::int64_t revenueCents() const noexcept;
 
   [[nodiscard]] std::string save() const;
   static EventsSystem load(std::string_view data);

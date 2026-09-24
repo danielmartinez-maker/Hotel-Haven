@@ -66,6 +66,10 @@ static void confirmed_event_generates_setup_service_and_teardown_workloads() {
           "event did not progress confirmed/setup/service/teardown/completed");
   require(events.snapshot().revenueCents == request.contractCents,
           "event contract revenue was not posted exactly once");
+  require(events.snapshot().bookings.size() == 1,
+          "full event snapshot lost completed history");
+  require(events.snapshot(false).bookings.empty(),
+          "live event snapshot retained completed history");
 }
 
 static void confirmed_event_reserves_its_function_space_window() {
@@ -85,9 +89,14 @@ static void event_state_round_trips_deterministically() {
   require(events.confirmEvent(standardEvent()) != 0,
           "event was not confirmed for persistence test");
   events.tickSeconds(11);
-  const auto restored = EventsSystem::load(events.save());
+  auto restored = EventsSystem::load(events.save());
   require(restored.save() == events.save(),
           "event save/load changed authoritative state");
+  restored.tickSeconds(10);
+  require(restored.phase(1) == EventPhase::Completed,
+          "restored active-event index did not continue event progression");
+  require(restored.snapshot().revenueCents == standardEvent().contractCents,
+          "restored event did not post contract revenue");
 }
 
 int main() {

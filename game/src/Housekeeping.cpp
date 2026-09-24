@@ -9,21 +9,19 @@ HousekeepingSystem::HousekeepingSystem(LogisticsSystem &logistics)
 void HousekeepingSystem::registerRoom(RoomId id, ServiceRoomStatus status) {
   if (id == 0 || room(id))
     return;
+  const auto index = rooms_.size();
   rooms_.push_back({id, status});
+  roomIndex_.emplace(id, index);
 }
 
 HousekeepingSystem::RoomState *HousekeepingSystem::room(RoomId id) {
-  for (auto &entry : rooms_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = roomIndex_.find(id);
+  return found == roomIndex_.end() ? nullptr : &rooms_[found->second];
 }
 
 const HousekeepingSystem::RoomState *HousekeepingSystem::room(RoomId id) const {
-  for (const auto &entry : rooms_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = roomIndex_.find(id);
+  return found == roomIndex_.end() ? nullptr : &rooms_[found->second];
 }
 
 int HousekeepingSystem::duration(HousekeepingStage stage) {
@@ -44,14 +42,16 @@ TaskId HousekeepingSystem::requestRoomTurn(RoomId roomId) {
   auto *roomState = room(roomId);
   if (!roomState)
     return 0;
-  for (const auto &job : jobs_)
-    if (job.roomId == roomId && job.stage != HousekeepingStage::Completed)
-      return job.id;
+  for (const auto index : activeJobs_)
+    if (jobs_[index].roomId == roomId)
+      return jobs_[index].id;
   roomState->status = ServiceRoomStatus::Dirty;
   const auto id = nextId_++;
+  const auto index = jobs_.size();
   jobs_.push_back({id, roomId, HousekeepingStage::StripLinen,
                    duration(HousekeepingStage::StripLinen), BlockReason::None,
                    false, false});
+  activeJobs_.push_back(index);
   return id;
 }
 
@@ -155,26 +155,61 @@ void HousekeepingSystem::tickJobSecond(Job &job) {
     completeStage(job);
 }
 
+void HousekeepingSystem::rebuildActiveJobs() {
+  roomIndex_.clear();
+  roomIndex_.reserve(rooms_.size());
+  for (std::size_t index = 0; index < rooms_.size(); ++index)
+    roomIndex_.emplace(rooms_[index].id, index);
+  activeJobs_.clear();
+  activeJobs_.reserve(jobs_.size());
+  for (std::size_t index = 0; index < jobs_.size(); ++index)
+    if (jobs_[index].stage != HousekeepingStage::Completed)
+      activeJobs_.push_back(index);
+}
+
 void HousekeepingSystem::tickSecond() {
   ++elapsedSeconds_;
-  for (auto &job : jobs_)
-    tickJobSecond(job);
+  for (const auto index : activeJobs_)
+    tickJobSecond(jobs_[index]);
+  activeJobs_.erase(
+      std::remove_if(activeJobs_.begin(), activeJobs_.end(),
+                     [&](std::size_t index) {
+                       return jobs_[index].stage == HousekeepingStage::Completed;
+                     }),
+      activeJobs_.end());
 }
 
 void HousekeepingSystem::tickSecondFor(
     const std::vector<RoomId> &managedRooms,
     const std::vector<RoomId> &workingRooms) {
   ++elapsedSeconds_;
-  for (auto &job : jobs_) {
+  const bool managedSorted =
+      std::is_sorted(managedRooms.begin(), managedRooms.end());
+  const bool workingSorted =
+      std::is_sorted(workingRooms.begin(), workingRooms.end());
+  for (const auto index : activeJobs_) {
+    auto &job = jobs_[index];
     const bool managed =
-        std::find(managedRooms.begin(), managedRooms.end(), job.roomId) !=
-        managedRooms.end();
+        managedSorted
+            ? std::binary_search(managedRooms.begin(), managedRooms.end(),
+                                 job.roomId)
+            : std::find(managedRooms.begin(), managedRooms.end(), job.roomId) !=
+                  managedRooms.end();
     const bool working =
-        std::find(workingRooms.begin(), workingRooms.end(), job.roomId) !=
-        workingRooms.end();
+        workingSorted
+            ? std::binary_search(workingRooms.begin(), workingRooms.end(),
+                                 job.roomId)
+            : std::find(workingRooms.begin(), workingRooms.end(), job.roomId) !=
+                  workingRooms.end();
     if (!managed || working)
       tickJobSecond(job);
   }
+  activeJobs_.erase(
+      std::remove_if(activeJobs_.begin(), activeJobs_.end(),
+                     [&](std::size_t index) {
+                       return jobs_[index].stage == HousekeepingStage::Completed;
+                     }),
+      activeJobs_.end());
 }
 
 void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
@@ -182,12 +217,22 @@ void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-HousekeepingSnapshot HousekeepingSystem::snapshot() const {
+HousekeepingSnapshot HousekeepingSystem::snapshot(bool includeHistory) const {
   HousekeepingSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
-  for (const auto &job : jobs_)
-    out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
-                        job.blockedReason});
+  if (includeHistory) {
+    out.jobs.reserve(jobs_.size());
+    for (const auto &job : jobs_)
+      out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
+                          job.blockedReason});
+  } else {
+    out.jobs.reserve(activeJobs_.size());
+    for (const auto index : activeJobs_) {
+      const auto &job = jobs_[index];
+      out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
+                          job.blockedReason});
+    }
+  }
   return out;
 }
 

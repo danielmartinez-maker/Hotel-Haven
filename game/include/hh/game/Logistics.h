@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -125,7 +126,7 @@ public:
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
 
-  [[nodiscard]] LogisticsSnapshot snapshot() const;
+  [[nodiscard]] LogisticsSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;
@@ -170,13 +171,19 @@ private:
   [[nodiscard]] bool isUsable(StorageKind kind) const;
   [[nodiscard]] bool consumeAt(StorageNodeId storage, std::string_view item,
                                int quantity);
+  void rebuildDerivedState();
 
   ServiceId nextId_{1};
   std::int64_t elapsedSeconds_{};
   std::vector<StorageNode> storage_;
   std::vector<Stack> inventory_;
+  std::unordered_map<StorageNodeId, std::size_t> storageIndex_;
   std::vector<PurchaseOrder> orders_;
   std::vector<StockMove> moves_;
+  std::unordered_map<PurchaseOrderId, std::size_t> orderIndex_;
+  std::vector<std::size_t> activeOrders_;
+  std::vector<std::size_t> transitOrders_;
+  std::vector<std::size_t> activeMoves_;
   int wasteAtSources_{};
   int wasteOverflowUnits_{};
   int wasteCollectionRemaining_{-1};

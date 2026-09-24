@@ -65,6 +65,9 @@ static void completed_service_posts_outcome_revenue_and_service_demand() {
           "amenity service did not publish one attributed outcome");
   require(snapshot.outcomes.front().guestId == 3001,
           "amenity outcome was not attributed to the guest");
+  const auto liveSnapshot = amenities.snapshot(false);
+  require(liveSnapshot.reservations.empty() && liveSnapshot.outcomes.empty(),
+          "live amenity snapshot retained completed history");
   const auto view = std::find_if(snapshot.amenities.begin(), snapshot.amenities.end(),
                                  [](const auto &value) { return value.id == 10; });
   require(view != snapshot.amenities.end(), "amenity disappeared from snapshot");
@@ -78,9 +81,12 @@ static void amenity_state_round_trips_deterministically() {
   require(amenities.reserveAmenity(4001, {10, 5, 10}).ok,
           "reservation failed for persistence test");
   amenities.tickSeconds(8);
-  const auto restored = AmenitiesSystem::load(amenities.save());
+  auto restored = AmenitiesSystem::load(amenities.save());
   require(restored.save() == amenities.save(),
           "amenity save/load changed authoritative state");
+  restored.tickSeconds(8);
+  require(restored.snapshot().revenueCents == spa().priceCents,
+          "restored active-reservation index did not continue service");
 }
 
 int main() {

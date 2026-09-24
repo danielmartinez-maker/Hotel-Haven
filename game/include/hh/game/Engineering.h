@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -44,7 +45,7 @@ public:
   latestWorkOrderStage(AssetId asset, WorkOrderType type) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
-  [[nodiscard]] EngineeringSnapshot snapshot() const;
+  [[nodiscard]] EngineeringSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;
@@ -67,6 +68,7 @@ private:
   [[nodiscard]] Asset *asset(AssetId id);
   [[nodiscard]] const Asset *asset(AssetId id) const;
   void tickWorkOrderSecond(WorkOrder &order);
+  void rebuildActiveWorkOrders();
   void tickReliabilitySecond();
   void tickSecondFor(const std::vector<AssetId> &managedAssets,
                      const std::vector<AssetId> &workingAssets);
@@ -78,6 +80,8 @@ private:
   int failures_{};
   std::vector<Asset> assets_;
   std::vector<WorkOrder> workOrders_;
+  std::unordered_map<AssetId, std::size_t> assetIndex_;
+  std::vector<std::size_t> activeWorkOrders_;
 };
 
 } // namespace hh::game
