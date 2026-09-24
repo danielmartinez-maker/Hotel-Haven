@@ -4,6 +4,7 @@
 #include "hh/assets/Types.h"
 
 #include <algorithm>
+#include <charconv>
 #include <fstream>
 #include <iterator>
 #include <limits>
@@ -37,6 +38,23 @@ std::vector<std::byte> readBinaryFile(const std::filesystem::path& path) {
 bool isRenderableMeshType(hh::assets::AssetType type) noexcept {
     return type == hh::assets::AssetType::StaticMesh ||
            type == hh::assets::AssetType::SkinnedMesh;
+}
+
+std::optional<std::uint32_t> parseAssetNumber(
+    std::string_view assetId,
+    std::string_view prefix) noexcept {
+    if (!assetId.starts_with(prefix) || assetId.size() == prefix.size()) {
+        return std::nullopt;
+    }
+    const std::string_view suffix = assetId.substr(prefix.size());
+    std::uint32_t value{};
+    const char* first = suffix.data();
+    const char* last = suffix.data() + suffix.size();
+    const auto parsed = std::from_chars(first, last, value);
+    if (parsed.ec != std::errc{} || parsed.ptr != last) {
+        return std::nullopt;
+    }
+    return value;
 }
 
 void validateRequestedAssetId(std::string_view assetId) {
@@ -189,6 +207,62 @@ void RuntimeAssetRegistry::loadDirectorySubset(
     loadFiles(paths);
 }
 
+void RuntimeAssetRegistry::loadDirectoryAssetRange(
+    const std::filesystem::path& cookedRoot,
+    std::string_view assetIdPrefix,
+    std::uint32_t firstAssetNumber,
+    std::uint32_t lastAssetNumber,
+    std::span<const std::string_view> requiredAssetIds) {
+    if (!std::filesystem::exists(cookedRoot) ||
+        !std::filesystem::is_directory(cookedRoot)) {
+        throw std::runtime_error("cooked asset root is not a directory: " +
+                                 cookedRoot.string());
+    }
+    if (assetIdPrefix.empty()) {
+        throw std::runtime_error("runtime asset range prefix must not be empty");
+    }
+    if (firstAssetNumber > lastAssetNumber) {
+        throw std::runtime_error("runtime asset range is inverted");
+    }
+
+    for (const std::string_view requiredId : requiredAssetIds) {
+        validateRequestedAssetId(requiredId);
+        const auto number = parseAssetNumber(requiredId, assetIdPrefix);
+        if (!number || *number < firstAssetNumber || *number > lastAssetNumber) {
+            throw std::runtime_error(
+                "required runtime asset is outside requested milestone range: " +
+                std::string(requiredId));
+        }
+        const auto path = cookedRoot / (std::string(requiredId) + ".hasset");
+        if (!std::filesystem::is_regular_file(path)) {
+            throw std::runtime_error(
+                "required cooked runtime asset is missing: " + path.string());
+        }
+    }
+
+    std::vector<std::filesystem::path> paths;
+    for (const auto& entry : std::filesystem::directory_iterator(cookedRoot)) {
+        if (!entry.is_regular_file() || entry.path().extension() != ".hasset") {
+            continue;
+        }
+        const std::string stem = entry.path().stem().string();
+        const auto number = parseAssetNumber(stem, assetIdPrefix);
+        if (!number || *number < firstAssetNumber || *number > lastAssetNumber) {
+            continue;
+        }
+        paths.push_back(entry.path());
+    }
+    std::sort(paths.begin(), paths.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.generic_string() < rhs.generic_string();
+    });
+    if (paths.empty()) {
+        throw std::runtime_error(
+            "cooked asset root contains no assets in requested milestone range");
+    }
+
+    loadFiles(paths);
+}
+
 AssetHandle RuntimeAssetRegistry::resolve(std::string_view assetId) const {
     const auto it = handlesById_.find(std::string(assetId));
     if (it == handlesById_.end()) {
@@ -198,12 +272,27 @@ AssetHandle RuntimeAssetRegistry::resolve(std::string_view assetId) const {
     return it->second;
 }
 
+std::optional<AssetHandle> RuntimeAssetRegistry::tryResolve(
+    std::string_view assetId) const noexcept {
+    const auto it = handlesById_.find(std::string(assetId));
+    return it == handlesById_.end() ? std::nullopt
+                                    : std::optional<AssetHandle>{it->second};
+}
+
+bool RuntimeAssetRegistry::contains(std::string_view assetId) const noexcept {
+    return handlesById_.find(std::string(assetId)) != handlesById_.end();
+}
+
 const RuntimeAsset& RuntimeAssetRegistry::asset(AssetHandle handle) const {
     const std::size_t index = static_cast<std::size_t>(handle.value);
     if (index >= assets_.size()) {
         throw std::runtime_error("runtime asset handle is out of range");
     }
     return assets_[index];
+}
+
+std::span<const RuntimeAsset> RuntimeAssetRegistry::assets() const noexcept {
+    return assets_;
 }
 
 std::size_t RuntimeAssetRegistry::size() const noexcept {
