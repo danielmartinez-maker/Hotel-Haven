@@ -78,9 +78,12 @@ static void amenity_state_round_trips_deterministically() {
   require(amenities.reserveAmenity(4001, {10, 5, 10}).ok,
           "reservation failed for persistence test");
   amenities.tickSeconds(8);
-  const auto restored = AmenitiesSystem::load(amenities.save());
+  auto restored = AmenitiesSystem::load(amenities.save());
   require(restored.save() == amenities.save(),
           "amenity save/load changed authoritative state");
+  restored.tickSeconds(8);
+  require(restored.snapshot().revenueCents == spa().priceCents,
+          "restored active-reservation index did not continue service");
 }
 
 int main() {
