@@ -152,10 +152,19 @@ int main() {
               legacyDefinitionInventory.chemicals == 4 &&
               legacyDefinitionInventory.parts == 3,
           "definition inventory override did not preserve legacy shadow stock");
-  const auto beforeImpossibleInventory = definitionInventory.save();
-  require(!definitionInventory.loadDefinitions(R"({"initialLinen":600})").ok,
-          "definition inventory exceeding FINAL-04 capacity was accepted");
-  require(definitionInventory.save() == beforeImpossibleInventory,
+  require(definitionInventory.loadDefinitions(R"({"initialLinen":600})").ok,
+          "large scenario inventory did not provision overflow storage");
+  int expandedLinen = 0;
+  for (const auto &stack : definitionInventory.logisticsSnapshot().inventory)
+    if (stack.item == "clean_linen_set")
+      expandedLinen += stack.quantity;
+  require(expandedLinen == 600,
+          "large scenario inventory was clipped instead of synchronized");
+
+  const auto beforeInvalidInventory = definitionInventory.save();
+  require(!definitionInventory.loadDefinitions(R"({"initialLinen":100001})").ok,
+          "out-of-range definition inventory was accepted");
+  require(definitionInventory.save() == beforeInvalidInventory,
           "rejected definition inventory override mutated simulation state");
 
   Simulation demolition(322, 16, 10, 1);
