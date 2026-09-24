@@ -94,16 +94,16 @@ bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
     return false;
 
   const bool activeHousekeeping =
-      std::any_of(housekeeping.jobs_.begin(), housekeeping.jobs_.end(),
-                  [room](const auto &job) {
-                    return job.roomId == room &&
-                           job.stage != HousekeepingStage::Completed;
+      std::any_of(housekeeping.activeJobs_.begin(),
+                  housekeeping.activeJobs_.end(),
+                  [&](std::size_t index) {
+                    return housekeeping.jobs_[index].roomId == room;
                   });
   const bool activeEngineering =
-      std::any_of(engineering.workOrders_.begin(),
-                  engineering.workOrders_.end(), [room](const auto &order) {
-                    return order.assetId == room &&
-                           order.stage != WorkOrderStage::Completed;
+      std::any_of(engineering.activeWorkOrders_.begin(),
+                  engineering.activeWorkOrders_.end(),
+                  [&](std::size_t index) {
+                    return engineering.workOrders_[index].assetId == room;
                   });
   if (activeHousekeeping || activeEngineering)
     return false;
@@ -121,6 +121,8 @@ bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
                      }),
       engineering.workOrders_.end());
   engineering.assets_.erase(assetIt);
+  housekeeping.rebuildActiveJobs();
+  engineering.rebuildActiveWorkOrders();
   return true;
 }
 LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot() const {
@@ -523,6 +525,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     job.blockedReason = static_cast<BlockReason>(block);
     h.jobs_.push_back(job);
   }
+  h.rebuildActiveJobs();
 
   auto &laundry = result.impl_->laundry;
   readTag("A");
@@ -581,6 +584,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     order.blockedReason = static_cast<BlockReason>(block);
     engineering.workOrders_.push_back(order);
   }
+  engineering.rebuildActiveWorkOrders();
 
   auto &service = result.impl_->roomService;
   readTag("R");
@@ -614,6 +618,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
       throw std::invalid_argument("room service history/state mismatch");
     service.orders_.push_back(std::move(order));
   }
+  service.rebuildDerivedState();
 
   if (l.elapsedSeconds_ != elapsed || h.elapsedSeconds_ != elapsed ||
       laundry.elapsedSeconds_ != elapsed ||
