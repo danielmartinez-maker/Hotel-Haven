@@ -1,7 +1,10 @@
 #include <windows.h>
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
+#include <optional>
 #include <string>
 
 #include "ShowcaseHotelScene.h"
@@ -52,17 +55,17 @@ bool hitMenuItem(
     float y = layout.navigationTop;
     for (const auto candidate : hh::frontend::MainMenuModel::orderedItems()) {
         if (candidate == hh::frontend::MainMenuItem::Settings) {
-            y += 28.0F * layout.logicalScale;
+            y += 28.0F * layout.uiContentScale;
         }
-        const float height = 48.0F * layout.logicalScale;
-        const float left = layout.navigationLeft - 12.0F * layout.logicalScale;
+        const float height = 48.0F * layout.uiContentScale;
+        const float left = layout.navigationLeft - 12.0F * layout.uiContentScale;
         const float right = layout.navigationLeft + layout.navigationWidth;
         if (static_cast<float>(point.x) >= left && static_cast<float>(point.x) <= right &&
             static_cast<float>(point.y) >= y && static_cast<float>(point.y) <= y + height) {
             item = candidate;
             return true;
         }
-        y += 55.0F * layout.logicalScale;
+        y += 55.0F * layout.uiContentScale;
     }
     return false;
 }
@@ -72,7 +75,7 @@ QuitModalAction hitQuitModalAction(
     float width,
     float height,
     POINT point) noexcept {
-    const float scale = layout.logicalScale;
+    const float scale = layout.uiContentScale;
     const float modalWidth = 470.0F * scale;
     const float modalHeight = 190.0F * scale;
     const float left = (width - modalWidth) * 0.5F;
@@ -92,20 +95,30 @@ QuitModalAction hitQuitModalAction(
         : QuitModalAction::Cancel;
 }
 
-bool hitSettingsToggle(
+std::optional<hh::frontend::MainMenuSettingsItem> hitSettingsItem(
     const hh::frontend::LayoutMetrics& layout,
     float width,
     float height,
     POINT point) noexcept {
-    const float scale = layout.logicalScale;
+    const float scale = layout.uiContentScale;
     const float panelWidth = 620.0F * scale;
     const float panelHeight = 310.0F * scale;
     const float left = (width - panelWidth) * 0.5F;
     const float top = (height - panelHeight) * 0.5F;
     const float x = static_cast<float>(point.x);
     const float y = static_cast<float>(point.y);
-    return x >= left + 32.0F * scale && x <= left + panelWidth - 32.0F * scale &&
-           y >= top + 98.0F * scale && y <= top + 168.0F * scale;
+    const float rowLeft = left + 30.0F * scale;
+    const float rowRight = left + panelWidth - 30.0F * scale;
+    if (x < rowLeft || x > rowRight) {
+        return std::nullopt;
+    }
+    if (y >= top + 98.0F * scale && y <= top + 150.0F * scale) {
+        return hh::frontend::MainMenuSettingsItem::UiScale;
+    }
+    if (y >= top + 158.0F * scale && y <= top + 210.0F * scale) {
+        return hh::frontend::MainMenuSettingsItem::ReducedMotion;
+    }
+    return std::nullopt;
 }
 
 void executeCommand(hh::frontend::MainMenuCommand command, hh::renderer::Win32Window& window) {
@@ -150,6 +163,34 @@ void toggleReducedMotion(
     }
 }
 
+void cycleUiScale(float& uiScale) noexcept {
+    const auto& scales = hh::frontend::MainMenuUiScales;
+    const auto current = std::find_if(
+        scales.begin(), scales.end(),
+        [uiScale](float value) { return std::fabs(value - uiScale) < 0.001F; });
+    const std::size_t index =
+        current == scales.end()
+            ? std::size_t{1}
+            : static_cast<std::size_t>(std::distance(scales.begin(), current));
+    uiScale = scales[(index + 1) % scales.size()];
+}
+
+void activateSelectedSetting(
+    const hh::frontend::MainMenuModel& model,
+    float& uiScale,
+    bool& reducedMotion,
+    hh::frontend::MenuSceneController& sceneController,
+    hh::frontend::MenuTransitionDirector& transitions,
+    hh::renderer::RenderScene& scene) {
+    if (model.settingsSelection() ==
+        hh::frontend::MainMenuSettingsItem::UiScale) {
+        cycleUiScale(uiScale);
+        return;
+    }
+    toggleReducedMotion(
+        reducedMotion, sceneController, transitions, model, scene);
+}
+
 }  // namespace
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
@@ -176,6 +217,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
 
     const bool validSave = hasFlag(L"--valid-save");
     bool reducedMotion = hasFlag(L"--reduced-motion");
+    float uiScale = 1.0F;
     const auto property = demoProperty();
 
     hh::frontend::MainMenuModel model(validSave);
@@ -230,7 +272,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
                 executeCommand(controller.confirmQuit(), window);
             } else if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
-                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
+                activateSelectedSetting(
+                    model, uiScale, reducedMotion, sceneController,
+                    transitions, scene);
             } else if (model.panel() == hh::frontend::MainMenuPanel::None) {
                 executeCommand(controller.activate(), window);
             }
@@ -245,17 +289,26 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
 
         const auto layout = view.layout(
             static_cast<float>(window.clientWidth()),
-            static_cast<float>(window.clientHeight()), 1.0F);
+            static_cast<float>(window.clientHeight()), uiScale);
         POINT pointer{};
         hh::frontend::MainMenuItem hovered{};
         if (model.modal() == hh::frontend::MainMenuModal::None &&
-            model.panel() == hh::frontend::MainMenuPanel::None &&
-            window.mousePosition(pointer) &&
-            hitMenuItem(layout, pointer, hovered) &&
-            model.isEnabled(hovered) &&
-            hovered != model.selected()) {
-            if (controller.hover(hovered)) {
-                transitions.retarget(model.selected(), reducedMotion);
+            window.mousePosition(pointer)) {
+            if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
+                if (const auto setting = hitSettingsItem(
+                        layout,
+                        static_cast<float>(window.clientWidth()),
+                        static_cast<float>(window.clientHeight()),
+                        pointer)) {
+                    static_cast<void>(controller.hoverSettings(*setting));
+                }
+            } else if (model.panel() == hh::frontend::MainMenuPanel::None &&
+                       hitMenuItem(layout, pointer, hovered) &&
+                       model.isEnabled(hovered) &&
+                       hovered != model.selected()) {
+                if (controller.hover(hovered)) {
+                    transitions.retarget(model.selected(), reducedMotion);
+                }
             }
         }
 
@@ -272,13 +325,17 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
                 } else if (action == QuitModalAction::Cancel) {
                     static_cast<void>(controller.cancel());
                 }
-            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings &&
-                       hitSettingsToggle(
-                           layout,
-                           static_cast<float>(window.clientWidth()),
-                           static_cast<float>(window.clientHeight()),
-                           click)) {
-                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
+            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
+                if (const auto setting = hitSettingsItem(
+                        layout,
+                        static_cast<float>(window.clientWidth()),
+                        static_cast<float>(window.clientHeight()),
+                        click)) {
+                    static_cast<void>(controller.hoverSettings(*setting));
+                    activateSelectedSetting(
+                        model, uiScale, reducedMotion, sceneController,
+                        transitions, scene);
+                }
             } else if (model.panel() == hh::frontend::MainMenuPanel::None &&
                        hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
                 if (hovered != model.selected() && controller.hover(hovered)) {
@@ -334,7 +391,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         hh::frontend::UiFrameState frame{};
         frame.width = static_cast<float>(window.clientWidth());
         frame.height = static_cast<float>(window.clientHeight());
-        frame.uiScale = 1.0F;
+        frame.uiScale = uiScale;
         frame.property = validSave ? &property : nullptr;
         frame.reducedMotion = reducedMotion;
         uiResult = ui.draw(model, view, frame);
