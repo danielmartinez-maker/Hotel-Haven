@@ -238,6 +238,22 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
       return UiCommandResult{false, "BUILD_ROTATION_UNAVAILABLE",
                              "The current authoritative construction baseline does not expose rotation for this tool"};
     }
+    if (authority.type == UiCommandType::AssignDepartmentManager) {
+      const auto first =
+          static_cast<std::int64_t>(hh::game::DepartmentId::FrontOffice);
+      const auto last =
+          static_cast<std::int64_t>(hh::game::DepartmentId::Engineering);
+      if (authority.integerValue < first || authority.integerValue > last) {
+        return UiCommandResult{false, "DEPARTMENT_INVALID",
+                               "Unknown department manager assignment"};
+      }
+      const auto out = simulation.assignDepartmentManager(
+          static_cast<hh::game::DepartmentId>(authority.integerValue),
+          authority.entityId);
+      return UiCommandResult{
+          out.ok, out.ok ? std::string{} : "DEPARTMENT_MANAGER_REJECTED",
+          out.message};
+    }
     if (authority.type == UiCommandType::BuildConfirm) {
       if (!buildPreview.valid || authority.integerValue !=
                                      static_cast<std::int64_t>(buildPreview.requestId)) {
