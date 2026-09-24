@@ -44,7 +44,7 @@ def test_mobile_whiteboard_is_floor_standing():
 
 def test_wheelchair_wheels_are_vertical_and_floor_supported():
     scene = luggage_or_accessibility('Accessibility Wheelchair', 'MAT_BLACKENED_STEEL')
-    assert abs(_floor_z(scene) - 0.05) <= 1e-9
+    assert abs(_floor_z(scene)) <= 1e-9
     # The wheel radius, not its thin axle width, must drive vertical extent.
     bounds = np.asarray(scene.bounds, dtype=float)
     assert bounds[1, 2] - bounds[0, 2] >= 1.0
