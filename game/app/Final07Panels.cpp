@@ -838,7 +838,7 @@ void Client::paint(HDC output) {
       const bool departmentInspector =
           page == Page::Staff &&
           selectedEntity->kind == InspectorKind::Department;
-      if (departmentInspector && y + vpx(38) < detailBottom) {
+      if (departmentInspector && detailBottom - y >= vpx(80)) {
         paragraph(L"MANAGEMENT", 20, Muted);
       }
       if (departmentInspector && y + vpx(38) < detailBottom) {
@@ -890,7 +890,9 @@ void Client::paint(HDC output) {
                 });
           }
         }
-      }      for (const auto &field : selectedEntity->fields) {
+      }
+
+      for (const auto &field : selectedEntity->fields) {
         if (y + vpx(28) >= detailBottom)
           break;
         label(wide(field.label), wide(field.value));
