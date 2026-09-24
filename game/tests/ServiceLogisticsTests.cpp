@@ -73,8 +73,40 @@ int main() {
   original.tickSeconds(60);
 
   const auto encoded = original.save();
+  require(encoded.rfind("HHSL 2 ", 0) == 0,
+          "service save did not advance to HHSL v2");
   auto restored = ServiceLogisticsRuntime::load(encoded);
   require(restored.save() == encoded, "service save did not round-trip exactly");
+
+  {
+    auto legacyLines = splitLines(encoded);
+    require(!legacyLines.empty(), "service v1 fixture has no header");
+    legacyLines[0].replace(0, std::string("HHSL 2").size(), "HHSL 1");
+    const auto h = findSection(legacyLines, "H ");
+    const auto roomCount =
+        static_cast<std::size_t>(std::stoull(legacyLines.at(h + 1)));
+    const auto jobCountLine = h + 2 + roomCount;
+    const auto jobCount =
+        static_cast<std::size_t>(std::stoull(legacyLines.at(jobCountLine)));
+    for (std::size_t index = 0; index < jobCount; ++index) {
+      const auto lineIndex = jobCountLine + 1 + index;
+      std::istringstream record(legacyLines.at(lineIndex));
+      std::uint64_t jobId{}, roomId{};
+      int stage{}, remaining{}, block{}, started{}, preclaimed{};
+      record >> jobId >> roomId >> stage >> remaining >> block >> started >>
+          preclaimed;
+      require(static_cast<bool>(record),
+              "could not build HHSL v1 housekeeping fixture");
+      std::ostringstream legacyRecord;
+      legacyRecord << jobId << ' ' << roomId << ' ' << stage << ' '
+                   << remaining << ' ' << block << ' ' << started;
+      legacyLines[lineIndex] = legacyRecord.str();
+    }
+    const auto legacyState = joinLines(legacyLines);
+    auto migrated = ServiceLogisticsRuntime::load(legacyState);
+    require(migrated.save().rfind("HHSL 2 ", 0) == 0,
+            "HHSL v1 service state did not migrate to v2");
+  }
 
   original.tickSeconds(5000);
   restored.tickSeconds(5000);
@@ -164,12 +196,13 @@ int main() {
     const auto jobLine = jobCountLine + 1;
     std::istringstream record(lines.at(jobLine));
     std::uint64_t jobId{}, roomId{};
-    int stage{}, remaining{}, block{}, started{};
-    record >> jobId >> roomId >> stage >> remaining >> block >> started;
+    int stage{}, remaining{}, block{}, started{}, preclaimed{};
+    record >> jobId >> roomId >> stage >> remaining >> block >> started >>
+        preclaimed;
     require(static_cast<bool>(record), "could not parse housekeeping job");
     std::ostringstream changed;
     changed << jobId << " 999999 " << stage << ' ' << remaining << ' '
-            << block << ' ' << started;
+            << block << ' ' << started << ' ' << preclaimed;
     lines[jobLine] = changed.str();
     requireLoadRejected(joinLines(lines),
                         "FINAL-04 accepted an orphan housekeeping job");
@@ -212,13 +245,14 @@ int main() {
     const auto jobLine = jobCountLine + 1;
     std::istringstream record(lines.at(jobLine));
     std::uint64_t jobId{}, roomId{};
-    int stage{}, remaining{}, block{}, started{};
-    record >> jobId >> roomId >> stage >> remaining >> block >> started;
+    int stage{}, remaining{}, block{}, started{}, preclaimed{};
+    record >> jobId >> roomId >> stage >> remaining >> block >> started >>
+        preclaimed;
     require(static_cast<bool>(header) && static_cast<bool>(record),
             "could not parse allocator collision fixture");
     std::ostringstream changed;
     changed << nextId << ' ' << roomId << ' ' << stage << ' ' << remaining
-            << ' ' << block << ' ' << started;
+            << ' ' << block << ' ' << started << ' ' << preclaimed;
     lines[jobLine] = changed.str();
     requireLoadRejected(joinLines(lines),
                         "FINAL-04 accepted an ID at the allocator frontier");
