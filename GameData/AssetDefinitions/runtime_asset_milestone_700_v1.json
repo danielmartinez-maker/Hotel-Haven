@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "milestone_id": "HH_RUNTIME_ASSET_MILESTONE_A700_V1",
+  "first_asset_id": "HH_A001",
+  "last_asset_id": "HH_A700",
+  "asset_count": 700,
+  "batches": [
+    {
+      "batch": 1,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_01.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 2,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_02.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 3,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_03.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 4,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_04.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 5,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_05.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 6,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_06.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 7,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_07.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 8,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_08.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 9,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_09.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 10,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_10.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 11,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_11.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 12,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_12.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 13,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_13.json",
+      "asset_count": 50
+    },
+    {
+      "batch": 14,
+      "path": "GameData/AssetDefinitions/Manifest/asset_batch_14.json",
+      "asset_count": 50
+    }
+  ],
+  "required_core_binding_manifest": "GameData/AssetDefinitions/runtime_world_bindings_v1.json",
+  "runtime_policy": {
+    "load_mode": "bounded_available_range_with_required_core",
+    "asset_id_prefix": "HH_A",
+    "first_asset_number": 1,
+    "last_asset_number": 700,
+    "assets_after_A700_excluded": true
+  },
+  "placement_policy": {
+    "architecture_guestroom_public_space": "world_presentation_enabled",
+    "restaurant_bar_food_service": "runtime_ready_pending_spatial_venue_authority"
+  },
+  "authority_note": "This milestone declares renderer/runtime availability through HH_A700. It does not grant simulation, construction, placement, economy, service, or interaction authority to art metadata."
+}
