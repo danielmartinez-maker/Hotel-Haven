@@ -6,7 +6,9 @@
 #include <functional>
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 
 namespace hh::client {
 enum class Overlay {
@@ -77,6 +79,11 @@ struct WorldAssetSet {
       housekeeperCharacters{};
   std::array<std::optional<WorldAssetVisual>, MaintenanceVariantCount>
       maintenanceCharacters{};
+
+  // Full milestone library available to presentation code. Named members above
+  // remain the hot-path bindings for common gameplay visuals; this map lets
+  // V2 content scale without adding one C++ field per asset.
+  std::unordered_map<std::string, WorldAssetVisual> catalog;
 };
 
 using WorldAssetResolver =
@@ -89,6 +96,10 @@ using WorldAssetResolver =
 // The string IDs are an installation/startup concern only. This converts them
 // once to the compact visual records consumed by every subsequent frame.
 WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver);
+
+[[nodiscard]] const WorldAssetVisual* findWorldAsset(
+    const WorldAssetSet& assets,
+    std::string_view assetId) noexcept;
 
 struct WorldViewOptions {
   int floor{};
