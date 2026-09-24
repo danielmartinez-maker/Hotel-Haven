@@ -80,6 +80,85 @@ int main() {
   require(restored.logisticsSnapshot().elapsedSeconds == after,
           "Simulation save/load dropped FINAL-04 state");
 
+  auto mirroredClean = Simulation::tutorial(326);
+  const auto mirroredRoom = mirroredClean.view().rooms.front().id;
+  const auto housekeepingBefore =
+      mirroredClean.housekeepingSnapshot().jobs.size();
+  require(mirroredClean.requestClean(mirroredRoom).ok,
+          "physical clean request was rejected");
+  const auto mirroredHousekeeping = mirroredClean.housekeepingSnapshot();
+  require(mirroredHousekeeping.jobs.size() == housekeepingBefore + 1,
+          "physical clean request did not create a FINAL-04 room turn");
+  require(mirroredHousekeeping.jobs.back().roomId == mirroredRoom &&
+              mirroredHousekeeping.jobs.back().stage !=
+                  HousekeepingStage::Completed,
+          "mirrored FINAL-04 room turn targeted the wrong room");
+  const auto physicalTurnsAfterFirst = std::count_if(
+      mirroredClean.view().tasks.begin(), mirroredClean.view().tasks.end(),
+      [mirroredRoom](const auto &task) {
+        return task.targetId == mirroredRoom &&
+               task.kind == TaskKind::Turnover &&
+               task.status != TaskStatus::Completed;
+      });
+  require(mirroredClean.requestClean(mirroredRoom).ok,
+          "duplicate physical clean request unexpectedly failed");
+  require(mirroredClean.housekeepingSnapshot().jobs.size() ==
+              housekeepingBefore + 1,
+          "duplicate physical clean request created a second FINAL-04 job");
+  const auto physicalTurnsAfterSecond = std::count_if(
+      mirroredClean.view().tasks.begin(), mirroredClean.view().tasks.end(),
+      [mirroredRoom](const auto &task) {
+        return task.targetId == mirroredRoom &&
+               task.kind == TaskKind::Turnover &&
+               task.status != TaskStatus::Completed;
+      });
+  require(physicalTurnsAfterFirst == 1 && physicalTurnsAfterSecond == 1,
+          "duplicate physical clean request created duplicate worker tasks");
+
+  auto mirroredRepair = Simulation::tutorial(327);
+  const auto repairRoom = mirroredRepair.view().rooms.front().id;
+  const auto engineeringBefore =
+      mirroredRepair.engineeringSnapshot().workOrders.size();
+  require(mirroredRepair.requestRepair(repairRoom).ok,
+          "physical repair request was rejected");
+  const auto mirroredEngineering = mirroredRepair.engineeringSnapshot();
+  require(mirroredEngineering.workOrders.size() == engineeringBefore + 1,
+          "physical repair request did not create a FINAL-04 work order");
+  require(mirroredEngineering.workOrders.back().assetId == repairRoom &&
+              mirroredEngineering.workOrders.back().type ==
+                  WorkOrderType::Corrective,
+          "mirrored FINAL-04 repair used the wrong asset or work-order type");
+
+  auto automaticTurn = Simulation::tutorial(328);
+  require(automaticTurn.loadDefinitions(R"({"baseDemand":100})").ok,
+          "automatic-turn definitions rejected");
+  automaticTurn.step(3600);
+  const auto booked = automaticTurn.view();
+  require(!booked.reservations.empty(),
+          "automatic-turn fixture did not create a reservation");
+  int firstDeparture = booked.reservations.front().departureDay;
+  for (const auto &reservation : booked.reservations)
+    firstDeparture = std::min(firstDeparture, reservation.departureDay);
+  const auto departureBoundary =
+      static_cast<std::int64_t>(firstDeparture) * 86400 + 11 * 3600;
+  require(departureBoundary > booked.elapsedSeconds,
+          "automatic-turn departure boundary was not in the future");
+  automaticTurn.step(
+      static_cast<double>(departureBoundary - booked.elapsedSeconds));
+  const auto departureView = automaticTurn.view();
+  bool mirroredAutomaticTurn = false;
+  for (const auto &task : departureView.tasks) {
+    if (task.kind != TaskKind::Turnover ||
+        task.status == TaskStatus::Completed)
+      continue;
+    for (const auto &job : automaticTurn.housekeepingSnapshot().jobs)
+      if (job.roomId == task.targetId &&
+          job.stage != HousekeepingStage::Completed)
+        mirroredAutomaticTurn = true;
+  }
+  require(mirroredAutomaticTurn,
+          "automatic checkout turnover was not mirrored into FINAL-04");
+
   auto purchasing = Simulation::tutorial(324);
   const auto purchaseCashBefore = purchasing.view().economy.cashCents;
   const auto purchase = purchasing.orderSupplies({2, 4, 2, 2, 1});
