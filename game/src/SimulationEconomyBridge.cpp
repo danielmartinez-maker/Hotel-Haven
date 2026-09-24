@@ -166,6 +166,16 @@ CommandResult SimulationEconomyBridge::hireStaff(const StaffHire &hire) {
   return result;
 }
 
+std::vector<Applicant> SimulationEconomyBridge::applicants() const {
+  return simulation_.applicants();
+}
+
+HireResult SimulationEconomyBridge::hireApplicant(ApplicantId applicantId) {
+  const auto result = simulation_.hireApplicant(applicantId);
+  reconcile(result.employeeId, "hire applicant");
+  return result;
+}
+
 CommandResult SimulationEconomyBridge::fireStaff(EntityId employeeId) {
   const auto result = simulation_.fireStaff(employeeId);
   reconcile(employeeId, "fire staff");
@@ -178,6 +188,40 @@ CommandResult SimulationEconomyBridge::setStaffShift(EntityId employeeId,
   const auto result = simulation_.setStaffShift(employeeId, startHour, endHour);
   reconcile(employeeId, "set staff shift");
   return result;
+}
+
+CommandResult SimulationEconomyBridge::scheduleTraining(
+    EntityId employeeId, std::int64_t startSecond, int durationMinutes) {
+  const auto result =
+      simulation_.scheduleTraining(employeeId, startSecond, durationMinutes);
+  reconcile(employeeId, "schedule training");
+  return result;
+}
+
+CommandResult SimulationEconomyBridge::assignDepartmentManager(
+    DepartmentId department, EntityId employeeId) {
+  const auto result =
+      simulation_.assignDepartmentManager(department, employeeId);
+  reconcile(employeeId, "assign department manager");
+  return result;
+}
+
+std::vector<DepartmentView> SimulationEconomyBridge::departments() const {
+  return simulation_.departments();
+}
+
+DepartmentForecast SimulationEconomyBridge::departmentForecast(
+    DepartmentId department, SimDay day) const {
+  return simulation_.departmentForecast(department, day);
+}
+
+OptimizerSnapshot SimulationEconomyBridge::buildOptimizerSnapshot() const {
+  return simulation_.buildOptimizerSnapshot();
+}
+
+PlanValidation SimulationEconomyBridge::validatePlan(
+    const OptimizerSnapshot &snapshot, const AssignmentPlan &plan) const {
+  return simulation_.validatePlan(snapshot, plan);
 }
 
 CommandResult SimulationEconomyBridge::setRoomRate(EntityId roomId, double rate) {
