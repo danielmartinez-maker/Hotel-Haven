@@ -44,14 +44,16 @@ TaskId HousekeepingSystem::requestRoomTurn(RoomId roomId) {
   auto *roomState = room(roomId);
   if (!roomState)
     return 0;
-  for (const auto &job : jobs_)
-    if (job.roomId == roomId && job.stage != HousekeepingStage::Completed)
-      return job.id;
+  for (const auto index : activeJobs_)
+    if (jobs_[index].roomId == roomId)
+      return jobs_[index].id;
   roomState->status = ServiceRoomStatus::Dirty;
   const auto id = nextId_++;
+  const auto index = jobs_.size();
   jobs_.push_back({id, roomId, HousekeepingStage::StripLinen,
                    duration(HousekeepingStage::StripLinen), BlockReason::None,
                    false, false});
+  activeJobs_.push_back(index);
   return id;
 }
 
@@ -155,10 +157,24 @@ void HousekeepingSystem::tickJobSecond(Job &job) {
     completeStage(job);
 }
 
+void HousekeepingSystem::rebuildActiveJobs() {
+  activeJobs_.clear();
+  activeJobs_.reserve(jobs_.size());
+  for (std::size_t index = 0; index < jobs_.size(); ++index)
+    if (jobs_[index].stage != HousekeepingStage::Completed)
+      activeJobs_.push_back(index);
+}
+
 void HousekeepingSystem::tickSecond() {
   ++elapsedSeconds_;
-  for (auto &job : jobs_)
-    tickJobSecond(job);
+  for (const auto index : activeJobs_)
+    tickJobSecond(jobs_[index]);
+  activeJobs_.erase(
+      std::remove_if(activeJobs_.begin(), activeJobs_.end(),
+                     [&](std::size_t index) {
+                       return jobs_[index].stage == HousekeepingStage::Completed;
+                     }),
+      activeJobs_.end());
 }
 
 void HousekeepingSystem::tickSecondFor(
@@ -169,7 +185,8 @@ void HousekeepingSystem::tickSecondFor(
       std::is_sorted(managedRooms.begin(), managedRooms.end());
   const bool workingSorted =
       std::is_sorted(workingRooms.begin(), workingRooms.end());
-  for (auto &job : jobs_) {
+  for (const auto index : activeJobs_) {
+    auto &job = jobs_[index];
     const bool managed =
         managedSorted
             ? std::binary_search(managedRooms.begin(), managedRooms.end(),
@@ -185,6 +202,12 @@ void HousekeepingSystem::tickSecondFor(
     if (!managed || working)
       tickJobSecond(job);
   }
+  activeJobs_.erase(
+      std::remove_if(activeJobs_.begin(), activeJobs_.end(),
+                     [&](std::size_t index) {
+                       return jobs_[index].stage == HousekeepingStage::Completed;
+                     }),
+      activeJobs_.end());
 }
 
 void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
