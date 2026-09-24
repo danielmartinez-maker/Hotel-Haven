@@ -61,7 +61,6 @@ int main() {
                 "maintenance_part", 1),
             "seed corrective maintenance part");
     EngineeringSystem engineering(logistics, 31);
-    engineering.setConditionLossPerDayHundredths(0);
     constexpr AssetId asset = 5003;
     engineering.registerAsset(asset, 0);
 
@@ -72,7 +71,7 @@ int main() {
             "corrective pressure fixture did not accumulate pressure");
 
     const auto corrective =
-        engineering.createWorkOrder(asset, WorkOrderType::Corrective, 1);
+        engineering.createWorkOrder(asset, WorkOrderType::Corrective);
     require(corrective != 0, "corrective work order not created");
     engineering.tickSeconds(25 * 60);
     require(engineering.snapshot().workOrders.back().stage ==
