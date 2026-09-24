@@ -201,6 +201,17 @@ void ServiceLogisticsRuntime::synchronizeElapsedSecondsForSimulation(
   impl_->roomService.elapsedSeconds_ = seconds;
 }
 
+void ServiceLogisticsRuntime::synchronizeAssetConditionForSimulation(
+    AssetId assetId, int condition, bool failed) {
+  auto *entry = impl_->engineering.asset(assetId);
+  if (!entry)
+    return;
+  entry->condition = std::clamp(condition, 0, 10000);
+  entry->failed = failed;
+  if (!failed)
+    entry->failurePressure = 0;
+}
+
 std::string ServiceLogisticsRuntime::save() const {
   std::ostringstream out;
   out << "HHSL 1 " << impl_->seed << ' ' << impl_->elapsedSeconds << '\n';
