@@ -20,22 +20,20 @@ StorageNodeId LogisticsSystem::addStorage(const StorageNodeSpec &spec) {
   if (spec.capacityUnits <= 0)
     return 0;
   const auto id = nextId_++;
+  const auto index = storage_.size();
   storage_.push_back({id, spec.kind, spec.capacityUnits, 0, spec.operational});
+  storageIndex_.emplace(id, index);
   return id;
 }
 
 LogisticsSystem::StorageNode *LogisticsSystem::node(StorageNodeId id) {
-  for (auto &entry : storage_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = storageIndex_.find(id);
+  return found == storageIndex_.end() ? nullptr : &storage_[found->second];
 }
 
 const LogisticsSystem::StorageNode *LogisticsSystem::node(StorageNodeId id) const {
-  for (const auto &entry : storage_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = storageIndex_.find(id);
+  return found == storageIndex_.end() ? nullptr : &storage_[found->second];
 }
 
 int LogisticsSystem::usedUnits(StorageNodeId id) const {
@@ -228,6 +226,10 @@ void LogisticsSystem::requestWastePickup() {
 }
 
 void LogisticsSystem::rebuildDerivedState() {
+  storageIndex_.clear();
+  storageIndex_.reserve(storage_.size());
+  for (std::size_t index = 0; index < storage_.size(); ++index)
+    storageIndex_.emplace(storage_[index].id, index);
   orderIndex_.clear();
   transitOrders_.clear();
   activeMoves_.clear();
