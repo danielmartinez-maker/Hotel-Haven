@@ -153,6 +153,7 @@ struct Simulation::Impl {
   double trainingSkillGain{5};
   int consumedApplicantDay{-1};
   std::vector<ApplicantId> consumedApplicantIds;
+  bool staffOptimizerEnabled{true};
 
   void configureTutorialFinal05() {
     food.addRecipe({1, "Classic Breakfast", {{"eggs", 2}, {"bread", 2}},
@@ -2496,13 +2497,26 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       !number("guestHungerPerMinute", d.hungerRate) ||
       !number("guestRestLossPerMinute", d.restLoss) ||
       !number("roomConditionLossPerDay", d.roomConditionLossPerDay) ||
+      !integer("onboardingCostCents", d.onboardingCostCents) ||
+      !integer("staffBreakAfterMinutes", d.staffBreakAfterMinutes) ||
+      !integer("staffBreakDurationMinutes", d.staffBreakDurationMinutes) ||
+      !number("missedBreakFatiguePerHour", d.missedBreakFatiguePerHour) ||
+      !number("missedBreakMoralePerHour", d.missedBreakMoralePerHour) ||
+      !number("trainingSkillGain", d.trainingSkillGain) ||
       !integer("initialLinen", d.inventory.linen) ||
       !integer("initialTowels", d.inventory.towels) ||
       !integer("initialAmenities", d.inventory.amenities) ||
       !integer("initialChemicals", d.inventory.chemicals) ||
       !integer("initialParts", d.inventory.parts) || d.baseDemand < 0 ||
       d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
-      d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100)
+      d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100 ||
+      d.staffBreakDurationMinutes <= 0 ||
+      d.staffBreakDurationMinutes > 24 * 60 ||
+      d.missedBreakFatiguePerHour < 0 ||
+      d.missedBreakFatiguePerHour > 1000 ||
+      d.missedBreakMoralePerHour < 0 ||
+      d.missedBreakMoralePerHour > 1000 ||
+      d.trainingSkillGain < 0 || d.trainingSkillGain > 100)
     return {false, "Definition values are invalid"};
 
   if (inventoryOverride) {
@@ -2564,6 +2578,10 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
   *impl_ = std::move(d);
   return {true, "Definitions loaded"};
 }
+void Simulation::setStaffOptimizerEnabled(bool enabled) {
+  impl_->staffOptimizerEnabled = enabled;
+}
+
 ConstructionPreview
 Simulation::previewConstruction(const ConstructionCommand &command) const {
   return impl_->validateConstruction(command);
