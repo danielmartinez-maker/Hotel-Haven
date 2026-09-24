@@ -35,6 +35,8 @@ int main() {
   require(suppliesAfter.economics.cashCents == bridge.view().economy.cashCents,
           "bridge ledger diverged from simulation cash after supplies");
 
+  require(bridge.loadDefinitions(R"({"onboardingCostCents":5000})").ok,
+          "bridge workforce fixture could not configure onboarding cost");
   const auto candidates = bridge.applicants();
   require(!candidates.empty(),
           "bridge did not expose deterministic workforce applicants");
