@@ -27,11 +27,12 @@ TEST_CASE("layout remains inside supported resolution matrix") {
         {1600.0F, 1200.0F},
     }};
 
-    constexpr std::array<float, 5> uiScales{
-        0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
+    EXPECT_EQ(hh::frontend::MainMenuUiScales.size(), std::size_t{5});
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.front(), 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.back(), 1.50F, 0.0001F);
 
     for (const auto& [width, height] : sizes) {
-        for (const float uiScale : uiScales) {
+        for (const float uiScale : hh::frontend::MainMenuUiScales) {
             const auto layout = view.layout(width, height, uiScale);
             EXPECT_TRUE(layout.logicalScale > 0.0F);
             EXPECT_TRUE(layout.uiContentScale > 0.0F);
