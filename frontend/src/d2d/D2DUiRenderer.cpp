@@ -227,11 +227,13 @@ UiRendererResult D2DUiRenderer::draw(
              D2D1::RectF(layout.versionLeft, layout.versionBottom - 28.0F * ui,
                          layout.versionLeft + 250.0F * ui, layout.versionBottom),
              smallFormat.Get(), kMuted);
+    const float inputHintTop =
+        std::max(164.0F * ui, layout.navigationTop - 58.0F * ui);
     drawText(L"ENTER / A  SELECT    ESC / B  BACK",
              D2D1::RectF(layout.navigationLeft,
-                         layout.versionBottom - 62.0F * ui,
+                         inputHintTop,
                          layout.navigationLeft + 430.0F * ui,
-                         layout.versionBottom - 32.0F * ui),
+                         inputHintTop + 30.0F * ui),
              smallFormat.Get(), kMuted);
 
     if (frameState.property != nullptr) {
