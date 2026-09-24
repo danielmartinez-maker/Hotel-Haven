@@ -1029,6 +1029,7 @@ int main() {
     extreme_room_footprints_fail_closed_without_overflow();
     corrupt_room_spatial_state_is_rejected_on_load();
     construction_preserves_property_invariants();
+    cached_routes_invalidate_after_topology_edits();
     invalid_inputs_are_rejected();
     corrupt_task_progress_is_rejected_on_load();
     completed_tasks_do_not_replay_when_staff_are_fired();
