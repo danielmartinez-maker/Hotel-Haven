@@ -164,6 +164,23 @@ std::wstring keyName(int keyCode) {
   }
 }
 
+hh::frontend::OperationsFilter operationFilter(int filterIndex) {
+  hh::frontend::OperationsFilter filter;
+  if (filterIndex > 0)
+    filter.area = static_cast<OperationArea>(filterIndex - 1);
+  return filter;
+}
+
+std::wstring operationSortLabel(hh::frontend::OperationSort sort) {
+  using hh::frontend::OperationSort;
+  switch (sort) {
+  case OperationSort::SchedulerOrder: return L"Scheduler";
+  case OperationSort::PriorityHighFirst: return L"Priority";
+  case OperationSort::OldestFirst: return L"Oldest";
+  }
+  return L"Scheduler";
+}
+
 std::size_t pageRows(const Client &client) {
   switch (client.page) {
   case Page::Rooms:
@@ -171,10 +188,8 @@ std::size_t pageRows(const Client &client) {
   case Page::Staff:
   case Page::Supplies: return pageEntities(client, client.page).size();
   case Page::Operations:
-    if (client.operationsFilter <= 0)
-      return client.operationsDashboard.snapshot().rows.size();
     return client.operationsDashboard.filteredCount(
-        static_cast<OperationArea>(client.operationsFilter - 1));
+        operationFilter(client.operationsFilter));
   case Page::Alerts: return client.alertCenter.active().size();
   case Page::Objectives: return client.objectiveUi.items().size();
   case Page::Overlays:
@@ -804,48 +819,93 @@ void Client::paint(HDC output) {
   } else if (page == Page::Operations) {
     heading(L"Operations command center");
     const auto &ops = operationsDashboard.snapshot();
-    label(L"Scheduled / active", std::to_wstring(ops.scheduledStaff) + L" / " + std::to_wstring(ops.activeStaff));
-    label(L"Fatigued / break", std::to_wstring(ops.fatiguedStaff) + L" / " + std::to_wstring(ops.onBreakStaff));
-    label(L"HK backlog", std::to_wstring(ops.housekeepingBacklog));
-    label(L"Clean linen", std::to_wstring(ops.cleanLinenUnits));
-    label(L"Incoming / blocked", std::to_wstring(ops.incomingOrders) + L" / " + std::to_wstring(ops.blockedInventoryMoves));
-    label(L"Engineering", std::to_wstring(ops.engineeringOpenOrders));
-    label(L"Room service / F&B", std::to_wstring(ops.roomServiceQueue) + L" / " + std::to_wstring(ops.foodTickets));
-    label(L"Events", std::to_wstring(ops.eventCount));
-    label(L"Amenity capacity", std::to_wstring(ops.amenityCapacityUsed) + L" / " + std::to_wstring(ops.amenityCapacityTotal));
-    label(L"Service level", permille(ops.serviceLevelPermille)); separator();
+    const bool compactOperations =
+        panelLayout.contentHeightPixels < vpx(520);
+
+    if (compactOperations) {
+      label(L"Staff active / scheduled",
+            std::to_wstring(ops.activeStaff) + L" / " +
+                std::to_wstring(ops.scheduledStaff));
+      label(L"HK / engineering",
+            std::to_wstring(ops.housekeepingBacklog) + L" / " +
+                std::to_wstring(ops.engineeringOpenOrders));
+      label(L"Service / blocked moves",
+            permille(ops.serviceLevelPermille) + L" / " +
+                std::to_wstring(ops.blockedInventoryMoves));
+    } else {
+      label(L"Scheduled / active",
+            std::to_wstring(ops.scheduledStaff) + L" / " +
+                std::to_wstring(ops.activeStaff));
+      label(L"Fatigued / break",
+            std::to_wstring(ops.fatiguedStaff) + L" / " +
+                std::to_wstring(ops.onBreakStaff));
+      label(L"HK backlog", std::to_wstring(ops.housekeepingBacklog));
+      label(L"Clean linen", std::to_wstring(ops.cleanLinenUnits));
+      label(L"Incoming / blocked",
+            std::to_wstring(ops.incomingOrders) + L" / " +
+                std::to_wstring(ops.blockedInventoryMoves));
+      label(L"Engineering", std::to_wstring(ops.engineeringOpenOrders));
+      label(L"Room service / F&B",
+            std::to_wstring(ops.roomServiceQueue) + L" / " +
+                std::to_wstring(ops.foodTickets));
+      label(L"Events", std::to_wstring(ops.eventCount));
+      label(L"Amenity capacity",
+            std::to_wstring(ops.amenityCapacityUsed) + L" / " +
+                std::to_wstring(ops.amenityCapacityTotal));
+      label(L"Service level", permille(ops.serviceLevelPermille));
+    }
+    separator();
+
     constexpr std::array<const wchar_t *, 9> filterNames{
         L"All", L"Staffing", L"Housekeeping", L"Laundry", L"Logistics",
         L"Engineering", L"F&B", L"Amenities", L"Events"};
-    fullButton(L"Filter · " + std::wstring(filterNames[static_cast<std::size_t>(operationsFilter)]),
-               [this] { operationsFilter = (operationsFilter + 1) % 9; tabScroll = 0; },
-               operationsFilter != 0);
+    const int operationControlHeight = std::max(px(24), vpx(32));
+    button(left, y, halfControlWidth, operationControlHeight,
+           L"Filter · " +
+               std::wstring(filterNames[static_cast<std::size_t>(operationsFilter)]),
+           [this] {
+             operationsFilter = (operationsFilter + 1) % 9;
+             tabScroll = 0;
+           },
+           operationsFilter != 0);
+    button(left + halfControlWidth + controlGap, y, halfControlWidth,
+           operationControlHeight,
+           L"Sort · " + operationSortLabel(operationsSort),
+           [this] {
+             using hh::frontend::OperationSort;
+             operationsSort =
+                 operationsSort == OperationSort::SchedulerOrder
+                     ? OperationSort::PriorityHighFirst
+                     : operationsSort == OperationSort::PriorityHighFirst
+                           ? OperationSort::OldestFirst
+                           : OperationSort::SchedulerOrder;
+             tabScroll = 0;
+           },
+           operationsSort != hh::frontend::OperationSort::SchedulerOrder);
+    y += std::max(px(28), vpx(39));
     separator();
+
     auto drawOperation = [&](const auto &row) {
       if (y + vpx(58) >= bottom)
         return false;
       paragraph(wide(row.name) + L" · " + wide(row.state), 24);
-      if (!row.reasonCode.empty()) paragraph(L"WHY · " + wide(row.reasonCode), 24, Warning);
+      if (!row.reasonCode.empty())
+        paragraph(L"WHY · " + wide(row.reasonCode), 24, Warning);
       separator();
       return true;
     };
+
+    const auto rows = operationsDashboard.filteredWindow(
+        operationFilter(operationsFilter), operationsSort,
+        static_cast<std::size_t>(tabScroll), 128);
     bool anyRows = false;
-    if (operationsFilter == 0) {
-      const auto rows = operationsDashboard.window(static_cast<std::size_t>(tabScroll), 128);
-      for (const auto &row : rows) {
-        if (!drawOperation(row)) break;
-        anyRows = true;
-      }
-    } else {
-      const auto rows = operationsDashboard.filteredWindow(
-          static_cast<OperationArea>(operationsFilter - 1),
-          static_cast<std::size_t>(tabScroll), 128);
-      for (const auto &row : rows) {
-        if (!drawOperation(row)) break;
-        anyRows = true;
-      }
+    for (const auto &row : rows) {
+      if (!drawOperation(row))
+        break;
+      anyRows = true;
     }
-    if (!anyRows) paragraph(L"No active operational rows for this filter.", 36, Muted);
+    if (!anyRows)
+      paragraph(L"No active operational rows for this filter.", 36, Muted);
   } else if (page == Page::Finance) {
     heading(L"Revenue & finance");
     const auto &economy = gameUi.economy;
