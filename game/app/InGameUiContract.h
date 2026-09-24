@@ -158,6 +158,15 @@ computeFinal07PanelLayout(int clientWidth, int clientHeight,
   return result;
 }
 
+[[nodiscard]] constexpr bool
+final07PointInManagementPanel(int clientWidth, int clientHeight,
+                              int scalePercent, int x, int y) noexcept {
+  const auto shell = computeFinal07Layout(clientWidth, clientHeight, scalePercent);
+  return x >= clientWidth - shell.sidebarPixels && x < clientWidth &&
+         y >= shell.headerPixels &&
+         y < clientHeight - shell.footerPixels;
+}
+
 static_assert(Final07PageLabels.size() == 12);
 static_assert(Final07FinanceViewLabels.size() == 5);
 static_assert(Final07SpeedButtons[0] == 0 && Final07SpeedButtons[4] == 8);
