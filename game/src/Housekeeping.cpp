@@ -217,13 +217,22 @@ void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-HousekeepingSnapshot HousekeepingSystem::snapshot() const {
+HousekeepingSnapshot HousekeepingSystem::snapshot(bool includeHistory) const {
   HousekeepingSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
-  out.jobs.reserve(jobs_.size());
-  for (const auto &job : jobs_)
-    out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
-                        job.blockedReason});
+  if (includeHistory) {
+    out.jobs.reserve(jobs_.size());
+    for (const auto &job : jobs_)
+      out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
+                          job.blockedReason});
+  } else {
+    out.jobs.reserve(activeJobs_.size());
+    for (const auto index : activeJobs_) {
+      const auto &job = jobs_[index];
+      out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
+                          job.blockedReason});
+    }
+  }
   return out;
 }
 

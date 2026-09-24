@@ -41,7 +41,7 @@ public:
   [[nodiscard]] ServiceRoomStatus roomStatus(RoomId room) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
-  [[nodiscard]] HousekeepingSnapshot snapshot() const;
+  [[nodiscard]] HousekeepingSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;

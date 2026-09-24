@@ -126,7 +126,7 @@ public:
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
 
-  [[nodiscard]] LogisticsSnapshot snapshot() const;
+  [[nodiscard]] LogisticsSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;
@@ -181,6 +181,7 @@ private:
   std::vector<PurchaseOrder> orders_;
   std::vector<StockMove> moves_;
   std::unordered_map<PurchaseOrderId, std::size_t> orderIndex_;
+  std::vector<std::size_t> activeOrders_;
   std::vector<std::size_t> transitOrders_;
   std::vector<std::size_t> activeMoves_;
   int wasteAtSources_{};

@@ -211,6 +211,7 @@ OrderResult LogisticsSystem::placePurchaseOrder(std::string_view item, int quant
                      PurchaseOrderState::InTransit, leadSeconds,
                      BlockReason::None});
   orderIndex_.emplace(id, index);
+  activeOrders_.push_back(index);
   transitOrders_.push_back(index);
   return {id, OrderError::None};
 }
@@ -231,13 +232,19 @@ void LogisticsSystem::rebuildDerivedState() {
   for (std::size_t index = 0; index < storage_.size(); ++index)
     storageIndex_.emplace(storage_[index].id, index);
   orderIndex_.clear();
+  activeOrders_.clear();
   transitOrders_.clear();
   activeMoves_.clear();
   orderIndex_.reserve(orders_.size());
+  activeOrders_.reserve(orders_.size());
   transitOrders_.reserve(orders_.size());
   activeMoves_.reserve(moves_.size());
   for (std::size_t index = 0; index < orders_.size(); ++index) {
     orderIndex_.emplace(orders_[index].id, index);
+    if (orders_[index].state != PurchaseOrderState::Completed &&
+        orders_[index].state != PurchaseOrderState::RejectedNoCapacity &&
+        orders_[index].state != PurchaseOrderState::Cancelled)
+      activeOrders_.push_back(index);
     if (orders_[index].state == PurchaseOrderState::InTransit)
       transitOrders_.push_back(index);
   }
@@ -309,6 +316,15 @@ void LogisticsSystem::tickSecond() {
       std::remove_if(activeMoves_.begin(), activeMoves_.end(),
                      [&](std::size_t index) { return moves_[index].completed; }),
       activeMoves_.end());
+  activeOrders_.erase(
+      std::remove_if(activeOrders_.begin(), activeOrders_.end(),
+                     [&](std::size_t index) {
+                       const auto state = orders_[index].state;
+                       return state == PurchaseOrderState::Completed ||
+                              state == PurchaseOrderState::RejectedNoCapacity ||
+                              state == PurchaseOrderState::Cancelled;
+                     }),
+      activeOrders_.end());
 
   if (wasteAtSources_ > 0 && wasteCollectionRemaining_ < 0)
     wasteCollectionRemaining_ = 120;
@@ -343,7 +359,7 @@ void LogisticsSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-LogisticsSnapshot LogisticsSystem::snapshot() const {
+LogisticsSnapshot LogisticsSystem::snapshot(bool includeHistory) const {
   LogisticsSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.wasteAtSources = wasteAtSources_;
@@ -378,14 +394,29 @@ LogisticsSnapshot LogisticsSystem::snapshot() const {
          used == usedByStorage.end() ? 0 : used->second,
          storage.reservedUnits, storage.operational});
   }
-  for (const auto &order : orders_)
-    out.purchaseOrders.push_back({order.id, order.item, order.quantity,
-                                  order.destination, order.state,
-                                  order.remainingSeconds, order.blockedReason});
-  for (const auto &move : moves_)
-    out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
-                              move.from, move.to, move.remainingSeconds,
-                              move.completed, move.blockedReason});
+  if (includeHistory) {
+    for (const auto &order : orders_)
+      out.purchaseOrders.push_back({order.id, order.item, order.quantity,
+                                    order.destination, order.state,
+                                    order.remainingSeconds, order.blockedReason});
+    for (const auto &move : moves_)
+      out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
+                                move.from, move.to, move.remainingSeconds,
+                                move.completed, move.blockedReason});
+  } else {
+    for (const auto index : activeOrders_) {
+      const auto &order = orders_[index];
+      out.purchaseOrders.push_back({order.id, order.item, order.quantity,
+                                    order.destination, order.state,
+                                    order.remainingSeconds, order.blockedReason});
+    }
+    for (const auto index : activeMoves_) {
+      const auto &move = moves_[index];
+      out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
+                                move.from, move.to, move.remainingSeconds,
+                                move.completed, move.blockedReason});
+    }
+  }
   return out;
 }
 

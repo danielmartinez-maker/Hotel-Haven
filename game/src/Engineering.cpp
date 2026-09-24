@@ -165,18 +165,27 @@ void EngineeringSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-EngineeringSnapshot EngineeringSystem::snapshot() const {
+EngineeringSnapshot EngineeringSystem::snapshot(bool includeHistory) const {
   EngineeringSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.failures = failures_;
   out.assets.reserve(assets_.size());
-  out.workOrders.reserve(workOrders_.size());
+  out.workOrders.reserve(includeHistory ? workOrders_.size()
+                                        : activeWorkOrders_.size());
   for (const auto &entry : assets_)
     out.assets.push_back({entry.id, entry.condition, entry.failurePressure,
                           entry.failed});
-  for (const auto &order : workOrders_)
-    out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
-                              order.remainingSeconds, order.blockedReason});
+  if (includeHistory) {
+    for (const auto &order : workOrders_)
+      out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
+                                order.remainingSeconds, order.blockedReason});
+  } else {
+    for (const auto index : activeWorkOrders_) {
+      const auto &order = workOrders_[index];
+      out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
+                                order.remainingSeconds, order.blockedReason});
+    }
+  }
   return out;
 }
 

@@ -45,7 +45,7 @@ public:
   latestWorkOrderStage(AssetId asset, WorkOrderType type) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
-  [[nodiscard]] EngineeringSnapshot snapshot() const;
+  [[nodiscard]] EngineeringSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;
