@@ -126,6 +126,12 @@ bool ServiceLogisticsRuntime::retireRoomAndAsset(RoomId room) {
 LogisticsSnapshot ServiceLogisticsRuntime::logisticsSnapshot() const {
   return impl_->logistics.snapshot();
 }
+HousekeepingSnapshot ServiceLogisticsRuntime::housekeepingSnapshot() const {
+  return impl_->housekeeping.snapshot();
+}
+EngineeringSnapshot ServiceLogisticsRuntime::engineeringSnapshot() const {
+  return impl_->engineering.snapshot();
+}
 TaskId ServiceLogisticsRuntime::requestRoomTurn(RoomId room) {
   return impl_->housekeeping.requestRoomTurn(room);
 }
