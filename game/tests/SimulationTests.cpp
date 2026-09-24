@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -1158,6 +1159,52 @@ static void long_campaign_bounds_transient_history() {
               reloaded.people.size() == view.people.size() &&
               reloaded.economy.completedStays == view.economy.completedStays,
           "bounded campaign state did not round-trip through the save");
+}
+
+static void excessive_checkin_delays_release_walked_guests() {
+  auto s = Simulation::tutorial(90);
+  require(s.loadDefinitions(R"({"baseDemand":100})").ok,
+          "walked-guest definitions rejected");
+  EntityId receptionist = 0;
+  for (const auto &person : s.view().people)
+    if (person.kind == PersonKind::Receptionist)
+      receptionist = person.id;
+  require(receptionist && s.fireStaff(receptionist).ok,
+          "walked-guest fixture could not remove reception coverage");
+  s.step(95 * 60);
+  const auto view = s.view();
+  int walked = 0;
+  std::int64_t checkInTravel = 0;
+  int checkInWait = 0;
+  for (const auto &reservation : view.reservations) {
+    walked += reservation.walkedRelocated;
+    checkInTravel += reservation.checkInTravelSeconds;
+    checkInWait += reservation.checkInWaitSeconds;
+  }
+  require(walked > 0 && view.economy.completedStays == 0,
+          "unserved check-in queue produced no walked guests");
+  for (const auto &room : view.rooms)
+    require(room.reservationId == 0 && room.status == RoomStatus::VacantReady,
+            "walked guest left a room unavailable for resale");
+  for (const auto &task : view.tasks)
+    require(task.kind != TaskKind::CheckIn ||
+                task.status == TaskStatus::Completed,
+            "walked guest left an active check-in task");
+  const auto saved = s.save();
+  const auto restored = Simulation::load(saved).view();
+  int restoredWalked = 0;
+  std::int64_t restoredCheckInTravel = 0;
+  int restoredCheckInWait = 0;
+  for (const auto &reservation : restored.reservations) {
+    restoredWalked += reservation.walkedRelocated;
+    restoredCheckInTravel += reservation.checkInTravelSeconds;
+    restoredCheckInWait += reservation.checkInWaitSeconds;
+  }
+  require(restoredWalked == walked &&
+              restoredCheckInTravel == checkInTravel &&
+              restoredCheckInWait == checkInWait &&
+              Simulation::load(saved).save() == saved,
+          "walked reservation did not round-trip exactly");
 }
 
 int main() {
