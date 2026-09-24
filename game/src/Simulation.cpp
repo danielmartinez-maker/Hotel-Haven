@@ -2885,7 +2885,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 9 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -2981,6 +2981,52 @@ std::string Simulation::save() const {
   o << "FINAL05_AMENITIES " << amenityState.size() << '\n';
   o.write(amenityState.data(), static_cast<std::streamsize>(amenityState.size()));
   o << '\n';
+
+  std::ostringstream workforce;
+  workforce << std::setprecision(17)
+            << impl_->onboardingCostCents << ' '
+            << impl_->staffBreakAfterMinutes << ' '
+            << impl_->staffBreakDurationMinutes << ' '
+            << impl_->missedBreakFatiguePerHour << ' '
+            << impl_->missedBreakMoralePerHour << ' '
+            << impl_->trainingSkillGain << ' '
+            << impl_->consumedApplicantDay << ' '
+            << impl_->staffOptimizerEnabled << '\n';
+  workforce << impl_->consumedApplicantIds.size();
+  for (const auto id : impl_->consumedApplicantIds)
+    workforce << ' ' << id;
+  workforce << '\n';
+  workforce << impl_->managers.size() << '\n';
+  for (const auto &manager : impl_->managers)
+    workforce << ei(manager.department) << ' ' << manager.managerId << '\n';
+  workforce << impl_->people.size() << '\n';
+  for (const auto &person : impl_->people)
+    workforce << person.id << ' ' << person.reliability << ' ' << person.morale
+              << ' ' << person.absent << ' ' << person.onBreak << ' '
+              << person.inTraining << ' ' << person.breakMinutesTakenToday
+              << ' ' << person.trainingProgress << ' '
+              << person.shiftWorkedSeconds << ' ' << person.shiftInstanceKey
+              << ' ' << person.breakTaskCreated << ' '
+              << person.contract.sourceApplicantId << ' '
+              << ei(person.contract.role) << ' '
+              << person.contract.hourlyWageCents << ' '
+              << person.contract.onboardingCostCents << ' '
+              << person.contract.shiftStartHour << ' '
+              << person.contract.shiftEndHour << '\n';
+  const auto writeWorkforceTask = [&](const Task &task) {
+    workforce << task.id << ' ' << task.notBeforeSecond << ' '
+              << task.trainingSkillGain << '\n';
+  };
+  workforce << impl_->tasks.size() + impl_->completedTaskHistory.size() << '\n';
+  for (const auto &task : impl_->tasks)
+    writeWorkforceTask(task);
+  for (const auto &task : impl_->completedTaskHistory)
+    writeWorkforceTask(task);
+  const auto workforceState = workforce.str();
+  o << "FINAL03_WORKFORCE " << workforceState.size() << '\n';
+  o.write(workforceState.data(),
+          static_cast<std::streamsize>(workforceState.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -2990,7 +3036,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 9)
+  if (magic != "HHGS" || version < 2 || version > 10)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -3169,7 +3215,7 @@ Simulation Simulation::load(std::string_view data) {
         t.target.x >> t.target.y >> t.workRemainingSeconds >>
         std::quoted(t.blockedReason) >> t.total >> t.resourcesClaimed;
     const bool completed = st == ei(TaskStatus::Completed);
-    if (k < ei(TaskKind::CheckIn) || k > ei(TaskKind::CheckOut) ||
+    if (k < ei(TaskKind::CheckIn) || k > ei(TaskKind::Training) ||
         st < ei(TaskStatus::Ready) || st > ei(TaskStatus::Completed) ||
         !d.inside(t.target) || !std::isfinite(t.workRemainingSeconds) ||
         !std::isfinite(t.total) || t.total <= 0 ||
@@ -3266,6 +3312,171 @@ Simulation Simulation::load(std::string_view data) {
     d.events.setElapsedSeconds(d.elapsed);
     d.amenities.setElapsedSeconds(d.elapsed);
   }
+
+  if (version >= 10) {
+    std::string workforceTag;
+    std::size_t workforceBytes{};
+    i >> workforceTag >> workforceBytes;
+    if (!i || workforceTag != "FINAL03_WORKFORCE" ||
+        workforceBytes > 16 * 1024 * 1024)
+      throw std::invalid_argument("invalid FINAL-03 workforce save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-03 workforce delimiter");
+    std::string workforceState(workforceBytes, '\0');
+    i.read(workforceState.data(),
+           static_cast<std::streamsize>(workforceBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != workforceBytes)
+      throw std::invalid_argument("truncated FINAL-03 workforce section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid FINAL-03 workforce terminator");
+
+    std::istringstream workforce{workforceState};
+    workforce >> d.onboardingCostCents >> d.staffBreakAfterMinutes >>
+        d.staffBreakDurationMinutes >> d.missedBreakFatiguePerHour >>
+        d.missedBreakMoralePerHour >> d.trainingSkillGain >>
+        d.consumedApplicantDay >> d.staffOptimizerEnabled;
+    if (!workforce || d.onboardingCostCents < 0 ||
+        d.onboardingCostCents > 100000000 ||
+        d.staffBreakAfterMinutes < 0 || d.staffBreakAfterMinutes > 100000 ||
+        d.staffBreakDurationMinutes <= 0 ||
+        d.staffBreakDurationMinutes > 24 * 60 ||
+        !std::isfinite(d.missedBreakFatiguePerHour) ||
+        d.missedBreakFatiguePerHour < 0 ||
+        d.missedBreakFatiguePerHour > 1000 ||
+        !std::isfinite(d.missedBreakMoralePerHour) ||
+        d.missedBreakMoralePerHour < 0 ||
+        d.missedBreakMoralePerHour > 1000 ||
+        !std::isfinite(d.trainingSkillGain) || d.trainingSkillGain < 0 ||
+        d.trainingSkillGain > 100 || d.consumedApplicantDay < -1)
+      throw std::invalid_argument("invalid FINAL-03 workforce settings");
+
+    std::size_t applicantCount{};
+    workforce >> applicantCount;
+    if (!workforce || applicantCount > 1000)
+      throw std::invalid_argument("invalid FINAL-03 applicant count");
+    d.consumedApplicantIds.resize(applicantCount);
+    std::unordered_set<ApplicantId> applicantIds;
+    for (auto &applicantId : d.consumedApplicantIds) {
+      workforce >> applicantId;
+      if (!workforce || applicantId == 0 ||
+          !applicantIds.insert(applicantId).second)
+        throw std::invalid_argument("invalid FINAL-03 applicant IDs");
+    }
+
+    std::size_t managerCount{};
+    workforce >> managerCount;
+    if (!workforce || managerCount > allDepartments().size())
+      throw std::invalid_argument("invalid FINAL-03 manager count");
+    d.managers.resize(managerCount);
+    std::unordered_set<int> managedDepartments;
+    for (auto &manager : d.managers) {
+      int department{};
+      workforce >> department >> manager.managerId;
+      if (!workforce || department < ei(DepartmentId::FrontOffice) ||
+          department > ei(DepartmentId::Engineering) ||
+          manager.managerId == 0 ||
+          !managedDepartments.insert(department).second)
+        throw std::invalid_argument("invalid FINAL-03 manager assignment");
+      manager.department = static_cast<DepartmentId>(department);
+    }
+
+    std::size_t workforcePersonCount{};
+    workforce >> workforcePersonCount;
+    if (!workforce || workforcePersonCount != d.people.size())
+      throw std::invalid_argument("FINAL-03 people do not match simulation");
+    std::unordered_set<EntityId> workforcePersonIds;
+    for (std::size_t index = 0; index < workforcePersonCount; ++index) {
+      EntityId id{};
+      double reliability{}, morale{}, trainingProgress{};
+      bool absent{}, onBreak{}, inTraining{}, breakTaskCreated{};
+      int breakMinutesTakenToday{};
+      std::int64_t shiftWorkedSeconds{}, shiftInstanceKey{};
+      ApplicantId sourceApplicantId{};
+      int contractRole{};
+      std::int64_t contractWage{}, contractOnboarding{};
+      int contractStart{}, contractEnd{};
+      workforce >> id >> reliability >> morale >> absent >> onBreak >>
+          inTraining >> breakMinutesTakenToday >> trainingProgress >>
+          shiftWorkedSeconds >> shiftInstanceKey >> breakTaskCreated >>
+          sourceApplicantId >> contractRole >> contractWage >>
+          contractOnboarding >> contractStart >> contractEnd;
+      auto person = std::find_if(
+          d.people.begin(), d.people.end(),
+          [&](const Person &candidate) { return candidate.id == id; });
+      if (!workforce || person == d.people.end() ||
+          !workforcePersonIds.insert(id).second ||
+          !std::isfinite(reliability) || reliability < 0 || reliability > 100 ||
+          !std::isfinite(morale) || morale < 0 || morale > 100 ||
+          breakMinutesTakenToday < 0 || breakMinutesTakenToday > 24 * 60 ||
+          !std::isfinite(trainingProgress) || trainingProgress < 0 ||
+          trainingProgress > 100 || shiftWorkedSeconds < 0 ||
+          shiftWorkedSeconds > 48 * 3600 ||
+          contractRole < ei(StaffRole::Receptionist) ||
+          contractRole > ei(StaffRole::Maintenance) ||
+          contractWage < 0 || contractWage > 1000000 ||
+          contractOnboarding < 0 || contractOnboarding > 100000000 ||
+          contractStart < 0 || contractStart > 23 ||
+          contractEnd < 0 || contractEnd > 23)
+        throw std::invalid_argument("invalid FINAL-03 person state");
+      person->reliability = reliability;
+      person->morale = morale;
+      person->absent = absent;
+      person->onBreak = onBreak;
+      person->inTraining = inTraining;
+      person->breakMinutesTakenToday = breakMinutesTakenToday;
+      person->trainingProgress = trainingProgress;
+      person->shiftWorkedSeconds = shiftWorkedSeconds;
+      person->shiftInstanceKey = shiftInstanceKey;
+      person->breakTaskCreated = breakTaskCreated;
+      person->contract = {sourceApplicantId,
+                          static_cast<StaffRole>(contractRole),
+                          contractWage, contractOnboarding,
+                          contractStart, contractEnd};
+    }
+
+    std::size_t workforceTaskCount{};
+    workforce >> workforceTaskCount;
+    if (!workforce ||
+        workforceTaskCount != d.tasks.size())
+      throw std::invalid_argument("FINAL-03 tasks do not match simulation");
+    std::unordered_set<EntityId> workforceTaskIds;
+    for (std::size_t index = 0; index < workforceTaskCount; ++index) {
+      EntityId id{};
+      std::int64_t notBefore{};
+      double skillGain{};
+      workforce >> id >> notBefore >> skillGain;
+      auto task = std::find_if(
+          d.tasks.begin(), d.tasks.end(),
+          [&](const Task &candidate) { return candidate.id == id; });
+      if (!workforce || task == d.tasks.end() ||
+          !workforceTaskIds.insert(id).second || notBefore < 0 ||
+          !std::isfinite(skillGain) || skillGain < 0 || skillGain > 100)
+        throw std::invalid_argument("invalid FINAL-03 task state");
+      task->notBeforeSecond = notBefore;
+      task->trainingSkillGain = skillGain;
+    }
+    workforce >> std::ws;
+    if (!workforce.eof())
+      throw std::invalid_argument("unexpected FINAL-03 workforce trailing data");
+  } else {
+    for (auto &person : d.people)
+      if (person.kind != PersonKind::Guest) {
+        person.reliability = 100.0;
+        person.morale = 100.0;
+        person.absent = false;
+        person.onBreak = false;
+        person.inTraining = false;
+        person.breakMinutesTakenToday = 0;
+        person.trainingProgress = 0;
+        person.shiftWorkedSeconds = 0;
+        person.shiftInstanceKey =
+            std::numeric_limits<std::int64_t>::min();
+        person.breakTaskCreated = false;
+        person.contract = {0, staffRole(person.kind), person.hourlyWageCents, 0,
+                           person.shiftStartHour, person.shiftEndHour};
+      }
+  }
+
   if (!i)
     throw std::invalid_argument("corrupt simulation save");
   i >> std::ws;
