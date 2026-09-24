@@ -141,6 +141,8 @@ EngineeringSnapshot EngineeringSystem::snapshot() const {
   EngineeringSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.failures = failures_;
+  out.assets.reserve(assets_.size());
+  out.workOrders.reserve(workOrders_.size());
   for (const auto &entry : assets_)
     out.assets.push_back({entry.id, entry.condition, entry.failurePressure,
                           entry.failed});
