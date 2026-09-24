@@ -202,15 +202,65 @@ def shelf_or_cabinet(name, mat):
         w = 1.45
     if 'Pegboard' in name:
         d = 0.08
+
+    if 'Cabinet' in name or 'Locker' in name:
+        # Closed storage must read as storage at the management camera, not as a
+        # generic solid cuboid. Build a shallow carcass plus distinct front
+        # panels, seams, hardware and role-specific details.
+        add(scene, box((w, d, 0.08), (0, 0, 0.04), 'MAT_BLACKENED_STEEL'), 'CabinetPlinth')
+        add(scene, box((w, d, 0.07), (0, 0, h - 0.035), mat), 'CabinetTop')
+        add(scene, box((w, 0.055, h - 0.14), (0, d / 2 - 0.0275, h / 2), mat), 'CabinetBack')
+        for i, x in enumerate((-w / 2 + 0.035, w / 2 - 0.035)):
+            add(scene, box((0.07, d, h - 0.14), (x, 0, h / 2), mat), f'CabinetSide_{i}')
+
+        if 'Locker' in name:
+            door_count = 3
+            door_w = w / door_count * 0.88
+            for i, x in enumerate(np.linspace(-w * 0.32, w * 0.32, door_count)):
+                add(scene, box((door_w, 0.032, h * 0.83),
+                               (x, -d / 2 - 0.018, h * 0.52), mat),
+                    f'LockerDoor_{i}')
+                add(scene, box((0.028, 0.032, 0.18),
+                               (x + door_w * 0.32, -d / 2 - 0.052, h * 0.54),
+                               'MAT_BLACKENED_STEEL'),
+                    f'LockerHandle_{i}')
+                for vent in range(3):
+                    z = h * (0.76 + vent * 0.035)
+                    add(scene, box((door_w * 0.50, 0.020, 0.018),
+                                   (x, -d / 2 - 0.054, z),
+                                   'MAT_BLACKENED_STEEL'),
+                        f'LockerVent_{i}_{vent}')
+            add(scene, box((w * 0.94, 0.022, 0.025),
+                           (0, -d / 2 - 0.055, h * 0.10),
+                           'MAT_BLACKENED_STEEL'), 'LockerToeReveal')
+        else:
+            door_w = w * 0.43
+            for i, x in enumerate((-w * 0.235, w * 0.235)):
+                add(scene, box((door_w, 0.032, h * 0.82),
+                               (x, -d / 2 - 0.018, h * 0.52), mat),
+                    f'CabinetDoor_{i}')
+                add(scene, box((0.028, 0.035, 0.24),
+                               (x + (-1 if i == 0 else 1) * door_w * 0.30,
+                                -d / 2 - 0.052, h * 0.54),
+                               'MAT_BLACKENED_STEEL'),
+                    f'CabinetHandle_{i}')
+            add(scene, box((0.022, 0.026, h * 0.72),
+                           (0, -d / 2 - 0.055, h * 0.52),
+                           'MAT_BLACKENED_STEEL'), 'CabinetDoorGap')
+            if 'Cleaning Supply' in name:
+                add(scene, box((w * 0.42, 0.022, 0.12),
+                               (0, -d / 2 - 0.057, h * 0.78),
+                               'MAT_SIGNAGE'), 'CleaningLabel')
+                add(scene, box((w * 0.72, d * 0.70, 0.04),
+                               (0, 0, h * 0.42), 'MAT_STAINLESS'),
+                    'CleaningShelf')
+        return scene
+
     add(scene, box((w, d, 0.07), (0, 0, 0.035), mat), 'Base')
     for i, x in enumerate((-w / 2 + 0.035, w / 2 - 0.035)):
         add(scene, box((0.07, 0.07, h), (x, 0, h / 2), mat), f'Upright_{i}')
     for i, z in enumerate((0.38, 0.76, 1.14, 1.52)):
         add(scene, box((w * 0.94, d * 0.90, 0.045), (0, 0, z), mat), f'Shelf_{i}')
-    if 'Cabinet' in name or 'Locker' in name:
-        add(scene, box((w, d, h), (0, 0, h / 2), mat), 'CabinetBody')
-        for i, x in enumerate(np.linspace(-w * 0.35, w * 0.35, 3)):
-            add(scene, box((0.025, 0.03, 0.18), (x, -d / 2 - 0.02, 1.0), 'MAT_BLACKENED_STEEL'), f'Handle_{i}')
     return scene
 
 
