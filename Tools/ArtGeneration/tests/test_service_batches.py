@@ -56,6 +56,13 @@ def test_service_storage_has_readable_front_identity():
         assert {f'LockerVent_{index}_{vent}' for vent in range(3)} <= locker_nodes
     assert {'CabinetPlinth', 'LockerToeReveal'} <= locker_nodes
 
+    assert cabinet.geometry['CabinetDoor_0'].visual.material.name == 'MAT_SERVICE_PANEL'
+    assert cabinet.geometry['CabinetHandle_0'].visual.material.name == 'MAT_STAINLESS'
+    assert cabinet.geometry['CleaningLabel'].visual.material.name == 'MAT_SAFETY_YELLOW'
+    assert lockers.geometry['LockerDoor_0'].visual.material.name == 'MAT_SERVICE_PANEL'
+    assert lockers.geometry['LockerHandle_0'].visual.material.name == 'MAT_STAINLESS'
+    assert lockers.geometry['LockerVent_0_0'].visual.material.name == 'MAT_STAINLESS'
+
 
 def test_service_storage_stays_floor_supported_and_nontrivial():
     from service_asset_factory import build_asset
