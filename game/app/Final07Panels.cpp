@@ -1267,7 +1267,10 @@ void Client::paint(HDC output) {
       paragraph(wide(alert.message), 34);
       fullButton(L"Show why chain", [this, id = alert.id] { selectedAlertId = id; tabScroll = 0; }, selectedAlertId == alert.id); separator();
     }
-    if (alerts.empty()) paragraph(L"No active alerts.", 36, Muted);
+    if (alerts.empty()) {
+      paragraph(L"ALL CLEAR", 24, Accent);
+      paragraph(L"No active alerts require attention.", 36, Muted);
+    }
   } else if (page == Page::Objectives) {
     heading(L"Objectives & guidance");
     fullButton(objectiveUi.minimized() ? L"Expand guidance" : L"Minimize guidance", [this] { objectiveUi.setMinimized(!objectiveUi.minimized()); });
@@ -1281,7 +1284,10 @@ void Client::paint(HDC output) {
         if (objective.dismissible && y + vpx(38) < bottom) fullButton(L"Dismiss guidance", [this, id = objective.id] { if (!objectiveUi.dismiss(id)) notice = L"Guidance cannot be dismissed."; });
         separator();
       }
-      if (items.empty()) paragraph(L"No scenario objectives are active.", 54, Muted);
+      if (items.empty()) {
+        paragraph(L"NO ACTIVE GUIDANCE", 24, Accent);
+        paragraph(L"The hotel has no scenario objectives requiring attention.", 40, Muted);
+      }
     }
   } else if (page == Page::Overlays) {
     heading(L"Management overlays");
