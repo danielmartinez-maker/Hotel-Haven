@@ -180,8 +180,12 @@ std::size_t pageRows(const Client &client) {
     return hh::frontend::OverlayModel::requiredDescriptors().size();
   case Page::Build: {
     std::size_t count = 0;
-    for (const auto &item : client.ui.snapshot().buildCatalog)
-      count += liveBuildTool(item.id).has_value();
+    for (const auto &item : client.ui.snapshot().buildCatalog) {
+      const bool categoryMatches =
+          client.buildCategoryFilter.empty() ||
+          item.category == client.buildCategoryFilter;
+      count += liveBuildTool(item.id).has_value() && categoryMatches;
+    }
     return count;
   }
   case Page::Finance:
@@ -536,13 +540,68 @@ void Client::paint(HDC output) {
       Tool tool;
       const hh::frontend::BuildCatalogItem *item;
     };
+    std::vector<std::string> buildCategories;
     std::vector<VisibleBuildTool> visibleTools;
     visibleTools.reserve(gameUi.buildCatalog.size());
     for (const auto &item : gameUi.buildCatalog) {
       const auto mappedTool = liveBuildTool(item.id);
-      if (mappedTool)
+      if (!mappedTool)
+        continue;
+      if (std::find(buildCategories.begin(), buildCategories.end(),
+                    item.category) == buildCategories.end())
+        buildCategories.push_back(item.category);
+      if (buildCategoryFilter.empty() || item.category == buildCategoryFilter)
         visibleTools.push_back({*mappedTool, &item});
     }
+
+    const bool filterStillExists =
+        buildCategoryFilter.empty() ||
+        std::find(buildCategories.begin(), buildCategories.end(),
+                  buildCategoryFilter) != buildCategories.end();
+    if (!filterStillExists) {
+      buildCategoryFilter.clear();
+      tabScroll = 0;
+      visibleTools.clear();
+      for (const auto &item : gameUi.buildCatalog) {
+        const auto mappedTool = liveBuildTool(item.id);
+        if (mappedTool)
+          visibleTools.push_back({*mappedTool, &item});
+      }
+    }
+
+    const int categoryButtonHeight = std::max(px(22), vpx(30));
+    button(left, y, panelWidth, categoryButtonHeight,
+           L"Browse · " +
+               (buildCategoryFilter.empty() ? std::wstring(L"All")
+                                            : wide(buildCategoryFilter)),
+           [this, buildCategories] {
+             if (buildCategories.empty()) {
+               buildCategoryFilter.clear();
+               tabScroll = 0;
+               return;
+             }
+             if (buildCategoryFilter.empty()) {
+               buildCategoryFilter = buildCategories.front();
+             } else {
+               const auto current =
+                   std::find(buildCategories.begin(), buildCategories.end(),
+                             buildCategoryFilter);
+               if (current == buildCategories.end() ||
+                   std::next(current) == buildCategories.end())
+                 buildCategoryFilter.clear();
+               else
+                 buildCategoryFilter = *std::next(current);
+             }
+             tabScroll = 0;
+             tool = Tool::Inspect;
+             buildPreview = {};
+             previewValid = false;
+             notice = buildCategoryFilter.empty()
+                          ? L"Showing all construction items."
+                          : L"Build category changed.";
+           },
+           !buildCategoryFilter.empty());
+    y += std::max(px(28), vpx(39));
 
     const int buildRowHeight = vpx(35);
     const int buildButtonHeight = std::max(px(22), vpx(30));
