@@ -105,6 +105,7 @@ void RoomServiceSystem::tickSeconds(std::int64_t seconds) {
 RoomServiceSnapshot RoomServiceSystem::snapshot() const {
   RoomServiceSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
+  out.orders.reserve(orders_.size());
   for (const auto &entry : orders_)
     out.orders.push_back({entry.id, entry.guestId, entry.stage,
                           entry.remainingSeconds, entry.ageSeconds,
