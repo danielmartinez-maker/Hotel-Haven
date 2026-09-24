@@ -410,6 +410,13 @@ public:
   static Simulation load(std::string_view data);
 
 private:
+  // SimulationIntegrated.cpp composes the public FINAL-02 psychology schema
+  // over the current HHGS10 unified simulation without compiling two copies
+  // of the monolithic implementation.
+  void stepV10(double seconds);
+  [[nodiscard]] std::string saveV10() const;
+  static Simulation loadV10(std::string_view data);
+
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
