@@ -29,6 +29,11 @@ enum class FinanceView {
   Risk
 };
 
+enum class FinanceControlView {
+  Pricing,
+  Overbooking
+};
+
 enum class SettingsView {
   Display,
   Controls
