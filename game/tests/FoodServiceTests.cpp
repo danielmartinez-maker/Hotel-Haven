@@ -78,9 +78,12 @@ static void production_is_deterministic_and_releases_capacity_when_ready() {
           "order did not progress prep/cook/plate to ready");
   require(service.beginProduction(second),
           "capacity was not released when first order became ready");
-  const auto restored = FoodServiceSystem::load(service.save());
+  auto restored = FoodServiceSystem::load(service.save());
   require(restored.save() == service.save(),
           "food-service save/load was not deterministic");
+  restored.tickSeconds(5);
+  require(restored.order(second).stage == FoodStage::Ready,
+          "restored live-order index did not continue production");
 }
 
 static void restaurant_visit_progresses_through_front_and_back_of_house() {
