@@ -87,6 +87,9 @@ struct D3D11Renderer::MeshConstants {
     DirectX::XMFLOAT4 materialParameters;
 };
 
+static_assert(sizeof(D3D11Renderer::CameraConstants) % 16u == 0u);
+static_assert(sizeof(D3D11Renderer::MeshConstants) % 16u == 0u);
+
 D3D11Renderer::~D3D11Renderer() {
     shutdown();
 }
