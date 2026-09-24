@@ -89,6 +89,7 @@ struct Client {
   std::size_t financeRuleIndex{};
   std::size_t financeOverbookingIndex{};
   FinanceView financeView{FinanceView::Overview};
+  SettingsView settingsView{SettingsView::Display};
   hh::frontend::OverlayId managementOverlay{hh::frontend::OverlayId::None};
   HWND window{}, viewport{};
   hh::renderer::RuntimeAssetRegistry assetRegistry;
