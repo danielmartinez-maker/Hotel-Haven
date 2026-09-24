@@ -185,6 +185,11 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       if (wp < 256) {
         c->keys[wp] = true;
         c->uiSettings.setInputModality(hh::frontend::InputModality::Keyboard);
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         if ((lp & (1LL << 30)) == 0)
           c->key(static_cast<int>(wp));
       }
@@ -346,6 +351,11 @@ void pollController(Client &c) {
     return;
   }
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
+  if (c.hoveredButton != -1) {
+    c.hoveredButton = -1;
+    SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+    InvalidateRect(c.window, nullptr, FALSE);
+  }
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
     performUiAction(c, hh::frontend::UiAction::NavigateNext);
   if (pressed & (XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_LEFT))
