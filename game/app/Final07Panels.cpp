@@ -236,6 +236,9 @@ std::size_t pageRows(const Client &client) {
   }
   case Page::Finance: return financePageRows(client);
   case Page::Settings:
+    return client.settingsView == SettingsView::Controls
+               ? hh::frontend::EditableKeyBindings.size()
+               : 0;
   case Page::Guide: return 0;
   }
   return 0;
@@ -1178,78 +1181,136 @@ void Client::paint(HDC output) {
     }
   } else if (page == Page::Settings) {
     heading(L"UI & accessibility");
-    label(L"UI scale", std::to_wstring(uiSettings.scalePercent()) + L"%");
-    const int scaleButtonGap = px(8);
-    const int scaleButtonWidth =
-        std::max(1, (panelWidth - scaleButtonGap * 2) / 3);
-    for (std::size_t index = 0; index < Final07UiScales.size(); ++index) {
-      const int value = Final07UiScales[index];
-      const int row = static_cast<int>(index / 3);
-      const int column = static_cast<int>(index % 3);
-      button(left + column * (scaleButtonWidth + scaleButtonGap),
-             y + row * vpx(35), scaleButtonWidth, std::max(px(22), vpx(30)),
-             std::to_wstring(value) + L"%", [this, value] {
-        if (!uiSettings.setScalePercent(value)) {
-          notice = L"Unsupported UI scale.";
-          return;
-        }
-        notice = saveUiPreferences()
-                     ? L"UI scale preference updated."
-                     : L"UI scale updated for this session; preference file could not be saved.";
-      }, uiSettings.scalePercent() == value);
-    }
-    y += vpx(78);
-    fullButton(uiSettings.reducedMotion() ? L"Reduced motion: ON" : L"Reduced motion: OFF", [this] {
-      uiSettings.setReducedMotion(!uiSettings.reducedMotion());
-      const bool persisted = saveUiPreferences();
-      if (!persisted) {
-        notice = L"Reduced-motion preference changed for this session; preference file could not be saved.";
-      } else {
-        notice = uiSettings.reducedMotion() ? L"Reduced motion enabled." : L"Reduced motion disabled.";
-      }
-    }, uiSettings.reducedMotion());
-    label(L"Visible focus", uiSettings.visibleFocusRequired() ? L"Required" : L"Mouse modality");
-    paragraph(L"Color is never the only cue. Text layout reserves 140% localization expansion. These preferences never alter simulation authority.", 44, Muted);
+
+    const int settingsTabHeight = std::max(px(24), vpx(32));
+    button(left, y, halfControlWidth, settingsTabHeight, L"Display", [this] {
+      settingsView = SettingsView::Display;
+      tabScroll = 0;
+      keyBindingEditor.cancel();
+    }, settingsView == SettingsView::Display);
+    button(left + halfControlWidth + controlGap, y, halfControlWidth,
+           settingsTabHeight, L"Controls", [this] {
+             settingsView = SettingsView::Controls;
+             tabScroll = 0;
+           }, settingsView == SettingsView::Controls);
+    y += std::max(px(28), vpx(39));
     separator();
-    paragraph(keyBindingEditor.capturing()
-                  ? L"Keyboard bindings · press the next key, or click the highlighted action to cancel."
-                  : L"Keyboard bindings · click an action, then press the replacement key.",
-              36, keyBindingEditor.capturing() ? Warning : Muted);
-    const auto pendingBinding = keyBindingEditor.pendingAction();
-    const int bindingGap = px(12);
-    const int bindingWidth = (panelWidth - bindingGap) / 2;
-    for (std::size_t index = 0; index < hh::frontend::EditableKeyBindings.size(); ++index) {
-      const auto &descriptor = hh::frontend::EditableKeyBindings[index];
-      const bool capturing = pendingBinding && *pendingBinding == descriptor.action;
-      std::wstring bindingLabel = wide(std::string(descriptor.label)) + L" · " +
-                                  keyName(uiSettings.keyboardBinding(descriptor.action));
-      if (capturing)
-        bindingLabel = L"PRESS · " + bindingLabel;
-      const int row = static_cast<int>(index / 2);
-      const int column = static_cast<int>(index % 2);
-      button(left + column * (bindingWidth + bindingGap), y + row * vpx(35),
-             bindingWidth, std::max(px(22), vpx(30)), std::move(bindingLabel),
-             [this, action = descriptor.action] {
-               const auto pending = keyBindingEditor.pendingAction();
-               if (pending && *pending == action) {
-                 keyBindingEditor.cancel();
-                 notice = L"Keyboard rebinding cancelled.";
-                 return;
-               }
-               keyBindingEditor.begin(action);
-               notice = L"Press a key for the selected action.";
-             }, capturing);
-    }
-    y += static_cast<int>((hh::frontend::EditableKeyBindings.size() + 1) / 2) *
-         vpx(35);
-    if (y + vpx(38) < bottom) {
+
+    if (settingsView == SettingsView::Display) {
+      label(L"UI scale", std::to_wstring(uiSettings.scalePercent()) + L"%");
+      const int scaleButtonGap = px(5);
+      const int scaleButtonWidth =
+          std::max(1, (panelWidth -
+                       scaleButtonGap *
+                           (static_cast<int>(Final07UiScales.size()) - 1)) /
+                          static_cast<int>(Final07UiScales.size()));
+      const int scaleButtonHeight = std::max(px(22), vpx(30));
+      for (std::size_t index = 0; index < Final07UiScales.size(); ++index) {
+        const int value = Final07UiScales[index];
+        button(left + static_cast<int>(index) *
+                          (scaleButtonWidth + scaleButtonGap),
+               y, scaleButtonWidth, scaleButtonHeight,
+               std::to_wstring(value) + L"%", [this, value] {
+                 if (!uiSettings.setScalePercent(value)) {
+                   notice = L"Unsupported UI scale.";
+                   return;
+                 }
+                 notice =
+                     saveUiPreferences()
+                         ? L"UI scale preference updated."
+                         : L"UI scale updated for this session; preference file could not be saved.";
+               },
+               uiSettings.scalePercent() == value);
+      }
+      y += std::max(px(28), vpx(39));
+
+      fullButton(
+          uiSettings.reducedMotion() ? L"Reduced motion: ON"
+                                     : L"Reduced motion: OFF",
+          [this] {
+            uiSettings.setReducedMotion(!uiSettings.reducedMotion());
+            const bool persisted = saveUiPreferences();
+            if (!persisted) {
+              notice = L"Reduced-motion preference changed for this session; preference file could not be saved.";
+            } else {
+              notice = uiSettings.reducedMotion()
+                           ? L"Reduced motion enabled."
+                           : L"Reduced motion disabled.";
+            }
+          },
+          uiSettings.reducedMotion());
+
+      if (y + vpx(28) < bottom)
+        label(L"Visible focus",
+              uiSettings.visibleFocusRequired() ? L"Required"
+                                                : L"Mouse modality");
+      if (y + vpx(48) < bottom)
+        paragraph(
+            L"Color is never the only cue. Text keeps extra room for longer labels. These options affect presentation only.",
+            40, Muted);
+    } else {
+      const bool compactControls =
+          panelLayout.contentHeightPixels < vpx(430);
+      if (!compactControls) {
+        paragraph(
+            keyBindingEditor.capturing()
+                ? L"Press the replacement key, or click the highlighted action to cancel."
+                : L"Choose an action, then press its replacement key.",
+            34, keyBindingEditor.capturing() ? Warning : Muted);
+      } else if (keyBindingEditor.capturing()) {
+        paragraph(L"Press a replacement key.", 24, Warning);
+      }
+
       fullButton(L"Reset keyboard bindings", [this] {
         keyBindingEditor.cancel();
         uiSettings.resetKeyboardBindings();
-        notice = saveUiPreferences()
-                     ? L"Keyboard bindings reset to defaults."
-                     : L"Keyboard bindings reset for this session; preference file could not be saved.";
+        notice =
+            saveUiPreferences()
+                ? L"Keyboard bindings reset to defaults."
+                : L"Keyboard bindings reset for this session; preference file could not be saved.";
       });
+
+      const auto pendingBinding = keyBindingEditor.pendingAction();
+      const int bindingGap = px(12);
+      const int bindingWidth = (panelWidth - bindingGap) / 2;
+      const int bindingHeight = std::max(px(22), vpx(30));
+      const int bindingRowHeight = vpx(35);
+      const std::size_t bindingStart = std::min(
+          static_cast<std::size_t>(std::max(0, tabScroll)),
+          hh::frontend::EditableKeyBindings.size());
+
+      for (std::size_t index = bindingStart;
+           index < hh::frontend::EditableKeyBindings.size(); ++index) {
+        const std::size_t localIndex = index - bindingStart;
+        const int row = static_cast<int>(localIndex / 2);
+        const int column = static_cast<int>(localIndex % 2);
+        const int buttonY = y + row * bindingRowHeight;
+        if (buttonY + bindingHeight >= bottom)
+          break;
+
+        const auto &descriptor = hh::frontend::EditableKeyBindings[index];
+        const bool capturing =
+            pendingBinding && *pendingBinding == descriptor.action;
+        std::wstring bindingLabel =
+            wide(std::string(descriptor.label)) + L" · " +
+            keyName(uiSettings.keyboardBinding(descriptor.action));
+        if (capturing)
+          bindingLabel = L"PRESS · " + bindingLabel;
+
+        button(left + column * (bindingWidth + bindingGap), buttonY,
+               bindingWidth, bindingHeight, std::move(bindingLabel),
+               [this, action = descriptor.action] {
+                 const auto pending = keyBindingEditor.pendingAction();
+                 if (pending && *pending == action) {
+                   keyBindingEditor.cancel();
+                   notice = L"Keyboard rebinding cancelled.";
+                   return;
+                 }
+                 keyBindingEditor.begin(action);
+                 notice = L"Press a key for the selected action.";
+               },
+               capturing);
+      }
     }
   } else {
     heading(L"Your first hotel");
@@ -1268,7 +1329,7 @@ void Client::paint(HDC output) {
     if (y + vpx(38) < bottom) fullButton(L"New starter campaign", [this] { newCampaign(); });
   }
 
-  if (page != Page::Build && page != Page::Settings && page != Page::Guide) {
+  if (page != Page::Build && page != Page::Guide) {
     const std::size_t count = pageRows(*this);
     if (count > 0) {
       button(left, height - FooterHeight - vpx(42), halfControlWidth,
