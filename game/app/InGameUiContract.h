@@ -177,6 +177,12 @@ final07PointInManagementPanel(int clientWidth, int clientHeight,
          y < clientHeight - shell.footerPixels;
 }
 
+[[nodiscard]] constexpr int
+final07ValidatedControlIndex(int index, std::size_t controlCount) noexcept {
+  return index >= 0 && static_cast<std::size_t>(index) < controlCount ? index
+                                                                     : -1;
+}
+
 static_assert(Final07PageLabels.size() == 12);
 static_assert(Final07FinanceViewLabels.size() == 5);
 static_assert(Final07SpeedButtons[0] == 0 && Final07SpeedButtons[4] == 8);
