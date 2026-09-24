@@ -263,7 +263,7 @@ def small_cleaning(name, mat):
     if any(k in name for k in ('Hamper', 'Sorting Bin', 'Trash Bin', 'Recycling Bin', 'Compactor Bin')):
         h = 0.68 if 'Compactor' not in name else 1.10
         w = 0.52 if 'Compactor' not in name else 1.10
-        add(scene, box((w, 0.48, h), (0, 0, h / 2), mat), 'Bin')
+        add(scene, box((w, 0.48, h), (0, 0, h / 2), mat), 'PrimaryBin')
         add(scene, box((w * 0.95, 0.44, 0.06), (0, 0, h + 0.03), 'MAT_BLACKENED_STEEL'), 'Lid')
         return scene
     if 'Wet Floor Sign' in name:
