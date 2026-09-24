@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace hh::game {
 
@@ -66,6 +67,11 @@ public:
 private:
   friend class Simulation;
   void synchronizeElapsedSecondsForSimulation(std::int64_t seconds);
+  void tickSimulationSecond(
+      const std::vector<RoomId> &managedHousekeepingRooms,
+      const std::vector<RoomId> &workingHousekeepingRooms,
+      const std::vector<AssetId> &managedEngineeringAssets,
+      const std::vector<AssetId> &workingEngineeringAssets);
 
   struct Impl;
   std::unique_ptr<Impl> impl_;
