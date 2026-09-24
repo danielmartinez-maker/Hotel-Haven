@@ -229,34 +229,49 @@ int main() {
                  makeHasset(std::string(id), alpha, testAssetType(id)));
     }
 
-    // A shipping package contains all 500 assets, but startup should decode only
-    // the world-view dependency set rather than eagerly materializing every GLB.
+    // The A700 milestone loader publishes every cooked gameplay asset in range
+    // while keeping later production tranches outside the shipping runtime.
     writeBytes(root / "HH_A001.hasset",
                makeHasset("HH_A001", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A501.hasset",
+               makeHasset("HH_A501", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A700.hasset",
+               makeHasset("HH_A700", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A701.hasset",
+               makeHasset("HH_A701", 1.0f,
                           hh::assets::AssetType::StaticMesh));
 
     hh::renderer::RuntimeAssetRegistry startupRegistry;
     const hh::client::WorldAssetSet startupAssets =
         hh::client::loadWorldAssetsFromDirectory(startupRegistry, root);
-    require(startupRegistry.size() == required.size(),
-            "startup decoded assets outside the world dependency set");
+    require(startupRegistry.size() == required.size() + 3u,
+            "startup did not decode the complete available A700 milestone set");
     require(startupAssets.queenBed->handle ==
                 startupRegistry.resolve("HH_A113"),
             "startup asset set did not bind queen bed handle");
     require(startupRegistry.resolve("HH_A451").value < startupRegistry.size(),
             "startup rejected a cooked skinned bind-pose character");
 
-    bool strayLoaded = true;
-    try {
-      (void)startupRegistry.resolve("HH_A001");
-    } catch (const std::runtime_error&) {
-      strayLoaded = false;
-    }
-    require(!strayLoaded,
-            "startup eagerly decoded an unrelated package asset");
+    require(startupRegistry.contains("HH_A001"),
+            "milestone loader omitted an in-range legacy asset");
+    require(startupRegistry.contains("HH_A501"),
+            "milestone loader omitted the first V2 tranche asset");
+    require(startupRegistry.contains("HH_A700"),
+            "milestone loader omitted the A700 boundary asset");
+    require(!startupRegistry.contains("HH_A701"),
+            "milestone loader crossed into the A701+ tranche");
+    require(findWorldAsset(startupAssets, "HH_A501") != nullptr,
+            "extended runtime catalog omitted A501");
+    require(findWorldAsset(startupAssets, "HH_A700") != nullptr,
+            "extended runtime catalog omitted A700");
+    require(findWorldAsset(startupAssets, "HH_A701") == nullptr,
+            "extended runtime catalog exposed an out-of-range asset");
     std::filesystem::remove_all(root);
 
-    std::cout << "Selective runtime registry world asset bridge passed\n";
+    std::cout << "A700 runtime registry world asset bridge passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;
