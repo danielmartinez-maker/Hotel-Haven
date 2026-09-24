@@ -195,6 +195,7 @@ void HousekeepingSystem::tickSeconds(std::int64_t seconds) {
 HousekeepingSnapshot HousekeepingSystem::snapshot() const {
   HousekeepingSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
+  out.jobs.reserve(jobs_.size());
   for (const auto &job : jobs_)
     out.jobs.push_back({job.id, job.roomId, job.stage, job.remainingSeconds,
                         job.blockedReason});
