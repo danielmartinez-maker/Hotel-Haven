@@ -138,7 +138,8 @@ LayoutMetrics MainMenuView::layout(
         result.safeZoneTop + result.safeZoneHeight * 0.48F -
         170.0F * result.uiContentScale;
     result.versionLeft =
-        result.safeZoneLeft + 72.0F * result.uiContentScale;
+        result.safeZoneLeft + result.safeZoneWidth -
+        300.0F * result.uiContentScale;
     result.versionBottom =
         result.safeZoneTop + result.safeZoneHeight -
         48.0F * result.uiContentScale;
