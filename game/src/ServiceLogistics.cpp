@@ -491,6 +491,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     move.blockedReason = static_cast<BlockReason>(block);
     l.moves_.push_back(std::move(move));
   }
+  l.rebuildDerivedState();
 
   auto &h = result.impl_->housekeeping;
   readTag("H");
@@ -549,6 +550,7 @@ ServiceLogisticsRuntime ServiceLogisticsRuntime::load(std::string_view data) {
     batch.blockedReason = static_cast<BlockReason>(block);
     laundry.batches_.push_back(batch);
   }
+  laundry.rebuildActiveBatches();
 
   auto &engineering = result.impl_->engineering;
   readTag("E");
