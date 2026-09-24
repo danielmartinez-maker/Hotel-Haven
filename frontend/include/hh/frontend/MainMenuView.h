@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -7,6 +8,9 @@
 #include "hh/frontend/MenuHotelProvider.h"
 
 namespace hh::frontend {
+
+inline constexpr std::array<float, 5> MainMenuUiScales{
+    0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
 
 struct PropertyCardText {
     std::string hotelName;
