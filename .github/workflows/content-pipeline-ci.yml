@@ -8,6 +8,7 @@ on:
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
       - 'renderer/**'
+      - 'game/app/WorldAssetBindings.cpp'
       - '.github/workflows/content-pipeline-ci.yml'
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - 'Tools/ArtGeneration/**'
       - 'Tools/ContentPipeline/**'
       - 'renderer/**'
+      - 'game/app/WorldAssetBindings.cpp'
       - '.github/workflows/content-pipeline-ci.yml'
 
 jobs:
@@ -38,6 +40,9 @@ jobs:
 
       - name: Validate 500 asset library manifest
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
+
+      - name: Validate shipping runtime asset bindings
+        run: python Tools/ContentPipeline/scripts/validate_runtime_world_bindings.py
 
       - name: Generate full asset library
         run: python Tools/ArtGeneration/generate_all_assets.py .
