@@ -9,21 +9,19 @@ HousekeepingSystem::HousekeepingSystem(LogisticsSystem &logistics)
 void HousekeepingSystem::registerRoom(RoomId id, ServiceRoomStatus status) {
   if (id == 0 || room(id))
     return;
+  const auto index = rooms_.size();
   rooms_.push_back({id, status});
+  roomIndex_.emplace(id, index);
 }
 
 HousekeepingSystem::RoomState *HousekeepingSystem::room(RoomId id) {
-  for (auto &entry : rooms_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = roomIndex_.find(id);
+  return found == roomIndex_.end() ? nullptr : &rooms_[found->second];
 }
 
 const HousekeepingSystem::RoomState *HousekeepingSystem::room(RoomId id) const {
-  for (const auto &entry : rooms_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = roomIndex_.find(id);
+  return found == roomIndex_.end() ? nullptr : &rooms_[found->second];
 }
 
 int HousekeepingSystem::duration(HousekeepingStage stage) {
@@ -158,6 +156,10 @@ void HousekeepingSystem::tickJobSecond(Job &job) {
 }
 
 void HousekeepingSystem::rebuildActiveJobs() {
+  roomIndex_.clear();
+  roomIndex_.reserve(rooms_.size());
+  for (std::size_t index = 0; index < rooms_.size(); ++index)
+    roomIndex_.emplace(rooms_[index].id, index);
   activeJobs_.clear();
   activeJobs_.reserve(jobs_.size());
   for (std::size_t index = 0; index < jobs_.size(); ++index)
