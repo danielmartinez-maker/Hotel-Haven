@@ -4265,7 +4265,7 @@ Simulation Simulation::load(std::string_view data) {
         const auto restored =
             detail::deserializeGuestPsychology(psychologyArchive);
         if (restored.guestId != guestId ||
-            restored.profile != profile)
+            !sameGuestProfile(restored.profile, profile))
           throw std::invalid_argument(
               "FINAL-02 psychology archive identity mismatch");
       }
