@@ -134,6 +134,9 @@ def case_piece(name, material):
             add(s, box((0.035,d*0.70,h*0.70),(x,0,h*0.45),'MAT_WOOD_DARK'), f'ClosetDivider_{x}')
     elif 'Wardrobe' in name or 'Armoire' in name:
         _case_doors(s,w,d,h,material)
+        add(s, box((w+0.06,d+0.04,0.07),(0,0,h+0.035),'MAT_WOOD_DARK'), 'WardrobeTopCap')
+        add(s, box((w*0.90,d*0.78,0.09),(0,0,0.045),'MAT_WOOD_DARK'), 'WardrobePlinth')
+        add(s, box((0.022,0.032,h*0.76),(0,-d/2-0.052,h*0.50),'MAT_WOOD_DARK'), 'WardrobeDoorGap')
         add(s, box((w*0.92,0.04,0.08),(0,-d/2-0.02,h*0.93),'MAT_WOOD_DARK'), 'TopRail')
         if 'Armoire' in name:
             add(s, box((w+0.16,d+0.08,0.12),(0,0,h+0.04),'MAT_WOOD_DARK'), 'CrownMolding')
@@ -158,7 +161,11 @@ def case_piece(name, material):
         for x in (-w*0.30,w*0.30):
             add(s, box((w*0.26,0.026,h*0.50),(x,-d/2-0.016,h*0.32),material), f'ConsoleDoor_{x}')
     else:
-        drawers = 2 if 'Drawer Nightstand' in name else 3 if 'Dresser Three' in name else 6 if 'Dresser Six' in name else 0
+        is_nightstand = 'Nightstand' in name
+        if is_nightstand:
+            add(s, box((w+0.06,d+0.05,0.055),(0,0,h+0.0275),'MAT_WOOD_DARK'), 'CaseTop')
+            add(s, box((w*0.82,d*0.74,0.065),(0,0,0.0325),'MAT_WOOD_DARK'), 'CasePlinth')
+        drawers = 2 if 'Drawer Nightstand' in name else 1 if is_nightstand else 3 if 'Dresser Three' in name else 6 if 'Dresser Six' in name else 0
         if drawers:
             row_count = 3 if drawers >= 3 else drawers
             cols = 2 if drawers == 6 else 1
@@ -166,9 +173,11 @@ def case_piece(name, material):
                 for c in range(cols):
                     dw = w*0.42 if cols == 2 else w*0.86
                     x = (-w*0.23 if c == 0 else w*0.23) if cols == 2 else 0
-                    z = h*(0.22+r*0.24)
-                    add(s, box((dw,0.025,h*0.17),(x,-d/2-0.016,z),material), f'Drawer_{r}_{c}')
-                    add(s, box((dw*0.28,0.02,0.025),(x,-d/2-0.045,z),'MAT_BRASS_POLISHED'), f'DrawerPull_{r}_{c}')
+                    z = h*(0.24+r*0.25)
+                    add(s, box((dw,0.035,h*0.18),(x,-d/2-0.020,z),'MAT_WOOD_DARK' if is_nightstand else material), f'Drawer_{r}_{c}')
+                    add(s, box((dw*0.32,0.025,0.028),(x,-d/2-0.052,z),'MAT_BRASS_POLISHED'), f'DrawerPull_{r}_{c}')
+            if is_nightstand and drawers == 1:
+                add(s, box((w*0.72,0.028,0.035),(0,-d/2-0.019,h*0.55),'MAT_WOOD_DARK'), 'NightstandLowerReveal')
         elif 'Charging Table' in name:
             add(s, box((0.18,0.08,0.025),(0,-d*0.22,h+0.015),'MAT_ELECTRONICS'), 'ChargingPad')
     return s
