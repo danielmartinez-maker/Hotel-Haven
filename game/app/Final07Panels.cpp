@@ -361,6 +361,14 @@ void Client::scrollPanel(int delta) {
 
 void Client::paint(HDC output) {
   objectiveUi.update(ui.snapshot().objectives);
+  const std::size_t currentPageRows = pageRows(*this);
+  if (currentPageRows == 0) {
+    tabScroll = 0;
+  } else {
+    tabScroll = std::clamp(
+        tabScroll, 0, static_cast<int>(currentPageRows - 1));
+  }
+
   HDC dc = CreateCompatibleDC(output);
   HBITMAP bitmap = CreateCompatibleBitmap(output, width, height);
   HGDIOBJ previous = SelectObject(dc, bitmap);
