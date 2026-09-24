@@ -65,6 +65,9 @@ static void completed_service_posts_outcome_revenue_and_service_demand() {
           "amenity service did not publish one attributed outcome");
   require(snapshot.outcomes.front().guestId == 3001,
           "amenity outcome was not attributed to the guest");
+  const auto liveSnapshot = amenities.snapshot(false);
+  require(liveSnapshot.reservations.empty() && liveSnapshot.outcomes.empty(),
+          "live amenity snapshot retained completed history");
   const auto view = std::find_if(snapshot.amenities.begin(), snapshot.amenities.end(),
                                  [](const auto &value) { return value.id == 10; });
   require(view != snapshot.amenities.end(), "amenity disappeared from snapshot");

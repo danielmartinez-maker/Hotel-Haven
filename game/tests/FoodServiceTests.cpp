@@ -105,6 +105,10 @@ static void restaurant_visit_progresses_through_front_and_back_of_house() {
           "restaurant visit did not complete");
   require(service.snapshot().revenueCents == 1800,
           "restaurant payment was not posted exactly once");
+  require(service.snapshot().orders.size() == 1,
+          "full food snapshot lost completed history");
+  require(service.snapshot(false).orders.empty(),
+          "live food snapshot retained completed history");
 }
 
 static void breakfast_window_blocks_service_outside_configured_hours() {
