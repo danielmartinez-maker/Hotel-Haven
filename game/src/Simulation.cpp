@@ -1529,7 +1529,16 @@ SimulationView Simulation::view() const {
   for (auto &t : impl_->completedTaskHistory)
     v.tasks.push_back(t);
   v.reviews = impl_->reviews;
-  v.inventory = impl_->inventory;
+  // Public inventory is the canonical FINAL-04 usable stock. The legacy
+  // inventory remains private scheduler/save compatibility state until the
+  // physical pickup path is fully migrated.
+  const auto &logistics = impl_->services.logistics();
+  v.inventory = {
+      logistics.inventoryUsable("clean_linen_set"),
+      logistics.inventoryUsable("towel_unit"),
+      logistics.inventoryUsable("amenity_kit"),
+      logistics.inventoryUsable("cleaning_chemical"),
+      logistics.inventoryUsable("maintenance_part")};
   v.economy = impl_->economy;
   for (auto &o : impl_->orders)
     v.supplyOrders.push_back(o);
