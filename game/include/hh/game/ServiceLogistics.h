@@ -67,6 +67,8 @@ public:
 private:
   friend class Simulation;
   void synchronizeElapsedSecondsForSimulation(std::int64_t seconds);
+  void synchronizeAssetConditionForSimulation(AssetId asset, int condition,
+                                               bool failed);
   void tickSimulationSecond(
       const std::vector<RoomId> &managedHousekeepingRooms,
       const std::vector<RoomId> &workingHousekeepingRooms,
