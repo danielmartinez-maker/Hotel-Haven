@@ -37,7 +37,12 @@ struct WorldAssetSet {
   std::optional<WorldAssetVisual> straightStair;
   std::optional<WorldAssetVisual> standardGuestDoor;
   std::optional<WorldAssetVisual> lobbyEntranceDoor;
-  std::optional<WorldAssetVisual> guestBed;
+  std::optional<WorldAssetVisual> singleBed;
+  std::optional<WorldAssetVisual> doubleBed;
+  std::optional<WorldAssetVisual> queenBed;
+  std::optional<WorldAssetVisual> kingBed;
+  std::optional<WorldAssetVisual> twinBedLeft;
+  std::optional<WorldAssetVisual> twinBedRight;
   std::optional<WorldAssetVisual> nightstand;
   std::optional<WorldAssetVisual> bedsideLamp;
   std::optional<WorldAssetVisual> guestDesk;
