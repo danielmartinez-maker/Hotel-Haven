@@ -53,7 +53,7 @@ hh_enable_strict_warnings(hh_frontend_d2d)
 add_executable(hotel_haven_menu_demo WIN32 app/MainMenuDemo.cpp src/ShowcaseHotelScene.cpp src/win32/XInputMenuGamepad.cpp)
 target_include_directories(hotel_haven_menu_demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_definitions(hotel_haven_menu_demo PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
-target_link_libraries(hotel_haven_menu_demo PRIVATE hh_frontend_core hh_frontend_d2d hh_renderer_core hh_renderer_d3d11 hh_renderer_win32 xinput9_1_0)
+target_link_libraries(hotel_haven_menu_demo PRIVATE hh_frontend_core hh_frontend_d2d hh_renderer_core hh_renderer_d3d11 hh_renderer_win32 Xinput)
 hh_enable_strict_warnings(hotel_haven_menu_demo)
 
 add_custom_command(TARGET hotel_haven_menu_demo POST_BUILD
