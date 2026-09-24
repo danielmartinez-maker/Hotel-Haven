@@ -1182,6 +1182,15 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
   }
   if (!root.is_object())
     return {false, "Definitions must be a JSON object"};
+  const bool initialLinenOverride = root.find("initialLinen") != nullptr;
+  const bool initialTowelsOverride = root.find("initialTowels") != nullptr;
+  const bool initialAmenitiesOverride = root.find("initialAmenities") != nullptr;
+  const bool initialChemicalsOverride = root.find("initialChemicals") != nullptr;
+  const bool initialPartsOverride = root.find("initialParts") != nullptr;
+  const bool inventoryOverride =
+      initialLinenOverride || initialTowelsOverride ||
+      initialAmenitiesOverride || initialChemicalsOverride ||
+      initialPartsOverride;
   auto number = [&](std::string_view key, double &out) {
     const auto *value = root.find(key);
     if (!value)
@@ -1214,6 +1223,53 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
       d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100)
     return {false, "Definition values are invalid"};
+
+  if (inventoryOverride) {
+    const auto logisticsState = d.services.logisticsSnapshot();
+    const bool activePurchase = std::any_of(
+        logisticsState.purchaseOrders.begin(), logisticsState.purchaseOrders.end(),
+        [](const auto &order) {
+          return order.state != PurchaseOrderState::Completed &&
+                 order.state != PurchaseOrderState::RejectedNoCapacity &&
+                 order.state != PurchaseOrderState::Cancelled;
+        });
+    const bool activeMove = std::any_of(
+        logisticsState.stockMoves.begin(), logisticsState.stockMoves.end(),
+        [](const auto &move) { return !move.completed; });
+    if (activePurchase || activeMove)
+      return {false,
+              "Initial inventory overrides require idle service logistics"};
+
+    auto &serviceInventory = d.services.logistics();
+    const auto syncItem = [&](bool requested, std::string_view item, int target,
+                              StorageKind preferredStorage) {
+      if (!requested)
+        return true;
+      const int current = serviceInventory.inventoryUsable(item);
+      if (serviceInventory.totalInventory(item) != current)
+        return false;
+      if (current > target)
+        return serviceInventory.consumeUsable(item, current - target);
+      if (current < target)
+        return serviceInventory.addToKind(preferredStorage, item,
+                                          target - current);
+      return true;
+    };
+
+    if (!syncItem(initialLinenOverride, "clean_linen_set", d.inventory.linen,
+                  StorageKind::CleanLinen) ||
+        !syncItem(initialTowelsOverride, "towel_unit", d.inventory.towels,
+                  StorageKind::CentralStorage) ||
+        !syncItem(initialAmenitiesOverride, "amenity_kit",
+                  d.inventory.amenities, StorageKind::CentralStorage) ||
+        !syncItem(initialChemicalsOverride, "cleaning_chemical",
+                  d.inventory.chemicals, StorageKind::CentralStorage) ||
+        !syncItem(initialPartsOverride, "maintenance_part", d.inventory.parts,
+                  StorageKind::CentralStorage))
+      return {false,
+              "Initial inventory exceeds FINAL-04 storage capacity"};
+  }
+
   *impl_ = std::move(d);
   return {true, "Definitions loaded"};
 }
