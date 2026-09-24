@@ -41,14 +41,26 @@ int main() {
     camera.setOrthoHeight(20.0f);
     hh::renderer::SceneComposer composer;
 
-    const auto frame = hh::client::composeVisibleFrame(
+    hh::renderer::ComposedScene composedScratch;
+    hh::renderer::ComposedScene frame;
+    hh::client::composeVisibleFrame(
         scene, composer, hh::renderer::FloorContextMode::Normal,
-        hh::renderer::WallRenderMode::Cutaway, camera);
+        hh::renderer::WallRenderMode::Cutaway, camera, composedScratch, frame);
 
     require(frame.opaque.size() == 1u,
             "game frame pipeline did not cull off-camera geometry");
     require(frame.opaque.front().item.center.x == 0.0f,
             "game frame pipeline kept the wrong box after culling");
+
+    scene.items.clear();
+    scene.items.push_back(box(200.0f, 200.0f));
+    hh::client::composeVisibleFrame(
+        scene, composer, hh::renderer::FloorContextMode::Normal,
+        hh::renderer::WallRenderMode::Cutaway, camera, composedScratch, frame);
+    require(frame.opaque.empty(),
+            "reused frame buffers retained stale visible geometry");
+    require(composedScratch.opaque.size() == 1u,
+            "reused composition buffer did not reset to the current scene");
     std::cout << "Game frame visibility pipeline passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
