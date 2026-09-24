@@ -581,12 +581,14 @@ struct Simulation::Impl {
       if (t.status == TaskStatus::Ready || t.status == TaskStatus::Blocked) {
         bool resources = true;
         if (t.kind == TaskKind::Turnover)
-          resources = t.resourcesClaimed ||
-                      (has(TileKind::SupplyCloset) && inventory.linen >= 1 &&
-                       inventory.towels >= 2 && inventory.amenities >= 1 &&
-                       inventory.chemicals >= 1);
+          resources =
+              t.resourcesClaimed ||
+              (has(TileKind::SupplyCloset) &&
+               services.canClaimRoomTurnSuppliesForSimulation(t.targetId));
         if (t.kind == TaskKind::Repair)
-          resources = t.resourcesClaimed || inventory.parts >= 1;
+          resources =
+              t.resourcesClaimed ||
+              services.canClaimCorrectivePartForSimulation(t.targetId);
         if (t.kind == TaskKind::CheckIn || t.kind == TaskKind::CheckOut)
           resources = has(TileKind::FrontDesk);
         if (!resources) {
@@ -607,6 +609,14 @@ struct Simulation::Impl {
             }
           }
         if (best) {
+          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
+            if (!services.claimCorrectivePartForSimulation(t.targetId)) {
+              t.status = TaskStatus::Blocked;
+              t.blockedReason = "Canonical maintenance part unavailable";
+              continue;
+            }
+            t.resourcesClaimed = true;
+          }
           t.employeeId = best->id;
           best->task = t.id;
           best->destination =
@@ -614,10 +624,6 @@ struct Simulation::Impl {
                                                                     : t.target;
           best->state = PersonState::Traveling;
           t.status = TaskStatus::Traveling;
-          if (t.kind == TaskKind::Repair && !t.resourcesClaimed) {
-            inventory.parts--;
-            t.resourcesClaimed = true;
-          }
           if (t.kind == TaskKind::Turnover)
             if (auto *r = getRoom(t.targetId))
               r->status = RoomStatus::Cleaning;
@@ -648,19 +654,14 @@ struct Simulation::Impl {
           if (same(p->position, p->destination)) {
             if (t.kind == TaskKind::Turnover &&
                 same(p->destination, supply()) && !t.resourcesClaimed) {
-              if (inventory.linen < 1 || inventory.towels < 2 ||
-                  inventory.amenities < 1 || inventory.chemicals < 1) {
+              if (!services.claimRoomTurnSuppliesForSimulation(t.targetId)) {
                 t.status = TaskStatus::Blocked;
-                t.blockedReason = "Required local supplies unavailable";
+                t.blockedReason = "Canonical room supplies unavailable";
                 t.employeeId = 0;
                 p->task = 0;
                 p->state = PersonState::Idle;
                 continue;
               }
-              inventory.linen--;
-              inventory.towels -= 2;
-              inventory.amenities--;
-              inventory.chemicals--;
               t.resourcesClaimed = true;
               p->destination = t.target;
               p->state = PersonState::Traveling;
@@ -918,14 +919,8 @@ struct Simulation::Impl {
       arrivals(day);
     if (hourBoundary) {
       for (auto &o : orders)
-        if (!o.delivered && o.etaDay <= day) {
-          inventory.linen += o.items.linen;
-          inventory.towels += o.items.towels;
-          inventory.amenities += o.items.amenities;
-          inventory.chemicals += o.items.chemicals;
-          inventory.parts += o.items.parts;
+        if (!o.delivered && o.etaDay <= day)
           o.delivered = true;
-        }
     }
     staffAndTasks();
     guests();
