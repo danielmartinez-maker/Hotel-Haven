@@ -116,6 +116,53 @@ int main() {
   require(physicalTurnsAfterFirst == 1 && physicalTurnsAfterSecond == 1,
           "duplicate physical clean request created duplicate worker tasks");
 
+  auto laborGatedClean = Simulation::tutorial(329);
+  const auto laborRoom = laborGatedClean.view().rooms.front().id;
+  EntityId housekeeperId = 0;
+  for (const auto &person : laborGatedClean.view().people)
+    if (person.kind == PersonKind::Housekeeper) {
+      housekeeperId = person.id;
+      break;
+    }
+  require(housekeeperId != 0 && laborGatedClean.fireStaff(housekeeperId).ok,
+          "labor-gated housekeeping fixture could not remove housekeeper");
+  const auto cleanInventoryBefore = laborGatedClean.logisticsSnapshot();
+  require(laborGatedClean.requestClean(laborRoom).ok,
+          "labor-gated clean request was rejected");
+  const auto cleanJobBefore = laborGatedClean.housekeepingSnapshot().jobs.back();
+  laborGatedClean.step(600);
+  const auto cleanJobPaused = laborGatedClean.housekeepingSnapshot().jobs.back();
+  require(cleanJobPaused.stage == cleanJobBefore.stage &&
+              cleanJobPaused.remainingSeconds == cleanJobBefore.remainingSeconds,
+          "mirrored housekeeping advanced without physical labor");
+  const auto cleanInventoryPaused = laborGatedClean.logisticsSnapshot();
+  const auto itemTotal = [](const LogisticsSnapshot &snapshot,
+                            const char *item) {
+    int total = 0;
+    for (const auto &stack : snapshot.inventory)
+      if (stack.item == item)
+        total += stack.quantity;
+    return total;
+  };
+  require(itemTotal(cleanInventoryPaused, "clean_linen_set") ==
+              itemTotal(cleanInventoryBefore, "clean_linen_set") &&
+              itemTotal(cleanInventoryPaused, "towel_unit") ==
+                  itemTotal(cleanInventoryBefore, "towel_unit") &&
+              itemTotal(cleanInventoryPaused, "amenity_kit") ==
+                  itemTotal(cleanInventoryBefore, "amenity_kit") &&
+              itemTotal(cleanInventoryPaused, "cleaning_chemical") ==
+                  itemTotal(cleanInventoryBefore, "cleaning_chemical"),
+          "paused mirrored housekeeping consumed canonical supplies");
+  require(laborGatedClean
+              .hireStaff({"Relief", PersonKind::Housekeeper, 0, 0, 18})
+              .ok,
+          "labor-gated housekeeping fixture could not hire relief worker");
+  laborGatedClean.step(900);
+  const auto cleanJobWorking = laborGatedClean.housekeepingSnapshot().jobs.back();
+  require(cleanJobWorking.stage != cleanJobBefore.stage ||
+              cleanJobWorking.remainingSeconds < cleanJobBefore.remainingSeconds,
+          "mirrored housekeeping did not resume when physical labor started");
+
   auto mirroredRepair = Simulation::tutorial(327);
   const auto repairRoom = mirroredRepair.view().rooms.front().id;
   const auto engineeringBefore =
@@ -129,6 +176,43 @@ int main() {
               mirroredEngineering.workOrders.back().type ==
                   WorkOrderType::Corrective,
           "mirrored FINAL-04 repair used the wrong asset or work-order type");
+
+  auto laborGatedRepair = Simulation::tutorial(330);
+  const auto laborRepairRoom = laborGatedRepair.view().rooms.front().id;
+  EntityId maintenanceId = 0;
+  for (const auto &person : laborGatedRepair.view().people)
+    if (person.kind == PersonKind::Maintenance) {
+      maintenanceId = person.id;
+      break;
+    }
+  require(maintenanceId != 0 &&
+              laborGatedRepair.fireStaff(maintenanceId).ok,
+          "labor-gated engineering fixture could not remove maintenance worker");
+  const auto partsBefore =
+      itemTotal(laborGatedRepair.logisticsSnapshot(), "maintenance_part");
+  require(laborGatedRepair.requestRepair(laborRepairRoom).ok,
+          "labor-gated repair request was rejected");
+  const auto repairBefore =
+      laborGatedRepair.engineeringSnapshot().workOrders.back();
+  laborGatedRepair.step(600);
+  const auto repairPaused =
+      laborGatedRepair.engineeringSnapshot().workOrders.back();
+  require(repairPaused.stage == WorkOrderStage::Queued &&
+              repairPaused.remainingSeconds == repairBefore.remainingSeconds,
+          "mirrored engineering advanced without physical labor");
+  require(itemTotal(laborGatedRepair.logisticsSnapshot(), "maintenance_part") ==
+              partsBefore,
+          "paused mirrored engineering consumed a canonical maintenance part");
+  require(laborGatedRepair
+              .hireStaff({"Relief Tech", PersonKind::Maintenance, 0, 0, 25})
+              .ok,
+          "labor-gated engineering fixture could not hire relief worker");
+  laborGatedRepair.step(1800);
+  const auto repairWorking =
+      laborGatedRepair.engineeringSnapshot().workOrders.back();
+  require(repairWorking.stage != WorkOrderStage::Queued ||
+              repairWorking.remainingSeconds < repairBefore.remainingSeconds,
+          "mirrored engineering did not resume when physical labor started");
 
   auto automaticTurn = Simulation::tutorial(328);
   require(automaticTurn.loadDefinitions(R"({"baseDemand":100})").ok,
