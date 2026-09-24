@@ -54,6 +54,22 @@ static void requireSimulationLoadRejected(const std::string &encoded,
   require(rejected, message);
 }
 
+static std::string replaceLegacyInventoryLine(const std::string &encoded,
+                                              const std::string &replacement) {
+  std::size_t lineStart = 0;
+  for (int line = 0; line < 3; ++line) {
+    const auto end = encoded.find('\n', lineStart);
+    if (end == std::string::npos)
+      throw std::runtime_error("simulation save header is truncated");
+    lineStart = end + 1;
+  }
+  const auto lineEnd = encoded.find('\n', lineStart);
+  if (lineEnd == std::string::npos)
+    throw std::runtime_error("simulation inventory line is truncated");
+  return encoded.substr(0, lineStart) + replacement +
+         encoded.substr(lineEnd);
+}
+
 int main() {
   auto sim = Simulation::tutorial(321);
   const auto view = sim.view();
@@ -389,6 +405,56 @@ int main() {
   }
   require(mirroredAutomaticTurn,
           "automatic checkout turnover was not mirrored into FINAL-04");
+
+  auto shadowIgnored = Simulation::tutorial(335);
+  const auto shadowIgnoredState =
+      replaceLegacyInventoryLine(shadowIgnored.save(), "0 0 0 0 0");
+  auto shadowIgnoredRestored = Simulation::load(shadowIgnoredState);
+  const auto canonicalShadowView = shadowIgnoredRestored.view().inventory;
+  require(canonicalShadowView.linen == 24 &&
+              canonicalShadowView.towels == 48 &&
+              canonicalShadowView.amenities == 36 &&
+              canonicalShadowView.chemicals == 24 &&
+              canonicalShadowView.parts == 8,
+          "public inventory leaked corrupted legacy shadow state");
+  const auto shadowRoom = shadowIgnoredRestored.view().rooms.front().id;
+  require(shadowIgnoredRestored.requestClean(shadowRoom).ok,
+          "canonical-stock clean request was rejected by empty legacy shadow");
+  shadowIgnoredRestored.step(30);
+  bool shadowTurnBlocked = false;
+  for (const auto &task : shadowIgnoredRestored.view().tasks)
+    if (task.targetId == shadowRoom && task.kind == TaskKind::Turnover &&
+        task.status == TaskStatus::Blocked)
+      shadowTurnBlocked = true;
+  require(!shadowTurnBlocked,
+          "physical turnover still depended on empty legacy shadow stock");
+
+  auto canonicalEmpty = Simulation::tutorial(336);
+  require(canonicalEmpty
+              .loadDefinitions(
+                  R"({"baseDemand":0,"initialLinen":0,"initialTowels":0,"initialAmenities":0,"initialChemicals":0,"initialParts":0})")
+              .ok,
+          "canonical-empty definitions rejected");
+  const auto inflatedShadowState = replaceLegacyInventoryLine(
+      canonicalEmpty.save(), "999 999 999 999 999");
+  auto inflatedShadow = Simulation::load(inflatedShadowState);
+  const auto emptyPublicInventory = inflatedShadow.view().inventory;
+  require(emptyPublicInventory.linen == 0 && emptyPublicInventory.towels == 0 &&
+              emptyPublicInventory.amenities == 0 &&
+              emptyPublicInventory.chemicals == 0 &&
+              emptyPublicInventory.parts == 0,
+          "inflated legacy shadow leaked into canonical public stock");
+  const auto emptyRoom = inflatedShadow.view().rooms.front().id;
+  require(inflatedShadow.requestClean(emptyRoom).ok,
+          "canonical-empty clean request could not create pending work");
+  inflatedShadow.step(30);
+  bool canonicalShortageBlocked = false;
+  for (const auto &task : inflatedShadow.view().tasks)
+    if (task.targetId == emptyRoom && task.kind == TaskKind::Turnover &&
+        task.status == TaskStatus::Blocked)
+      canonicalShortageBlocked = true;
+  require(canonicalShortageBlocked,
+          "inflated legacy shadow bypassed canonical room-supply shortage");
 
   auto purchasing = Simulation::tutorial(324);
   const auto purchaseCashBefore = purchasing.view().economy.cashCents;
