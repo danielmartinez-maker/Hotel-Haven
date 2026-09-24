@@ -25,6 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          BASE_INTEGRATION="$(git rev-parse origin/integration/unify-developed-systems-2026-09-24)"
           merge_branch() {
             local branch="$1"
             echo "::group::Merging $branch"
@@ -48,6 +49,14 @@ jobs:
           merge_branch feature/nvidia-optimization-openusd
           merge_branch hardening/extensive-optimization-2026-09-10
 
+          # Squash the integration result onto the integration base. This keeps the
+          # developed source/content changes while avoiding GitHub App workflow-file
+          # write restrictions from historical branch workflow commits.
+          git reset --soft "$BASE_INTEGRATION"
+          git restore --source="$BASE_INTEGRATION" --staged --worktree .github/workflows
+          git add -A
+          git commit -m "integration: unify developed Hotel Haven systems"
+
       - name: Verify expected developed systems are present
         shell: bash
         run: |
@@ -64,7 +73,7 @@ jobs:
 
       - name: Checkpoint merged integration tree
         shell: bash
-        run: git push origin HEAD:integration/unify-developed-systems-2026-09-24
+        run: git push --force-with-lease origin HEAD:integration/unified-checkpoint-2026-09-24
 
       - name: Configure unified build
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -84,8 +93,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet origin/integration/unify-developed-systems-2026-09-24..HEAD; then
-            echo "No integration changes to push."
-            exit 0
-          fi
-          git push origin HEAD:integration/unify-developed-systems-2026-09-24
+          echo "Validated checkpoint remains at integration/unified-checkpoint-2026-09-24."
