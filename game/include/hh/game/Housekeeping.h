@@ -3,6 +3,7 @@
 #include "hh/game/Logistics.h"
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -71,6 +72,7 @@ private:
   std::int64_t elapsedSeconds_{};
   std::vector<RoomState> rooms_;
   std::vector<Job> jobs_;
+  std::unordered_map<RoomId, std::size_t> roomIndex_;
   std::vector<std::size_t> activeJobs_;
 };
 
