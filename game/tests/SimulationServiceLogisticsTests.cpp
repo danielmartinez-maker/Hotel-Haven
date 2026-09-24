@@ -125,6 +125,39 @@ int main() {
               purchaseLogistics.purchaseOrders.size(),
           "mirrored FINAL-04 purchase orders did not survive save/load");
 
+  auto definitionInventory = Simulation::tutorial(325);
+  require(definitionInventory
+              .loadDefinitions(
+                  R"({"initialLinen":7,"initialTowels":9,"initialAmenities":5,"initialChemicals":4,"initialParts":3})")
+              .ok,
+          "definition inventory override was rejected");
+  const auto definitionLogistics = definitionInventory.logisticsSnapshot();
+  const auto totalItem = [&](const char *item) {
+    int total = 0;
+    for (const auto &stack : definitionLogistics.inventory)
+      if (stack.item == item)
+        total += stack.quantity;
+    return total;
+  };
+  require(totalItem("clean_linen_set") == 7 &&
+              totalItem("towel_unit") == 9 &&
+              totalItem("amenity_kit") == 5 &&
+              totalItem("cleaning_chemical") == 4 &&
+              totalItem("maintenance_part") == 3,
+          "definition inventory override did not synchronize FINAL-04 stock");
+  const auto legacyDefinitionInventory = definitionInventory.view().inventory;
+  require(legacyDefinitionInventory.linen == 7 &&
+              legacyDefinitionInventory.towels == 9 &&
+              legacyDefinitionInventory.amenities == 5 &&
+              legacyDefinitionInventory.chemicals == 4 &&
+              legacyDefinitionInventory.parts == 3,
+          "definition inventory override did not preserve legacy shadow stock");
+  const auto beforeImpossibleInventory = definitionInventory.save();
+  require(!definitionInventory.loadDefinitions(R"({"initialLinen":600})").ok,
+          "definition inventory exceeding FINAL-04 capacity was accepted");
+  require(definitionInventory.save() == beforeImpossibleInventory,
+          "rejected definition inventory override mutated simulation state");
+
   Simulation demolition(322, 16, 10, 1);
   require(demolition.loadDefinitions(R"({"baseDemand":0})").ok,
           "demolition test definitions rejected");
