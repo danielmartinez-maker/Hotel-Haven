@@ -76,6 +76,15 @@ std::string DefaultMenuNumberFormatter::unsignedValue(std::uint64_t value) const
     return std::to_string(value);
 }
 
+float nextMainMenuUiScale(float currentScale) noexcept {
+    for (std::size_t index = 0; index < MainMenuUiScales.size(); ++index) {
+        if (std::fabs(MainMenuUiScales[index] - currentScale) < 0.001F) {
+            return MainMenuUiScales[(index + 1) % MainMenuUiScales.size()];
+        }
+    }
+    return 1.0F;
+}
+
 MainMenuView::MainMenuView() noexcept : formatter_(&defaultFormatter_) {}
 
 MainMenuView::MainMenuView(const IMenuNumberFormatter& formatter) noexcept : formatter_(&formatter) {}
