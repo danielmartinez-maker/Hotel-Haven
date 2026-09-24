@@ -1,4 +1,5 @@
 #include "hh/game/Housekeeping.h"
+#include <algorithm>
 
 namespace hh::game {
 
@@ -136,20 +137,39 @@ void HousekeepingSystem::completeStage(Job &job) {
   job.blockedReason = BlockReason::None;
 }
 
+void HousekeepingSystem::tickJobSecond(Job &job) {
+  if (job.stage == HousekeepingStage::Completed)
+    return;
+  if (!job.stageStarted && !beginStage(job)) {
+    if (auto *state = room(job.roomId))
+      state->status = ServiceRoomStatus::Blocked;
+    return;
+  }
+  if (job.remainingSeconds > 0)
+    --job.remainingSeconds;
+  if (job.remainingSeconds == 0)
+    completeStage(job);
+}
+
 void HousekeepingSystem::tickSecond() {
   ++elapsedSeconds_;
+  for (auto &job : jobs_)
+    tickJobSecond(job);
+}
+
+void HousekeepingSystem::tickSecondFor(
+    const std::vector<RoomId> &managedRooms,
+    const std::vector<RoomId> &workingRooms) {
+  ++elapsedSeconds_;
   for (auto &job : jobs_) {
-    if (job.stage == HousekeepingStage::Completed)
-      continue;
-    if (!job.stageStarted && !beginStage(job)) {
-      if (auto *state = room(job.roomId))
-        state->status = ServiceRoomStatus::Blocked;
-      continue;
-    }
-    if (job.remainingSeconds > 0)
-      --job.remainingSeconds;
-    if (job.remainingSeconds == 0)
-      completeStage(job);
+    const bool managed =
+        std::find(managedRooms.begin(), managedRooms.end(), job.roomId) !=
+        managedRooms.end();
+    const bool working =
+        std::find(workingRooms.begin(), workingRooms.end(), job.roomId) !=
+        workingRooms.end();
+    if (!managed || working)
+      tickJobSecond(job);
   }
 }
 
