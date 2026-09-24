@@ -52,6 +52,45 @@ std::wstring taskName(TaskKind k) {
   }
   return L"Task";
 }
+int usableInventory(const LogisticsSnapshot &snapshot, std::string_view item) {
+  int total = 0;
+  for (const auto &stack : snapshot.inventory)
+    if (stack.item == item)
+      total += std::max(0, stack.quantity - stack.reservedQuantity);
+  return total;
+}
+std::wstring supplyItemName(std::string_view item) {
+  if (item == "clean_linen_set")
+    return L"Clean linen";
+  if (item == "towel_unit")
+    return L"Towels";
+  if (item == "amenity_kit")
+    return L"Amenities";
+  if (item == "cleaning_chemical")
+    return L"Cleaning chemicals";
+  if (item == "maintenance_part")
+    return L"Repair parts";
+  return wide(std::string(item));
+}
+std::wstring purchaseState(PurchaseOrderState state) {
+  switch (state) {
+  case PurchaseOrderState::Submitted:
+    return L"Submitted";
+  case PurchaseOrderState::InTransit:
+    return L"In transit";
+  case PurchaseOrderState::Arrived:
+    return L"At receiving";
+  case PurchaseOrderState::Unloading:
+    return L"Moving to storage";
+  case PurchaseOrderState::Completed:
+    return L"Stored";
+  case PurchaseOrderState::RejectedNoCapacity:
+    return L"Rejected";
+  case PurchaseOrderState::Cancelled:
+    return L"Cancelled";
+  }
+  return L"Unknown";
+}
 } // namespace
 std::wstring wide(const std::string &s) {
   if (s.empty())
@@ -343,22 +382,39 @@ void Client::paint(HDC output) {
           84);
   } else if (page == Page::Supplies) {
     heading(L"Supplies & tasks");
-    label(L"Clean linen", std::to_wstring(snapshot.inventory.linen));
-    label(L"Towels", std::to_wstring(snapshot.inventory.towels));
-    label(L"Amenities", std::to_wstring(snapshot.inventory.amenities));
-    label(L"Cleaning chemicals", std::to_wstring(snapshot.inventory.chemicals));
-    label(L"Repair parts", std::to_wstring(snapshot.inventory.parts));
+    const auto logistics = simulation.logisticsSnapshot();
+    label(L"Clean linen",
+          std::to_wstring(usableInventory(logistics, "clean_linen_set")));
+    label(L"Towels", std::to_wstring(usableInventory(logistics, "towel_unit")));
+    label(L"Amenities",
+          std::to_wstring(usableInventory(logistics, "amenity_kit")));
+    label(L"Cleaning chemicals",
+          std::to_wstring(usableInventory(logistics, "cleaning_chemical")));
+    label(L"Repair parts",
+          std::to_wstring(usableInventory(logistics, "maintenance_part")));
     fullButton(L"Order supplies for 20 turnovers", [this] {
       result(simulation.orderSupplies({20, 40, 20, 20, 0}));
     });
     fullButton(L"Order 10 repair parts",
                [this] { result(simulation.orderSupplies({0, 0, 0, 0, 10})); });
-    for (const auto &o : snapshot.supplyOrders)
-      if (!o.delivered && y + 30 < bottom) {
-        paragraph(L"Order #" + std::to_wstring(o.id) + L" · expected day " +
-                      std::to_wstring(o.etaDay + 1),
-                  27);
+    for (const auto &o : logistics.purchaseOrders) {
+      if (o.state == PurchaseOrderState::Completed ||
+          o.state == PurchaseOrderState::Cancelled ||
+          o.state == PurchaseOrderState::RejectedNoCapacity)
+        continue;
+      if (y + 48 >= bottom)
+        break;
+      std::wstring timing;
+      if (o.remainingSeconds > 0) {
+        const auto hours = (o.remainingSeconds + 3599) / 3600;
+        timing = L" · " + std::to_wstring(hours) + L"h";
       }
+      paragraph(L"Order #" + std::to_wstring(o.id) + L" · " +
+                    supplyItemName(o.item) + L" ×" +
+                    std::to_wstring(o.quantity) + L" · " +
+                    purchaseState(o.state) + timing,
+                42);
+    }
     separator();
     std::vector<TaskView> tasks;
     for (const auto &t : snapshot.tasks)
