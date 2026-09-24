@@ -129,6 +129,13 @@ int main() {
                 smallestLargeUi.buildColumns == 3,
             "1280x720 at 150 percent must preserve a usable compact management workspace");
 
+    require(hh::client::final07ValidatedControlIndex(-1, 5) == -1 &&
+                hh::client::final07ValidatedControlIndex(0, 5) == 0 &&
+                hh::client::final07ValidatedControlIndex(4, 5) == 4 &&
+                hh::client::final07ValidatedControlIndex(5, 5) == -1 &&
+                hh::client::final07ValidatedControlIndex(2, 0) == -1,
+            "rebuilt control trees must clear stale keyboard/controller indices");
+
     require(hh::client::final07PointInManagementPanel(
                 1280, 720, 150, 1279, 300),
             "pointer inside scaled sidebar must route wheel input to the panel");
