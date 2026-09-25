@@ -391,34 +391,37 @@ void contextual_archetype_mix_responds_to_pricing_and_amenities() {
   require(premiumSegmentsAtPremiumRate > premiumSegmentsAtValueRate,
           "premium pricing did not increase higher-budget guest share");
 
-  GuestArchetypeContext noAmenities;
-  noAmenities.weekday = 5;
-  noAmenities.hotelStars = 3;
-  noAmenities.hotelReputation = 75;
-  noAmenities.roomRateCents = 17000;
-  auto amenityRich = noAmenities;
-  amenityRich.hasGym = true;
-  amenityRich.hasSpa = true;
-  amenityRich.hasPool = true;
+  GuestArchetypeContext weakAmenities;
+  weakAmenities.weekday = 5;
+  weakAmenities.hotelStars = 3;
+  weakAmenities.hotelReputation = 75;
+  weakAmenities.roomRateCents = 17000;
+  weakAmenities.gymScore = 25;
+  weakAmenities.spaScore = 25;
+  weakAmenities.poolScore = 25;
+  auto strongAmenities = weakAmenities;
+  strongAmenities.gymScore = 95;
+  strongAmenities.spaScore = 95;
+  strongAmenities.poolScore = 95;
 
-  const auto noAmenityCounts = sample(noAmenities, 88007);
-  const auto amenityCounts = sample(amenityRich, 88007);
-  const int matchedWithoutAmenities =
-      count(noAmenityCounts, {GuestArchetype::WellnessTraveler,
-                              GuestArchetype::StaycationGuest,
-                              GuestArchetype::FamilyLeisure,
-                              GuestArchetype::SportsTeamTraveler,
-                              GuestArchetype::LuxuryLeisure,
-                              GuestArchetype::CoupleLeisure});
-  const int matchedWithAmenities =
-      count(amenityCounts, {GuestArchetype::WellnessTraveler,
-                            GuestArchetype::StaycationGuest,
-                            GuestArchetype::FamilyLeisure,
-                            GuestArchetype::SportsTeamTraveler,
-                            GuestArchetype::LuxuryLeisure,
-                            GuestArchetype::CoupleLeisure});
-  require(matchedWithAmenities > matchedWithoutAmenities,
-          "usable amenities did not increase amenity-matched guest share");
+  const auto weakAmenityCounts = sample(weakAmenities, 88007);
+  const auto strongAmenityCounts = sample(strongAmenities, 88007);
+  const int matchedWithWeakAmenities =
+      count(weakAmenityCounts, {GuestArchetype::WellnessTraveler,
+                                GuestArchetype::StaycationGuest,
+                                GuestArchetype::FamilyLeisure,
+                                GuestArchetype::SportsTeamTraveler,
+                                GuestArchetype::LuxuryLeisure,
+                                GuestArchetype::CoupleLeisure});
+  const int matchedWithStrongAmenities =
+      count(strongAmenityCounts, {GuestArchetype::WellnessTraveler,
+                                  GuestArchetype::StaycationGuest,
+                                  GuestArchetype::FamilyLeisure,
+                                  GuestArchetype::SportsTeamTraveler,
+                                  GuestArchetype::LuxuryLeisure,
+                                  GuestArchetype::CoupleLeisure});
+  require(matchedWithStrongAmenities > matchedWithWeakAmenities,
+          "stronger amenities did not increase amenity-matched guest share");
 }
 
 void contextual_archetype_mix_responds_to_seasonality_and_location() {
