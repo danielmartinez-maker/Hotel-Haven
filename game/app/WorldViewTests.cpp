@@ -277,24 +277,22 @@ int main() {
     }
 
     WorldAssetSet milestoneAssets = resolved;
-    for (const auto id : std::array<std::uint32_t, 43>{
-             511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
-             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 578, 579,
-             580, 581, 582, 583, 584, 585, 586, 594, 603, 608, 609, 610,
-             611, 614, 615, 619, 623, 643, 644}) {
-      milestoneAssets.catalog.emplace(
-          "HH_A" + std::string(id < 100 ? "0" : "") +
-              std::to_string(id),
-          visual(id));
+    const auto liveV2Ids = runtimeWorldPresentationAssetIds();
+    require(liveV2Ids.size() == 52u,
+            "live V2 presentation contract should contain 52 assets");
+    for (const auto id : liveV2Ids) {
+      milestoneAssets.catalog.emplace(std::string(id), visual(assetNumber(id)));
     }
     milestoneAssets.catalog.emplace("HH_A651", visual(651));
     milestoneAssets.catalog.emplace("HH_A700", visual(700));
 
     hh::game::SimulationView milestoneSnapshot;
-    milestoneSnapshot.width = 24;
-    milestoneSnapshot.height = 12;
+    milestoneSnapshot.width = 40;
+    milestoneSnapshot.height = 14;
     milestoneSnapshot.floors = 1;
     milestoneSnapshot.tiles = {
+        // Ten lobby coordinates deterministically exercise all ten public-space
+        // motifs used by the current presentation layer.
         {{0, 0, 0}, hh::game::TileKind::Lobby},
         {{0, 1, 0}, hh::game::TileKind::Lobby},
         {{0, 2, 0}, hh::game::TileKind::Lobby},
@@ -305,22 +303,50 @@ int main() {
         {{0, 17, 0}, hh::game::TileKind::Lobby},
         {{0, 18, 0}, hh::game::TileKind::Lobby},
         {{0, 19, 0}, hh::game::TileKind::Lobby},
-        {{0, 6, 0}, hh::game::TileKind::FrontDesk},
+        // y=1 makes x=0..4 cover all five deterministic reception variants.
+        {{0, 0, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 1, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 2, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 3, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 4, 1}, hh::game::TileKind::FrontDesk},
         {{0, 7, 0}, hh::game::TileKind::Entrance},
         {{0, 9, 0}, hh::game::TileKind::Stairs},
         {{0, 10, 0}, hh::game::TileKind::Stairs},
         {{0, 11, 0}, hh::game::TileKind::Stairs},
     };
-    milestoneSnapshot.rooms.push_back(placementRoom);
+
+    auto addMilestoneRoom = [&milestoneSnapshot](
+                                hh::game::EntityId id,
+                                int x,
+                                int width,
+                                int beds) {
+      hh::game::RoomView room;
+      room.id = id;
+      room.name = "Milestone asset room";
+      room.door = {0, x, 3};
+      room.status = hh::game::RoomStatus::VacantReady;
+      room.floor = 0;
+      room.x = x;
+      room.y = 3;
+      room.width = width;
+      room.height = 7;
+      room.beds = beds;
+      room.baths = 1;
+      room.cleanliness = 100;
+      room.condition = 100;
+      milestoneSnapshot.rooms.push_back(room);
+    };
+    addMilestoneRoom(720001, 1, 4, 1);
+    addMilestoneRoom(720002, 6, 5, 1);
+    addMilestoneRoom(720003, 12, 6, 1);
+    addMilestoneRoom(720004, 19, 8, 1);
+    addMilestoneRoom(720005, 28, 8, 2);
+
     const auto milestoneScene =
         worldScene(milestoneSnapshot, WorldViewOptions{}, &milestoneAssets);
-    for (const auto handle : std::array<std::uint32_t, 43>{
-             511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
-             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 578, 579,
-             580, 581, 582, 583, 584, 585, 586, 594, 603, 608, 609, 610,
-             611, 614, 615, 619, 623, 643, 644}) {
-      require(containsHandle(milestoneScene, handle),
-              "A501-A650 milestone asset was available but not used by live presentation");
+    for (const auto id : liveV2Ids) {
+      require(containsHandle(milestoneScene, assetNumber(id)),
+              "live V2 asset was available but not used by exhaustive presentation scene");
     }
 
     const auto catalogScene =
