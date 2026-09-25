@@ -78,7 +78,10 @@
   ],
   "required_core_binding_manifest": "GameData/AssetDefinitions/runtime_world_bindings_v1.json",
   "runtime_policy": {
-    "load_mode": "bounded_available_range_with_required_core",
+    "shipping_load_mode": "selective_required_bindings",
+    "shipping_binding_manifest": "GameData/AssetDefinitions/runtime_world_bindings_v1.json",
+    "shipping_asset_count": 133,
+    "smoke_audit_load_mode": "bounded_available_range",
     "asset_id_prefix": "HH_A",
     "first_asset_number": 1,
     "last_asset_number": 700,
