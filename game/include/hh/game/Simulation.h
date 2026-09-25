@@ -358,6 +358,7 @@ public:
   // External market context is derived from FINAL-06 in the integrated game.
   // It affects future guest composition only and is not a second demand authority.
   void setGuestDemandEnvironment(const GuestDemandEnvironment &environment);
+  [[nodiscard]] GuestDemandEnvironment guestDemandEnvironment() const noexcept;
   void setStaffOptimizerEnabled(bool enabled);
 
   [[nodiscard]] ConstructionPreview
