@@ -2615,6 +2615,10 @@ void Simulation::setGuestDemandEnvironment(
   impl_->guestDemandEnvironment = environment;
 }
 
+GuestDemandEnvironment Simulation::guestDemandEnvironment() const noexcept {
+  return impl_->guestDemandEnvironment;
+}
+
 CommandResult Simulation::loadDefinitions(std::string_view j) {
   auto d = *impl_;
   hh::assets::JsonValue root;
