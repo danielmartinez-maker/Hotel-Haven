@@ -89,8 +89,9 @@ struct WorldAssetSet {
 using WorldAssetResolver =
     std::function<WorldAssetVisual(std::string_view assetId)>;
 
-// Stable shipping-client dependency set. The runtime registry uses this list to
-// decode only meshes that the current world presentation can instantiate.
+// Stable legacy hot-path dependency set. These named bindings remain required
+// for fallbacks, characters, and common world props even as V2 catalog content
+// expands around them.
 [[nodiscard]] std::span<const std::string_view> requiredWorldAssetIds() noexcept;
 
 // V2 catalog assets that normal gameplay can instantiate today. Keep this
