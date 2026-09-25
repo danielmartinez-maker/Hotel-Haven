@@ -1154,12 +1154,20 @@ static void long_campaign_bounds_transient_history() {
            R"({"baseDemand":100,"turnoverWorkSeconds":1,"checkInWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":400,"initialTowels":500,"initialAmenities":200,"initialChemicals":200})")
           .ok,
       "long-campaign definitions rejected");
-  s.step(20 * 86400);
+  constexpr int targetCompletedStays = 40;
+  constexpr int maxCampaignDays = 40;
+  for (int campaignDay = 0;
+       campaignDay < maxCampaignDays &&
+       s.view().economy.completedStays < targetCompletedStays;
+       ++campaignDay)
+    s.step(86400);
+
   const auto view = s.view();
-  if (view.economy.completedStays <= 30)
+  if (view.economy.completedStays < targetCompletedStays)
     throw std::runtime_error(
         "long campaign did not exercise enough guest turnover: completed " +
-        std::to_string(view.economy.completedStays) + " stays");
+        std::to_string(view.economy.completedStays) + " stays after " +
+        std::to_string(maxCampaignDays) + " days");
   require(view.tasks.size() <= 128 + view.rooms.size() * 3,
           "completed task history grew without a bound");
   require(view.people.size() <= view.rooms.size() + 3,
