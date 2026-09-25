@@ -511,10 +511,23 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
       if (!assetShower)
         box(s, f, x + w - 2.65f, z + d - 1.75f, .72f, .10f, 1.4f, 1.3f,
             {.63f, .79f, .77f, .55f});
+      // Small bathroom details share the authoritative room/bath footprint;
+      // they add presentation fidelity without creating a second placement
+      // model or interaction authority.
+      (void)fittedCatalogMesh(s, f, x + w - 2.65f, z + d - 1.75f, .08f,
+                              .82f, 1.12f, .12f, assets, "HH_A578");
+      (void)fittedCatalogMesh(s, f, x + w - 2.65f, z + d - .98f, 1.58f,
+                              .22f, .20f, .28f, assets, "HH_A579");
       (void)fittedCatalogMesh(s, f, x + w - 1.72f, z + d - .83f, 1.08f,
                               .72f, .12f, .18f, assets, "HH_A580");
+      (void)fittedCatalogMesh(s, f, x + w - 1.72f, z + d - .83f, 1.36f,
+                              .72f, .18f, .22f, assets, "HH_A581");
       (void)fittedCatalogMesh(s, f, x + w - 2.10f, z + d - 1.35f, 1.24f,
                               .34f, .24f, .10f, assets, "HH_A582");
+      (void)fittedCatalogMesh(s, f, x + w - 1.88f, z + d - 1.35f, 1.31f,
+                              .18f, .18f, .14f, assets, "HH_A583");
+      (void)fittedCatalogMesh(s, f, x + w - 2.42f, z + d - .83f, 1.18f,
+                              .20f, .14f, .30f, assets, "HH_A584");
     }
 
     bool assetGuestDesk = fittedCatalogMesh(
