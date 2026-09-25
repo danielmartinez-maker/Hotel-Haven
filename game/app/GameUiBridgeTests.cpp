@@ -35,6 +35,40 @@ int main() {
     require(source.hud.speed == hh::frontend::SimulationSpeed::Paused, "pause speed mapping failed");
     require(source.entities.size() >= view.rooms.size(), "room inspectors were not composed");
 
+    hh::game::Simulation guestSimulation =
+        hh::game::Simulation::tutorial(20260924);
+    require(guestSimulation.loadDefinitions(R"({"baseDemand":100})").ok,
+            "guest inspector fixture definitions rejected");
+    for (const auto& room : guestSimulation.view().rooms)
+      require(guestSimulation.setRoomRate(room.id, 50).ok,
+              "guest inspector fixture rate update failed");
+    guestSimulation.step(3600);
+    const auto guestSource =
+        hh::client::makeGameUiSnapshotSource(guestSimulation, context);
+    const auto guestEntity = std::find_if(
+        guestSource.entities.begin(), guestSource.entities.end(),
+        [](const auto& entity) {
+          return entity.kind == hh::frontend::InspectorKind::Guest;
+        });
+    require(guestEntity != guestSource.entities.end(),
+            "guest inspector fixture produced no visible guest");
+
+    const auto guestField = [&](const char* label) -> std::string {
+      const auto field = std::find_if(
+          guestEntity->fields.begin(), guestEntity->fields.end(),
+          [&](const auto& candidate) { return candidate.label == label; });
+      require(field != guestEntity->fields.end(),
+              "guest inspector omitted archetype profile field");
+      return field->value;
+    };
+    require(guestField("Archetype") != "Guest",
+            "guest inspector did not expose the concrete archetype");
+    require(!guestField("Nightly budget").empty() &&
+                !guestField("Queue tolerance").empty() &&
+                !guestField("Traits").empty() &&
+                !guestField("Stay").empty(),
+            "guest inspector omitted budget, tolerance, traits, or stay length");
+
     hh::game::Simulation serviceSimulation =
         hh::game::Simulation::tutorial(20260911);
     const auto serviceRoom = serviceSimulation.view().rooms.front().id;
