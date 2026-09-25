@@ -6,6 +6,7 @@
 #include <iostream>
 #include <set>
 #include <stdexcept>
+#include <string>
 
 using namespace hh::game;
 
@@ -13,6 +14,15 @@ namespace {
 void require(bool value, const char *message) {
   if (!value)
     throw std::runtime_error(message);
+}
+
+template <typename Function>
+void runCase(const char *name, Function function) {
+  try {
+    function();
+  } catch (const std::exception &error) {
+    throw std::runtime_error(std::string(name) + ": " + error.what());
+  }
 }
 
 bool conflicts(std::uint32_t flags, GuestTrait a, GuestTrait b) {
@@ -462,24 +472,24 @@ void material_experience_persists_in_versioned_save() {
 
 int main() {
   try {
-    same_seed_and_guest_id_produce_identical_profile();
-    all_twenty_archetypes_are_reachable_and_profiles_are_bounded();
-    profile_generation_is_keyed_by_stable_guest_identity();
-    business_preferences_follow_documented_archetype_priors();
-    new_archetypes_have_materially_distinct_hospitality_priorities();
-    archetype_queue_tolerance_matches_trip_context();
-    traits_materially_modify_guest_preferences();
-    awake_and_sleeping_need_updates_use_hmg_rates();
-    negative_service_experience_creates_attributed_memory_and_complaint();
-    memory_contribution_halves_at_configured_half_life();
-    complaint_threshold_respects_magnitude_and_guest_sensitivity();
-    live_simulation_exposes_authoritative_psychology_and_updates_needs();
-    severe_live_check_in_wait_creates_retained_memory_and_complaint();
-    simulation_exposes_deterministic_goal_selection_interface();
-    live_guest_psychology_survives_save_round_trip();
-    repeat_intent_responds_to_expectation_adjusted_satisfaction();
-    material_memories_influence_repeat_intent();
-    material_experience_persists_in_versioned_save();
+    runCase("same_seed_and_guest_id_produce_identical_profile", same_seed_and_guest_id_produce_identical_profile);
+    runCase("all_twenty_archetypes_are_reachable_and_profiles_are_bounded", all_twenty_archetypes_are_reachable_and_profiles_are_bounded);
+    runCase("profile_generation_is_keyed_by_stable_guest_identity", profile_generation_is_keyed_by_stable_guest_identity);
+    runCase("business_preferences_follow_documented_archetype_priors", business_preferences_follow_documented_archetype_priors);
+    runCase("new_archetypes_have_materially_distinct_hospitality_priorities", new_archetypes_have_materially_distinct_hospitality_priorities);
+    runCase("archetype_queue_tolerance_matches_trip_context", archetype_queue_tolerance_matches_trip_context);
+    runCase("traits_materially_modify_guest_preferences", traits_materially_modify_guest_preferences);
+    runCase("awake_and_sleeping_need_updates_use_hmg_rates", awake_and_sleeping_need_updates_use_hmg_rates);
+    runCase("negative_service_experience_creates_attributed_memory_and_complaint", negative_service_experience_creates_attributed_memory_and_complaint);
+    runCase("memory_contribution_halves_at_configured_half_life", memory_contribution_halves_at_configured_half_life);
+    runCase("complaint_threshold_respects_magnitude_and_guest_sensitivity", complaint_threshold_respects_magnitude_and_guest_sensitivity);
+    runCase("live_simulation_exposes_authoritative_psychology_and_updates_needs", live_simulation_exposes_authoritative_psychology_and_updates_needs);
+    runCase("severe_live_check_in_wait_creates_retained_memory_and_complaint", severe_live_check_in_wait_creates_retained_memory_and_complaint);
+    runCase("simulation_exposes_deterministic_goal_selection_interface", simulation_exposes_deterministic_goal_selection_interface);
+    runCase("live_guest_psychology_survives_save_round_trip", live_guest_psychology_survives_save_round_trip);
+    runCase("repeat_intent_responds_to_expectation_adjusted_satisfaction", repeat_intent_responds_to_expectation_adjusted_satisfaction);
+    runCase("material_memories_influence_repeat_intent", material_memories_influence_repeat_intent);
+    runCase("material_experience_persists_in_versioned_save", material_experience_persists_in_versioned_save);
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
     return 1;
