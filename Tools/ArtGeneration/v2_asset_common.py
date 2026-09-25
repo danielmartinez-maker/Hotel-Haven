@@ -132,6 +132,17 @@ def sofa(name: str, mat: str) -> trimesh.Scene:
         x = (i - (seats - 1) / 2) * 0.65
         add(scene, box((0.59, 0.57, 0.10), (x, -0.02, 0.59), 'MAT_UPHOLSTERY'), f'SeatCushion_{i}')
         add(scene, box((0.59, 0.10, 0.48), (x, 0.20, 0.86), 'MAT_UPHOLSTERY'), f'BackCushion_{i}')
+    leg_height = 0.37
+    for i, (x, y) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
+        add(
+            scene,
+            box(
+                (0.055, 0.055, leg_height),
+                (x * width * 0.42, y * 0.70 * 0.36, leg_height / 2),
+                'MAT_BLACKENED_STEEL',
+            ),
+            f'BaseLeg_{i}',
+        )
     for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):
         add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')
     return scene
@@ -260,8 +271,12 @@ def elevator_or_door(name: str, mat: str) -> trimesh.Scene:
         w = 1.30 if 'Single' in name else 1.85
         h = 2.20
         add(scene, box((w + 0.18, 0.16, h + 0.16), (0, 0, (h + 0.16) / 2), mat), 'Frame')
-        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), 'DoorLeft')
-        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), 'DoorRight')
+        if 'Elevator' in name:
+            left_door, right_door = 'MOV_ElevatorDoor_L', 'MOV_ElevatorDoor_R'
+        else:
+            left_door, right_door = 'DoorLeft', 'DoorRight'
+        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), left_door)
+        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), right_door)
         add(scene, box((0.30, 0.025, 0.12), (0, -0.10, h + 0.06), 'MAT_ELECTRONICS'), 'Indicator')
     return scene
 

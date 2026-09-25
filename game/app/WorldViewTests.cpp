@@ -277,20 +277,21 @@ int main() {
     }
 
     WorldAssetSet milestoneAssets = resolved;
-    for (const auto id : std::array<std::uint32_t, 24>{
-             511, 539, 540, 552, 557, 559, 560, 561, 562, 564, 565, 566,
-             568, 569, 572, 575, 577, 585, 603, 608, 609, 611, 615, 619}) {
+    for (const auto id : std::array<std::uint32_t, 38>{
+             511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
+             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 580, 582,
+             585, 586, 594, 603, 608, 609, 610, 611, 614, 615, 619, 623,
+             643, 644}) {
       milestoneAssets.catalog.emplace(
           "HH_A" + std::string(id < 100 ? "0" : "") +
               std::to_string(id),
           visual(id));
     }
-    milestoneAssets.catalog.emplace("HH_A623", visual(623));
     milestoneAssets.catalog.emplace("HH_A651", visual(651));
     milestoneAssets.catalog.emplace("HH_A700", visual(700));
 
     hh::game::SimulationView milestoneSnapshot;
-    milestoneSnapshot.width = 20;
+    milestoneSnapshot.width = 24;
     milestoneSnapshot.height = 12;
     milestoneSnapshot.floors = 1;
     milestoneSnapshot.tiles = {
@@ -300,23 +301,27 @@ int main() {
         {{0, 3, 0}, hh::game::TileKind::Lobby},
         {{0, 4, 0}, hh::game::TileKind::Lobby},
         {{0, 5, 0}, hh::game::TileKind::Lobby},
+        {{0, 16, 0}, hh::game::TileKind::Lobby},
+        {{0, 17, 0}, hh::game::TileKind::Lobby},
+        {{0, 18, 0}, hh::game::TileKind::Lobby},
+        {{0, 19, 0}, hh::game::TileKind::Lobby},
         {{0, 6, 0}, hh::game::TileKind::FrontDesk},
         {{0, 7, 0}, hh::game::TileKind::Entrance},
-        {{0, 8, 0}, hh::game::TileKind::Stairs},
+        {{0, 9, 0}, hh::game::TileKind::Stairs},
+        {{0, 10, 0}, hh::game::TileKind::Stairs},
+        {{0, 11, 0}, hh::game::TileKind::Stairs},
     };
     milestoneSnapshot.rooms.push_back(placementRoom);
     const auto milestoneScene =
         worldScene(milestoneSnapshot, WorldViewOptions{}, &milestoneAssets);
-    for (const auto handle : std::array<std::uint32_t, 23>{
-             511, 539, 540, 552, 557, 559, 560, 561, 562, 564, 565, 566,
-             568, 569, 572, 575, 577, 585, 603, 608, 609, 611, 615}) {
+    for (const auto handle : std::array<std::uint32_t, 38>{
+             511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
+             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 580, 582,
+             585, 586, 594, 603, 608, 609, 610, 611, 614, 615, 619, 623,
+             643, 644}) {
       require(containsHandle(milestoneScene, handle),
               "A501-A650 milestone asset was available but not used by live presentation");
     }
-    require(containsHandle(milestoneScene, 619),
-            "V2 lobby lighting asset was not used");
-    require(containsHandle(milestoneScene, 623),
-            "V2 lobby divider/planter asset was not used");
 
     const auto catalogScene =
         runtimeAssetCatalogScene(milestoneAssets, 501u, 700u);
