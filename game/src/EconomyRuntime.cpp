@@ -361,6 +361,11 @@ void EconomyRuntime::runDays(int days) {
 
 MarketSnapshot EconomyRuntime::marketSnapshot() const { return market_.snapshot(); }
 
+int EconomyRuntime::competitiveCaptureBasisPoints(
+    MarketSegment segment) const {
+  return market_.competitiveCaptureBasisPoints(segment);
+}
+
 RevenueManagementSnapshot EconomyRuntime::revenueManagementSnapshot() const {
   auto out = revenueManagement_.snapshot();
   out.inventory = inventory_.snapshot();
