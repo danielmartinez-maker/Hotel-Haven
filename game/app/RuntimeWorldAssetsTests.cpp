@@ -131,8 +131,8 @@ int main() {
     const auto presentation = hh::client::runtimeWorldPresentationAssetIds();
     require(required.size() == 70u,
             "legacy world dependency set should contain 70 assets");
-    require(presentation.size() == 52u,
-            "live V2 presentation dependency set should contain 52 assets");
+    require(presentation.size() == 63u,
+            "live V2 presentation dependency set should contain 63 assets");
 
     hh::renderer::RuntimeAssetRegistry registry;
     for (const std::string_view id : required) {
