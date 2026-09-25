@@ -1,6 +1,7 @@
 #include "RuntimeWorldAssets.h"
 
 #include <algorithm>
+#include <vector>
 
 namespace hh::client {
 
@@ -33,9 +34,21 @@ WorldAssetSet worldAssetsFromRegistry(
 
 WorldAssetSet loadWorldAssetsFromDirectory(
     hh::renderer::RuntimeAssetRegistry& registry,
-    const std::filesystem::path& cookedRoot) {
-  registry.loadDirectoryAssetRange(
-      cookedRoot, "HH_A", 1u, 700u, requiredWorldAssetIds());
+    const std::filesystem::path& cookedRoot,
+    RuntimeWorldAssetLoadMode mode) {
+  if (mode == RuntimeWorldAssetLoadMode::FullMilestone) {
+    registry.loadDirectoryAssetRange(
+        cookedRoot, "HH_A", 1u, 700u, requiredWorldAssetIds());
+    return worldAssetsFromRegistry(registry);
+  }
+
+  const auto legacy = requiredWorldAssetIds();
+  const auto v2 = runtimeWorldPresentationAssetIds();
+  std::vector<std::string_view> shippingIds;
+  shippingIds.reserve(legacy.size() + v2.size());
+  shippingIds.insert(shippingIds.end(), legacy.begin(), legacy.end());
+  shippingIds.insert(shippingIds.end(), v2.begin(), v2.end());
+  registry.loadDirectorySubset(cookedRoot, shippingIds);
   return worldAssetsFromRegistry(registry);
 }
 
