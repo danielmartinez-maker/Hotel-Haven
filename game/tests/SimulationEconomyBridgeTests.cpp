@@ -1,4 +1,5 @@
 #include "hh/game/SimulationEconomyBridge.h"
+#include "hh/game/GuestPsychology.h"
 #include <algorithm>
 #include <stdexcept>
 
