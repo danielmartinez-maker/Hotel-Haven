@@ -15,6 +15,7 @@ on:
       - 'game/src/GuestExpectations.cpp'
       - 'game/src/GuestLoyalty.cpp'
       - 'game/src/GuestReviews.cpp'
+      - 'game/src/Simulation.cpp'
       - 'game/src/SimulationPsychology.cpp'
       - 'game/tests/GuestPsychologyTests.cpp'
       - 'game/tests/GuestGoalTests.cpp'
