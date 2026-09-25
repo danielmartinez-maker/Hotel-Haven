@@ -3,6 +3,7 @@ name: FINAL-02 Guest AI Psychology CI
 on:
   pull_request:
     paths:
+      - 'docs/specifications/HMG_010_GUEST_AI_AND_PSYCHOLOGY_V0_1.md'
       - 'game/include/hh/game/Simulation.h'
       - 'game/include/hh/game/GuestGoals.h'
       - 'game/include/hh/game/GuestPsychology.h'
