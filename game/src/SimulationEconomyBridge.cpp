@@ -31,6 +31,7 @@ SimulationEconomyBridge::SimulationEconomyBridge(std::uint64_t seed)
       economy_(seed, simulation_.view().economy.cashCents) {
   resetBaseline();
   synchronizeCapacity();
+  synchronizeGuestDemandEnvironment();
   economy_.synchronizeExternalMetrics(simulation_.view().day, 0, 0);
 }
 
@@ -43,6 +44,7 @@ SimulationEconomyBridge SimulationEconomyBridge::tutorial(std::uint64_t seed) {
   result.cumulativeOccupiedRoomNights_ = 0;
   result.resetBaseline();
   result.synchronizeCapacity();
+  result.synchronizeGuestDemandEnvironment();
   result.economy_.synchronizeExternalMetrics(result.simulation_.view().day, 0, 0);
   return result;
 }
@@ -59,6 +61,16 @@ void SimulationEconomyBridge::synchronizeCapacity() {
   const auto sellable = static_cast<int>(std::count_if(
       current.rooms.begin(), current.rooms.end(), roomIsSellable));
   economy_.setPhysicalRoomCapacity("standard", sellable);
+}
+
+void SimulationEconomyBridge::synchronizeGuestDemandEnvironment() {
+  const auto &offer = economy_.basePlayerOffer();
+  const auto &modifiers = economy_.demandModifiers();
+  GuestDemandEnvironment environment;
+  environment.seasonMultiplierBasisPoints =
+      modifiers.seasonMultiplierBasisPoints;
+  environment.locationScore = offer.hotelId == 0 ? -1 : offer.locationScore;
+  simulation_.setGuestDemandEnvironment(environment);
 }
 
 void SimulationEconomyBridge::reconcile(std::uint64_t sourceId,
@@ -298,6 +310,13 @@ void SimulationEconomyBridge::step(double seconds) {
 void SimulationEconomyBridge::setPlayerHotelOffer(
     const MarketHotelOffer &offer) {
   economy_.setPlayerHotelOffer(offer);
+  synchronizeGuestDemandEnvironment();
+}
+
+void SimulationEconomyBridge::setDemandModifiers(
+    const MarketDemandModifiers &modifiers) {
+  economy_.setDemandModifiers(modifiers);
+  synchronizeGuestDemandEnvironment();
 }
 
 void SimulationEconomyBridge::setCompetitors(
@@ -378,6 +397,7 @@ SimulationEconomyBridge SimulationEconomyBridge::load(std::string_view data) {
   result.cumulativeOccupiedRoomNights_ = occupied;
   result.resetBaseline();
   result.synchronizeCapacity();
+  result.synchronizeGuestDemandEnvironment();
 
   const auto simulationCash = result.simulation_.view().economy.cashCents;
   const auto financial = result.economy_.financialSnapshot().economics;
