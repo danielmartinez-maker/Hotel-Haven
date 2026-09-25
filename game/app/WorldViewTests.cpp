@@ -277,11 +277,11 @@ int main() {
     }
 
     WorldAssetSet milestoneAssets = resolved;
-    for (const auto id : std::array<std::uint32_t, 38>{
+    for (const auto id : std::array<std::uint32_t, 43>{
              511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
-             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 580, 582,
-             585, 586, 594, 603, 608, 609, 610, 611, 614, 615, 619, 623,
-             643, 644}) {
+             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 578, 579,
+             580, 581, 582, 583, 584, 585, 586, 594, 603, 608, 609, 610,
+             611, 614, 615, 619, 623, 643, 644}) {
       milestoneAssets.catalog.emplace(
           "HH_A" + std::string(id < 100 ? "0" : "") +
               std::to_string(id),
@@ -314,11 +314,11 @@ int main() {
     milestoneSnapshot.rooms.push_back(placementRoom);
     const auto milestoneScene =
         worldScene(milestoneSnapshot, WorldViewOptions{}, &milestoneAssets);
-    for (const auto handle : std::array<std::uint32_t, 38>{
+    for (const auto handle : std::array<std::uint32_t, 43>{
              511, 512, 513, 539, 540, 552, 557, 558, 559, 560, 561, 562,
-             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 580, 582,
-             585, 586, 594, 603, 608, 609, 610, 611, 614, 615, 619, 623,
-             643, 644}) {
+             564, 565, 566, 568, 569, 570, 571, 572, 575, 577, 578, 579,
+             580, 581, 582, 583, 584, 585, 586, 594, 603, 608, 609, 610,
+             611, 614, 615, 619, 623, 643, 644}) {
       require(containsHandle(milestoneScene, handle),
               "A501-A650 milestone asset was available but not used by live presentation");
     }
