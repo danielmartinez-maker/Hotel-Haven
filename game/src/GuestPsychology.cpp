@@ -596,38 +596,72 @@ std::int64_t contextualWeight(const GuestArchetypeDefaults &candidate,
     weight = applyWeight(weight, multiplier);
   }
 
-  if (context.hasSpa) {
-    int multiplier = 10000;
-    switch (candidate.archetype) {
-    case GuestArchetype::WellnessTraveler: multiplier = 17000; break;
-    case GuestArchetype::StaycationGuest: multiplier = 14000; break;
-    case GuestArchetype::LuxuryLeisure: multiplier = 12500; break;
-    case GuestArchetype::VipCelebrity: multiplier = 11500; break;
-    default: break;
-    }
-    weight = applyWeight(weight, multiplier);
+  const auto amenityScore = [](int score, bool legacyPresent) {
+    if (score > 0)
+      return std::clamp(score, 0, 100);
+    return legacyPresent ? 100 : 0;
+  };
+  const auto applyAmenityAttractiveness =
+      [&](int score, int maxMultiplierBasisPoints) {
+        if (score <= 0 || maxMultiplierBasisPoints <= 10000)
+          return;
+        const int multiplier =
+            10000 + (maxMultiplierBasisPoints - 10000) * score / 100;
+        weight = applyWeight(weight, multiplier);
+      };
+
+  const int spaScore = amenityScore(context.spaScore, context.hasSpa);
+  switch (candidate.archetype) {
+  case GuestArchetype::WellnessTraveler:
+    applyAmenityAttractiveness(spaScore, 17000);
+    break;
+  case GuestArchetype::StaycationGuest:
+    applyAmenityAttractiveness(spaScore, 14000);
+    break;
+  case GuestArchetype::LuxuryLeisure:
+    applyAmenityAttractiveness(spaScore, 12500);
+    break;
+  case GuestArchetype::VipCelebrity:
+    applyAmenityAttractiveness(spaScore, 11500);
+    break;
+  default:
+    break;
   }
-  if (context.hasGym) {
-    int multiplier = 10000;
-    switch (candidate.archetype) {
-    case GuestArchetype::SportsTeamTraveler: multiplier = 16500; break;
-    case GuestArchetype::WellnessTraveler: multiplier = 13000; break;
-    case GuestArchetype::BusinessTraveler: multiplier = 10500; break;
-    case GuestArchetype::BleisureTraveler: multiplier = 11000; break;
-    default: break;
-    }
-    weight = applyWeight(weight, multiplier);
+
+  const int gymScore = amenityScore(context.gymScore, context.hasGym);
+  switch (candidate.archetype) {
+  case GuestArchetype::SportsTeamTraveler:
+    applyAmenityAttractiveness(gymScore, 16500);
+    break;
+  case GuestArchetype::WellnessTraveler:
+    applyAmenityAttractiveness(gymScore, 13000);
+    break;
+  case GuestArchetype::BusinessTraveler:
+    applyAmenityAttractiveness(gymScore, 10500);
+    break;
+  case GuestArchetype::BleisureTraveler:
+    applyAmenityAttractiveness(gymScore, 11000);
+    break;
+  default:
+    break;
   }
-  if (context.hasPool) {
-    int multiplier = 10000;
-    switch (candidate.archetype) {
-    case GuestArchetype::FamilyLeisure: multiplier = 13000; break;
-    case GuestArchetype::StaycationGuest: multiplier = 13000; break;
-    case GuestArchetype::CoupleLeisure: multiplier = 11000; break;
-    case GuestArchetype::WeddingGuest: multiplier = 11000; break;
-    default: break;
-    }
-    weight = applyWeight(weight, multiplier);
+
+  const int poolScore = amenityScore(context.poolScore, context.hasPool);
+  switch (candidate.archetype) {
+  case GuestArchetype::FamilyLeisure:
+    applyAmenityAttractiveness(poolScore, 13000);
+    break;
+  case GuestArchetype::StaycationGuest:
+    applyAmenityAttractiveness(poolScore, 13000);
+    break;
+  case GuestArchetype::CoupleLeisure:
+    applyAmenityAttractiveness(poolScore, 11000);
+    break;
+  case GuestArchetype::WeddingGuest:
+    applyAmenityAttractiveness(poolScore, 11000);
+    break;
+  default:
+    break;
   }
 
   if (context.eventAttendees > 0) {
