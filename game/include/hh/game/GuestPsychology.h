@@ -183,6 +183,19 @@ struct Complaint {
   bool operator==(const Complaint &) const = default;
 };
 
+struct GuestArchetypeContext {
+  // -1 keeps day-of-week neutral. 0..6 is Monday..Sunday.
+  int weekday{-1};
+  int hotelStars{};
+  int hotelReputation{-1};
+  std::int64_t roomRateCents{};
+  bool hasGym{};
+  bool hasSpa{};
+  bool hasPool{};
+  int eventAttendees{};
+  bool operator==(const GuestArchetypeContext &) const = default;
+};
+
 struct GuestPsychologySnapshot {
   GuestId guestId{};
   GuestProfileView profile;
@@ -232,10 +245,15 @@ private:
 
 namespace detail {
 [[nodiscard]] GuestProfileView
- generateGuestProfileFromRandom(std::mt19937_64 &random);
+generateGuestProfileFromRandom(std::mt19937_64 &random);
+[[nodiscard]] GuestProfileView
+generateGuestProfileFromRandom(std::mt19937_64 &random,
+                               const GuestArchetypeContext &context);
 [[nodiscard]] bool validGuestProfile(const GuestProfileView &profile) noexcept;
 [[nodiscard]] int queueToleranceFor(const GuestProfileView &profile,
                                     double baseSeconds = 480) noexcept;
+[[nodiscard]] int stayNightsFor(const GuestProfileView &profile,
+                                std::uint64_t randomValue) noexcept;
 } // namespace detail
 
 } // namespace hh::game
