@@ -36,7 +36,7 @@ void same_seed_and_guest_id_produce_identical_profile() {
           "deterministic generated profile was outside valid bounds");
 }
 
-void all_thirteen_archetypes_are_reachable_and_profiles_are_bounded() {
+void all_twenty_archetypes_are_reachable_and_profiles_are_bounded() {
   GuestPsychology psychology(20260909);
   std::set<GuestArchetype> archetypes;
   for (GuestId id = 1; id <= 5000; ++id) {
@@ -57,9 +57,41 @@ void all_thirteen_archetypes_are_reachable_and_profiles_are_bounded() {
                 !conflicts(profile.traitFlags, GuestTrait::EarlyRiser,
                            GuestTrait::NightOwl),
             "generated guest received conflicting traits");
+
+    switch (profile.archetype) {
+    case GuestArchetype::DigitalNomad:
+    case GuestArchetype::BleisureTraveler:
+      require((profile.traitFlags & guestTraitFlag(GuestTrait::Workaholic)) != 0,
+              "work-oriented archetype lost its signature Workaholic trait");
+      break;
+    case GuestArchetype::ExtendedStayGuest:
+      require((profile.traitFlags & guestTraitFlag(GuestTrait::Private)) != 0,
+              "extended-stay archetype lost its signature Private trait");
+      break;
+    case GuestArchetype::AirlineCrew:
+      require((profile.traitFlags & guestTraitFlag(GuestTrait::LightSleeper)) != 0,
+              "airline-crew archetype lost its signature LightSleeper trait");
+      break;
+    case GuestArchetype::WeddingGuest:
+      require((profile.traitFlags & guestTraitFlag(GuestTrait::Social)) != 0,
+              "wedding archetype lost its signature Social trait");
+      break;
+    case GuestArchetype::StaycationGuest:
+      require((profile.traitFlags &
+               guestTraitFlag(GuestTrait::StatusConscious)) != 0,
+              "staycation archetype lost its signature StatusConscious trait");
+      break;
+    case GuestArchetype::SportsTeamTraveler:
+      require((profile.traitFlags &
+               guestTraitFlag(GuestTrait::FitnessFocused)) != 0,
+              "sports-team archetype lost its signature FitnessFocused trait");
+      break;
+    default:
+      break;
+    }
   }
-  require(archetypes.size() == 13,
-          "not all thirteen baseline guest archetypes were reachable");
+  require(archetypes.size() == 20,
+          "not all twenty guest archetypes were reachable");
 }
 
 void profile_generation_is_keyed_by_stable_guest_identity() {
@@ -84,6 +116,75 @@ void business_preferences_follow_documented_archetype_priors() {
           "business guest missed documented high work/breakfast preferences");
   require(state->preferences.spa <= 2500 && state->preferences.pool <= 3000,
           "business guest missed documented low leisure preferences");
+}
+
+void new_archetypes_have_materially_distinct_hospitality_priorities() {
+  const auto preferencesForArchetype = [](GuestArchetype archetype) {
+    GuestPsychology psychology(7810 + static_cast<std::uint64_t>(archetype));
+    GuestProfileView profile;
+    profile.archetype = archetype;
+    psychology.initializeGuest(4001, profile);
+    return psychology.snapshot(4001)->preferences;
+  };
+
+  const auto nomad = preferencesForArchetype(GuestArchetype::DigitalNomad);
+  require(nomad.wifi >= 9500 && nomad.desk >= 8500 && nomad.pool <= 3000,
+          "digital nomad priorities are not work/connectivity differentiated");
+
+  const auto bleisure =
+      preferencesForArchetype(GuestArchetype::BleisureTraveler);
+  require(bleisure.desk >= 8000 && bleisure.spa >= 5000 &&
+              bleisure.roomQuality >= 8000,
+          "bleisure priorities do not combine work and leisure demand");
+
+  const auto extended =
+      preferencesForArchetype(GuestArchetype::ExtendedStayGuest);
+  require(extended.quietRoom >= 8500 && extended.desk >= 7000 &&
+              extended.roomQuality >= 7500,
+          "extended-stay priorities do not favor livability and quiet");
+
+  const auto crew = preferencesForArchetype(GuestArchetype::AirlineCrew);
+  require(crew.quietRoom >= 9500 && crew.roomQuality >= 8000 &&
+              crew.social <= 4000,
+          "airline-crew priorities do not strongly favor recovery and quiet");
+
+  const auto wedding =
+      preferencesForArchetype(GuestArchetype::WeddingGuest);
+  require(wedding.social >= 9500 && wedding.breakfast >= 8000 &&
+              wedding.desk <= 2000,
+          "wedding guest priorities do not favor social/event behavior");
+
+  const auto staycation =
+      preferencesForArchetype(GuestArchetype::StaycationGuest);
+  require(staycation.spa >= 8000 && staycation.pool >= 8500 &&
+              staycation.roomQuality >= 8500,
+          "staycation priorities do not favor hotel amenities and room quality");
+
+  const auto team =
+      preferencesForArchetype(GuestArchetype::SportsTeamTraveler);
+  require(team.fitness >= 9500 && team.breakfast >= 9000 &&
+              team.social >= 8500,
+          "sports-team priorities do not favor fitness, food, and group activity");
+}
+
+void archetype_queue_tolerance_matches_trip_context() {
+  GuestProfileView crew;
+  crew.archetype = GuestArchetype::AirlineCrew;
+  crew.patience = .5;
+
+  GuestProfileView extended = crew;
+  extended.archetype = GuestArchetype::ExtendedStayGuest;
+
+  GuestProfileView team = crew;
+  team.archetype = GuestArchetype::SportsTeamTraveler;
+
+  const int crewTolerance = detail::queueToleranceFor(crew);
+  const int extendedTolerance = detail::queueToleranceFor(extended);
+  const int teamTolerance = detail::queueToleranceFor(team);
+  require(crewTolerance < extendedTolerance,
+          "airline crew should tolerate materially less queueing than extended stays");
+  require(crewTolerance < teamTolerance,
+          "airline crew should tolerate materially less queueing than sports groups");
 }
 
 void traits_materially_modify_guest_preferences() {
@@ -362,9 +463,11 @@ void material_experience_persists_in_versioned_save() {
 int main() {
   try {
     same_seed_and_guest_id_produce_identical_profile();
-    all_thirteen_archetypes_are_reachable_and_profiles_are_bounded();
+    all_twenty_archetypes_are_reachable_and_profiles_are_bounded();
     profile_generation_is_keyed_by_stable_guest_identity();
     business_preferences_follow_documented_archetype_priors();
+    new_archetypes_have_materially_distinct_hospitality_priorities();
+    archetype_queue_tolerance_matches_trip_context();
     traits_materially_modify_guest_preferences();
     awake_and_sleeping_need_updates_use_hmg_rates();
     negative_service_experience_creates_attributed_memory_and_complaint();
