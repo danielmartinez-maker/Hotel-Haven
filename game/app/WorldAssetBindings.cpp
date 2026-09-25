@@ -114,6 +114,20 @@ constexpr auto makeRequiredAssetIds() {
 
 constexpr auto kRequiredAssetIds = makeRequiredAssetIds();
 
+constexpr std::array<std::string_view, 52> kRuntimePresentationAssetIds{{
+    "HH_A511", "HH_A512", "HH_A513", "HH_A539", "HH_A540",
+    "HH_A551", "HH_A552", "HH_A553", "HH_A554", "HH_A557",
+    "HH_A558", "HH_A559", "HH_A560", "HH_A561", "HH_A562",
+    "HH_A563", "HH_A564", "HH_A565", "HH_A566", "HH_A568",
+    "HH_A569", "HH_A570", "HH_A571", "HH_A572", "HH_A575",
+    "HH_A577", "HH_A578", "HH_A579", "HH_A580", "HH_A581",
+    "HH_A582", "HH_A583", "HH_A584", "HH_A585", "HH_A586",
+    "HH_A593", "HH_A594", "HH_A601", "HH_A602", "HH_A603",
+    "HH_A604", "HH_A605", "HH_A608", "HH_A609", "HH_A610",
+    "HH_A611", "HH_A614", "HH_A615", "HH_A619", "HH_A623",
+    "HH_A643", "HH_A644",
+}};
+
 template <std::size_t N>
 void resolveCharacterSet(
     std::array<std::optional<WorldAssetVisual>, N> &destination,
@@ -127,6 +141,10 @@ void resolveCharacterSet(
 
 std::span<const std::string_view> requiredWorldAssetIds() noexcept {
   return kRequiredAssetIds;
+}
+
+std::span<const std::string_view> runtimeWorldPresentationAssetIds() noexcept {
+  return kRuntimePresentationAssetIds;
 }
 
 WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver) {
