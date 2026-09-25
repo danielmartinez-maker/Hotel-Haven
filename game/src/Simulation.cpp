@@ -1035,6 +1035,26 @@ struct Simulation::Impl {
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
     for (Room *r : free) {
+      const EntityId prospectiveReservationId = nextId;
+      std::mt19937_64 profileRandom(
+          mixedSeed(seed, prospectiveReservationId,
+                    static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
+      auto roomContext = bookingContext;
+      roomContext.roomRateCents = r->nightlyRateCents;
+      const GuestProfileView prospectiveProfile =
+          generateGuestProfile(profileRandom, roomContext);
+      const auto archetypeIndex =
+          static_cast<std::size_t>(prospectiveProfile.archetype);
+      const int captureBasisPoints =
+          archetypeIndex <
+                  guestDemandEnvironment.archetypeMarketCaptureBasisPoints.size()
+              ? guestDemandEnvironment
+                    .archetypeMarketCaptureBasisPoints[archetypeIndex]
+              : 10000;
+      const double marketCapture =
+          static_cast<double>(captureBasisPoints) / 10000.0;
+
       const double priceRatio = r->nightlyRateCents / 16000.0;
       double priceUtility = 0;
       if (priceRatio <= 0.75)
@@ -1045,8 +1065,9 @@ struct Simulation::Impl {
         priceUtility = 0.8 - (priceRatio - 1.0) * 2.2;
       else if (priceRatio <= 1.5)
         priceUtility = 0.25 - (priceRatio - 1.25);
-      const double dailyChance =
-          std::clamp(baseDemand * reputationUtility * priceUtility, 0.0, 1.0);
+      const double dailyChance = std::clamp(
+          baseDemand * reputationUtility * priceUtility * marketCapture,
+          0.0, 1.0);
       const double hourlyChance =
           dailyChance >= 1.0 ? 1.0
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
@@ -1055,12 +1076,7 @@ struct Simulation::Impl {
 
       Reservation z;
       z.id = nextId++;
-      std::mt19937_64 profileRandom(
-          mixedSeed(seed, z.id, static_cast<std::uint64_t>(day),
-                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
-      auto roomContext = bookingContext;
-      roomContext.roomRateCents = r->nightlyRateCents;
-      z.profile = generateGuestProfile(profileRandom, roomContext);
+      z.profile = prospectiveProfile;
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = arrivalDay;
@@ -2700,10 +2716,15 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
 }
 void Simulation::setGuestDemandEnvironment(
     const GuestDemandEnvironment &environment) {
+  const bool invalidCapture = std::any_of(
+      environment.archetypeMarketCaptureBasisPoints.begin(),
+      environment.archetypeMarketCaptureBasisPoints.end(),
+      [](int value) { return value < 0 || value > 10000; });
   if (environment.seasonMultiplierBasisPoints < 0 ||
       environment.seasonMultiplierBasisPoints > 100000 ||
       (environment.locationScore != -1 &&
-       (environment.locationScore < 0 || environment.locationScore > 100)))
+       (environment.locationScore < 0 || environment.locationScore > 100)) ||
+      invalidCapture)
     throw std::invalid_argument("invalid guest demand environment");
   impl_->guestDemandEnvironment = environment;
 }
