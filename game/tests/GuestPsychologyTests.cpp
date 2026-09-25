@@ -197,6 +197,173 @@ void archetype_queue_tolerance_matches_trip_context() {
           "airline crew should tolerate materially less queueing than sports groups");
 }
 
+void contextual_archetype_mix_responds_to_weekday_and_weekend_demand() {
+  const auto sample = [](const GuestArchetypeContext &context,
+                         std::uint64_t seed) {
+    std::array<int, 20> counts{};
+    std::mt19937_64 random(seed);
+    for (int i = 0; i < 6000; ++i) {
+      const auto profile =
+          detail::generateGuestProfileFromRandom(random, context);
+      ++counts[static_cast<std::size_t>(profile.archetype)];
+    }
+    return counts;
+  };
+  const auto count = [](const std::array<int, 20> &counts,
+                        std::initializer_list<GuestArchetype> archetypes) {
+    int total{};
+    for (const auto archetype : archetypes)
+      total += counts[static_cast<std::size_t>(archetype)];
+    return total;
+  };
+
+  GuestArchetypeContext weekday;
+  weekday.weekday = 1;
+  weekday.hotelStars = 3;
+  weekday.hotelReputation = 75;
+  weekday.roomRateCents = 17000;
+  auto weekend = weekday;
+  weekend.weekday = 5;
+
+  const auto weekdayCounts = sample(weekday, 88001);
+  const auto weekendCounts = sample(weekend, 88001);
+  const int workWeekday =
+      count(weekdayCounts, {GuestArchetype::BusinessTraveler,
+                            GuestArchetype::ExecutiveBusiness,
+                            GuestArchetype::ConferenceDelegate,
+                            GuestArchetype::DigitalNomad,
+                            GuestArchetype::BleisureTraveler});
+  const int workWeekend =
+      count(weekendCounts, {GuestArchetype::BusinessTraveler,
+                            GuestArchetype::ExecutiveBusiness,
+                            GuestArchetype::ConferenceDelegate,
+                            GuestArchetype::DigitalNomad,
+                            GuestArchetype::BleisureTraveler});
+  const int leisureWeekday =
+      count(weekdayCounts, {GuestArchetype::CoupleLeisure,
+                            GuestArchetype::FamilyLeisure,
+                            GuestArchetype::LuxuryLeisure,
+                            GuestArchetype::WellnessTraveler,
+                            GuestArchetype::WeddingGuest,
+                            GuestArchetype::StaycationGuest});
+  const int leisureWeekend =
+      count(weekendCounts, {GuestArchetype::CoupleLeisure,
+                            GuestArchetype::FamilyLeisure,
+                            GuestArchetype::LuxuryLeisure,
+                            GuestArchetype::WellnessTraveler,
+                            GuestArchetype::WeddingGuest,
+                            GuestArchetype::StaycationGuest});
+  require(workWeekday > workWeekend,
+          "weekday context did not increase work-oriented guest mix");
+  require(leisureWeekend > leisureWeekday,
+          "weekend context did not increase leisure-oriented guest mix");
+}
+
+void contextual_archetype_mix_responds_to_property_positioning_and_events() {
+  const auto sample = [](const GuestArchetypeContext &context,
+                         std::uint64_t seed) {
+    std::array<int, 20> counts{};
+    std::mt19937_64 random(seed);
+    for (int i = 0; i < 6000; ++i) {
+      const auto profile =
+          detail::generateGuestProfileFromRandom(random, context);
+      ++counts[static_cast<std::size_t>(profile.archetype)];
+    }
+    return counts;
+  };
+  const auto count = [](const std::array<int, 20> &counts,
+                        std::initializer_list<GuestArchetype> archetypes) {
+    int total{};
+    for (const auto archetype : archetypes)
+      total += counts[static_cast<std::size_t>(archetype)];
+    return total;
+  };
+
+  GuestArchetypeContext economyHotel;
+  economyHotel.weekday = 5;
+  economyHotel.hotelStars = 2;
+  economyHotel.hotelReputation = 58;
+  economyHotel.roomRateCents = 9000;
+
+  GuestArchetypeContext resort = economyHotel;
+  resort.hotelStars = 5;
+  resort.hotelReputation = 92;
+  resort.roomRateCents = 28000;
+  resort.hasGym = resort.hasSpa = resort.hasPool = true;
+
+  const auto economyCounts = sample(economyHotel, 88002);
+  const auto resortCounts = sample(resort, 88002);
+  const int economyPremium =
+      count(economyCounts, {GuestArchetype::LuxuryLeisure,
+                            GuestArchetype::VipCelebrity,
+                            GuestArchetype::WellnessTraveler,
+                            GuestArchetype::StaycationGuest,
+                            GuestArchetype::ExecutiveBusiness});
+  const int resortPremium =
+      count(resortCounts, {GuestArchetype::LuxuryLeisure,
+                           GuestArchetype::VipCelebrity,
+                           GuestArchetype::WellnessTraveler,
+                           GuestArchetype::StaycationGuest,
+                           GuestArchetype::ExecutiveBusiness});
+  require(resortPremium > economyPremium,
+          "premium amenity-rich property did not attract more premium archetypes");
+
+  GuestArchetypeContext quietWeekday;
+  quietWeekday.weekday = 2;
+  quietWeekday.hotelStars = 3;
+  quietWeekday.hotelReputation = 75;
+  quietWeekday.roomRateCents = 17000;
+  auto eventDay = quietWeekday;
+  eventDay.eventAttendees = 300;
+
+  const auto quietCounts = sample(quietWeekday, 88003);
+  const auto eventCounts = sample(eventDay, 88003);
+  const int quietEventGuests =
+      count(quietCounts, {GuestArchetype::ConferenceDelegate,
+                          GuestArchetype::WeddingGuest,
+                          GuestArchetype::GroupTourTraveler,
+                          GuestArchetype::BleisureTraveler});
+  const int eventGuests =
+      count(eventCounts, {GuestArchetype::ConferenceDelegate,
+                          GuestArchetype::WeddingGuest,
+                          GuestArchetype::GroupTourTraveler,
+                          GuestArchetype::BleisureTraveler});
+  require(eventGuests > quietEventGuests,
+          "on-property event demand did not increase event-linked archetypes");
+}
+
+void archetypes_generate_trip_length_profiles() {
+  GuestProfileView profile;
+
+  profile.archetype = GuestArchetype::AirlineCrew;
+  require(detail::stayNightsFor(profile, 99) == 1,
+          "airline crew should be a one-night archetype");
+
+  profile.archetype = GuestArchetype::AirportTransitTraveler;
+  require(detail::stayNightsFor(profile, 99) == 1,
+          "airport transit should be a one-night archetype");
+
+  profile.archetype = GuestArchetype::ExtendedStayGuest;
+  const int extended = detail::stayNightsFor(profile, 14);
+  require(extended >= 7 && extended <= 21,
+          "extended-stay archetype left its 7-21 night range");
+
+  profile.archetype = GuestArchetype::DigitalNomad;
+  const int nomad = detail::stayNightsFor(profile, 7);
+  require(nomad >= 3 && nomad <= 10,
+          "digital nomad archetype left its 3-10 night range");
+
+  profile.archetype = GuestArchetype::FamilyLeisure;
+  const int family = detail::stayNightsFor(profile, 8);
+  require(family >= 3 && family <= 5,
+          "family leisure archetype left its 3-5 night range");
+
+  profile.archetype = GuestArchetype::StaycationGuest;
+  const int staycation = detail::stayNightsFor(profile, 3);
+  require(staycation >= 1 && staycation <= 2,
+          "staycation archetype left its 1-2 night range");
+}
+
 void traits_materially_modify_guest_preferences() {
   constexpr GuestId id = 3002;
   GuestProfileView baselineProfile;
@@ -478,6 +645,9 @@ int main() {
     runCase("business_preferences_follow_documented_archetype_priors", business_preferences_follow_documented_archetype_priors);
     runCase("new_archetypes_have_materially_distinct_hospitality_priorities", new_archetypes_have_materially_distinct_hospitality_priorities);
     runCase("archetype_queue_tolerance_matches_trip_context", archetype_queue_tolerance_matches_trip_context);
+    runCase("contextual_archetype_mix_responds_to_weekday_and_weekend_demand", contextual_archetype_mix_responds_to_weekday_and_weekend_demand);
+    runCase("contextual_archetype_mix_responds_to_property_positioning_and_events", contextual_archetype_mix_responds_to_property_positioning_and_events);
+    runCase("archetypes_generate_trip_length_profiles", archetypes_generate_trip_length_profiles);
     runCase("traits_materially_modify_guest_preferences", traits_materially_modify_guest_preferences);
     runCase("awake_and_sleeping_need_updates_use_hmg_rates", awake_and_sleeping_need_updates_use_hmg_rates);
     runCase("negative_service_experience_creates_attributed_memory_and_complaint", negative_service_experience_creates_attributed_memory_and_complaint);
