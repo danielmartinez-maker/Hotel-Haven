@@ -103,7 +103,6 @@ struct Person : PersonView {
   bool breakTaskCreated{};
 };
 struct Reservation : ReservationView {
-  double satisfaction{70};
   double checkoutCleanliness{100};
   bool arrived{};
 };
