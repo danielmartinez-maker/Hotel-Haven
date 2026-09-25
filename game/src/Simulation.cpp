@@ -997,17 +997,29 @@ struct Simulation::Impl {
 
     const auto amenitySnapshot = amenities.snapshot();
     for (const auto &amenity : amenitySnapshot.amenities) {
-      if (amenity.cleanliness < 3000 || amenity.condition < 3000)
+      if (amenity.cleanliness < 3000 || amenity.condition < 3000 ||
+          amenity.capacity <= 0)
         continue;
+      const int quality =
+          std::clamp((amenity.cleanliness + amenity.condition) / 200, 0, 100);
+      const int capacityScore = std::clamp(amenity.capacity * 10, 0, 100);
+      const int attractiveness =
+          std::clamp((quality * 80 + capacityScore * 20) / 100, 1, 100);
       switch (amenity.type) {
       case AmenityType::Gym:
         bookingContext.hasGym = true;
+        bookingContext.gymScore =
+            std::max(bookingContext.gymScore, attractiveness);
         break;
       case AmenityType::Spa:
         bookingContext.hasSpa = true;
+        bookingContext.spaScore =
+            std::max(bookingContext.spaScore, attractiveness);
         break;
       case AmenityType::Pool:
         bookingContext.hasPool = true;
+        bookingContext.poolScore =
+            std::max(bookingContext.poolScore, attractiveness);
         break;
       }
     }
