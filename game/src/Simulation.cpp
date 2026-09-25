@@ -3324,15 +3324,13 @@ std::string Simulation::save() const {
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << ' ' << r.checkInTravelSeconds << ' '
-      << r.checkInWaitSeconds << ' ' << r.walkedRelocated << '\n';
+      << r.checkoutCleanliness << '\n';
   for (auto &r : impl_->completedReservationHistory)
     o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << ' ' << r.checkInTravelSeconds << ' '
-      << r.checkInWaitSeconds << ' ' << r.walkedRelocated << '\n';
+      << r.checkoutCleanliness << '\n';
   o << impl_->tasks.size() + impl_->completedTaskHistory.size() << '\n';
   for (auto &t : impl_->tasks)
     o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
@@ -3518,6 +3516,23 @@ std::string Simulation::save() const {
   o.write(psychologyState.data(),
           static_cast<std::streamsize>(psychologyState.size()));
   o << '\n';
+
+  std::ostringstream checkInState;
+  checkInState << psychologyCount << '\n';
+  const auto writeCheckInState = [&](const Reservation &reservation) {
+    checkInState << reservation.id << ' ' << reservation.checkInTravelSeconds
+                 << ' ' << reservation.checkInWaitSeconds << ' '
+                 << reservation.walkedRelocated << '\n';
+  };
+  for (const auto &reservation : impl_->reservations)
+    writeCheckInState(reservation);
+  for (const auto &reservation : impl_->completedReservationHistory)
+    writeCheckInState(reservation);
+  const auto checkInStateData = checkInState.str();
+  o << "RESERVATION_CHECKIN_STATE " << checkInStateData.size() << '\n';
+  o.write(checkInStateData.data(),
+          static_cast<std::streamsize>(checkInStateData.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -3681,9 +3696,6 @@ Simulation Simulation::load(std::string_view data) {
       i >> r.checkoutStarted >> r.checkoutCleanliness;
     else if (r.completed)
       r.checkoutStarted = true;
-    if (version >= 13)
-      i >> r.checkInTravelSeconds >> r.checkInWaitSeconds >>
-          r.walkedRelocated;
     if (version < 6) {
       if (!std::isfinite(legacyNightlyRate) || legacyNightlyRate <= 0 ||
           legacyNightlyRate > 5000)
@@ -4256,6 +4268,67 @@ Simulation Simulation::load(std::string_view data) {
     } catch (const std::exception &) {
       throw std::invalid_argument("invalid FINAL-02 guest group state");
     }
+  }
+
+  if (version >= 13) {
+    std::string checkInTag;
+    std::size_t checkInBytes{};
+    i >> checkInTag >> checkInBytes;
+    if (!i || checkInTag != "RESERVATION_CHECKIN_STATE" ||
+        checkInBytes > 8 * 1024 * 1024)
+      throw std::invalid_argument("invalid reservation check-in save section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid reservation check-in delimiter");
+    std::string checkInStateData(checkInBytes, '\0');
+    i.read(checkInStateData.data(), static_cast<std::streamsize>(checkInBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != checkInBytes)
+      throw std::invalid_argument("truncated reservation check-in section");
+    if (i.get() != '\n')
+      throw std::invalid_argument("invalid reservation check-in terminator");
+
+    std::istringstream checkInState{checkInStateData};
+    std::size_t checkInCount{};
+    checkInState >> checkInCount;
+    const std::size_t expectedCheckInCount =
+        d.reservations.size() + d.completedReservationHistory.size();
+    if (!checkInState || checkInCount != expectedCheckInCount ||
+        checkInCount > 100000)
+      throw std::invalid_argument("reservation check-in count mismatch");
+
+    std::unordered_set<EntityId> checkInIds;
+    for (std::size_t index = 0; index < checkInCount; ++index) {
+      EntityId reservationId{};
+      std::int64_t travelSeconds{};
+      int waitSeconds{};
+      bool walked{};
+      checkInState >> reservationId >> travelSeconds >> waitSeconds >> walked;
+      if (!checkInState || reservationId == 0 || travelSeconds < 0 ||
+          waitSeconds < 0 || !checkInIds.insert(reservationId).second)
+        throw std::invalid_argument("invalid reservation check-in state");
+
+      Reservation *reservation = nullptr;
+      for (auto &candidate : d.reservations)
+        if (candidate.id == reservationId) {
+          reservation = &candidate;
+          break;
+        }
+      if (!reservation)
+        for (auto &candidate : d.completedReservationHistory)
+          if (candidate.id == reservationId) {
+            reservation = &candidate;
+            break;
+          }
+      if (!reservation)
+        throw std::invalid_argument(
+            "reservation check-in state references missing reservation");
+      reservation->checkInTravelSeconds = travelSeconds;
+      reservation->checkInWaitSeconds = waitSeconds;
+      reservation->walkedRelocated = walked;
+    }
+    checkInState >> std::ws;
+    if (!checkInState.eof())
+      throw std::invalid_argument(
+          "unexpected reservation check-in trailing data");
   }
 
   if (!i)
