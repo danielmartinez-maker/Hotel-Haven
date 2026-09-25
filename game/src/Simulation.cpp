@@ -1035,10 +1035,12 @@ struct Simulation::Impl {
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
     for (Room *r : free) {
-      const EntityId prospectiveReservationId = nextId;
+      const std::uint64_t bookingOrdinal =
+          static_cast<std::uint64_t>(
+              reservations.size() + completedReservationHistory.size()) +
+          1u;
       std::mt19937_64 profileRandom(
-          mixedSeed(seed, prospectiveReservationId,
-                    static_cast<std::uint64_t>(day),
+          mixedSeed(seed, bookingOrdinal, static_cast<std::uint64_t>(day),
                     static_cast<std::uint64_t>(hour), 0x4755455354ULL));
       auto roomContext = bookingContext;
       roomContext.roomRateCents = r->nightlyRateCents;
@@ -1816,6 +1818,28 @@ struct Simulation::Impl {
     services.tickSimulationSecond(
         managedHousekeepingScratch, workingHousekeepingScratch,
         managedEngineeringScratch, workingEngineeringScratch);
+
+    // FINAL-04 engineering owns equipment/room condition and failure pressure.
+    // Mirror its hourly reliability update back into physical room state rather
+    // than maintaining a second daily wear model in Simulation.
+    if (services.elapsedSeconds() % 3600 == 0) {
+      const auto engineering = services.engineeringSnapshot();
+      for (const auto &asset : engineering.assets) {
+        auto *room = getRoom(asset.id);
+        if (!room)
+          continue;
+        room->condition =
+            static_cast<double>(std::clamp(asset.condition, 0, 10000)) / 100.0;
+        if (asset.failed && room->reservationId == 0 &&
+            room->status == RoomStatus::VacantReady) {
+          room->status = RoomStatus::OutOfOrder;
+          if (!createRoomTask(TaskKind::Repair, room->id, room->door,
+                              repairWork))
+            throw std::logic_error(
+                "failed to mirror FINAL-04 engineering failure into repair");
+        }
+      }
+    }
   }
 
   void reconcileRoomServiceCompletion() {
@@ -1897,29 +1921,6 @@ struct Simulation::Impl {
           static_cast<std::int64_t>(rooms.size()) * utilityPerRoomDayCents;
       economy.utilityCostCents += util;
       economy.cashCents -= util;
-      std::vector<EntityId> newlyFailedRooms;
-      for (auto &r : rooms)
-        if (r.status != RoomStatus::OutOfOrder) {
-          const double wearVariation =
-              0.85 + 0.3 * std::generate_canonical<double, 32>(rng);
-          r.condition = std::max(0.0, r.condition - roomConditionLossPerDay *
-                                                        wearVariation);
-          services.synchronizeAssetConditionForSimulation(
-              r.id,
-              std::clamp(static_cast<int>(std::llround(r.condition * 100.0)),
-                         0, 10000),
-              r.condition < 35);
-          if (r.condition < 35 && r.reservationId == 0 &&
-              r.status == RoomStatus::VacantReady) {
-            r.status = RoomStatus::OutOfOrder;
-            newlyFailedRooms.push_back(r.id);
-          }
-        }
-      for (const EntityId roomId : newlyFailedRooms)
-        if (auto *room = getRoom(roomId))
-          if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
-            throw std::logic_error(
-                "failed to mirror wear failure repair into FINAL-04");
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
