@@ -137,11 +137,15 @@ void lobbyDecoration(RenderScene &s, const TileView &tile, float x, float z,
   if (!assets)
     return;
 
+  // A catalog-backed runtime gets the richer V2 motif library. Tests and
+  // incomplete packages that only expose the named legacy bindings retain the
+  // original six deterministic fallbacks.
+  const int motifCount = assets->catalog.empty() ? 6 : 20;
   int motif = (tile.position.x * 31 + tile.position.y * 17 +
                tile.position.floor * 13) %
-              10;
+              motifCount;
   if (motif < 0)
-    motif += 10;
+    motif += motifCount;
 
   bool rendered = false;
   if (motif == 0) {
@@ -198,10 +202,74 @@ void lobbyDecoration(RenderScene &s, const TileView &tile, float x, float z,
     if (!rendered)
       (void)fittedMesh(s, tile.position.floor, x, z, .58f, .46f, .38f, 1.16f,
                        assets->pottedPlant);
-  } else {
+  } else if (motif == 9) {
     rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .64f,
                                  .54f, .42f, 1.28f, assets, "HH_A644");
     if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .54f, .42f, 1.16f,
+                       assets->pottedPlant);
+  } else if (motif == 10) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .43f,
+                                 .68f, .68f, .86f, assets, "HH_A612");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
+                       assets->lobbyArmchair);
+  } else if (motif == 11) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .36f,
+                                 .96f, .52f, .72f, assets, "HH_A613");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .38f, .92f, .54f, .76f,
+                       assets->lobbySofa);
+  } else if (motif == 12) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .19f,
+                                 .86f, .56f, .38f, assets, "HH_A616");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .19f, .78f, .54f, .38f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 13) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .24f,
+                                 .46f, .46f, .48f, assets, "HH_A617");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .20f, .50f, .50f, .40f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 14) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .39f,
+                                 .92f, .40f, .78f, assets, "HH_A618");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .24f, .86f, .42f, .48f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 15) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .48f,
+                                 .30f, .30f, .96f, assets, "HH_A620");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .52f, .30f, .30f, 1.04f,
+                       assets->lobbyFloorLamp);
+  } else if (motif == 16) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .63f,
+                                 .92f, .24f, 1.25f, assets, "HH_A621");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .70f, .32f, 1.16f,
+                       assets->lobbyPlanter);
+  } else if (motif == 17) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .63f,
+                                 .92f, .24f, 1.25f, assets, "HH_A622");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .70f, .32f, 1.16f,
+                       assets->lobbyPlanter);
+  } else if (motif == 18) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .65f,
+                                 .46f, .46f, 1.30f, assets, "HH_A647");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .64f, .36f, .36f, 1.28f,
+                       assets->lobbyFloorLamp);
+  } else {
+    const bool umbrella = fittedCatalogMesh(
+        s, tile.position.floor, x - .20f, z, .43f, .34f, .34f, .86f,
+        assets, "HH_A648");
+    const bool magazines = fittedCatalogMesh(
+        s, tile.position.floor, x + .22f, z, .24f, .52f, .42f, .48f,
+        assets, "HH_A649");
+    if (!umbrella && !magazines)
       (void)fittedMesh(s, tile.position.floor, x, z, .58f, .54f, .42f, 1.16f,
                        assets->pottedPlant);
   }
