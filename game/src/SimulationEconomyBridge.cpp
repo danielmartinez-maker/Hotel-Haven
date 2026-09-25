@@ -24,6 +24,41 @@ bool roomIsSellable(const RoomView &room) {
          room.status != RoomStatus::OutOfOrder;
 }
 
+constexpr MarketSegment marketSegmentForArchetype(GuestArchetype archetype) {
+  switch (archetype) {
+  case GuestArchetype::BudgetLeisure:
+  case GuestArchetype::Backpacker:
+    return MarketSegment::BudgetLeisure;
+  case GuestArchetype::BusinessTraveler:
+  case GuestArchetype::DigitalNomad:
+  case GuestArchetype::BleisureTraveler:
+  case GuestArchetype::ExtendedStayGuest:
+    return MarketSegment::Business;
+  case GuestArchetype::ExecutiveBusiness:
+    return MarketSegment::ExecutiveBusiness;
+  case GuestArchetype::CoupleLeisure:
+  case GuestArchetype::StaycationGuest:
+    return MarketSegment::CoupleLeisure;
+  case GuestArchetype::FamilyLeisure:
+    return MarketSegment::FamilyLeisure;
+  case GuestArchetype::LuxuryLeisure:
+  case GuestArchetype::VipCelebrity:
+  case GuestArchetype::CriticReviewer:
+    return MarketSegment::LuxuryLeisure;
+  case GuestArchetype::ConferenceDelegate:
+  case GuestArchetype::GroupTourTraveler:
+  case GuestArchetype::WeddingGuest:
+  case GuestArchetype::SportsTeamTraveler:
+    return MarketSegment::ConferenceGroup;
+  case GuestArchetype::AirportTransitTraveler:
+  case GuestArchetype::AirlineCrew:
+    return MarketSegment::AirportTransit;
+  case GuestArchetype::WellnessTraveler:
+    return MarketSegment::Wellness;
+  }
+  return MarketSegment::CoupleLeisure;
+}
+
 } // namespace
 
 SimulationEconomyBridge::SimulationEconomyBridge(std::uint64_t seed)
@@ -70,6 +105,13 @@ void SimulationEconomyBridge::synchronizeGuestDemandEnvironment() {
   environment.seasonMultiplierBasisPoints =
       modifiers.seasonMultiplierBasisPoints;
   environment.locationScore = offer.hotelId == 0 ? -1 : offer.locationScore;
+  for (std::size_t index = 0;
+       index < environment.archetypeMarketCaptureBasisPoints.size(); ++index) {
+    const auto archetype = static_cast<GuestArchetype>(index);
+    environment.archetypeMarketCaptureBasisPoints[index] =
+        economy_.competitiveCaptureBasisPoints(
+            marketSegmentForArchetype(archetype));
+  }
   simulation_.setGuestDemandEnvironment(environment);
 }
 
@@ -322,6 +364,7 @@ void SimulationEconomyBridge::setDemandModifiers(
 void SimulationEconomyBridge::setCompetitors(
     std::vector<CompetitorOffer> competitors) {
   economy_.setCompetitors(std::move(competitors));
+  synchronizeGuestDemandEnvironment();
 }
 
 PricingRuleResult SimulationEconomyBridge::setPricingRule(

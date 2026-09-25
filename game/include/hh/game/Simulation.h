@@ -7,6 +7,7 @@
 #include "hh/game/Departments.h"
 #include "hh/game/StaffOptimization.h"
 #include "hh/game/Workforce.h"
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -116,6 +117,14 @@ struct GuestDemandEnvironment {
   int seasonMultiplierBasisPoints{10000};
   // -1 is neutral/unknown; otherwise 0..100 follows FINAL-06 locationScore.
   int locationScore{-1};
+  // FINAL-06 competitive capture projected onto the physical guest
+  // archetypes. 10,000 means no competitive dilution; 0 suppresses bookings
+  // for that archetype. The bridge derives this array from the market model.
+  std::array<int, 20> archetypeMarketCaptureBasisPoints{
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000};
   bool operator==(const GuestDemandEnvironment &) const = default;
 };
 

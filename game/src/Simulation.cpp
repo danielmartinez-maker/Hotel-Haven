@@ -982,7 +982,10 @@ struct Simulation::Impl {
     for (auto &r : rooms)
       if (!r.closed && r.status == RoomStatus::VacantReady && r.reachable)
         free.push_back(&r);
-    std::shuffle(free.begin(), free.end(), rng);
+    std::mt19937_64 bookingOrderRandom(
+        mixedSeed(seed, static_cast<std::uint64_t>(day),
+                  static_cast<std::uint64_t>(hour), 0, 0x424f4f4b4f524445ULL));
+    std::shuffle(free.begin(), free.end(), bookingOrderRandom);
 
     const int arrivalDay = day + (hour > 15 ? 1 : 0);
     GuestArchetypeContext bookingContext;
@@ -1035,6 +1038,27 @@ struct Simulation::Impl {
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
     for (Room *r : free) {
+      const std::uint64_t bookingOrdinal =
+          static_cast<std::uint64_t>(
+              reservations.size() + completedReservationHistory.size()) +
+          1u;
+      std::mt19937_64 profileRandom(
+          mixedSeed(seed, bookingOrdinal, 0, 0, 0x4755455354ULL));
+      auto roomContext = bookingContext;
+      roomContext.roomRateCents = r->nightlyRateCents;
+      const GuestProfileView prospectiveProfile =
+          generateGuestProfile(profileRandom, roomContext);
+      const auto archetypeIndex =
+          static_cast<std::size_t>(prospectiveProfile.archetype);
+      const int captureBasisPoints =
+          archetypeIndex <
+                  guestDemandEnvironment.archetypeMarketCaptureBasisPoints.size()
+              ? guestDemandEnvironment
+                    .archetypeMarketCaptureBasisPoints[archetypeIndex]
+              : 10000;
+      const double marketCapture =
+          static_cast<double>(captureBasisPoints) / 10000.0;
+
       const double priceRatio = r->nightlyRateCents / 16000.0;
       double priceUtility = 0;
       if (priceRatio <= 0.75)
@@ -1045,27 +1069,29 @@ struct Simulation::Impl {
         priceUtility = 0.8 - (priceRatio - 1.0) * 2.2;
       else if (priceRatio <= 1.5)
         priceUtility = 0.25 - (priceRatio - 1.25);
-      const double dailyChance =
-          std::clamp(baseDemand * reputationUtility * priceUtility, 0.0, 1.0);
+      const double dailyChance = std::clamp(
+          baseDemand * reputationUtility * priceUtility * marketCapture,
+          0.0, 1.0);
       const double hourlyChance =
           dailyChance >= 1.0 ? 1.0
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
-      if (std::generate_canonical<double, 32>(rng) > hourlyChance)
+      std::mt19937_64 conversionRandom(
+          mixedSeed(seed, static_cast<std::uint64_t>(r->id),
+                    static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), 0x434f4e56455254ULL));
+      if (std::generate_canonical<double, 32>(conversionRandom) > hourlyChance)
         continue;
 
       Reservation z;
       z.id = nextId++;
-      std::mt19937_64 profileRandom(
-          mixedSeed(seed, z.id, static_cast<std::uint64_t>(day),
-                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
-      auto roomContext = bookingContext;
-      roomContext.roomRateCents = r->nightlyRateCents;
-      z.profile = generateGuestProfile(profileRandom, roomContext);
+      z.profile = prospectiveProfile;
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = arrivalDay;
+      const std::uint64_t stayRandom =
+          mixedSeed(seed, bookingOrdinal, 0, 0, 0x535441594e494748ULL);
       z.departureDay =
-          z.arrivalDay + detail::stayNightsFor(z.profile, rng());
+          z.arrivalDay + detail::stayNightsFor(z.profile, stayRandom);
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
@@ -1797,9 +1823,37 @@ struct Simulation::Impl {
         preventiveWorkingEngineeringScratch.begin(),
         preventiveWorkingEngineeringScratch.end());
 
+    const int engineeringConditionLossPerHour = std::clamp(
+        static_cast<int>(std::llround(roomConditionLossPerDay * 100.0 / 24.0)),
+        0, 10000);
     services.tickSimulationSecond(
         managedHousekeepingScratch, workingHousekeepingScratch,
-        managedEngineeringScratch, workingEngineeringScratch);
+        managedEngineeringScratch, workingEngineeringScratch,
+        engineeringConditionLossPerHour);
+
+    // FINAL-04 engineering owns equipment/room condition and failure pressure.
+    // Mirror its hourly reliability update back into physical room state rather
+    // than maintaining a second daily wear model in Simulation.
+    if (services.elapsedSeconds() % 3600 == 0) {
+      const auto engineering = services.engineeringSnapshot();
+      for (const auto &asset : engineering.assets) {
+        auto *room = getRoom(asset.id);
+        if (!room)
+          continue;
+        room->condition =
+            static_cast<double>(std::clamp(asset.condition, 0, 10000)) / 100.0;
+        if (room->condition < 35.0 && room->reservationId == 0 &&
+            room->status == RoomStatus::VacantReady) {
+          services.synchronizeAssetConditionForSimulation(
+              room->id, std::clamp(asset.condition, 0, 10000), true);
+          room->status = RoomStatus::OutOfOrder;
+          if (!createRoomTask(TaskKind::Repair, room->id, room->door,
+                              repairWork))
+            throw std::logic_error(
+                "failed to mirror condition failure into FINAL-04 repair");
+        }
+      }
+    }
   }
 
   void reconcileRoomServiceCompletion() {
@@ -1881,29 +1935,6 @@ struct Simulation::Impl {
           static_cast<std::int64_t>(rooms.size()) * utilityPerRoomDayCents;
       economy.utilityCostCents += util;
       economy.cashCents -= util;
-      std::vector<EntityId> newlyFailedRooms;
-      for (auto &r : rooms)
-        if (r.status != RoomStatus::OutOfOrder) {
-          const double wearVariation =
-              0.85 + 0.3 * std::generate_canonical<double, 32>(rng);
-          r.condition = std::max(0.0, r.condition - roomConditionLossPerDay *
-                                                        wearVariation);
-          services.synchronizeAssetConditionForSimulation(
-              r.id,
-              std::clamp(static_cast<int>(std::llround(r.condition * 100.0)),
-                         0, 10000),
-              r.condition < 35);
-          if (r.condition < 35 && r.reservationId == 0 &&
-              r.status == RoomStatus::VacantReady) {
-            r.status = RoomStatus::OutOfOrder;
-            newlyFailedRooms.push_back(r.id);
-          }
-        }
-      for (const EntityId roomId : newlyFailedRooms)
-        if (auto *room = getRoom(roomId))
-          if (!createRoomTask(TaskKind::Repair, roomId, room->door, repairWork))
-            throw std::logic_error(
-                "failed to mirror wear failure repair into FINAL-04");
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
@@ -2700,10 +2731,15 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
 }
 void Simulation::setGuestDemandEnvironment(
     const GuestDemandEnvironment &environment) {
+  const bool invalidCapture = std::any_of(
+      environment.archetypeMarketCaptureBasisPoints.begin(),
+      environment.archetypeMarketCaptureBasisPoints.end(),
+      [](int value) { return value < 0 || value > 10000; });
   if (environment.seasonMultiplierBasisPoints < 0 ||
       environment.seasonMultiplierBasisPoints > 100000 ||
       (environment.locationScore != -1 &&
-       (environment.locationScore < 0 || environment.locationScore > 100)))
+       (environment.locationScore < 0 || environment.locationScore > 100)) ||
+      invalidCapture)
     throw std::invalid_argument("invalid guest demand environment");
   impl_->guestDemandEnvironment = environment;
 }

@@ -29,4 +29,27 @@ int main() {
   const auto snap = a.snapshot();
   require(snap.competitors.size() == 2 && snap.physicalCompetitorGuests == 0,
           "aggregate competitors created physical map guests");
+
+  MarketDemandSystem capture(73);
+  capture.setPlayerOffer({1, 16'000, 80, 4, 80, 80, 80, true});
+  require(capture.competitiveCaptureBasisPoints(MarketSegment::Business) == 10000,
+          "competitor-free market diluted physical demand");
+  capture.setCompetitors({
+      {2, "Weak Rival", 21'000, 65, 3, 55, 55, 50},
+  });
+  const int weakRivalCapture =
+      capture.competitiveCaptureBasisPoints(MarketSegment::Business);
+  capture.setCompetitors({
+      {2, "Strong Rival", 13'000, 92, 5, 95, 92, 90},
+  });
+  const int strongRivalCapture =
+      capture.competitiveCaptureBasisPoints(MarketSegment::Business);
+  require(weakRivalCapture > 0 && weakRivalCapture < 10000,
+          "eligible competitor did not dilute player capture");
+  require(strongRivalCapture < weakRivalCapture,
+          "stronger competitor did not reduce player segment capture");
+
+  MarketDemandSystem unconfigured(73);
+  require(unconfigured.competitiveCaptureBasisPoints(MarketSegment::Business) == 10000,
+          "unconfigured market should be neutral to physical bookings");
 }

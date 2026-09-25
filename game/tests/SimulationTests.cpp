@@ -313,6 +313,7 @@ struct LayoutOutcome {
   std::int64_t guestTravelSeconds{};
   std::int64_t guestWaitSeconds{};
   double guestSatisfaction{};
+  double reputation{};
   int completedStays{};
   int walkedRelocations{};
   std::int64_t operatingProfitCents{};
@@ -380,7 +381,7 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
             "layout benchmark steady-state rate rejected");
   // Use unsaturated steady demand so reputation/service quality can
   // materially affect conversion instead of being clamped to 100% demand.
-  require(s.loadDefinitions(R"({"baseDemand":1.5})").ok,
+  require(s.loadDefinitions(R"({"baseDemand":1.0})").ok,
           "layout benchmark steady demand rejected");
   const auto countWalked = [](const SimulationView &view) {
     int count = 0;
@@ -395,6 +396,7 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
   s.step(20 * 86400);
   const auto final = s.view();
   const auto economy = final.economy;
+  outcome.reputation = economy.reputation;
   outcome.completedStays =
       economy.completedStays - baseline.economy.completedStays;
   outcome.walkedRelocations = countWalked(final);
@@ -425,6 +427,7 @@ static void poor_layout_lowers_service_quality_and_profit() {
             << " s, wait " << efficient.guestWaitSeconds << '/'
             << poor.guestWaitSeconds << " s, satisfaction "
             << efficient.guestSatisfaction << '/' << poor.guestSatisfaction
+            << ", reputation " << efficient.reputation << '/' << poor.reputation
             << ", stays " << efficient.completedStays << '/'
             << poor.completedStays << ", walks " << efficient.walkedRelocations
             << '/' << poor.walkedRelocations << ", operating profit "
@@ -436,6 +439,8 @@ static void poor_layout_lowers_service_quality_and_profit() {
           "poor layout did not increase completed check-in waits");
   require(poor.guestSatisfaction < efficient.guestSatisfaction,
           "poor layout did not lower guest satisfaction");
+  require(poor.reputation < efficient.reputation,
+          "poor layout did not lower hotel reputation");
   // Throughput is asserted deterministically by layout_has_consequences(),
   // where the near layout completes a fixed room turn before the far layout.
   // Completed-stay count remains diagnostic here because stay-length RNG makes
@@ -1154,10 +1159,20 @@ static void long_campaign_bounds_transient_history() {
            R"({"baseDemand":100,"turnoverWorkSeconds":1,"checkInWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":400,"initialTowels":500,"initialAmenities":200,"initialChemicals":200})")
           .ok,
       "long-campaign definitions rejected");
-  s.step(20 * 86400);
+  constexpr int targetCompletedStays = 40;
+  constexpr int maxCampaignDays = 40;
+  for (int campaignDay = 0;
+       campaignDay < maxCampaignDays &&
+       s.view().economy.completedStays < targetCompletedStays;
+       ++campaignDay)
+    s.step(86400);
+
   const auto view = s.view();
-  require(view.economy.completedStays > 30,
-          "long campaign did not exercise enough guest turnover");
+  if (view.economy.completedStays < targetCompletedStays)
+    throw std::runtime_error(
+        "long campaign did not exercise enough guest turnover: completed " +
+        std::to_string(view.economy.completedStays) + " stays after " +
+        std::to_string(maxCampaignDays) + " days");
   require(view.tasks.size() <= 128 + view.rooms.size() * 3,
           "completed task history grew without a bound");
   require(view.people.size() <= view.rooms.size() + 3,

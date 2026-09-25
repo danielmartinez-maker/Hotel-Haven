@@ -359,6 +359,43 @@ double MarketDemandSystem::playerChoiceWeight(const BookingRequest &request,
   return std::exp(std::clamp(score / temperature, -20.0, 20.0));
 }
 
+int MarketDemandSystem::competitiveCaptureBasisPoints(
+    MarketSegment segment) const {
+  // An unconfigured FINAL-06 offer is neutral to the physical simulation.
+  if (player_.hotelId == 0)
+    return 10000;
+
+  const auto *profile = profileFor(segment);
+  if (!profile)
+    return 10000;
+
+  BookingRequest request;
+  request.id = 1;
+  request.segment = segment;
+  request.arrivalDay = std::max(0, profile->medianLeadTimeDays);
+  request.departureDay = request.arrivalDay + profile->medianStayNights;
+  request.budgetCents = profile->baseBudgetCents;
+  request.partySize = defaultPartySize(segment);
+  request.amenityPreference = 50;
+  request.locationPreference = 50;
+  request.brandPreference = 50;
+
+  const double playerWeight = playerChoiceWeight(request, player_);
+  if (playerWeight <= 0.0)
+    return 0;
+
+  double totalWeight = playerWeight;
+  for (const auto &competitor : competitors_)
+    totalWeight += playerChoiceWeight(request, asHotel(competitor));
+
+  if (totalWeight <= playerWeight)
+    return 10000;
+
+  const auto share = static_cast<int>(
+      std::lround((playerWeight / totalWeight) * 10000.0));
+  return std::clamp(share, 0, 10000);
+}
+
 void MarketDemandSystem::allocate(const BookingRequest &request) {
   struct Candidate {
     std::uint64_t id{};
