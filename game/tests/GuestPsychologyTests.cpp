@@ -820,8 +820,8 @@ void material_experience_persists_in_versioned_save() {
                       }),
           "material guest experience was not retained before save");
   const auto saved = sim.save();
-  require(saved.rfind("HHGS 12 ", 0) == 0,
-          "psychology schema change did not advance save version to 12");
+  require(saved.rfind("HHGS 13 ", 0) == 0,
+          "psychology schema state did not preserve current save version");
   const auto loaded = Simulation::load(saved);
   require(loaded.guestPsychology(guestId) == before,
           "material psychology history changed across v12 save/load");
