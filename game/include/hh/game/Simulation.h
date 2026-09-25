@@ -31,6 +31,7 @@ struct BuildingSystemsSnapshot;
 struct RoomSaleValidation;
 struct ElevatorSpec;
 struct GuestPsychologySnapshot;
+struct GuestDemandEnvironment;
 struct GuestOpportunitySnapshot;
 struct GoalSelection;
 struct GuestGroup;
