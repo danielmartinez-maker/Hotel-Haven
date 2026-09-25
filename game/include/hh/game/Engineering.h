@@ -67,9 +67,10 @@ private:
   [[nodiscard]] Asset *asset(AssetId id);
   [[nodiscard]] const Asset *asset(AssetId id) const;
   void tickWorkOrderSecond(WorkOrder &order);
-  void tickReliabilitySecond();
+  void tickReliabilitySecond(int conditionLossPerHour = 10);
   void tickSecondFor(const std::vector<AssetId> &managedAssets,
-                     const std::vector<AssetId> &workingAssets);
+                     const std::vector<AssetId> &workingAssets,
+                     int conditionLossPerHour);
 
   LogisticsSystem *logistics_{};
   std::mt19937_64 rng_;
