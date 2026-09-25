@@ -1161,6 +1161,28 @@ static void long_campaign_bounds_transient_history() {
           "bounded campaign state did not round-trip through the save");
 }
 
+static void hhgs12_migrates_to_v13_checkin_state() {
+  auto source = Simulation::tutorial(89);
+  const auto sourceView = source.view();
+  auto legacy = source.save();
+  require(legacy.rfind("HHGS 13 ", 0) == 0,
+          "migration fixture was not emitted as HHGS 13");
+  const auto checkInSection = legacy.find("RESERVATION_CHECKIN_STATE ");
+  require(checkInSection != std::string::npos,
+          "HHGS 13 save omitted reservation check-in state");
+  legacy.erase(checkInSection);
+  legacy.replace(0, std::string("HHGS 13 ").size(), "HHGS 12 ");
+
+  auto migrated = Simulation::load(legacy);
+  const auto migratedView = migrated.view();
+  require(migrated.save().rfind("HHGS 13 ", 0) == 0,
+          "HHGS 12 save did not migrate to HHGS 13");
+  require(migratedView.rooms.size() == sourceView.rooms.size() &&
+              migratedView.people.size() == sourceView.people.size() &&
+              migratedView.economy.cashCents == sourceView.economy.cashCents,
+          "HHGS 12 migration changed authoritative base simulation state");
+}
+
 static void excessive_checkin_delays_release_walked_guests() {
   auto s = Simulation::tutorial(90);
   require(s.loadDefinitions(R"({"baseDemand":100})").ok,
@@ -1223,6 +1245,7 @@ int main() {
     turnover_resources_and_accounts();
     deterministic_save_continuation();
     layout_has_consequences();
+    hhgs12_migrates_to_v13_checkin_state();
     excessive_checkin_delays_release_walked_guests();
     poor_layout_lowers_service_quality_and_profit();
     construction_preview_is_authoritative_and_read_only();
