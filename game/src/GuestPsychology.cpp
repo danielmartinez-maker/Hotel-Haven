@@ -485,35 +485,220 @@ double GuestPsychology::memoryContribution(const GuestMemory &memory,
 }
 
 namespace detail {
-GuestProfileView generateGuestProfileFromRandom(std::mt19937_64 &random) {
-  int roll = static_cast<int>(random() % 100);
-  const GuestArchetypeDefaults *defaults = &archetypes.back();
-  for (const auto &candidate : archetypes) {
-    if (roll < candidate.weight) {
-      defaults = &candidate;
+namespace {
+std::int64_t applyWeight(std::int64_t weight, int basisPoints) noexcept {
+  const auto bounded = std::clamp(basisPoints, 1000, 30000);
+  return std::max<std::int64_t>(
+      1, (weight * static_cast<std::int64_t>(bounded) + 5000) / 10000);
+}
+
+std::int64_t contextualWeight(const GuestArchetypeDefaults &candidate,
+                              const GuestArchetypeContext &context) noexcept {
+  std::int64_t weight = static_cast<std::int64_t>(candidate.weight) * 10000;
+  const bool hasWeekday = context.weekday >= 0 && context.weekday <= 6;
+  const bool weekend = hasWeekday && context.weekday >= 5;
+
+  if (hasWeekday) {
+    int multiplier = 10000;
+    switch (candidate.archetype) {
+    case GuestArchetype::BusinessTraveler:
+      multiplier = weekend ? 6500 : 12500;
+      break;
+    case GuestArchetype::ExecutiveBusiness:
+      multiplier = weekend ? 7000 : 12000;
+      break;
+    case GuestArchetype::ConferenceDelegate:
+      multiplier = weekend ? 6500 : 12500;
+      break;
+    case GuestArchetype::DigitalNomad:
+      multiplier = weekend ? 10500 : 11500;
+      break;
+    case GuestArchetype::BleisureTraveler:
+      multiplier = weekend ? 11500 : 12000;
+      break;
+    case GuestArchetype::ExtendedStayGuest:
+      multiplier = weekend ? 10500 : 11250;
+      break;
+    case GuestArchetype::CoupleLeisure:
+      multiplier = weekend ? 13500 : 9000;
+      break;
+    case GuestArchetype::FamilyLeisure:
+      multiplier = weekend ? 14000 : 8500;
+      break;
+    case GuestArchetype::LuxuryLeisure:
+      multiplier = weekend ? 12500 : 9500;
+      break;
+    case GuestArchetype::WellnessTraveler:
+      multiplier = weekend ? 12000 : 9500;
+      break;
+    case GuestArchetype::WeddingGuest:
+      multiplier = weekend ? 15000 : 7500;
+      break;
+    case GuestArchetype::StaycationGuest:
+      multiplier = weekend ? 15500 : 7000;
+      break;
+    case GuestArchetype::SportsTeamTraveler:
+      multiplier = weekend ? 12000 : 9500;
+      break;
+    default:
       break;
     }
-    roll -= candidate.weight;
+    weight = applyWeight(weight, multiplier);
   }
+
+  if (context.hotelStars > 0) {
+    int multiplier = 10000;
+    if (context.hotelStars >= 4) {
+      switch (candidate.archetype) {
+      case GuestArchetype::LuxuryLeisure: multiplier = 13500; break;
+      case GuestArchetype::VipCelebrity: multiplier = 13000; break;
+      case GuestArchetype::StaycationGuest: multiplier = 12500; break;
+      case GuestArchetype::WellnessTraveler: multiplier = 12000; break;
+      case GuestArchetype::ExecutiveBusiness: multiplier = 11500; break;
+      case GuestArchetype::BudgetLeisure: multiplier = 8500; break;
+      case GuestArchetype::Backpacker: multiplier = 8000; break;
+      default: break;
+      }
+    } else if (context.hotelStars <= 2) {
+      switch (candidate.archetype) {
+      case GuestArchetype::BudgetLeisure: multiplier = 12500; break;
+      case GuestArchetype::Backpacker: multiplier = 13000; break;
+      case GuestArchetype::GroupTourTraveler: multiplier = 11500; break;
+      case GuestArchetype::LuxuryLeisure: multiplier = 4500; break;
+      case GuestArchetype::VipCelebrity: multiplier = 3500; break;
+      case GuestArchetype::StaycationGuest: multiplier = 7000; break;
+      default: break;
+      }
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  if (context.hotelReputation >= 0) {
+    int multiplier = 10000;
+    if (context.hotelReputation >= 85) {
+      switch (candidate.archetype) {
+      case GuestArchetype::VipCelebrity: multiplier = 12500; break;
+      case GuestArchetype::LuxuryLeisure: multiplier = 12000; break;
+      case GuestArchetype::ExecutiveBusiness: multiplier = 11500; break;
+      case GuestArchetype::CriticReviewer: multiplier = 11250; break;
+      default: break;
+      }
+    } else if (context.hotelReputation < 60) {
+      switch (candidate.archetype) {
+      case GuestArchetype::VipCelebrity: multiplier = 4000; break;
+      case GuestArchetype::LuxuryLeisure: multiplier = 5500; break;
+      case GuestArchetype::ExecutiveBusiness: multiplier = 7000; break;
+      case GuestArchetype::CriticReviewer: multiplier = 6500; break;
+      case GuestArchetype::BudgetLeisure: multiplier = 11000; break;
+      default: break;
+      }
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  if (context.hasSpa) {
+    int multiplier = 10000;
+    switch (candidate.archetype) {
+    case GuestArchetype::WellnessTraveler: multiplier = 17000; break;
+    case GuestArchetype::StaycationGuest: multiplier = 14000; break;
+    case GuestArchetype::LuxuryLeisure: multiplier = 12500; break;
+    case GuestArchetype::VipCelebrity: multiplier = 11500; break;
+    default: break;
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+  if (context.hasGym) {
+    int multiplier = 10000;
+    switch (candidate.archetype) {
+    case GuestArchetype::SportsTeamTraveler: multiplier = 16500; break;
+    case GuestArchetype::WellnessTraveler: multiplier = 13000; break;
+    case GuestArchetype::BusinessTraveler: multiplier = 10500; break;
+    case GuestArchetype::BleisureTraveler: multiplier = 11000; break;
+    default: break;
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+  if (context.hasPool) {
+    int multiplier = 10000;
+    switch (candidate.archetype) {
+    case GuestArchetype::FamilyLeisure: multiplier = 13000; break;
+    case GuestArchetype::StaycationGuest: multiplier = 13000; break;
+    case GuestArchetype::CoupleLeisure: multiplier = 11000; break;
+    case GuestArchetype::WeddingGuest: multiplier = 11000; break;
+    default: break;
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  if (context.eventAttendees > 0) {
+    const int attendees = std::clamp(context.eventAttendees, 0, 500);
+    int multiplier = 10000;
+    switch (candidate.archetype) {
+    case GuestArchetype::ConferenceDelegate:
+      multiplier = 10000 + attendees * 40;
+      break;
+    case GuestArchetype::WeddingGuest:
+      multiplier = 10000 + attendees * 30;
+      break;
+    case GuestArchetype::GroupTourTraveler:
+      multiplier = 10000 + attendees * 10;
+      break;
+    case GuestArchetype::BleisureTraveler:
+      multiplier = 10000 + attendees * 5;
+      break;
+    default:
+      break;
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  if (context.roomRateCents > 0 && candidate.budgetPerNightCents > 0) {
+    const auto ratioBasisPoints = static_cast<int>(std::clamp<std::int64_t>(
+        context.roomRateCents * 10000 / candidate.budgetPerNightCents,
+        2500, 30000));
+    const int sensitivityBasisPoints =
+        static_cast<int>(candidate.priceSensitivity * 10000.0 + .5);
+    int multiplier = 10000;
+    if (ratioBasisPoints > 10000) {
+      const int excess = ratioBasisPoints - 10000;
+      const int penalty = static_cast<int>(
+          static_cast<std::int64_t>(excess) * sensitivityBasisPoints / 10000);
+      multiplier = std::clamp(10000 - penalty, 1500, 10000);
+    } else {
+      const int discount = 10000 - ratioBasisPoints;
+      const int bonus = std::min(
+          1500, static_cast<int>(
+                    static_cast<std::int64_t>(discount) *
+                    sensitivityBasisPoints / 50000));
+      multiplier = 10000 + bonus;
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  return weight;
+}
+
+GuestProfileView buildProfile(std::mt19937_64 &random,
+                              const GuestArchetypeDefaults &defaults) {
   const auto varied = [&](double mean) {
     return std::clamp(mean + (randomUnit(random) * 2.0 - 1.0) * .08, 0.0,
                       1.0);
   };
   GuestProfileView profile;
-  profile.archetype = defaults->archetype;
+  profile.archetype = defaults.archetype;
   profile.budgetPerNightCents = static_cast<std::int64_t>(std::llround(
-      defaults->budgetPerNightCents * (.90 + randomUnit(random) * .20)));
-  profile.priceSensitivity = varied(defaults->priceSensitivity);
-  profile.serviceSensitivity = varied(defaults->serviceSensitivity);
-  profile.cleanlinessSensitivity = varied(defaults->cleanlinessSensitivity);
-  profile.noiseSensitivity = varied(defaults->noiseSensitivity);
-  profile.privacySensitivity = varied(defaults->privacySensitivity);
-  profile.safetySensitivity = varied(defaults->safetySensitivity);
-  profile.comfortSensitivity = varied(defaults->comfortSensitivity);
-  profile.foodSensitivity = varied(defaults->foodSensitivity);
-  profile.patience = varied(defaults->patience);
+      defaults.budgetPerNightCents * (.90 + randomUnit(random) * .20)));
+  profile.priceSensitivity = varied(defaults.priceSensitivity);
+  profile.serviceSensitivity = varied(defaults.serviceSensitivity);
+  profile.cleanlinessSensitivity = varied(defaults.cleanlinessSensitivity);
+  profile.noiseSensitivity = varied(defaults.noiseSensitivity);
+  profile.privacySensitivity = varied(defaults.privacySensitivity);
+  profile.safetySensitivity = varied(defaults.safetySensitivity);
+  profile.comfortSensitivity = varied(defaults.comfortSensitivity);
+  profile.foodSensitivity = varied(defaults.foodSensitivity);
+  profile.patience = varied(defaults.patience);
 
-  profile.traitFlags = defaults->signatureTraitFlags;
+  profile.traitFlags = defaults.signatureTraitFlags;
   const int traitCount =
       std::max(static_cast<int>(std::popcount(profile.traitFlags)),
                static_cast<int>(random() % 4));
@@ -566,6 +751,45 @@ GuestProfileView generateGuestProfileFromRandom(std::mt19937_64 &random) {
   if (has(GuestTrait::Forgiving))
     profile.serviceSensitivity = std::max(0.0, profile.serviceSensitivity - .10);
   return profile;
+}
+} // namespace
+
+GuestProfileView generateGuestProfileFromRandom(std::mt19937_64 &random) {
+  int roll = static_cast<int>(random() % 100);
+  const GuestArchetypeDefaults *defaults = &archetypes.back();
+  for (const auto &candidate : archetypes) {
+    if (roll < candidate.weight) {
+      defaults = &candidate;
+      break;
+    }
+    roll -= candidate.weight;
+  }
+  return buildProfile(random, *defaults);
+}
+
+GuestProfileView
+generateGuestProfileFromRandom(std::mt19937_64 &random,
+                               const GuestArchetypeContext &context) {
+  std::array<std::int64_t, archetypes.size()> weights{};
+  std::int64_t totalWeight{};
+  for (std::size_t index = 0; index < archetypes.size(); ++index) {
+    weights[index] = contextualWeight(archetypes[index], context);
+    totalWeight += weights[index];
+  }
+
+  std::uint64_t roll =
+      static_cast<std::uint64_t>(random()) %
+      static_cast<std::uint64_t>(std::max<std::int64_t>(1, totalWeight));
+  const GuestArchetypeDefaults *defaults = &archetypes.back();
+  for (std::size_t index = 0; index < archetypes.size(); ++index) {
+    const auto weight = static_cast<std::uint64_t>(weights[index]);
+    if (roll < weight) {
+      defaults = &archetypes[index];
+      break;
+    }
+    roll -= weight;
+  }
+  return buildProfile(random, *defaults);
 }
 
 bool validGuestProfile(const GuestProfileView &profile) noexcept {
@@ -657,6 +881,41 @@ int queueToleranceFor(const GuestProfileView &profile,
       std::lround(baseSeconds * (.5 + profile.patience) * segmentModifier *
                   traitModifier),
       120L, 1200L));
+}
+
+int stayNightsFor(const GuestProfileView &profile,
+                  std::uint64_t randomValue) noexcept {
+  switch (profile.archetype) {
+  case GuestArchetype::AirportTransitTraveler:
+  case GuestArchetype::AirlineCrew:
+    return 1;
+  case GuestArchetype::ExtendedStayGuest:
+    return 7 + static_cast<int>(randomValue % 15);
+  case GuestArchetype::DigitalNomad:
+    return 3 + static_cast<int>(randomValue % 8);
+  case GuestArchetype::BleisureTraveler:
+    return 2 + static_cast<int>(randomValue % 4);
+  case GuestArchetype::WeddingGuest:
+    return 2 + static_cast<int>(randomValue % 2);
+  case GuestArchetype::StaycationGuest:
+    return 1 + static_cast<int>(randomValue % 2);
+  case GuestArchetype::SportsTeamTraveler:
+  case GuestArchetype::ConferenceDelegate:
+  case GuestArchetype::GroupTourTraveler:
+    return 2 + static_cast<int>(randomValue % 3);
+  case GuestArchetype::FamilyLeisure:
+    return 3 + static_cast<int>(randomValue % 3);
+  case GuestArchetype::CoupleLeisure:
+    return 2 + static_cast<int>(randomValue % 3);
+  case GuestArchetype::LuxuryLeisure:
+  case GuestArchetype::VipCelebrity:
+  case GuestArchetype::WellnessTraveler:
+    return 2 + static_cast<int>(randomValue % 4);
+  case GuestArchetype::Backpacker:
+    return 2 + static_cast<int>(randomValue % 5);
+  default:
+    return 1 + static_cast<int>(randomValue % 3);
+  }
 }
 } // namespace detail
 } // namespace hh::game
