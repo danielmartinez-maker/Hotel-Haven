@@ -189,9 +189,14 @@ struct GuestArchetypeContext {
   int hotelStars{};
   int hotelReputation{-1};
   std::int64_t roomRateCents{};
+  // Legacy presence flags remain a 100/100 compatibility fallback.
   bool hasGym{};
   bool hasSpa{};
   bool hasPool{};
+  // 0 means absent/unusable; 1..100 represents live amenity attractiveness.
+  int gymScore{};
+  int spaScore{};
+  int poolScore{};
   int eventAttendees{};
   int seasonMultiplierBasisPoints{10000};
   int locationScore{-1};
