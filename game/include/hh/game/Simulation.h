@@ -355,6 +355,9 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  // External market context is derived from FINAL-06 in the integrated game.
+  // It affects future guest composition only and is not a second demand authority.
+  void setGuestDemandEnvironment(const GuestDemandEnvironment &environment);
   void setStaffOptimizerEnabled(bool enabled);
 
   [[nodiscard]] ConstructionPreview
