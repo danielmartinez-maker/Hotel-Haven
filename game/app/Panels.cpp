@@ -71,6 +71,20 @@ std::wstring archetypeName(GuestArchetype archetype) {
     return L"VIP / celebrity";
   case GuestArchetype::CriticReviewer:
     return L"Critic / reviewer";
+  case GuestArchetype::DigitalNomad:
+    return L"Digital nomad";
+  case GuestArchetype::BleisureTraveler:
+    return L"Bleisure traveler";
+  case GuestArchetype::ExtendedStayGuest:
+    return L"Extended-stay guest";
+  case GuestArchetype::AirlineCrew:
+    return L"Airline crew";
+  case GuestArchetype::WeddingGuest:
+    return L"Wedding guest";
+  case GuestArchetype::StaycationGuest:
+    return L"Staycation guest";
+  case GuestArchetype::SportsTeamTraveler:
+    return L"Sports team traveler";
   }
   return L"Guest";
 }
