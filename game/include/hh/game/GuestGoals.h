@@ -77,6 +77,9 @@ struct GuestGroup {
 [[nodiscard]] GuestOpportunitySnapshot
 applyGuestPreferences(const GuestPreferenceState &preferences,
                       const GuestOpportunitySnapshot &snapshot) noexcept;
+[[nodiscard]] GuestOpportunitySnapshot
+applyGuestArchetypeRoutine(const GuestProfileView &profile, int hour,
+                           const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] GoalSelection chooseGuestGoal(EntityId guestId,
                                             const GuestOpportunitySnapshot &snapshot) noexcept;
 [[nodiscard]] bool acceptsGroupProposal(std::int64_t bestIndividualUtility,
