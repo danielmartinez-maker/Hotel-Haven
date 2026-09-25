@@ -93,6 +93,13 @@ using WorldAssetResolver =
 // decode only meshes that the current world presentation can instantiate.
 [[nodiscard]] std::span<const std::string_view> requiredWorldAssetIds() noexcept;
 
+// V2 catalog assets that normal gameplay can instantiate today. Keep this
+// separate from the legacy hot-path bindings so shipping startup can decode
+// only presentation-reachable content while smoke/audit mode can still load
+// the complete A700 milestone.
+[[nodiscard]] std::span<const std::string_view>
+runtimeWorldPresentationAssetIds() noexcept;
+
 // The string IDs are an installation/startup concern only. This converts them
 // once to the compact visual records consumed by every subsequent frame.
 WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver);
