@@ -100,13 +100,18 @@ void captureClient(HWND window, const std::filesystem::path &path) {
 
 SimulationView buildAssetSmokeSnapshot() {
   SimulationView snapshot;
-  snapshot.width = 24;
-  snapshot.height = 20;
+  snapshot.width = 40;
+  snapshot.height = 24;
   snapshot.floors = 1;
   snapshot.tiles = {
+      // x=0..5 deliberately exercise all six legacy lobby decoration
+      // fallbacks when the A700 catalog is suppressed for the hot-path frame.
       {{0, 0, 0}, TileKind::Lobby},
+      {{0, 1, 0}, TileKind::Lobby},
       {{0, 2, 0}, TileKind::Lobby},
+      {{0, 3, 0}, TileKind::Lobby},
       {{0, 4, 0}, TileKind::Lobby},
+      {{0, 5, 0}, TileKind::Lobby},
       {{0, 6, 0}, TileKind::Entrance},
       {{0, 8, 0}, TileKind::StaffRoom},
       {{0, 10, 0}, TileKind::SupplyCloset},
@@ -115,21 +120,31 @@ SimulationView buildAssetSmokeSnapshot() {
       {{0, 16, 0}, TileKind::Door},
   };
 
-  RoomView room;
-  room.id = 810001;
-  room.name = "Asset smoke room";
-  room.door = {0, 1, 4};
-  room.status = RoomStatus::VacantReady;
-  room.floor = 0;
-  room.x = 1;
-  room.y = 3;
-  room.width = 7;
-  room.height = 7;
-  room.beds = 1;
-  room.baths = 1;
-  room.cleanliness = 100;
-  room.condition = 100;
-  snapshot.rooms.push_back(room);
+  auto addRoom = [&snapshot](EntityId id, int x, int width, int beds) {
+    RoomView room;
+    room.id = id;
+    room.name = "Asset smoke room";
+    room.door = {0, x, 3};
+    room.status = RoomStatus::VacantReady;
+    room.floor = 0;
+    room.x = x;
+    room.y = 3;
+    room.width = width;
+    room.height = 7;
+    room.beds = beds;
+    room.baths = 1;
+    room.cleanliness = 100;
+    room.condition = 100;
+    snapshot.rooms.push_back(room);
+  };
+
+  // Cover every legacy bed binding: single, double, queen, king, and both
+  // twin variants. Common room/bath furniture is exercised by each room.
+  addRoom(810001, 1, 4, 1);
+  addRoom(810002, 6, 5, 1);
+  addRoom(810003, 12, 6, 1);
+  addRoom(810004, 19, 8, 1);
+  addRoom(810005, 28, 8, 2);
 
   for (std::uint64_t index = 0; index < 30; ++index) {
     PersonView guest;
@@ -155,7 +170,13 @@ SimulationView buildAssetSmokeSnapshot() {
     staff.id = 100 + index;
     staff.name = "Asset smoke staff";
     staff.kind = staffKinds[index];
-    staff.state = PersonState::Idle;
+    // Active service staff also exercise the housekeeping and maintenance
+    // cart bindings; receptionists remain idle to cover their normal pose.
+    staff.state =
+        staff.kind == PersonKind::Housekeeper ||
+                staff.kind == PersonKind::Maintenance
+            ? PersonState::Working
+            : PersonState::Idle;
     staff.onShift = true;
     staff.position = {
         0,
@@ -911,8 +932,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       const bool assetCatalogSmokeFrame = c.smoke && frames == 25;
       const bool restoreAfterAssetSmoke = c.smoke && frames == 26;
       if (assetSmokeFrame) {
-        c.camera.setTarget({12.0f, 0.0f, 9.0f});
-        c.camera.setOrthoHeight(34.0f);
+        c.camera.setTarget({19.0f, 0.0f, 9.0f});
+        c.camera.setOrthoHeight(50.0f);
       } else if (assetCatalogSmokeFrame) {
         c.camera.setTarget({17.0f, 0.0f, 19.0f});
         c.camera.setOrthoHeight(48.0f);
