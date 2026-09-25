@@ -89,6 +89,39 @@ void review_text_uses_only_strongest_actual_memories() {
           "review text was not grounded only in selected memory evidence");
 }
 
+void review_evidence_emphasis_follows_guest_sensitivities() {
+  GuestPsychologySnapshot foodie;
+  foodie.guestId = 9020;
+  foodie.satisfaction.overall = 75;
+  foodie.profile.foodSensitivity = 1.0;
+  foodie.profile.noiseSensitivity = 0.0;
+  foodie.profile.cleanlinessSensitivity = 0.0;
+  foodie.profile.serviceSensitivity = 0.0;
+  foodie.memories = {
+      memory(ExperienceEventType::GreatMeal, ExperienceCategory::Food, 1, 50,
+             1000),
+      memory(ExperienceEventType::NoiseDisturbance, ExperienceCategory::Quiet,
+             -1, 50, 1000),
+      memory(ExperienceEventType::DirtyBathroom,
+             ExperienceCategory::Cleanliness, -1, 50, 1000),
+      memory(ExperienceEventType::StaffRudeness, ExperienceCategory::Service,
+             -1, 50, 1000)};
+  const auto foodieReview = buildGuestReview(foodie, 21, 1000);
+  require(!foodieReview.evidence.empty() &&
+              foodieReview.evidence.front() == ExperienceEventType::GreatMeal,
+          "food-sensitive guest did not emphasize the meal memory");
+
+  auto lightSleeper = foodie;
+  lightSleeper.guestId = 9021;
+  lightSleeper.profile.foodSensitivity = 0.0;
+  lightSleeper.profile.noiseSensitivity = 1.0;
+  const auto quietReview = buildGuestReview(lightSleeper, 21, 1000);
+  require(!quietReview.evidence.empty() &&
+              quietReview.evidence.front() ==
+                  ExperienceEventType::NoiseDisturbance,
+          "noise-sensitive guest did not emphasize the noise memory");
+}
+
 void empty_memory_review_does_not_invent_an_incident() {
   GuestPsychologySnapshot psychology;
   psychology.guestId = 9003;
@@ -153,6 +186,7 @@ int main() {
     review_score_is_deterministic_and_uses_modeled_satisfaction();
     review_noise_uses_documented_three_tenths_envelope();
     review_text_uses_only_strongest_actual_memories();
+    review_evidence_emphasis_follows_guest_sensitivities();
     empty_memory_review_does_not_invent_an_incident();
     completed_critic_review_uses_archived_memory();
   } catch (const std::exception &error) {

@@ -79,7 +79,14 @@ enum class GuestArchetype {
   AirportTransitTraveler,
   WellnessTraveler,
   VipCelebrity,
-  CriticReviewer
+  CriticReviewer,
+  DigitalNomad,
+  BleisureTraveler,
+  ExtendedStayGuest,
+  AirlineCrew,
+  WeddingGuest,
+  StaycationGuest,
+  SportsTeamTraveler
 };
 enum class GuestTrait : std::uint8_t {
   Patient,
@@ -103,6 +110,15 @@ enum class GuestTrait : std::uint8_t {
 constexpr std::uint32_t guestTraitFlag(GuestTrait trait) noexcept {
   return std::uint32_t{1} << static_cast<std::uint8_t>(trait);
 }
+
+struct GuestDemandEnvironment {
+  // 10,000 is neutral. Values above/below represent market peak/trough.
+  int seasonMultiplierBasisPoints{10000};
+  // -1 is neutral/unknown; otherwise 0..100 follows FINAL-06 locationScore.
+  int locationScore{-1};
+  bool operator==(const GuestDemandEnvironment &) const = default;
+};
+
 enum class PersonState {
   OffDuty,
   Idle,
@@ -348,6 +364,10 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  // External market context is derived from FINAL-06 in the integrated game.
+  // It affects future guest composition only and is not a second demand authority.
+  void setGuestDemandEnvironment(const GuestDemandEnvironment &environment);
+  [[nodiscard]] GuestDemandEnvironment guestDemandEnvironment() const noexcept;
   void setStaffOptimizerEnabled(bool enabled);
 
   [[nodiscard]] ConstructionPreview

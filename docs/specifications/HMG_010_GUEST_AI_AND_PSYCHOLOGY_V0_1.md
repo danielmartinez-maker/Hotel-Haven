@@ -112,8 +112,31 @@ Baseline archetypes:
 11. Wellness Traveler
 12. VIP/Celebrity
 13. Critic/Reviewer
+14. Digital Nomad
+15. Bleisure Traveler
+16. Extended-Stay Guest
+17. Airline Crew
+18. Wedding Guest
+19. Staycation Guest
+20. Sports-Team Traveler
 
 An archetype is a probability distribution, not a fixed template. Individual guests receive variation around archetype means.
+
+The implemented archetype mix is contextual rather than globally static. The generator starts from baseline segment weights and deterministically reweights them from current hotel state. Amenity effects are graded rather than binary: a small or poorly maintained facility produces less segment attraction than a high-capacity, high-quality one.
+
+- weekday/weekend travel pattern
+- hotel star class and reputation
+- room rate relative to archetype budget and price sensitivity
+- gym, spa, and pool attractiveness derived from usable capacity, cleanliness, and condition
+- same-day on-property event attendance
+- FINAL-06 seasonal demand intensity
+- FINAL-06 hotel location score
+
+These factors change who is likely to book without creating a separate demand simulator. Existing market demand still controls whether demand converts; archetype context controls the composition of converting guests. Seasonal demand is therefore a composition signal here, not a second source of total demand. Location uses the existing 0–100 FINAL-06 hotel location score rather than inventing a parallel geography model.
+
+In the integrated Simulation/FINAL-06 runtime, the bridge derives guest population context from the authoritative market offer and demand modifiers. The physical simulation does not persist a second copy of that external market state; bridge load reconstructs the context from FINAL-06 before future bookings are generated.
+
+Archetypes also define stay-length priors and daily routine priors. Airport/transit and airline-crew stays skew to one night; extended-stay guests run 7–21 nights; digital nomads run 3–10 nights; family, event, leisure, and business segments use shorter segment-specific ranges. Routine priors modify discretionary goal time compatibility while mandatory lifecycle goals such as check-in and checkout remain authoritative.
 
 Example Business Traveler defaults (`BALANCE_TUNABLE`):
 

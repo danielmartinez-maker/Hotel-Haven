@@ -136,11 +136,13 @@ Simulation::chooseGuestGoal(EntityId guestId,
   const auto psychology = guestPsychology(guestId);
   const auto personalized =
       applyGuestPreferences(psychology.preferences, opportunities);
+  const auto scheduled = applyGuestArchetypeRoutine(
+      reservation->profile, current.hour, personalized);
   if (reservation->guestGroupArchive.empty())
-    return hh::game::chooseGuestGoal(guestId, personalized);
+    return hh::game::chooseGuestGoal(guestId, scheduled);
 
   const auto group = detail::deserializeGuestGroup(reservation->guestGroupArchive);
-  return chooseGuestGroupMemberGoal(guestId, group, personalized);
+  return chooseGuestGroupMemberGoal(guestId, group, scheduled);
 }
 
 SatisfactionBreakdown
