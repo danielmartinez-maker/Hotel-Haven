@@ -17,6 +17,10 @@ on:
       - 'game/src/GuestReviews.cpp'
       - 'game/src/Simulation.cpp'
       - 'game/src/SimulationPsychology.cpp'
+      - 'game/src/SimulationEconomyBridge.cpp'
+      - 'game/include/hh/game/SimulationEconomyBridge.h'
+      - 'game/include/hh/game/EconomyRuntime.h'
+      - 'game/tests/SimulationEconomyBridgeTests.cpp'
       - 'game/tests/GuestPsychologyTests.cpp'
       - 'game/tests/GuestGoalTests.cpp'
       - 'game/tests/GuestReviewTests.cpp'
@@ -50,11 +54,12 @@ jobs:
           hh_GuestDeterminism_tests
           hh_GuestSatisfaction_tests
           hh_GuestExpectation_tests
+          hh_SimulationEconomyBridge_tests
 
       - name: Run guest AI tests
         run: >
           ctest --test-dir build -C Release
-          -R 'Guest(Psychology|Goal|Review|Determinism|Satisfaction|Expectation)'
+          -R '(Guest(Psychology|Goal|Review|Determinism|Satisfaction|Expectation)|SimulationEconomyBridge)'
           --output-on-failure
 
   guest-ui:
