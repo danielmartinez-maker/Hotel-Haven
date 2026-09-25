@@ -1042,6 +1042,7 @@ struct Simulation::Impl {
         p.patience = std::clamp(z.profile.patience * 100.0, 0.0, 100.0);
         p.goal = "Reach front desk";
         p.reservation = z.id;
+        p.reservationId = z.id;
         people.push_back(p);
       }
   }
@@ -3465,6 +3466,7 @@ Simulation Simulation::load(std::string_view data) {
     else
       i >> legacyWage;
     i >> p.reservation >> p.task;
+    p.reservationId = p.reservation;
     if (version >= 6)
       i >> p.accruedWageUnits;
     else
