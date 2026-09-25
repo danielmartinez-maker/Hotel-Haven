@@ -75,4 +75,5 @@ jobs:
         run: cmake --build build --config Release --parallel 4 --target hh_game_ui_bridge_tests
 
       - name: Run guest UI bridge test
-        run: ctest --test-dir build -C Release -R '^hh_game_ui_bridge_tests --output-on-failure
+        run: ctest --test-dir build -C Release -R '^hh_game_ui_bridge_tests
+ --output-on-failure
