@@ -318,10 +318,10 @@ int main() {
         {{0, 2, 1}, hh::game::TileKind::FrontDesk},
         {{0, 3, 1}, hh::game::TileKind::FrontDesk},
         {{0, 4, 1}, hh::game::TileKind::FrontDesk},
-        {{0, 7, 0}, hh::game::TileKind::Entrance},
-        {{0, 9, 0}, hh::game::TileKind::Stairs},
-        {{0, 10, 0}, hh::game::TileKind::Stairs},
-        {{0, 11, 0}, hh::game::TileKind::Stairs},
+        {{0, 22, 0}, hh::game::TileKind::Entrance},
+        {{0, 24, 0}, hh::game::TileKind::Stairs},
+        {{0, 25, 0}, hh::game::TileKind::Stairs},
+        {{0, 26, 0}, hh::game::TileKind::Stairs},
     };
 
     auto addMilestoneRoom = [&milestoneSnapshot](
