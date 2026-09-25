@@ -90,13 +90,22 @@ def validate(repo_root: Path) -> list[str]:
                     errors.append(f"{rel}: invalid asset id {asset_id!r}")
                     continue
                 number = int(match.group(1))
-                lower = (expected_batch - 1) * 50 + 1
-                upper = expected_batch * 50
-                if not lower <= number <= upper:
-                    errors.append(
-                        f"{asset_id}: outside batch {expected_batch:02d} range "
-                        f"HH_A{lower:03d}-HH_A{upper:03d}"
-                    )
+
+                # Batches 01-10 are the locked V1 production catalog. Their historical
+                # authoring groups are intentionally not ID-range partitions (notably
+                # batches 03/04 exchange HH_A101-A110 and HH_A151-A160). Preserve that
+                # canonical layout and enforce contiguous ranges only on the new A700
+                # extension. The global exact-set validation below still guarantees
+                # HH_A001-HH_A700 appears once and only once across all 14 batches.
+                if expected_batch >= 11:
+                    lower = (expected_batch - 1) * 50 + 1
+                    upper = expected_batch * 50
+                    if not lower <= number <= upper:
+                        errors.append(
+                            f"{asset_id}: outside extension batch {expected_batch:02d} range "
+                            f"HH_A{lower:03d}-HH_A{upper:03d}"
+                        )
+
                 if not isinstance(name, str) or not name.strip():
                     errors.append(f"{asset_id}: display_name must be non-empty")
                 if not isinstance(subcategory, str) or not subcategory.strip():
@@ -139,6 +148,7 @@ def main() -> int:
     print("Hotel Haven A700 milestone validation PASSED")
     print(" - 700 unique contiguous gameplay asset IDs (HH_A001-HH_A700)")
     print(" - 14 production batches x 50 assets")
+    print(" - canonical V1 batch grouping preserved; A501-A700 extension ranges enforced")
     print(" - A701+ is excluded from this runtime tranche")
     return 0
 

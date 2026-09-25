@@ -267,15 +267,90 @@ def elevator_or_door(name: str, mat: str) -> trimesh.Scene:
 
 
 def stair(name: str, mat: str) -> trimesh.Scene:
+    """Build visibly distinct straight, L-turn and double-flight stair modules."""
     scene = trimesh.Scene()
-    steps = 8
+    rise = 0.17
+    run = 0.27
     width = 1.20 if 'Service' not in name else 1.05
-    for i in range(steps):
-        rise = 0.17
-        run = 0.27
-        add(scene, box((width, run, rise), (0, i * run, rise / 2 + i * rise), mat), f'Step_{i}')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (-width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_L')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_R')
+
+    def y_flight(prefix: str, count: int, x: float, y0: float, z0: float, direction: float = 1.0):
+        for i in range(count):
+            y = y0 + direction * i * run
+            z = z0 + rise / 2 + i * rise
+            add(scene, box((width, run, rise), (x, y, z), mat), f'{prefix}Step_{i}')
+
+    def x_flight(prefix: str, count: int, x0: float, y: float, z0: float):
+        for i in range(count):
+            x = x0 + i * run
+            z = z0 + rise / 2 + i * rise
+            add(scene, box((run, width, rise), (x, y, z), mat), f'{prefix}Step_{i}')
+
+    if 'L Turn' in name:
+        first = 4
+        second = 4
+        y_flight('Lower_', first, 0.0, 0.0, 0.0)
+        landing_y = first * run
+        landing_z = first * rise
+        add(
+            scene,
+            box((width, width, 0.12), (0.0, landing_y + width * 0.35, landing_z - 0.06), mat),
+            'BaseLanding',
+        )
+        x_flight('Upper_', second, run * 0.5, landing_y + width * 0.35, landing_z)
+        top_x = second * run + run * 0.5
+        add(
+            scene,
+            box((0.46, width, 0.12), (top_x, landing_y + width * 0.35, (first + second) * rise - 0.06), mat),
+            'TopLanding',
+        )
+        add(
+            scene,
+            box((0.07, first * run + width * 0.70, first * rise), (-width * 0.48, landing_y * 0.5, first * rise * 0.5), 'MAT_BLACKENED_STEEL'),
+            'FrameLower',
+        )
+    elif 'Double Flight' in name:
+        flight = 5
+        offset = width * 0.58
+        y_flight('Lower_', flight, -offset, 0.0, 0.0)
+        landing_y = flight * run
+        landing_z = flight * rise
+        add(
+            scene,
+            box((width * 2.18, 0.56, 0.12), (0.0, landing_y + 0.14, landing_z - 0.06), mat),
+            'BaseLanding',
+        )
+        y_flight('Upper_', flight, offset, landing_y, landing_z, direction=-1.0)
+        add(
+            scene,
+            box((width, 0.46, 0.12), (offset, -0.10, flight * 2 * rise - 0.06), mat),
+            'TopLanding',
+        )
+        for side, x in (('L', -offset - width * 0.48), ('R', offset + width * 0.48)):
+            add(
+                scene,
+                box((0.07, flight * run, flight * rise), (x, flight * run * 0.5, flight * rise * 0.5), 'MAT_BLACKENED_STEEL'),
+                f'Frame_{side}',
+            )
+    else:
+        steps = 8
+        y_flight('', steps, 0.0, 0.0, 0.0)
+        add(scene, box((width, 0.44, 0.12), (0, -0.18, 0.06), mat), 'BaseLanding')
+        add(
+            scene,
+            box((width, 0.46, 0.12), (0, steps * run + 0.13, steps * rise - 0.06), mat),
+            'TopLanding',
+        )
+        add(
+            scene,
+            box((0.08, steps * run, steps * rise), (-width * 0.48, steps * run / 2, steps * rise / 2), 'MAT_BLACKENED_STEEL'),
+            'Frame_L',
+        )
+        add(
+            scene,
+            box((0.08, steps * run, steps * rise), (width * 0.48, steps * run / 2, steps * rise / 2), 'MAT_BLACKENED_STEEL'),
+            'Frame_R',
+        )
+
     return scene
 
 
