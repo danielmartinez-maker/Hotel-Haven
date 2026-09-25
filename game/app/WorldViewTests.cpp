@@ -278,8 +278,8 @@ int main() {
 
     WorldAssetSet milestoneAssets = resolved;
     const auto liveV2Ids = runtimeWorldPresentationAssetIds();
-    require(liveV2Ids.size() == 52u,
-            "live V2 presentation contract should contain 52 assets");
+    require(liveV2Ids.size() == 63u,
+            "live V2 presentation contract should contain 63 assets");
     for (const auto id : liveV2Ids) {
       milestoneAssets.catalog.emplace(std::string(id), visual(assetNumber(id)));
     }
@@ -291,14 +291,23 @@ int main() {
     milestoneSnapshot.height = 14;
     milestoneSnapshot.floors = 1;
     milestoneSnapshot.tiles = {
-        // Ten lobby coordinates deterministically exercise all ten public-space
-        // motifs used by the current presentation layer.
+        // x=0..19 deterministically exercise all twenty public-space motifs.
         {{0, 0, 0}, hh::game::TileKind::Lobby},
         {{0, 1, 0}, hh::game::TileKind::Lobby},
         {{0, 2, 0}, hh::game::TileKind::Lobby},
         {{0, 3, 0}, hh::game::TileKind::Lobby},
         {{0, 4, 0}, hh::game::TileKind::Lobby},
         {{0, 5, 0}, hh::game::TileKind::Lobby},
+        {{0, 6, 0}, hh::game::TileKind::Lobby},
+        {{0, 7, 0}, hh::game::TileKind::Lobby},
+        {{0, 8, 0}, hh::game::TileKind::Lobby},
+        {{0, 9, 0}, hh::game::TileKind::Lobby},
+        {{0, 10, 0}, hh::game::TileKind::Lobby},
+        {{0, 11, 0}, hh::game::TileKind::Lobby},
+        {{0, 12, 0}, hh::game::TileKind::Lobby},
+        {{0, 13, 0}, hh::game::TileKind::Lobby},
+        {{0, 14, 0}, hh::game::TileKind::Lobby},
+        {{0, 15, 0}, hh::game::TileKind::Lobby},
         {{0, 16, 0}, hh::game::TileKind::Lobby},
         {{0, 17, 0}, hh::game::TileKind::Lobby},
         {{0, 18, 0}, hh::game::TileKind::Lobby},
