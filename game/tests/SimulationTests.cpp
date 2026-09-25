@@ -1156,8 +1156,10 @@ static void long_campaign_bounds_transient_history() {
       "long-campaign definitions rejected");
   s.step(20 * 86400);
   const auto view = s.view();
-  require(view.economy.completedStays > 30,
-          "long campaign did not exercise enough guest turnover");
+  if (view.economy.completedStays <= 30)
+    throw std::runtime_error(
+        "long campaign did not exercise enough guest turnover: completed " +
+        std::to_string(view.economy.completedStays) + " stays");
   require(view.tasks.size() <= 128 + view.rooms.size() * 3,
           "completed task history grew without a bound");
   require(view.people.size() <= view.rooms.size() + 3,
