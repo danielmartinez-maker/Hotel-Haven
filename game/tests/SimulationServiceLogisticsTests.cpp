@@ -410,6 +410,10 @@ static void stable_commands_and_save_boundary() {
   const auto repairGateRooms = repairSellabilityGate.view().rooms;
   require(repairGateRooms.size() >= 2,
           "repair sellability-gate fixture requires two rooms");
+  require(repairSellabilityGate
+              .hireStaff({"Drain Tech", PersonKind::Maintenance, 0, 0, 25})
+              .ok,
+          "repair sellability-gate could not staff canonical part drain");
   require(repairSellabilityGate.createWorkOrder(
               repairGateRooms[0].id, WorkOrderType::Preventive) != 0,
           "repair sellability-gate could not drain canonical part");
