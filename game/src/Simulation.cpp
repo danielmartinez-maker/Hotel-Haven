@@ -982,7 +982,10 @@ struct Simulation::Impl {
     for (auto &r : rooms)
       if (!r.closed && r.status == RoomStatus::VacantReady && r.reachable)
         free.push_back(&r);
-    std::shuffle(free.begin(), free.end(), rng);
+    std::mt19937_64 bookingOrderRandom(
+        mixedSeed(seed, static_cast<std::uint64_t>(day),
+                  static_cast<std::uint64_t>(hour), 0, 0x424f4f4b4f524445ULL));
+    std::shuffle(free.begin(), free.end(), bookingOrderRandom);
 
     const int arrivalDay = day + (hour > 15 ? 1 : 0);
     GuestArchetypeContext bookingContext;
@@ -1072,7 +1075,11 @@ struct Simulation::Impl {
       const double hourlyChance =
           dailyChance >= 1.0 ? 1.0
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
-      if (std::generate_canonical<double, 32>(rng) > hourlyChance)
+      std::mt19937_64 conversionRandom(
+          mixedSeed(seed, static_cast<std::uint64_t>(r->id),
+                    static_cast<std::uint64_t>(day),
+                    static_cast<std::uint64_t>(hour), 0x434f4e56455254ULL));
+      if (std::generate_canonical<double, 32>(conversionRandom) > hourlyChance)
         continue;
 
       Reservation z;
@@ -1081,8 +1088,10 @@ struct Simulation::Impl {
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
       z.arrivalDay = arrivalDay;
+      const std::uint64_t stayRandom =
+          mixedSeed(seed, bookingOrdinal, 0, 0, 0x535441594e494748ULL);
       z.departureDay =
-          z.arrivalDay + detail::stayNightsFor(z.profile, rng());
+          z.arrivalDay + detail::stayNightsFor(z.profile, stayRandom);
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
@@ -1833,13 +1842,15 @@ struct Simulation::Impl {
           continue;
         room->condition =
             static_cast<double>(std::clamp(asset.condition, 0, 10000)) / 100.0;
-        if (asset.failed && room->reservationId == 0 &&
+        if (room->condition < 35.0 && room->reservationId == 0 &&
             room->status == RoomStatus::VacantReady) {
+          services.synchronizeAssetConditionForSimulation(
+              room->id, std::clamp(asset.condition, 0, 10000), true);
           room->status = RoomStatus::OutOfOrder;
           if (!createRoomTask(TaskKind::Repair, room->id, room->door,
                               repairWork))
             throw std::logic_error(
-                "failed to mirror FINAL-04 engineering failure into repair");
+                "failed to mirror condition failure into FINAL-04 repair");
         }
       }
     }
