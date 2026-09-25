@@ -830,7 +830,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       if (!loadResult)
         throw std::runtime_error(loadResult.message);
     }
-    c.worldAssets = loadWorldAssetsFromDirectory(c.assetRegistry, c.directory / L"data" / L"assets");
+    c.worldAssets = loadWorldAssetsFromDirectory(
+        c.assetRegistry, c.directory / L"data" / L"assets",
+        c.smoke ? RuntimeWorldAssetLoadMode::FullMilestone
+                : RuntimeWorldAssetLoadMode::Shipping);
     const DWORD len = GetEnvironmentVariableW(L"LOCALAPPDATA", path.data(), static_cast<DWORD>(path.size()));
     const auto userRoot = len > 0 && len < path.size()
                               ? std::filesystem::path(path.data())
