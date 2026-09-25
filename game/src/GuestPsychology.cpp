@@ -652,6 +652,133 @@ std::int64_t contextualWeight(const GuestArchetypeDefaults &candidate,
     weight = applyWeight(weight, multiplier);
   }
 
+  // FINAL-06 exposes one market-wide seasonal multiplier. It remains the
+  // authority for total demand; here it only tilts the composition of guests
+  // who convert. Peak periods skew toward discretionary leisure/event travel,
+  // while troughs retain relatively more recurring work and long-stay demand.
+  if (context.seasonMultiplierBasisPoints != 10000) {
+    const int delta = std::clamp(context.seasonMultiplierBasisPoints - 10000,
+                                 -7500, 15000);
+    int multiplier = 10000;
+    if (delta > 0) {
+      switch (candidate.archetype) {
+      case GuestArchetype::CoupleLeisure:
+      case GuestArchetype::FamilyLeisure:
+      case GuestArchetype::StaycationGuest:
+        multiplier += delta * 45 / 100;
+        break;
+      case GuestArchetype::LuxuryLeisure:
+      case GuestArchetype::WellnessTraveler:
+      case GuestArchetype::WeddingGuest:
+        multiplier += delta * 35 / 100;
+        break;
+      case GuestArchetype::GroupTourTraveler:
+      case GuestArchetype::SportsTeamTraveler:
+        multiplier += delta * 25 / 100;
+        break;
+      case GuestArchetype::BusinessTraveler:
+      case GuestArchetype::ExecutiveBusiness:
+      case GuestArchetype::AirlineCrew:
+        multiplier -= delta * 15 / 100;
+        break;
+      case GuestArchetype::ExtendedStayGuest:
+        multiplier -= delta * 10 / 100;
+        break;
+      default:
+        break;
+      }
+    } else {
+      const int trough = -delta;
+      switch (candidate.archetype) {
+      case GuestArchetype::BusinessTraveler:
+      case GuestArchetype::ExecutiveBusiness:
+      case GuestArchetype::AirlineCrew:
+        multiplier += trough * 25 / 100;
+        break;
+      case GuestArchetype::ExtendedStayGuest:
+      case GuestArchetype::DigitalNomad:
+        multiplier += trough * 20 / 100;
+        break;
+      case GuestArchetype::CoupleLeisure:
+      case GuestArchetype::FamilyLeisure:
+      case GuestArchetype::StaycationGuest:
+        multiplier -= trough * 25 / 100;
+        break;
+      case GuestArchetype::LuxuryLeisure:
+      case GuestArchetype::WellnessTraveler:
+      case GuestArchetype::WeddingGuest:
+        multiplier -= trough * 20 / 100;
+        break;
+      default:
+        break;
+      }
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
+  // locationScore is the existing FINAL-06 0..100 hotel-location quality
+  // signal. It deliberately does not invent an airport/resort geography type:
+  // strong locations raise location-sensitive premium/work segments, while
+  // weak locations leave a larger share of value and long-stay guests.
+  if (context.locationScore >= 0) {
+    int multiplier = 10000;
+    if (context.locationScore >= 75) {
+      switch (candidate.archetype) {
+      case GuestArchetype::ExecutiveBusiness:
+      case GuestArchetype::LuxuryLeisure:
+        multiplier = 12000;
+        break;
+      case GuestArchetype::BusinessTraveler:
+      case GuestArchetype::ConferenceDelegate:
+      case GuestArchetype::BleisureTraveler:
+      case GuestArchetype::WellnessTraveler:
+        multiplier = 11500;
+        break;
+      case GuestArchetype::VipCelebrity:
+      case GuestArchetype::CoupleLeisure:
+      case GuestArchetype::StaycationGuest:
+        multiplier = 11000;
+        break;
+      case GuestArchetype::BudgetLeisure:
+      case GuestArchetype::Backpacker:
+        multiplier = 9000;
+        break;
+      default:
+        break;
+      }
+    } else if (context.locationScore <= 40) {
+      switch (candidate.archetype) {
+      case GuestArchetype::BudgetLeisure:
+        multiplier = 12000;
+        break;
+      case GuestArchetype::Backpacker:
+        multiplier = 12500;
+        break;
+      case GuestArchetype::ExtendedStayGuest:
+        multiplier = 11500;
+        break;
+      case GuestArchetype::GroupTourTraveler:
+        multiplier = 11000;
+        break;
+      case GuestArchetype::ExecutiveBusiness:
+        multiplier = 7500;
+        break;
+      case GuestArchetype::LuxuryLeisure:
+        multiplier = 6500;
+        break;
+      case GuestArchetype::VipCelebrity:
+        multiplier = 5500;
+        break;
+      case GuestArchetype::StaycationGuest:
+        multiplier = 7500;
+        break;
+      default:
+        break;
+      }
+    }
+    weight = applyWeight(weight, multiplier);
+  }
+
   if (context.roomRateCents > 0 && candidate.budgetPerNightCents > 0) {
     const auto ratioBasisPoints = static_cast<int>(std::clamp<std::int64_t>(
         context.roomRateCents * 10000 / candidate.budgetPerNightCents,
