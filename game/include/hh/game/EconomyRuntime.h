@@ -95,6 +95,7 @@ public:
   void runDays(int days);
 
   [[nodiscard]] MarketSnapshot marketSnapshot() const;
+  [[nodiscard]] int competitiveCaptureBasisPoints(MarketSegment segment) const;
   [[nodiscard]] RevenueManagementSnapshot revenueManagementSnapshot() const;
   [[nodiscard]] FinancialSnapshot financialSnapshot() const;
   [[nodiscard]] CommercialDemandSnapshot commercialSnapshot() const;
