@@ -42,6 +42,7 @@ on:
       - 'game/data/rate_plan_defaults.json'
       - 'game/data/financing_defaults.json'
       - 'game/data/marketing_campaigns.json'
+      - 'game/tests/ServiceLogisticsSoakTests.cpp'
       - 'game/CMakeLists.txt'
       - '.github/workflows/final06-economy-market-ci.yml'
   workflow_dispatch:
