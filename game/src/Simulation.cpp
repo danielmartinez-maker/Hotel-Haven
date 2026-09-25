@@ -1144,6 +1144,29 @@ struct Simulation::Impl {
     reservation->checkInTravelSeconds = guest.travelSeconds;
     reservation->checkInWaitSeconds = guest.queueWaitSeconds;
     reservation->satisfaction = guest.satisfaction;
+
+    GuestPsychology psychology(seed);
+    if (!reservation->psychologyArchive.empty())
+      psychology.restoreGuest(
+          detail::deserializeGuestPsychology(reservation->psychologyArchive));
+    else
+      psychology.initializeGuest(reservation->id, reservation->profile);
+    ExperienceEvent abandonment;
+    abandonment.type = ExperienceEventType::LongCheckInQueue;
+    abandonment.timestampSeconds = elapsed;
+    abandonment.locationId = reservation->roomId;
+    abandonment.category = ExperienceCategory::ArrivalDeparture;
+    abandonment.observedValue = guest.queueWaitSeconds;
+    abandonment.expectedValue =
+        guest.queueToleranceSeconds > 0 ? guest.queueToleranceSeconds : 8 * 60;
+    abandonment.rawImpact = -50;
+    abandonment.memorySalience = 10000;
+    abandonment.memoryHalfLifeHours = 24;
+    abandonment.complaintEligible = true;
+    psychology.recordExperience(reservation->id, abandonment);
+    reservation->psychologyArchive =
+        detail::serializeGuestPsychology(*psychology.snapshot(reservation->id));
+
     reservation->walkedRelocated = true;
     reservation->completed = true;
 
@@ -1685,7 +1708,13 @@ struct Simulation::Impl {
               p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60;
           if (p.queueWaitSeconds > tolerance) {
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
-            if (p.goal == "Wait for check-in")
+            const bool receptionCovered = std::any_of(
+                people.begin(), people.end(), [](const Person &person) {
+                  return person.kind == PersonKind::Receptionist &&
+                         person.onShift && !person.absent;
+                });
+            if (p.goal == "Wait for check-in" && !receptionCovered &&
+                p.queueWaitSeconds > tolerance + 10 * 60)
               walkRelocateGuest(p);
           }
         }
@@ -4319,7 +4348,11 @@ Simulation Simulation::load(std::string_view data) {
     if ((!reservation.completed && room == roomById.end()) ||
         (reservation.checkedIn && !reservation.arrived) ||
         (reservation.checkoutStarted && !reservation.checkedIn) ||
-        (reservation.completed && !reservation.checkoutStarted) ||
+        (reservation.completed && !reservation.checkoutStarted &&
+         !reservation.walkedRelocated) ||
+        (reservation.walkedRelocated &&
+         (reservation.checkedIn || reservation.checkoutStarted ||
+          !reservation.completed)) ||
         (!reservation.completed &&
          guestsByReservation[reservation.id] != (reservation.arrived ? 1 : 0)) ||
         (reservation.completed && guestsByReservation[reservation.id] > 1))
