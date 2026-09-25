@@ -1135,6 +1135,48 @@ struct Simulation::Impl {
           }
       }
   }
+  void walkRelocateGuest(Person &guest) {
+    auto *reservation = getReservation(guest.reservation);
+    if (!reservation || reservation->checkedIn || reservation->completed ||
+        reservation->walkedRelocated)
+      return;
+
+    reservation->checkInTravelSeconds = guest.travelSeconds;
+    reservation->checkInWaitSeconds = guest.queueWaitSeconds;
+    reservation->satisfaction = guest.satisfaction;
+    reservation->walkedRelocated = true;
+    reservation->completed = true;
+
+    if (auto *room = getRoom(reservation->roomId);
+        room && room->reservationId == reservation->id) {
+      room->reservationId = 0;
+      if (!room->closed && room->status != RoomStatus::OutOfOrder)
+        room->status = RoomStatus::VacantReady;
+    }
+
+    for (auto &task : tasks) {
+      if (task.kind != TaskKind::CheckIn || task.targetId != guest.id ||
+          task.status == TaskStatus::Completed)
+        continue;
+      if (task.employeeId != 0) {
+        if (auto *employee = getPerson(task.employeeId);
+            employee && employee->task == task.id) {
+          employee->task = 0;
+          if (employee->kind != PersonKind::Guest && employee->onShift)
+            employee->state = PersonState::Idle;
+        }
+      }
+      task.employeeId = 0;
+      task.workRemainingSeconds = 0;
+      task.blockedReason.clear();
+      task.status = TaskStatus::Completed;
+    }
+
+    guest.task = 0;
+    guest.state = PersonState::CheckedOut;
+    guest.goal = "Walked / relocated";
+  }
+
   void completeCheckout(Person &guest) {
     auto *z = getReservation(guest.reservation);
     if (!z || z->completed)
@@ -1639,13 +1681,22 @@ struct Simulation::Impl {
         } else if (p.state == PersonState::Waiting) {
           p.queueWaitSeconds += 1;
           p.patience = std::max(0.0, p.patience - 1.0 / 120);
-          if (p.queueWaitSeconds >
-              (p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60))
+          const int tolerance =
+              p.queueToleranceSeconds > 0 ? p.queueToleranceSeconds : 8 * 60;
+          if (p.queueWaitSeconds > tolerance) {
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
+            if (p.goal == "Wait for check-in")
+              walkRelocateGuest(p);
+          }
         }
         for (auto &z : reservations)
-          if (z.id == p.reservation)
+          if (z.id == p.reservation) {
             z.satisfaction = p.satisfaction;
+            if (!z.checkedIn) {
+              z.checkInTravelSeconds = p.travelSeconds;
+              z.checkInWaitSeconds = p.queueWaitSeconds;
+            }
+          }
       }
   }
   void compactTransientState() {
@@ -3074,9 +3125,24 @@ EngineeringSnapshot Simulation::engineeringSnapshot() const {
   return impl_->services.engineeringSnapshot();
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
-  if (!impl_->getRoom(roomId))
+  auto *room = impl_->getRoom(roomId);
+  if (!room || room->reservationId != 0 ||
+      room->status == RoomStatus::Occupied ||
+      room->status == RoomStatus::OutOfOrder || room->closed ||
+      room->condition < 40)
     return 0;
-  return impl_->services.requestRoomTurn(roomId);
+  if (!impl_->createRoomTask(TaskKind::Turnover, roomId, room->door,
+                             impl_->turnoverWork))
+    return 0;
+  room->status = RoomStatus::VacantDirty;
+  const auto housekeeping = impl_->services.housekeepingSnapshot();
+  const auto job = std::find_if(
+      housekeeping.jobs.begin(), housekeeping.jobs.end(),
+      [roomId](const HousekeepingJobView &candidate) {
+        return candidate.roomId == roomId &&
+               candidate.stage != HousekeepingStage::Completed;
+      });
+  return job == housekeeping.jobs.end() ? 0 : job->id;
 }
 LaundryBatchId Simulation::requestLaundryBatch(int quantity) {
   return impl_->services.requestLaundryBatch(quantity);
