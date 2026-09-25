@@ -112,8 +112,27 @@ Baseline archetypes:
 11. Wellness Traveler
 12. VIP/Celebrity
 13. Critic/Reviewer
+14. Digital Nomad
+15. Bleisure Traveler
+16. Extended-Stay Guest
+17. Airline Crew
+18. Wedding Guest
+19. Staycation Guest
+20. Sports-Team Traveler
 
 An archetype is a probability distribution, not a fixed template. Individual guests receive variation around archetype means.
+
+The implemented archetype mix is contextual rather than globally static. The generator starts from baseline segment weights and deterministically reweights them from current hotel state:
+
+- weekday/weekend travel pattern
+- hotel star class and reputation
+- room rate relative to archetype budget and price sensitivity
+- usable gym, spa, and pool supply
+- same-day on-property event attendance
+
+These factors change who is likely to book without creating a separate demand simulator. Existing market demand still controls whether demand converts; archetype context controls the composition of converting guests.
+
+Archetypes also define stay-length priors and daily routine priors. Airport/transit and airline-crew stays skew to one night; extended-stay guests run 7–21 nights; digital nomads run 3–10 nights; family, event, leisure, and business segments use shorter segment-specific ranges. Routine priors modify discretionary goal time compatibility while mandatory lifecycle goals such as check-in and checkout remain authoritative.
 
 Example Business Traveler defaults (`BALANCE_TUNABLE`):
 
