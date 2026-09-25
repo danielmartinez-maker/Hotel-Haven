@@ -1814,9 +1814,13 @@ struct Simulation::Impl {
         preventiveWorkingEngineeringScratch.begin(),
         preventiveWorkingEngineeringScratch.end());
 
+    const int engineeringConditionLossPerHour = std::clamp(
+        static_cast<int>(std::llround(roomConditionLossPerDay * 100.0 / 24.0)),
+        0, 10000);
     services.tickSimulationSecond(
         managedHousekeepingScratch, workingHousekeepingScratch,
-        managedEngineeringScratch, workingEngineeringScratch);
+        managedEngineeringScratch, workingEngineeringScratch,
+        engineeringConditionLossPerHour);
 
     // FINAL-04 engineering owns equipment/room condition and failure pressure.
     // Mirror its hourly reliability update back into physical room state rather
