@@ -79,7 +79,14 @@ enum class GuestArchetype {
   AirportTransitTraveler,
   WellnessTraveler,
   VipCelebrity,
-  CriticReviewer
+  CriticReviewer,
+  DigitalNomad,
+  BleisureTraveler,
+  ExtendedStayGuest,
+  AirlineCrew,
+  WeddingGuest,
+  StaycationGuest,
+  SportsTeamTraveler
 };
 enum class GuestTrait : std::uint8_t {
   Patient,
