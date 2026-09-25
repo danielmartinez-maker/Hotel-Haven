@@ -183,14 +183,6 @@ struct Complaint {
   bool operator==(const Complaint &) const = default;
 };
 
-struct GuestDemandEnvironment {
-  // 10,000 is neutral. Values above/below represent market peak/trough.
-  int seasonMultiplierBasisPoints{10000};
-  // -1 is neutral/unknown; otherwise 0..100 follows FINAL-06 locationScore.
-  int locationScore{-1};
-  bool operator==(const GuestDemandEnvironment &) const = default;
-};
-
 struct GuestArchetypeContext {
   // -1 keeps day-of-week neutral. 0..6 is Monday..Sunday.
   int weekday{-1};
