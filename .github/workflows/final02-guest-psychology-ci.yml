@@ -1,0 +1,54 @@
+name: FINAL-02 Guest AI Psychology CI
+
+on:
+  pull_request:
+    paths:
+      - 'game/include/hh/game/Simulation.h'
+      - 'game/include/hh/game/GuestGoals.h'
+      - 'game/include/hh/game/GuestPsychology.h'
+      - 'game/include/hh/game/GuestPsychologyArchive.h'
+      - 'game/include/hh/game/GuestReviews.h'
+      - 'game/src/GuestPsychology.cpp'
+      - 'game/src/GuestPsychologyRestore.cpp'
+      - 'game/src/GuestPsychologyArchive.cpp'
+      - 'game/src/GuestGoals.cpp'
+      - 'game/src/GuestExpectations.cpp'
+      - 'game/src/GuestLoyalty.cpp'
+      - 'game/src/GuestReviews.cpp'
+      - 'game/src/SimulationPsychology.cpp'
+      - 'game/tests/GuestPsychologyTests.cpp'
+      - 'game/tests/GuestGoalTests.cpp'
+      - 'game/tests/GuestReviewTests.cpp'
+      - 'game/tests/GuestDeterminismTests.cpp'
+      - 'game/tests/GuestSatisfactionTests.cpp'
+      - 'game/tests/GuestExpectationTests.cpp'
+      - 'game/CMakeLists.txt'
+      - '.github/workflows/final02-guest-psychology-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  guest-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build guest AI targets
+        run: >
+          cmake --build build --config Release --parallel 4
+          --target
+          hh_GuestPsychology_tests
+          hh_GuestGoal_tests
+          hh_GuestReview_tests
+          hh_GuestDeterminism_tests
+          hh_GuestSatisfaction_tests
+          hh_GuestExpectation_tests
+
+      - name: Run guest AI tests
+        run: >
+          ctest --test-dir build -C Release
+          -R 'Guest(Psychology|Goal|Review|Determinism|Satisfaction|Expectation)'
+          --output-on-failure
