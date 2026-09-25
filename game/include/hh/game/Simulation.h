@@ -31,7 +31,6 @@ struct BuildingSystemsSnapshot;
 struct RoomSaleValidation;
 struct ElevatorSpec;
 struct GuestPsychologySnapshot;
-struct GuestDemandEnvironment;
 struct GuestOpportunitySnapshot;
 struct GoalSelection;
 struct GuestGroup;
@@ -111,6 +110,15 @@ enum class GuestTrait : std::uint8_t {
 constexpr std::uint32_t guestTraitFlag(GuestTrait trait) noexcept {
   return std::uint32_t{1} << static_cast<std::uint8_t>(trait);
 }
+
+struct GuestDemandEnvironment {
+  // 10,000 is neutral. Values above/below represent market peak/trough.
+  int seasonMultiplierBasisPoints{10000};
+  // -1 is neutral/unknown; otherwise 0..100 follows FINAL-06 locationScore.
+  int locationScore{-1};
+  bool operator==(const GuestDemandEnvironment &) const = default;
+};
+
 enum class PersonState {
   OffDuty,
   Idle,
