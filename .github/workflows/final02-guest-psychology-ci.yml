@@ -23,6 +23,9 @@ on:
       - 'game/tests/GuestDeterminismTests.cpp'
       - 'game/tests/GuestSatisfactionTests.cpp'
       - 'game/tests/GuestExpectationTests.cpp'
+      - 'game/app/GameUiBridge.cpp'
+      - 'game/app/GameUiBridgeTests.cpp'
+      - 'game/app/Panels.cpp'
       - 'game/CMakeLists.txt'
       - '.github/workflows/final02-guest-psychology-ci.yml'
   workflow_dispatch:
@@ -53,3 +56,18 @@ jobs:
           ctest --test-dir build -C Release
           -R 'Guest(Psychology|Goal|Review|Determinism|Satisfaction|Expectation)'
           --output-on-failure
+
+  guest-ui:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Windows client
+        run: cmake -S . -B build -A x64 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build guest UI bridge test
+        run: cmake --build build --config Release --parallel 4 --target hh_game_ui_bridge_tests
+
+      - name: Run guest UI bridge test
+        run: ctest --test-dir build -C Release -R '^hh_game_ui_bridge_tests --output-on-failure
