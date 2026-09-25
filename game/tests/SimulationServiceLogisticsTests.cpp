@@ -664,7 +664,7 @@ static void stable_commands_and_save_boundary() {
           "demolition test room turn not created");
   require(!demolition.removeRoom(built.id),
           "room demolished while FINAL-04 housekeeping work was active");
-  demolition.step(2400);
+  require(demolition.hireStaff({"Demo Rooms", PersonKind::Housekeeper, 0, 0, 18}).ok,\n          "demolition fixture could not hire housekeeping coverage");\n  demolition.step(2400);
   require(demolition.removeRoom(built.id).ok,
           "room could not be demolished after FINAL-04 work completed");
   require(demolition.createWorkOrder(built.id, WorkOrderType::Preventive) == 0,
