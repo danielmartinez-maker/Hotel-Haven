@@ -68,6 +68,109 @@ bool validGoalValue(GuestGoalClass goal) noexcept {
          value <= static_cast<int>(GuestGoalClass::LeaveHotel);
 }
 
+int routineMultiplier(const GuestProfileView &profile, GuestGoalClass goal,
+                      int hour) noexcept {
+  const int normalizedHour = ((hour % 24) + 24) % 24;
+  const bool morning = normalizedHour >= 5 && normalizedHour < 11;
+  const bool daytime = normalizedHour >= 8 && normalizedHour < 18;
+  const bool evening = normalizedHour >= 18 && normalizedHour < 24;
+  int multiplier = 10000;
+
+  switch (profile.archetype) {
+  case GuestArchetype::BusinessTraveler:
+    if (goal == GuestGoalClass::Work && daytime) multiplier = 13500;
+    else if (goal == GuestGoalClass::Relax && evening) multiplier = 11500;
+    else if (goal == GuestGoalClass::Swim && daytime) multiplier = 7500;
+    break;
+  case GuestArchetype::ExecutiveBusiness:
+    if (goal == GuestGoalClass::Work && daytime) multiplier = 14000;
+    else if (goal == GuestGoalClass::RequestService) multiplier = 12000;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 11000;
+    break;
+  case GuestArchetype::DigitalNomad:
+    if (goal == GuestGoalClass::Work && daytime) multiplier = 13000;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 12000;
+    else if (goal == GuestGoalClass::Relax && daytime) multiplier = 11000;
+    break;
+  case GuestArchetype::BleisureTraveler:
+    if (goal == GuestGoalClass::Work && daytime) multiplier = 12000;
+    else if ((goal == GuestGoalClass::Relax ||
+              goal == GuestGoalClass::Socialize) && evening)
+      multiplier = 13000;
+    break;
+  case GuestArchetype::ExtendedStayGuest:
+    if (goal == GuestGoalClass::Work && daytime) multiplier = 11500;
+    else if (goal == GuestGoalClass::Relax) multiplier = 11000;
+    break;
+  case GuestArchetype::AirlineCrew:
+    if (goal == GuestGoalClass::Sleep) multiplier = 14500;
+    else if (goal == GuestGoalClass::Relax) multiplier = 12000;
+    else if (goal == GuestGoalClass::Socialize) multiplier = 6500;
+    break;
+  case GuestArchetype::WeddingGuest:
+    if (goal == GuestGoalClass::AttendEvent && evening) multiplier = 15000;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 14500;
+    else if (goal == GuestGoalClass::Sleep && evening) multiplier = 7000;
+    break;
+  case GuestArchetype::StaycationGuest:
+    if ((goal == GuestGoalClass::Relax || goal == GuestGoalClass::Swim) &&
+        daytime)
+      multiplier = 14500;
+    else if (goal == GuestGoalClass::Work) multiplier = 5000;
+    break;
+  case GuestArchetype::SportsTeamTraveler:
+    if (goal == GuestGoalClass::Exercise && morning) multiplier = 14500;
+    else if (goal == GuestGoalClass::Eat && morning) multiplier = 12500;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 11500;
+    break;
+  case GuestArchetype::WellnessTraveler:
+    if (goal == GuestGoalClass::Exercise && morning) multiplier = 14000;
+    else if (goal == GuestGoalClass::Relax && daytime) multiplier = 14000;
+    else if (goal == GuestGoalClass::Drink) multiplier = 7000;
+    break;
+  case GuestArchetype::FamilyLeisure:
+    if (goal == GuestGoalClass::Swim && daytime) multiplier = 13000;
+    else if (goal == GuestGoalClass::Eat && morning) multiplier = 12000;
+    break;
+  case GuestArchetype::CoupleLeisure:
+    if (goal == GuestGoalClass::Relax && evening) multiplier = 12500;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 11500;
+    break;
+  case GuestArchetype::ConferenceDelegate:
+    if (goal == GuestGoalClass::AttendEvent && daytime) multiplier = 15000;
+    else if (goal == GuestGoalClass::Socialize && evening) multiplier = 12000;
+    break;
+  case GuestArchetype::LuxuryLeisure:
+  case GuestArchetype::VipCelebrity:
+    if (goal == GuestGoalClass::Relax && daytime) multiplier = 13000;
+    else if (goal == GuestGoalClass::RequestService) multiplier = 12500;
+    break;
+  default:
+    break;
+  }
+
+  if ((profile.traitFlags & guestTraitFlag(GuestTrait::EarlyRiser)) != 0) {
+    if (goal == GuestGoalClass::Exercise && morning)
+      multiplier = std::min(maxFactor, multiplier + 1500);
+    if (goal == GuestGoalClass::Sleep && morning)
+      multiplier = std::max(0, multiplier - 2000);
+  }
+  if ((profile.traitFlags & guestTraitFlag(GuestTrait::NightOwl)) != 0) {
+    if (goal == GuestGoalClass::Socialize && evening)
+      multiplier = std::min(maxFactor, multiplier + 1500);
+    if (goal == GuestGoalClass::Sleep && evening)
+      multiplier = std::max(0, multiplier - 1500);
+  }
+  return std::clamp(multiplier, 0, maxFactor);
+}
+
+int applyRoutineMultiplier(int compatibility, int multiplier) noexcept {
+  return static_cast<int>(std::clamp<std::int64_t>(
+      static_cast<std::int64_t>(std::clamp(compatibility, 0, maxFactor)) *
+          std::clamp(multiplier, 0, maxFactor) / factorScale,
+      0, maxFactor));
+}
+
 const GoalOpportunity *selectedOpportunity(
     const GoalSelection &selection,
     const GuestOpportunitySnapshot &snapshot) noexcept {
@@ -107,6 +210,20 @@ applyGuestPreferences(const GuestPreferenceState &preferences,
         opportunity.preference, preferenceForGoal(preferences, opportunity.goal));
   }
   return personalized;
+}
+
+GuestOpportunitySnapshot
+applyGuestArchetypeRoutine(const GuestProfileView &profile, int hour,
+                           const GuestOpportunitySnapshot &snapshot) noexcept {
+  GuestOpportunitySnapshot scheduled = snapshot;
+  for (auto &opportunity : scheduled.opportunities) {
+    if (opportunity.mandatory)
+      continue;
+    opportunity.timeCompatibility = applyRoutineMultiplier(
+        opportunity.timeCompatibility,
+        routineMultiplier(profile, opportunity.goal, hour));
+  }
+  return scheduled;
 }
 
 GoalSelection chooseGuestGoal(EntityId guestId,
