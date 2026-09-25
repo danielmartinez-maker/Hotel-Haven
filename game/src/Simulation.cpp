@@ -131,8 +131,10 @@ std::uint64_t mixedSeed(std::uint64_t seed, std::uint64_t a,
              mix(c + 0x8cb92baa7f3d8dd7ULL) ^ mix(stream));
 }
 
-GuestProfileView generateGuestProfile(std::mt19937_64 &random) {
-  return detail::generateGuestProfileFromRandom(random);
+GuestProfileView
+generateGuestProfile(std::mt19937_64 &random,
+                     const GuestArchetypeContext &context) {
+  return detail::generateGuestProfileFromRandom(random, context);
 }
 
 bool validGuestProfile(const GuestProfileView &profile) {
@@ -981,6 +983,40 @@ struct Simulation::Impl {
       if (!r.closed && r.status == RoomStatus::VacantReady && r.reachable)
         free.push_back(&r);
     std::shuffle(free.begin(), free.end(), rng);
+
+    const int arrivalDay = day + (hour > 15 ? 1 : 0);
+    GuestArchetypeContext bookingContext;
+    bookingContext.weekday = arrivalDay % 7;
+    bookingContext.hotelStars = economy.stars;
+    bookingContext.hotelReputation =
+        static_cast<int>(std::clamp(std::lround(economy.reputation), 0L, 100L));
+
+    const auto amenitySnapshot = amenities.snapshot();
+    for (const auto &amenity : amenitySnapshot.amenities) {
+      if (amenity.cleanliness < 3000 || amenity.condition < 3000)
+        continue;
+      switch (amenity.type) {
+      case AmenityType::Gym:
+        bookingContext.hasGym = true;
+        break;
+      case AmenityType::Spa:
+        bookingContext.hasSpa = true;
+        break;
+      case AmenityType::Pool:
+        bookingContext.hasPool = true;
+        break;
+      }
+    }
+
+    const std::int64_t arrivalStart =
+        static_cast<std::int64_t>(arrivalDay) * 86400;
+    const std::int64_t arrivalEnd = arrivalStart + 86400;
+    for (const auto &booking : events.snapshot().bookings)
+      if (booking.phase != EventPhase::Cancelled &&
+          booking.startSecond < arrivalEnd && booking.endSecond > arrivalStart)
+        bookingContext.eventAttendees = std::min(
+            500, bookingContext.eventAttendees + std::max(0, booking.attendees));
+
     const double reputationUtility =
         0.2 + 0.8 * std::clamp((economy.reputation - 60.0) / 20.0, 0.0, 1.0);
     for (Room *r : free) {
@@ -1001,16 +1037,20 @@ struct Simulation::Impl {
                              : 1.0 - std::pow(1.0 - dailyChance, 1.0 / 24.0);
       if (std::generate_canonical<double, 32>(rng) > hourlyChance)
         continue;
+
       Reservation z;
       z.id = nextId++;
       std::mt19937_64 profileRandom(
           mixedSeed(seed, z.id, static_cast<std::uint64_t>(day),
                     static_cast<std::uint64_t>(hour), 0x4755455354ULL));
-      z.profile = generateGuestProfile(profileRandom);
+      auto roomContext = bookingContext;
+      roomContext.roomRateCents = r->nightlyRateCents;
+      z.profile = generateGuestProfile(profileRandom, roomContext);
       z.guestName = "Guest " + std::to_string(z.id);
       z.roomId = r->id;
-      z.arrivalDay = day + (hour > 15 ? 1 : 0);
-      z.departureDay = z.arrivalDay + 1 + (int)(rng() % 3);
+      z.arrivalDay = arrivalDay;
+      z.departureDay =
+          z.arrivalDay + detail::stayNightsFor(z.profile, rng());
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
