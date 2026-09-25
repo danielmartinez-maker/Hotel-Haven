@@ -371,6 +371,13 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
   require(guests == 6, "layout benchmark did not fill equivalent hotels");
   outcome.guestSatisfaction /= guests;
 
+  // The $50 rate above is only a launch-cohort control so both layouts fill
+  // identically. Restore the blueprint's normal $140 rate before measuring
+  // steady-state economics; otherwise six rooms cannot cover the configured
+  // reception/housekeeping payroll even at full occupancy.
+  for (const auto &room : s.view().rooms)
+    require(s.setRoomRate(room.id, 140).ok,
+            "layout benchmark steady-state rate rejected");
   require(s.loadDefinitions(R"({"baseDemand":100})").ok,
           "layout benchmark steady demand rejected");
   const auto countWalked = [](const SimulationView &view) {
