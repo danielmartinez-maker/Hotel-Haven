@@ -20,35 +20,50 @@ struct GuestArchetypeDefaults {
   double comfortSensitivity;
   double foodSensitivity;
   double patience;
+  std::uint32_t signatureTraitFlags{};
 };
 
-constexpr std::array<GuestArchetypeDefaults, 13> archetypes{{
-    {GuestArchetype::BudgetLeisure, 13, 9000, .90, .45, .55, .40, .35, .55,
+constexpr std::array<GuestArchetypeDefaults, 20> archetypes{{
+    {GuestArchetype::BudgetLeisure, 9, 9000, .90, .45, .55, .40, .35, .55,
      .55, .45, .55},
-    {GuestArchetype::Backpacker, 8, 7000, .95, .35, .40, .35, .25, .45, .35,
+    {GuestArchetype::Backpacker, 5, 7000, .95, .35, .40, .35, .25, .45, .35,
      .35, .70},
-    {GuestArchetype::BusinessTraveler, 18, 18000, .45, .75, .80, .85, .55,
+    {GuestArchetype::BusinessTraveler, 13, 18000, .45, .75, .80, .85, .55,
      .65, .70, .70, .45},
-    {GuestArchetype::ExecutiveBusiness, 7, 26000, .25, .90, .90, .85, .80,
+    {GuestArchetype::ExecutiveBusiness, 5, 26000, .25, .90, .90, .85, .80,
      .80, .90, .75, .40},
-    {GuestArchetype::CoupleLeisure, 14, 17000, .55, .60, .70, .65, .60, .65,
+    {GuestArchetype::CoupleLeisure, 10, 17000, .55, .60, .70, .65, .60, .65,
      .75, .70, .65},
-    {GuestArchetype::FamilyLeisure, 12, 19000, .65, .70, .85, .65, .35, .85,
+    {GuestArchetype::FamilyLeisure, 9, 19000, .65, .70, .85, .65, .35, .85,
      .75, .75, .55},
-    {GuestArchetype::LuxuryLeisure, 5, 30000, .20, .95, .95, .85, .90, .90,
+    {GuestArchetype::LuxuryLeisure, 4, 30000, .20, .95, .95, .85, .90, .90,
      .98, .90, .45},
-    {GuestArchetype::ConferenceDelegate, 7, 16000, .50, .70, .75, .75, .50,
+    {GuestArchetype::ConferenceDelegate, 5, 16000, .50, .70, .75, .75, .50,
      .65, .65, .70, .50},
-    {GuestArchetype::GroupTourTraveler, 5, 11000, .80, .45, .60, .50, .30,
+    {GuestArchetype::GroupTourTraveler, 4, 11000, .80, .45, .60, .50, .30,
      .65, .50, .55, .60},
-    {GuestArchetype::AirportTransitTraveler, 4, 13000, .70, .55, .70, .65,
+    {GuestArchetype::AirportTransitTraveler, 3, 13000, .70, .55, .70, .65,
      .40, .70, .60, .45, .35},
-    {GuestArchetype::WellnessTraveler, 3, 22000, .35, .80, .85, .75, .80,
+    {GuestArchetype::WellnessTraveler, 2, 22000, .35, .80, .85, .75, .80,
      .75, .85, .75, .75},
     {GuestArchetype::VipCelebrity, 2, 30000, .10, .98, .98, .95, .98, .95,
      1.0, .90, .25},
     {GuestArchetype::CriticReviewer, 2, 22000, .35, 1.0, 1.0, .90, .85, .85,
      .95, .95, .35},
+    {GuestArchetype::DigitalNomad, 5, 17000, .55, .65, .70, .70, .55, .65,
+     .70, .55, .65, guestTraitFlag(GuestTrait::Workaholic)},
+    {GuestArchetype::BleisureTraveler, 4, 23000, .40, .80, .82, .78, .65, .72,
+     .82, .75, .55, guestTraitFlag(GuestTrait::Workaholic)},
+    {GuestArchetype::ExtendedStayGuest, 5, 15000, .70, .60, .85, .80, .80, .75,
+     .75, .50, .80, guestTraitFlag(GuestTrait::Private)},
+    {GuestArchetype::AirlineCrew, 3, 14000, .35, .75, .90, 1.0, .80, .80,
+     .85, .55, .45, guestTraitFlag(GuestTrait::LightSleeper)},
+    {GuestArchetype::WeddingGuest, 3, 19000, .55, .72, .80, .45, .45, .65,
+     .75, .85, .60, guestTraitFlag(GuestTrait::Social)},
+    {GuestArchetype::StaycationGuest, 4, 20000, .60, .75, .80, .70, .70, .70,
+     .85, .85, .65, guestTraitFlag(GuestTrait::StatusConscious)},
+    {GuestArchetype::SportsTeamTraveler, 3, 15000, .65, .55, .70, .40, .35,
+     .80, .70, .85, .75, guestTraitFlag(GuestTrait::FitnessFocused)},
 }};
 static_assert([] {
   int total = 0;
@@ -57,7 +72,7 @@ static_assert([] {
   return total == 100;
 }());
 
-constexpr std::array<GuestPreferenceState, 13> archetypePreferences{{
+constexpr std::array<GuestPreferenceState, 20> archetypePreferences{{
     {6000, 3000, 6500, 2000, 5000, 3500, 6000, 4500, 4000},
     {7500, 2500, 6500, 1000, 3000, 4000, 8500, 3000, 3000},
     {9500, 8000, 7000, 1000, 1500, 4500, 3500, 8500, 7000},
@@ -71,7 +86,17 @@ constexpr std::array<GuestPreferenceState, 13> archetypePreferences{{
     {5000, 1500, 8000, 9500, 7000, 9500, 5000, 9000, 8500},
     {9000, 6000, 9000, 9500, 9000, 8000, 5500, 9800, 10000},
     {8000, 5500, 8500, 7000, 6000, 5000, 4500, 9500, 9500},
+    {10000, 9000, 5000, 2500, 2500, 5500, 6500, 7500, 7500},
+    {9500, 8500, 8000, 6000, 4500, 6500, 6500, 8500, 8500},
+    {9000, 7500, 5500, 2500, 3500, 5000, 4500, 9000, 8000},
+    {6500, 3000, 7500, 3000, 2500, 6500, 3500, 10000, 8500},
+    {5000, 1000, 8500, 5500, 4000, 2000, 10000, 4000, 8000},
+    {6000, 1500, 9000, 8500, 9000, 5000, 6500, 7500, 9000},
+    {6000, 1000, 9500, 3500, 3500, 10000, 9000, 4000, 6000},
 }};
+static_assert(archetypePreferences.size() == archetypes.size());
+
+
 
 int clampPreference(int value) noexcept { return std::clamp(value, 0, 10000); }
 
@@ -488,7 +513,10 @@ GuestProfileView generateGuestProfileFromRandom(std::mt19937_64 &random) {
   profile.foodSensitivity = varied(defaults->foodSensitivity);
   profile.patience = varied(defaults->patience);
 
-  const int traitCount = static_cast<int>(random() % 4);
+  profile.traitFlags = defaults->signatureTraitFlags;
+  const int traitCount =
+      std::max(static_cast<int>(std::popcount(profile.traitFlags)),
+               static_cast<int>(random() % 4));
   for (int attempts = 0;
        std::popcount(profile.traitFlags) < traitCount && attempts < 64;
        ++attempts) {
@@ -547,7 +575,7 @@ bool validGuestProfile(const GuestProfileView &profile) noexcept {
   };
   constexpr auto validTraitFlags =
       (guestTraitFlag(GuestTrait::Forgiving) << 1) - 1;
-  if (archetype < 0 || archetype >= 13 || profile.budgetPerNightCents < 4000 ||
+  if (archetype < 0 || archetype >= 20 || profile.budgetPerNightCents < 4000 ||
       profile.budgetPerNightCents > 1'000'000 ||
       !normalized(profile.priceSensitivity) ||
       !normalized(profile.serviceSensitivity) ||
@@ -595,6 +623,27 @@ int queueToleranceFor(const GuestProfileView &profile,
     break;
   case GuestArchetype::CriticReviewer:
     segmentModifier = .75;
+    break;
+  case GuestArchetype::DigitalNomad:
+    segmentModifier = 1.05;
+    break;
+  case GuestArchetype::BleisureTraveler:
+    segmentModifier = .90;
+    break;
+  case GuestArchetype::ExtendedStayGuest:
+    segmentModifier = 1.15;
+    break;
+  case GuestArchetype::AirlineCrew:
+    segmentModifier = .65;
+    break;
+  case GuestArchetype::WeddingGuest:
+    segmentModifier = 1.0;
+    break;
+  case GuestArchetype::StaycationGuest:
+    segmentModifier = 1.05;
+    break;
+  case GuestArchetype::SportsTeamTraveler:
+    segmentModifier = 1.20;
     break;
   default:
     break;
