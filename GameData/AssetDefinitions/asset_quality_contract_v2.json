@@ -1,0 +1,124 @@
+{
+  "schema": 2,
+  "contract_id": "HH_ASSET_QUALITY_V2",
+  "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
+  "severity_policy": {
+    "release_blocking": ["BLOCKER", "CRITICAL", "MAJOR"],
+    "diagnostic": ["MINOR", "INFO"],
+    "aggregate_scores_cannot_override_release_blockers": true
+  },
+  "geometry_defaults": {
+    "units": "meters",
+    "reject_nan_inf": true,
+    "reject_empty_mesh": true,
+    "reject_degenerate_only_mesh": true,
+    "floor_contact_tolerance_m": 0.02,
+    "pivot_center_tolerance_ratio": 0.1,
+    "minimum_semantic_node_count": 2,
+    "manufactured_edge_treatment": "small_consistent_bevels",
+    "microdetail_policy": "reject_or_move_to_material_response_when_unreadable_at_management_camera"
+  },
+  "profiles": {
+    "P_ARCH_STATIC": {"max_faces": 12000, "min_faces": 12, "max_material_slots": 6, "single_body_allowed": false},
+    "P_ARCH_ANIMATED": {"max_faces": 16000, "min_faces": 24, "max_material_slots": 6, "single_body_allowed": false},
+    "P_FURNITURE_STATIC": {"max_faces": 8000, "min_faces": 24, "max_material_slots": 6, "single_body_allowed": false},
+    "P_SERVICE_PROP_ANIMATED": {"max_faces": 10000, "min_faces": 32, "max_material_slots": 6, "single_body_allowed": false},
+    "P_INTERACTIVE_PREFAB": {"max_faces": 10000, "min_faces": 24, "max_material_slots": 6, "single_body_allowed": false},
+    "P_INTERACTIVE_ANIMATED": {"max_faces": 12000, "min_faces": 32, "max_material_slots": 6, "single_body_allowed": false},
+    "P_SMALL_PROP": {"max_faces": 4000, "min_faces": 12, "max_material_slots": 4, "single_body_allowed": true},
+    "P_CHARACTER": {
+      "max_faces": 12000,
+      "min_faces": 128,
+      "max_material_slots": 8,
+      "single_body_allowed": false,
+      "height_m": {"min": 1.25, "max": 2.05},
+      "required_hierarchy": ["Root", "Pelvis", "Spine", "Head"]
+    }
+  },
+  "material_families": {
+    "allowed": [
+      "MAT_BLACKENED_STEEL",
+      "MAT_BRASS_POLISHED",
+      "MAT_CERAMIC_FIXTURE",
+      "MAT_CHARACTER_COMPOSITE",
+      "MAT_ELECTRONICS",
+      "MAT_EMISSIVE_WARM",
+      "MAT_GLASS_CLEAR",
+      "MAT_LINEN",
+      "MAT_SIGNAGE",
+      "MAT_STAINLESS",
+      "MAT_STONE_LIGHT",
+      "MAT_UPHOLSTERY",
+      "MAT_VEGETATION",
+      "MAT_WOOD_WARM"
+    ],
+    "forbid_pure_white_fallback": true,
+    "forbid_neon_unless_exception": true,
+    "pbr_model": "soft_simplified_pbr",
+    "metallic_only_for_physical_metals": true,
+    "roughness_carries_material_identity": true
+  },
+  "families": {
+    "architecture_construction": {"required_semantic_patterns": ["primary_structure"], "modular_alignment_tolerance_m": 0.005},
+    "guest_room_furniture_fixtures": {"required_semantic_patterns": ["primary_form", "functional_detail"]},
+    "front_of_house_public": {"required_semantic_patterns": ["primary_form", "role_detail"]},
+    "restaurant_bar_food_service": {"required_semantic_patterns": ["primary_form", "service_detail"]},
+    "housekeeping_maintenance_logistics": {"required_semantic_patterns": ["primary_form", "service_detail"]},
+    "amenities_events": {"required_semantic_patterns": ["primary_form", "role_detail"]},
+    "exterior_landscaping": {"required_semantic_patterns": ["primary_form", "weather_readable_detail"]},
+    "guests_staff": {"required_semantic_patterns": ["Root", "Pelvis", "Spine", "Head", "role_detail"]}
+  },
+  "semantic_role_rules": {
+    "elevator": {"required_any": [["Cab", "Door", "Indicator"], ["DoorLeft", "DoorRight"], ["Panel", "Button"]]},
+    "chair": {"required_any": [["Seat", "Back"], ["Seat", "Backrest"]]},
+    "desk": {"required_any": [["WorkSurface"], ["Top", "Base"]]},
+    "cart": {"required_any": [["Chassis", "Handle"], ["Body", "Handle", "Wheel"]]},
+    "bathroom": {"required_any": [["FixtureBody", "FunctionalDetail"], ["Basin", "FixtureBody"], ["Seat", "Bowl"]]},
+    "moving_equipment": {"required_any": [["Body", "MovingPart"], ["Chassis", "Wheel"]]},
+    "character": {"required_all": ["Root", "Pelvis", "Spine", "Head"]}
+  },
+  "variant_groups": {
+    "v2_elevator_cabs": ["HH_A501", "HH_A502", "HH_A503", "HH_A504", "HH_A505"],
+    "v2_elevator_doors": ["HH_A506", "HH_A507"],
+    "v2_bed_frames": ["HH_A551", "HH_A552", "HH_A553", "HH_A554"],
+    "v2_reception_desks": ["HH_A601", "HH_A602", "HH_A603", "HH_A604", "HH_A605"],
+    "v2_restaurant_tables": ["HH_A651", "HH_A652", "HH_A653"],
+    "v2_housekeeping_carts": ["HH_A701", "HH_A702", "HH_A703", "HH_A704"],
+    "v2_gym_equipment": ["HH_A754", "HH_A755", "HH_A756", "HH_A757", "HH_A758", "HH_A759"],
+    "v2_luggage": ["HH_A777", "HH_A778", "HH_A779", "HH_A780"]
+  },
+  "variant_checks": {
+    "compare": ["geometry_signature", "bounds_ratio", "semantic_node_set", "perceptual_signature", "silhouette_signature"],
+    "required_variants_must_not_be_name_only": true,
+    "required_variants_must_not_be_material_only": true
+  },
+  "interaction": {
+    "sidecar_must_match_manifest": true,
+    "locator_semantics_required_when_supported": true,
+    "gameplay_authority": false
+  },
+  "animation": {
+    "zero_deferred_dependencies_at_release": true,
+    "deterministic_clip_set_ids": true,
+    "required_bones_nodes_must_exist": true,
+    "mechanical_ranges_must_preserve_attachment": true
+  },
+  "preview": {
+    "canonical_camera": {"projection": "orthographic", "yaw_degrees": 45, "pitch_degrees": 35.264},
+    "nonblank_required": true,
+    "frame_occupancy": {"min": 0.18, "max": 0.92},
+    "visible_area_ratio_min": 0.015,
+    "deterministic_background": true,
+    "batch_board_required": true
+  },
+  "meshy_authoring": {
+    "offline_only": true,
+    "runtime_dependency": false,
+    "accepted_source_formats": ["glb", "fbx", "obj"],
+    "preferred_source_format": "glb",
+    "require_pbr": true,
+    "required_provenance_fields": ["provider", "task_id", "source_format", "pbr_enabled", "quality_review_state"],
+    "credentials_must_never_be_serialized": true,
+    "normalization_flow": ["source_model", "scale_and_axis_normalization", "sidecar_binding", "v2_quality_validation", "deterministic_hasset_cook"]
+  }
+}

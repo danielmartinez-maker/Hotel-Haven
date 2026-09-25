@@ -8,9 +8,9 @@ endif()
 file(GLOB cooked_assets "${HH_COOKED_ASSET_ROOT}/*.hasset")
 list(SORT cooked_assets)
 list(LENGTH cooked_assets cooked_count)
-if(NOT cooked_count EQUAL 500)
+if(NOT cooked_count EQUAL 700)
     message(FATAL_ERROR
-        "Expected exactly 500 cooked .hasset files in ${HH_COOKED_ASSET_ROOT}; found ${cooked_count}")
+        "Expected exactly 700 cooked .hasset files in ${HH_COOKED_ASSET_ROOT}; found ${cooked_count}")
 endif()
 
 file(REMOVE_RECURSE "${HH_RUNTIME_ASSET_ROOT}")
@@ -21,9 +21,9 @@ endforeach()
 
 file(GLOB staged_assets "${HH_RUNTIME_ASSET_ROOT}/*.hasset")
 list(LENGTH staged_assets staged_count)
-if(NOT staged_count EQUAL 500)
+if(NOT staged_count EQUAL 700)
     message(FATAL_ERROR
-        "Runtime asset staging produced ${staged_count} files instead of 500")
+        "Runtime asset staging produced ${staged_count} files instead of 700")
 endif()
 
 message(STATUS

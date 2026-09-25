@@ -44,6 +44,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
         'interaction_anchors': ['INT_USE_01', 'INT_REPAIR_01'],
     }
     contract = {
+        'asset_type': 'StaticMeshAsset',
         'units': 'meters',
         'lod_policy': 'lod_furniture',
         'collision_policy': 'simple_proxy',
@@ -52,6 +53,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
 
     normalized = normalize(sidecar, meta, contract)
 
+    assert normalized['asset_type'] == 'StaticMeshAsset'
     assert normalized['units'] == 'meters'
     assert normalized['lod_policy'] == 'lod_furniture'
     assert normalized['collision_policy'] == 'simple_proxy'
@@ -131,7 +133,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
     assert callable(build)
 
     summary = {
-        'gameplay_asset_count': 500,
+        'gameplay_asset_count': 700,
         'generated_asset_records': 591,
         'animation_links': 87,
         'expected_animation_links': 87,
@@ -144,7 +146,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
     }
     report = {
         'status': 'PASS',
-        'asset_count': 500,
+        'asset_count': 700,
         'failure_count': 0,
         'max_faces': 3024,
         'unique_material_colors': 83,
@@ -156,7 +158,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
         'placement_failure_count': 0,
     }
 
-    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 11)})
+    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)})
 
     assert '- Interaction anchors normalized: **118 / 118**' in text
     assert '- Profile contract conformance: **PASS** with **0** failures' in text
@@ -164,14 +166,18 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
 
 def test_runtime_binding_preview_contract_tracks_shipping_assets():
     ids = previews.runtime_binding_ids(ROOT)
-    assert len(ids) == 70
+    assert len(ids) == 133
     assert len(ids) == len(set(ids))
     assert ids[:3] == ['HH_A030', 'HH_A012', 'HH_A057']
     assert ids[3:9] == [f'HH_A{i:03d}' for i in range(111, 117)]
-    assert ids[28:58] == [f'HH_A{i:03d}' for i in range(451, 481)]
-    assert ids[-6:] == [
+    assert ids[34:64] == [f'HH_A{i:03d}' for i in range(451, 481)]
+    assert ids[64:70] == [
         'HH_A481', 'HH_A482',
         'HH_A487', 'HH_A488',
         'HH_A495', 'HH_A496',
     ]
+    assert ids[70:75] == [
+        'HH_A511', 'HH_A512', 'HH_A513', 'HH_A539', 'HH_A540',
+    ]
+    assert ids[-3:] == ['HH_A647', 'HH_A648', 'HH_A649']
 

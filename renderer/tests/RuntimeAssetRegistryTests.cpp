@@ -139,6 +139,17 @@ TEST_CASE("runtime asset registry accepts cooked skinned meshes as bind pose mes
     EXPECT_EQ(registry.asset(handle).mesh.primitives.size(), 1u);
 }
 
+TEST_CASE("runtime asset registry accepts mesh-backed prefab GLB payloads") {
+    hh::renderer::RuntimeAssetRegistry registry;
+    const auto handle =
+        registry.addHasset(makeHasset("HH_A566", hh::assets::AssetType::Prefab));
+
+    EXPECT_EQ(registry.size(), 1u);
+    EXPECT_EQ(registry.asset(handle).assetId, std::string("HH_A566"));
+    EXPECT_EQ(registry.asset(handle).assetType, hh::assets::AssetType::Prefab);
+    EXPECT_EQ(registry.asset(handle).mesh.primitives.size(), 1u);
+}
+
 TEST_CASE("runtime asset registry rejects duplicate asset IDs") {
     hh::renderer::RuntimeAssetRegistry registry;
     (void)registry.addHasset(makeHasset("HH_A001", hh::assets::AssetType::StaticMesh));
@@ -188,6 +199,37 @@ TEST_CASE("runtime asset registry selectively loads only required package assets
         rejectedUnloadedAsset = true;
     }
     EXPECT_TRUE(rejectedUnloadedAsset);
+    std::filesystem::remove_all(root);
+}
+
+TEST_CASE("runtime asset registry loads bounded milestone ranges and exposes nonthrowing lookup") {
+    const auto root = resetTempRoot("range");
+    writeBytes(root / "HH_A001.hasset",
+               makeHasset("HH_A001", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A500.hasset",
+               makeHasset("HH_A500", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A501.hasset",
+               makeHasset("HH_A501", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A700.hasset",
+               makeHasset("HH_A700", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A701.hasset",
+               makeHasset("HH_A701", hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "OTHER_100.hasset",
+               makeHasset("OTHER_100", hh::assets::AssetType::StaticMesh));
+
+    const std::array<std::string_view, 2> required{"HH_A001", "HH_A500"};
+    hh::renderer::RuntimeAssetRegistry registry;
+    registry.loadDirectoryAssetRange(root, "HH_A", 1u, 700u, required);
+
+    EXPECT_EQ(registry.size(), 4u);
+    EXPECT_TRUE(registry.contains("HH_A001"));
+    EXPECT_TRUE(registry.contains("HH_A501"));
+    EXPECT_TRUE(registry.contains("HH_A700"));
+    EXPECT_FALSE(registry.contains("HH_A701"));
+    EXPECT_FALSE(registry.contains("OTHER_100"));
+    EXPECT_TRUE(registry.tryResolve("HH_A500").has_value());
+    EXPECT_FALSE(registry.tryResolve("HH_A701").has_value());
+    EXPECT_EQ(registry.assets().size(), registry.size());
     std::filesystem::remove_all(root);
 }
 

@@ -252,7 +252,7 @@ def runtime_binding_sheet(repo_root: Path, out: Path):
 def generate(repo_root: Path):
     preview_dir = repo_root / 'Art' / 'Validation' / 'Previews'
     results = {}
-    for i in range(1, 11):
+    for i in range(1, 15):
         batch = f'{i:02d}'
         results[batch] = contact_sheet(
             repo_root / 'Art' / 'Exports' / f'Batch{batch}',
@@ -275,7 +275,7 @@ def generate(repo_root: Path):
     preview_dir.mkdir(parents=True, exist_ok=True)
     (preview_dir / 'preview_qc.json').write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
     print(
-        'generated 10 batch preview sheets plus runtime binding sheet; '
+        'generated 14 batch preview sheets plus runtime binding sheet; '
         'preview QA PASSED'
     )
     return report

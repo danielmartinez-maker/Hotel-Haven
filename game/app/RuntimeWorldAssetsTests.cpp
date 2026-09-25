@@ -128,8 +128,11 @@ hh::assets::AssetType testAssetType(std::string_view id) {
 int main() {
   try {
     const auto required = hh::client::requiredWorldAssetIds();
+    const auto presentation = hh::client::runtimeWorldPresentationAssetIds();
     require(required.size() == 70u,
-            "world presentation dependency set should contain 70 assets");
+            "legacy world dependency set should contain 70 assets");
+    require(presentation.size() == 63u,
+            "live V2 presentation dependency set should contain 63 assets");
 
     hh::renderer::RuntimeAssetRegistry registry;
     for (const std::string_view id : required) {
@@ -228,35 +231,74 @@ int main() {
       writeBytes(root / (std::string(id) + ".hasset"),
                  makeHasset(std::string(id), alpha, testAssetType(id)));
     }
+    for (const std::string_view id : presentation) {
+      writeBytes(root / (std::string(id) + ".hasset"),
+                 makeHasset(std::string(id), 1.0f, testAssetType(id)));
+    }
 
-    // A shipping package contains all 500 assets, but startup should decode only
-    // the world-view dependency set rather than eagerly materializing every GLB.
+    // Extra milestone assets are deliberately present on disk but unreachable
+    // by normal world presentation. Shipping startup must leave them undecoded;
+    // full milestone smoke mode must include the in-range files.
     writeBytes(root / "HH_A001.hasset",
                makeHasset("HH_A001", 1.0f,
                           hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A501.hasset",
+               makeHasset("HH_A501", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A700.hasset",
+               makeHasset("HH_A700", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
+    writeBytes(root / "HH_A701.hasset",
+               makeHasset("HH_A701", 1.0f,
+                          hh::assets::AssetType::StaticMesh));
 
-    hh::renderer::RuntimeAssetRegistry startupRegistry;
-    const hh::client::WorldAssetSet startupAssets =
-        hh::client::loadWorldAssetsFromDirectory(startupRegistry, root);
-    require(startupRegistry.size() == required.size(),
-            "startup decoded assets outside the world dependency set");
-    require(startupAssets.queenBed->handle ==
-                startupRegistry.resolve("HH_A113"),
-            "startup asset set did not bind queen bed handle");
-    require(startupRegistry.resolve("HH_A451").value < startupRegistry.size(),
-            "startup rejected a cooked skinned bind-pose character");
+    hh::renderer::RuntimeAssetRegistry shippingRegistry;
+    const hh::client::WorldAssetSet shippingAssets =
+        hh::client::loadWorldAssetsFromDirectory(shippingRegistry, root);
+    require(shippingRegistry.size() == required.size() + presentation.size(),
+            "shipping startup decoded assets outside the live presentation set");
+    require(shippingAssets.queenBed->handle ==
+                shippingRegistry.resolve("HH_A113"),
+            "shipping asset set did not bind queen bed handle");
+    require(shippingRegistry.resolve("HH_A451").value < shippingRegistry.size(),
+            "shipping startup rejected a cooked skinned bind-pose character");
+    require(shippingRegistry.contains("HH_A511") &&
+                shippingRegistry.contains("HH_A644"),
+            "shipping startup omitted live V2 presentation assets");
+    require(!shippingRegistry.contains("HH_A001") &&
+                !shippingRegistry.contains("HH_A501") &&
+                !shippingRegistry.contains("HH_A700") &&
+                !shippingRegistry.contains("HH_A701"),
+            "shipping startup eagerly decoded non-presented milestone assets");
+    require(findWorldAsset(shippingAssets, "HH_A511") != nullptr &&
+                findWorldAsset(shippingAssets, "HH_A644") != nullptr,
+            "shipping world catalog omitted live V2 assets");
 
-    bool strayLoaded = true;
-    try {
-      (void)startupRegistry.resolve("HH_A001");
-    } catch (const std::runtime_error&) {
-      strayLoaded = false;
-    }
-    require(!strayLoaded,
-            "startup eagerly decoded an unrelated package asset");
+    hh::renderer::RuntimeAssetRegistry milestoneRegistry;
+    const hh::client::WorldAssetSet milestoneAssets =
+        hh::client::loadWorldAssetsFromDirectory(
+            milestoneRegistry, root,
+            hh::client::RuntimeWorldAssetLoadMode::FullMilestone);
+    require(milestoneRegistry.size() ==
+                required.size() + presentation.size() + 3u,
+            "full milestone mode did not decode every available A001-A700 asset");
+    require(milestoneRegistry.contains("HH_A001"),
+            "milestone loader omitted an in-range legacy asset");
+    require(milestoneRegistry.contains("HH_A501"),
+            "milestone loader omitted the first unused V2 tranche asset");
+    require(milestoneRegistry.contains("HH_A700"),
+            "milestone loader omitted the A700 boundary asset");
+    require(!milestoneRegistry.contains("HH_A701"),
+            "milestone loader crossed into the A701+ tranche");
+    require(findWorldAsset(milestoneAssets, "HH_A501") != nullptr,
+            "full milestone catalog omitted A501");
+    require(findWorldAsset(milestoneAssets, "HH_A700") != nullptr,
+            "full milestone catalog omitted A700");
+    require(findWorldAsset(milestoneAssets, "HH_A701") == nullptr,
+            "full milestone catalog exposed an out-of-range asset");
     std::filesystem::remove_all(root);
 
-    std::cout << "Selective runtime registry world asset bridge passed\n";
+    std::cout << "Selective shipping + A700 smoke runtime bridge passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;
