@@ -229,6 +229,7 @@ struct Simulation::Impl {
   double baseDemand{1.5}, turnoverWork{2400}, repairWork{1800},
       checkInWork{300}, hungerRate{10.0 / 60.0}, restLoss{5.0 / 60.0},
       roomConditionLossPerDay{2.5};
+  GuestDemandEnvironment guestDemandEnvironment{};
   int utilityPerRoomDayCents{350};
   int onboardingCostCents{0};
   int staffBreakAfterMinutes{0};
@@ -990,6 +991,9 @@ struct Simulation::Impl {
     bookingContext.hotelStars = economy.stars;
     bookingContext.hotelReputation =
         static_cast<int>(std::clamp(std::lround(economy.reputation), 0L, 100L));
+    bookingContext.seasonMultiplierBasisPoints =
+        guestDemandEnvironment.seasonMultiplierBasisPoints;
+    bookingContext.locationScore = guestDemandEnvironment.locationScore;
 
     const auto amenitySnapshot = amenities.snapshot();
     for (const auto &amenity : amenitySnapshot.amenities) {
@@ -2601,6 +2605,16 @@ CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
   impl_->economy.supplyCostCents += cost;
   return {true, "Order submitted", p.id};
 }
+void Simulation::setGuestDemandEnvironment(
+    const GuestDemandEnvironment &environment) {
+  if (environment.seasonMultiplierBasisPoints < 0 ||
+      environment.seasonMultiplierBasisPoints > 100000 ||
+      (environment.locationScore != -1 &&
+       (environment.locationScore < 0 || environment.locationScore > 100)))
+    throw std::invalid_argument("invalid guest demand environment");
+  impl_->guestDemandEnvironment = environment;
+}
+
 CommandResult Simulation::loadDefinitions(std::string_view j) {
   auto d = *impl_;
   hh::assets::JsonValue root;
