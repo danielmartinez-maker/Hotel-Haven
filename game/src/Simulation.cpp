@@ -104,6 +104,7 @@ struct Person : PersonView {
 };
 struct Reservation : ReservationView {
   double checkoutCleanliness{100};
+  bool arrived{};
 };
 struct Task : TaskView {
   double total{};
