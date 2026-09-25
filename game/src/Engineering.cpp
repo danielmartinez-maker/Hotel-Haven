@@ -118,8 +118,10 @@ void EngineeringSystem::tickSecondFor(
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
-  // Integrated Simulation owns room wear/failure generation. Standalone
-  // EngineeringSystem::tickSecond() retains FINAL-04 reliability behavior.
+  // Reliability/condition remains authoritative in FINAL-04 for both
+  // standalone and integrated execution. Simulation supplies labor gating for
+  // work orders, then mirrors this hourly state into physical RoomView state.
+  tickReliabilitySecond();
 }
 
 void EngineeringSystem::tickSeconds(std::int64_t seconds) {
