@@ -44,6 +44,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
         'interaction_anchors': ['INT_USE_01', 'INT_REPAIR_01'],
     }
     contract = {
+        'asset_type': 'StaticMeshAsset',
         'units': 'meters',
         'lod_policy': 'lod_furniture',
         'collision_policy': 'simple_proxy',
@@ -52,6 +53,7 @@ def test_gameplay_sidecar_normalizer_applies_profile_contract_and_anchors():
 
     normalized = normalize(sidecar, meta, contract)
 
+    assert normalized['asset_type'] == 'StaticMeshAsset'
     assert normalized['units'] == 'meters'
     assert normalized['lod_policy'] == 'lod_furniture'
     assert normalized['collision_policy'] == 'simple_proxy'
