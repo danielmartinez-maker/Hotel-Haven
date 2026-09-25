@@ -283,13 +283,11 @@ void contextual_archetype_mix_responds_to_property_positioning_and_events() {
   economyHotel.weekday = 5;
   economyHotel.hotelStars = 2;
   economyHotel.hotelReputation = 58;
-  economyHotel.roomRateCents = 9000;
+  economyHotel.roomRateCents = 17000;
 
   GuestArchetypeContext resort = economyHotel;
   resort.hotelStars = 5;
   resort.hotelReputation = 92;
-  resort.roomRateCents = 28000;
-  resort.hasGym = resort.hasSpa = resort.hasPool = true;
 
   const auto economyCounts = sample(economyHotel, 88002);
   const auto resortCounts = sample(resort, 88002);
@@ -330,6 +328,97 @@ void contextual_archetype_mix_responds_to_property_positioning_and_events() {
                           GuestArchetype::BleisureTraveler});
   require(eventGuests > quietEventGuests,
           "on-property event demand did not increase event-linked archetypes");
+}
+
+void contextual_archetype_mix_responds_to_pricing_and_amenities() {
+  const auto sample = [](const GuestArchetypeContext &context,
+                         std::uint64_t seed) {
+    std::array<int, 20> counts{};
+    std::mt19937_64 random(seed);
+    for (int i = 0; i < 8000; ++i) {
+      const auto profile =
+          detail::generateGuestProfileFromRandom(random, context);
+      ++counts[static_cast<std::size_t>(profile.archetype)];
+    }
+    return counts;
+  };
+  const auto count = [](const std::array<int, 20> &counts,
+                        std::initializer_list<GuestArchetype> archetypes) {
+    int total{};
+    for (const auto archetype : archetypes)
+      total += counts[static_cast<std::size_t>(archetype)];
+    return total;
+  };
+
+  GuestArchetypeContext valueRate;
+  valueRate.weekday = 2;
+  valueRate.hotelStars = 3;
+  valueRate.hotelReputation = 75;
+  valueRate.roomRateCents = 9000;
+  auto premiumRate = valueRate;
+  premiumRate.roomRateCents = 28000;
+
+  const auto valueRateCounts = sample(valueRate, 88006);
+  const auto premiumRateCounts = sample(premiumRate, 88006);
+  const int valueSegmentsAtValueRate =
+      count(valueRateCounts, {GuestArchetype::BudgetLeisure,
+                              GuestArchetype::Backpacker,
+                              GuestArchetype::GroupTourTraveler,
+                              GuestArchetype::ExtendedStayGuest,
+                              GuestArchetype::SportsTeamTraveler});
+  const int valueSegmentsAtPremiumRate =
+      count(premiumRateCounts, {GuestArchetype::BudgetLeisure,
+                                GuestArchetype::Backpacker,
+                                GuestArchetype::GroupTourTraveler,
+                                GuestArchetype::ExtendedStayGuest,
+                                GuestArchetype::SportsTeamTraveler});
+  const int premiumSegmentsAtValueRate =
+      count(valueRateCounts, {GuestArchetype::ExecutiveBusiness,
+                              GuestArchetype::LuxuryLeisure,
+                              GuestArchetype::VipCelebrity,
+                              GuestArchetype::BleisureTraveler,
+                              GuestArchetype::CriticReviewer,
+                              GuestArchetype::WellnessTraveler});
+  const int premiumSegmentsAtPremiumRate =
+      count(premiumRateCounts, {GuestArchetype::ExecutiveBusiness,
+                                GuestArchetype::LuxuryLeisure,
+                                GuestArchetype::VipCelebrity,
+                                GuestArchetype::BleisureTraveler,
+                                GuestArchetype::CriticReviewer,
+                                GuestArchetype::WellnessTraveler});
+  require(valueSegmentsAtValueRate > valueSegmentsAtPremiumRate,
+          "premium pricing did not reduce price-sensitive guest share");
+  require(premiumSegmentsAtPremiumRate > premiumSegmentsAtValueRate,
+          "premium pricing did not increase higher-budget guest share");
+
+  GuestArchetypeContext noAmenities;
+  noAmenities.weekday = 5;
+  noAmenities.hotelStars = 3;
+  noAmenities.hotelReputation = 75;
+  noAmenities.roomRateCents = 17000;
+  auto amenityRich = noAmenities;
+  amenityRich.hasGym = true;
+  amenityRich.hasSpa = true;
+  amenityRich.hasPool = true;
+
+  const auto noAmenityCounts = sample(noAmenities, 88007);
+  const auto amenityCounts = sample(amenityRich, 88007);
+  const int matchedWithoutAmenities =
+      count(noAmenityCounts, {GuestArchetype::WellnessTraveler,
+                              GuestArchetype::StaycationGuest,
+                              GuestArchetype::FamilyLeisure,
+                              GuestArchetype::SportsTeamTraveler,
+                              GuestArchetype::LuxuryLeisure,
+                              GuestArchetype::CoupleLeisure});
+  const int matchedWithAmenities =
+      count(amenityCounts, {GuestArchetype::WellnessTraveler,
+                            GuestArchetype::StaycationGuest,
+                            GuestArchetype::FamilyLeisure,
+                            GuestArchetype::SportsTeamTraveler,
+                            GuestArchetype::LuxuryLeisure,
+                            GuestArchetype::CoupleLeisure});
+  require(matchedWithAmenities > matchedWithoutAmenities,
+          "usable amenities did not increase amenity-matched guest share");
 }
 
 void contextual_archetype_mix_responds_to_seasonality_and_location() {
@@ -748,6 +837,7 @@ int main() {
     runCase("archetype_queue_tolerance_matches_trip_context", archetype_queue_tolerance_matches_trip_context);
     runCase("contextual_archetype_mix_responds_to_weekday_and_weekend_demand", contextual_archetype_mix_responds_to_weekday_and_weekend_demand);
     runCase("contextual_archetype_mix_responds_to_property_positioning_and_events", contextual_archetype_mix_responds_to_property_positioning_and_events);
+    runCase("contextual_archetype_mix_responds_to_pricing_and_amenities", contextual_archetype_mix_responds_to_pricing_and_amenities);
     runCase("contextual_archetype_mix_responds_to_seasonality_and_location", contextual_archetype_mix_responds_to_seasonality_and_location);
     runCase("archetypes_generate_trip_length_profiles", archetypes_generate_trip_length_profiles);
     runCase("traits_materially_modify_guest_preferences", traits_materially_modify_guest_preferences);
