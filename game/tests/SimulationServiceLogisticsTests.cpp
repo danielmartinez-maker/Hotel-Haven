@@ -652,8 +652,10 @@ static void stable_commands_and_save_boundary() {
           "demolition test definitions rejected");
   for (int x = 0; x < 10; ++x)
     require(demolition
-                .buildTile({0, x, 1},
-                           x == 0 ? TileKind::Entrance : TileKind::Floor)
+                .buildTile(
+                    {0, x, 1},
+                    x == 0 ? TileKind::Entrance
+                           : x == 2 ? TileKind::SupplyCloset : TileKind::Floor)
                 .ok,
             "demolition test corridor build failed");
   const auto built = demolition.buildFurnishedRoom(
