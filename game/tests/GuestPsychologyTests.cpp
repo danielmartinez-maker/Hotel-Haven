@@ -824,9 +824,9 @@ void material_experience_persists_in_versioned_save() {
           "psychology schema state did not preserve current save version");
   const auto loaded = Simulation::load(saved);
   require(loaded.guestPsychology(guestId) == before,
-          "material psychology history changed across v12 save/load");
+          "material psychology history changed across v13 save/load");
   require(loaded.save() == saved,
-          "v12 psychology save was not byte-stable after round trip");
+          "v13 psychology save was not byte-stable after round trip");
 }
 } // namespace
 
