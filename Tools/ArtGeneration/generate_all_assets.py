@@ -82,6 +82,12 @@ def gameplay_manifest_metadata(root: Path) -> tuple[dict[str, dict], dict[str, d
 
 def normalize_gameplay_sidecar_data(sidecar: dict, meta: dict, contract: dict) -> dict:
     normalized = dict(sidecar)
+    # The manifest profile is authoritative for runtime representation. Legacy
+    # generators predate PrefabAsset and some animation-profile refinements, so
+    # preserving their historical asset_type here makes the cooked package
+    # disagree with the profile contract even when every other field is
+    # normalized correctly.
+    normalized['asset_type'] = contract['asset_type']
     normalized['units'] = contract['units']
     normalized['lod_policy'] = contract['lod_policy']
     normalized['cutaway_policy'] = contract['cutaway_policy']

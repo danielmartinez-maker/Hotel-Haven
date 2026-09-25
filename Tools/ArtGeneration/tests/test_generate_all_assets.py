@@ -27,3 +27,34 @@ def test_trimesh_color_guard_preserves_float_255_palette_values():
     g.install_trimesh_color_guard()
     mat=trimesh.visual.material.PBRMaterial(baseColorFactor=np.array([112.0,64.0,32.0,255.0]))
     assert mat.baseColorFactor.tolist()==[112,64,32,255]
+
+
+def test_gameplay_sidecar_normalization_uses_authoritative_profile_asset_type():
+    sidecar = {
+        'asset_id': 'HH_A999',
+        'asset_type': 'StaticMeshAsset',
+        'units': 'centimeters',
+        'lod_policy': 'legacy',
+        'collision_policy': 'legacy',
+        'cutaway_policy': 'legacy',
+        'interaction_anchors': [],
+        'tags': [],
+    }
+    meta = {'interaction_anchors': ['INT_USE_01']}
+    contract = {
+        'asset_type': 'PrefabAsset',
+        'units': 'meters',
+        'lod_policy': 'lod_furniture',
+        'collision_policy': 'simple_proxy',
+        'cutaway_policy': 'normal',
+    }
+
+    normalized = g.normalize_gameplay_sidecar_data(sidecar, meta, contract)
+
+    assert normalized['asset_type'] == 'PrefabAsset'
+    assert normalized['units'] == 'meters'
+    assert normalized['lod_policy'] == 'lod_furniture'
+    assert normalized['collision_policy'] == 'simple_proxy'
+    assert normalized['cutaway_policy'] == 'normal'
+    assert normalized['interaction_anchors'] == ['INT_USE_01']
+    assert 'interaction_anchor:INT_USE_01' in normalized['tags']
