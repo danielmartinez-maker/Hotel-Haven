@@ -94,7 +94,16 @@ int main() {
   require(!optimizerSnapshot.employees.empty(),
           "bridge did not expose optimizer workforce snapshot");
 
-  bridge.setPlayerHotelOffer({1, 15'000, 75, 4, 80, 80, 75, true});
+  bridge.setPlayerHotelOffer({1, 15'000, 75, 4, 80, 88, 75, true});
+  MarketDemandModifiers demandModifiers;
+  demandModifiers.seasonMultiplierBasisPoints = 16500;
+  bridge.setDemandModifiers(demandModifiers);
+  const auto guestEnvironment =
+      bridge.physicalSimulation().guestDemandEnvironment();
+  require(guestEnvironment.locationScore == 88 &&
+              guestEnvironment.seasonMultiplierBasisPoints == 16500,
+          "FINAL-06 location/season context did not reach physical guest generation");
+
   bridge.setCompetitors({{2, "Comparable", 16'000, 76, 4, 80, 80, 75},
                          {3, "Premium", 22'000, 88, 5, 92, 90, 88}});
   require(bridge.marketSnapshot().comparableMedianRateCents == 19'000,
@@ -111,4 +120,7 @@ int main() {
   require(restored.financialSnapshot().economics.cashCents ==
               restored.view().economy.cashCents,
           "restored bridge ledger diverged from simulation cash");
+  require(restored.physicalSimulation().guestDemandEnvironment() ==
+              guestEnvironment,
+          "bridge load did not reconstruct guest demand context from FINAL-06");
 }
