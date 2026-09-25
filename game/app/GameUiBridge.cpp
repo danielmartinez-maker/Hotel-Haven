@@ -2,6 +2,7 @@
 
 #include "hh/game/EconomyRuntime.h"
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cmath>
 #include <iomanip>
