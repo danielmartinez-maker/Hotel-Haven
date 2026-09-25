@@ -86,3 +86,37 @@ def test_a700_extension_preserves_profile_runtime_asset_types(tmp_path):
                 (out / f"{asset_id}.asset.json").read_text(encoding="utf-8")
             )
             assert sidecar["asset_type"] == expected[profile]
+
+
+def test_live_a700_props_use_purpose_built_semantic_geometry(tmp_path):
+    expectations = {
+        12: {
+            "HH_A559": {"Base", "FrameStem", "LampShade"},
+            "HH_A570": {"Frame", "ArtPanel"},
+            "HH_A571": {"Frame", "MirrorGlass"},
+            "HH_A578": {"BaseTray", "FunctionalInset"},
+            "HH_A579": {"FrameRiser", "FunctionalHead"},
+            "HH_A580": {"FrameRail", "Mount_L", "Mount_R"},
+            "HH_A582": {"BaseTray", "Bottle_0"},
+        },
+        13: {
+            "HH_A610": {"SeatBase", "BaseLeg_0"},
+            "HH_A614": {"Base", "SeatCushion", "TopPad"},
+            "HH_A619": {"Base", "FrameStem", "LampShade"},
+            "HH_A623": {"BasePlanter", "FrameSlat_0", "RolePlant_0"},
+            "HH_A643": {"Base", "Frame", "Shelf_0"},
+            "HH_A644": {"Base", "FramePedestal", "PanelScreen"},
+        },
+    }
+    for batch, assets in expectations.items():
+        module = importlib.import_module(f"batch{batch:02d}_generate")
+        out = tmp_path / f"purpose-built-{batch:02d}"
+        module.generate_package(
+            MANIFEST / f"asset_batch_{batch:02d}.json",
+            out,
+            f"Tools/ArtGeneration/batch{batch:02d}_generate.py",
+        )
+        for asset_id, required_nodes in assets.items():
+            scene = trimesh.load(out / f"{asset_id}.glb", force="scene")
+            nodes = set(map(str, scene.graph.nodes_geometry))
+            assert required_nodes <= nodes, (asset_id, sorted(required_nodes - nodes))

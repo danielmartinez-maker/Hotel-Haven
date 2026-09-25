@@ -148,6 +148,153 @@ def sofa(name: str, mat: str) -> trimesh.Scene:
     return scene
 
 
+
+def lamp(name: str, mat: str) -> trimesh.Scene:
+    """Purpose-built bedside, table and floor lamps with a grounded base."""
+    scene = trimesh.Scene()
+    is_floor = 'Floor Lamp' in name
+    overall = 1.34 if is_floor else 0.48
+    base_radius = 0.18 if is_floor else 0.13
+    add(scene, cyl(base_radius, 0.07, (0, 0, 0.035), 'MAT_BRASS_POLISHED', 20), 'Base')
+    stem_height = overall * 0.68
+    add(
+        scene,
+        cyl(0.025 if is_floor else 0.018, stem_height,
+            (0, 0, 0.07 + stem_height / 2), 'MAT_BRASS_POLISHED', 14),
+        'FrameStem',
+    )
+    shade_z = 0.07 + stem_height + overall * 0.12
+    add(
+        scene,
+        cyl(0.20 if is_floor else 0.15, overall * 0.24,
+            (0, 0, shade_z), mat, 24),
+        'LampShade',
+    )
+    add(
+        scene,
+        sphere(0.055 if is_floor else 0.04,
+               (0, 0, shade_z - overall * 0.02), 'MAT_EMISSIVE_WARM', 1),
+        'FunctionalBulb',
+    )
+    return scene
+
+
+def wall_feature(name: str, mat: str) -> trimesh.Scene:
+    """Wall art and mirrors with distinct framed silhouettes."""
+    scene = trimesh.Scene()
+    is_mirror = 'Mirror' in name
+    width = 0.62 if is_mirror else 1.10
+    height = 1.55 if is_mirror else 0.72
+    depth = 0.055
+    add(scene, box((width, depth, height), (0, 0, height / 2), 'MAT_WOOD_WARM'), 'Frame')
+    inset_mat = 'MAT_GLASS_CLEAR' if is_mirror else mat
+    add(
+        scene,
+        box((width * 0.88, depth + 0.012, height * 0.88),
+            (0, -0.008, height / 2), inset_mat),
+        'MirrorGlass' if is_mirror else 'ArtPanel',
+    )
+    if not is_mirror:
+        add(
+            scene,
+            box((width * 0.28, depth + 0.018, height * 0.46),
+                (-width * 0.20, -0.014, height * 0.52), 'MAT_BRASS_POLISHED'),
+            'RoleAccent',
+        )
+    return scene
+
+
+def bathroom_detail(name: str, mat: str) -> trimesh.Scene:
+    """Small bathroom fixtures that should not fall back to a generic cabinet."""
+    scene = trimesh.Scene()
+    if 'Shower Tray' in name:
+        add(scene, box((0.92, 0.92, 0.08), (0, 0, 0.04), mat), 'BaseTray')
+        add(scene, box((0.76, 0.76, 0.025), (0, 0, 0.09), 'MAT_STONE_LIGHT'), 'FunctionalInset')
+    elif 'Shower Head' in name:
+        add(scene, cyl(0.022, 0.68, (0, 0, 0.34), 'MAT_STAINLESS', 12), 'FrameRiser')
+        add(scene, cyl(0.16, 0.045, (0, 0, 0.70), 'MAT_STAINLESS', 22), 'FunctionalHead')
+    elif 'Towel Rail' in name:
+        add(scene, box((0.68, 0.035, 0.035), (0, 0, 0.12), 'MAT_STAINLESS'), 'FrameRail')
+        for side, x in (('L', -0.31), ('R', 0.31)):
+            add(scene, box((0.035, 0.08, 0.18), (x, 0.03, 0.09), 'MAT_STAINLESS'), f'Mount_{side}')
+    elif 'Towel Shelf' in name:
+        add(scene, box((0.72, 0.34, 0.05), (0, 0, 0.12), 'MAT_STAINLESS'), 'BaseShelf')
+        add(scene, box((0.60, 0.26, 0.12), (0, 0, 0.205), 'MAT_LINEN'), 'FoldedTowel_0')
+        add(scene, box((0.52, 0.24, 0.10), (0, 0, 0.315), 'MAT_LINEN'), 'FoldedTowel_1')
+    elif 'Amenity Tray' in name:
+        add(scene, box((0.46, 0.26, 0.045), (0, 0, 0.023), mat), 'BaseTray')
+        for i, x in enumerate((-0.14, 0.0, 0.14)):
+            add(scene, cyl(0.035, 0.13 + 0.02 * (i % 2),
+                           (x, 0, 0.10), 'MAT_CERAMIC_FIXTURE', 12), f'Bottle_{i}')
+    elif 'Tissue Box' in name:
+        add(scene, box((0.24, 0.13, 0.11), (0, 0, 0.055), mat), 'BaseBox')
+        add(scene, box((0.08, 0.025, 0.10), (0, 0, 0.15), 'MAT_LINEN'), 'FunctionalTissue')
+    elif 'Hair Dryer' in name:
+        add(scene, box((0.24, 0.08, 0.28), (0, 0, 0.14), 'MAT_ELECTRONICS'), 'FrameMount')
+        add(scene, cyl(0.07, 0.22, (0, -0.08, 0.20), 'MAT_ELECTRONICS', 16), 'FunctionalDryer')
+        add(scene, box((0.045, 0.045, 0.20), (0.05, -0.08, 0.06), 'MAT_ELECTRONICS'), 'Handle')
+    elif 'Grab Bar' in name or 'Toilet Rail' in name:
+        width = 0.72
+        add(scene, box((width, 0.045, 0.045), (0, 0, 0.24), 'MAT_STAINLESS'), 'FrameRail')
+        for side, x in (('L', -width * 0.46), ('R', width * 0.46)):
+            add(scene, box((0.045, 0.16, 0.28), (x, 0.06, 0.14), 'MAT_STAINLESS'), f'Mount_{side}')
+    else:
+        return semantic_composite(name, mat)
+    return scene
+
+
+def ottoman(name: str, mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    add(scene, box((0.64, 0.56, 0.10), (0, 0, 0.05), 'MAT_BLACKENED_STEEL'), 'Base')
+    add(scene, box((0.68, 0.60, 0.30), (0, 0, 0.25), mat), 'SeatCushion')
+    add(scene, box((0.54, 0.46, 0.035), (0, 0, 0.42), 'MAT_UPHOLSTERY'), 'TopPad')
+    return scene
+
+
+def divider(name: str, mat: str) -> trimesh.Scene:
+    """Lobby divider family with material-specific panels and planter mass."""
+    scene = trimesh.Scene()
+    width, height = 1.55, 1.72
+    add(scene, box((width, 0.34, 0.10), (0, 0, 0.05), 'MAT_BLACKENED_STEEL'), 'Base')
+    if 'Planter' in name:
+        add(scene, box((width, 0.38, 0.46), (0, 0, 0.23), 'MAT_WOOD_WARM'), 'BasePlanter')
+        for i in range(5):
+            x = -width * 0.38 + i * width * 0.19
+            add(scene, sphere(0.18, (x, 0, 0.56 + 0.05 * (i % 2)), 'MAT_VEGETATION', 1), f'RolePlant_{i}')
+        for i in range(7):
+            x = -width * 0.43 + i * width * 0.143
+            add(scene, box((0.045, 0.10, height - 0.50), (x, 0, 0.50 + (height - 0.50) / 2), mat), f'FrameSlat_{i}')
+    elif 'Glass' in name:
+        add(scene, box((width * 0.92, 0.045, height - 0.18), (0, 0, height * 0.52), 'MAT_GLASS_CLEAR'), 'PanelGlass')
+        for side, x in (('L', -width * 0.48), ('R', width * 0.48)):
+            add(scene, box((0.055, 0.10, height), (x, 0, height / 2), 'MAT_BLACKENED_STEEL'), f'Frame_{side}')
+    else:
+        for i in range(9):
+            x = -width * 0.44 + i * width * 0.11
+            add(scene, box((0.055, 0.16, height), (x, 0, height / 2), mat), f'FrameSlat_{i}')
+    return scene
+
+
+def brochure_stand(name: str, mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    add(scene, box((0.42, 0.32, 0.07), (0, 0, 0.035), 'MAT_BLACKENED_STEEL'), 'Base')
+    add(scene, box((0.055, 0.055, 1.05), (0, 0.08, 0.56), 'MAT_BLACKENED_STEEL'), 'Frame')
+    for i in range(3):
+        z = 0.38 + i * 0.25
+        add(scene, box((0.38, 0.10, 0.22), (0, -0.05, z), mat), f'Shelf_{i}')
+        add(scene, box((0.30, 0.018, 0.16), (0, -0.11, z + 0.02), 'MAT_SIGNAGE'), f'BrochurePanel_{i}')
+    return scene
+
+
+def directory_kiosk(name: str, mat: str) -> trimesh.Scene:
+    scene = trimesh.Scene()
+    add(scene, box((0.52, 0.42, 0.08), (0, 0, 0.04), 'MAT_BLACKENED_STEEL'), 'Base')
+    add(scene, box((0.22, 0.20, 0.76), (0, 0, 0.46), mat), 'FramePedestal')
+    add(scene, box((0.62, 0.12, 0.88), (0, 0, 1.20), 'MAT_ELECTRONICS'), 'PanelScreen')
+    add(scene, box((0.52, 0.025, 0.10), (0, -0.075, 1.53), 'MAT_EMISSIVE_WARM'), 'FunctionalHeader')
+    return scene
+
+
 def table(name: str, mat: str) -> trimesh.Scene:
     round_top = any(k in name for k in ('Round', 'Two Top', 'Side Table', 'Cafe Table'))
     scene = trimesh.Scene()

@@ -2,7 +2,19 @@ from __future__ import annotations
 
 import trimesh
 
-from v2_asset_common import bathroom_fixture, bed, cabinet, chair, desk, semantic_composite, sofa, table
+from v2_asset_common import (
+    bathroom_detail,
+    bathroom_fixture,
+    bed,
+    cabinet,
+    chair,
+    desk,
+    lamp,
+    semantic_composite,
+    sofa,
+    table,
+    wall_feature,
+)
 
 
 def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: str) -> trimesh.Scene:
@@ -12,6 +24,15 @@ def build_asset(name: str, subcategory: str, mat: str, asset_id: str, profile: s
         return chair(name, mat)
     if 'Sofa' in name:
         return sofa(name, mat)
+    if 'Lamp' in name:
+        return lamp(name, mat)
+    if 'Wall Art' in name or 'Mirror' in name:
+        return wall_feature(name, mat)
+    if any(k in name for k in (
+        'Shower Tray', 'Shower Head', 'Towel Rail', 'Towel Shelf',
+        'Amenity Tray', 'Tissue Box', 'Hair Dryer', 'Grab Bar', 'Toilet Rail',
+    )):
+        return bathroom_detail(name, mat)
     if any(k in name for k in ('Desk', 'Vanity')):
         if 'Vanity' in name:
             return bathroom_fixture(name, mat)
