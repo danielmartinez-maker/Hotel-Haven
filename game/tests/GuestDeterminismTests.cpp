@@ -61,9 +61,14 @@ void booking_profile_stream_ignores_unrelated_entity_ids() {
   require(a.reservations.size() == b.reservations.size() &&
               !a.reservations.empty(),
           "entity-id perturbation changed booking count");
-  for (std::size_t index = 0; index < a.reservations.size(); ++index)
+  for (std::size_t index = 0; index < a.reservations.size(); ++index) {
     require(a.reservations[index].profile == b.reservations[index].profile,
             "unrelated entity-id churn changed guest profile stream");
+    require(a.reservations[index].arrivalDay == b.reservations[index].arrivalDay &&
+                a.reservations[index].departureDay ==
+                    b.reservations[index].departureDay,
+            "unrelated entity-id churn changed deterministic stay length");
+  }
 }
 
 void twenty_day_same_seed_campaign_is_byte_deterministic() {
