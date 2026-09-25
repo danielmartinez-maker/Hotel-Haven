@@ -1040,8 +1040,7 @@ struct Simulation::Impl {
               reservations.size() + completedReservationHistory.size()) +
           1u;
       std::mt19937_64 profileRandom(
-          mixedSeed(seed, bookingOrdinal, static_cast<std::uint64_t>(day),
-                    static_cast<std::uint64_t>(hour), 0x4755455354ULL));
+          mixedSeed(seed, bookingOrdinal, 0, 0, 0x4755455354ULL));
       auto roomContext = bookingContext;
       roomContext.roomRateCents = r->nightlyRateCents;
       const GuestProfileView prospectiveProfile =
