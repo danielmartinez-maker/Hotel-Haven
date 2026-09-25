@@ -3245,7 +3245,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 12 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 13 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -3295,13 +3295,15 @@ std::string Simulation::save() const {
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << '\n';
+      << r.checkoutCleanliness << ' ' << r.checkInTravelSeconds << ' '
+      << r.checkInWaitSeconds << ' ' << r.walkedRelocated << '\n';
   for (auto &r : impl_->completedReservationHistory)
     o << r.id << ' ' << std::quoted(r.guestName) << ' ' << r.roomId << ' '
       << r.arrivalDay << ' ' << r.departureDay << ' ' << r.nightlyRateCents
       << ' ' << r.checkedIn << ' ' << r.completed << ' ' << r.satisfaction
       << ' ' << r.arrived << ' ' << r.checkoutStarted << ' '
-      << r.checkoutCleanliness << '\n';
+      << r.checkoutCleanliness << ' ' << r.checkInTravelSeconds << ' '
+      << r.checkInWaitSeconds << ' ' << r.walkedRelocated << '\n';
   o << impl_->tasks.size() + impl_->completedTaskHistory.size() << '\n';
   for (auto &t : impl_->tasks)
     o << t.id << ' ' << ei(t.kind) << ' ' << ei(t.status) << ' ' << t.targetId
@@ -3496,7 +3498,7 @@ Simulation Simulation::load(std::string_view data) {
   std::string magic;
   int version, w, h, f;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 12)
+  if (magic != "HHGS" || version < 2 || version > 13)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -3650,6 +3652,9 @@ Simulation Simulation::load(std::string_view data) {
       i >> r.checkoutStarted >> r.checkoutCleanliness;
     else if (r.completed)
       r.checkoutStarted = true;
+    if (version >= 13)
+      i >> r.checkInTravelSeconds >> r.checkInWaitSeconds >>
+          r.walkedRelocated;
     if (version < 6) {
       if (!std::isfinite(legacyNightlyRate) || legacyNightlyRate <= 0 ||
           legacyNightlyRate > 5000)
@@ -3664,7 +3669,9 @@ Simulation Simulation::load(std::string_view data) {
         r.nightlyRateCents <= 0 || r.nightlyRateCents > 500000 ||
         !std::isfinite(r.satisfaction) || r.satisfaction < 0 ||
         r.satisfaction > 100 || !std::isfinite(r.checkoutCleanliness) ||
-        r.checkoutCleanliness < 0 || r.checkoutCleanliness > 100)
+        r.checkoutCleanliness < 0 || r.checkoutCleanliness > 100 ||
+        r.checkInTravelSeconds < 0 || r.checkInWaitSeconds < 0 ||
+        (r.walkedRelocated && (r.checkedIn || !r.completed)))
       throw std::invalid_argument("invalid saved reservation");
   i >> n;
   if (n > 100000)
