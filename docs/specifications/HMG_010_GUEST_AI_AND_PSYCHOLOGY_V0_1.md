@@ -122,12 +122,12 @@ Baseline archetypes:
 
 An archetype is a probability distribution, not a fixed template. Individual guests receive variation around archetype means.
 
-The implemented archetype mix is contextual rather than globally static. The generator starts from baseline segment weights and deterministically reweights them from current hotel state:
+The implemented archetype mix is contextual rather than globally static. The generator starts from baseline segment weights and deterministically reweights them from current hotel state. Amenity effects are graded rather than binary: a small or poorly maintained facility produces less segment attraction than a high-capacity, high-quality one.
 
 - weekday/weekend travel pattern
 - hotel star class and reputation
 - room rate relative to archetype budget and price sensitivity
-- usable gym, spa, and pool supply
+- gym, spa, and pool attractiveness derived from usable capacity, cleanliness, and condition
 - same-day on-property event attendance
 - FINAL-06 seasonal demand intensity
 - FINAL-06 hotel location score
