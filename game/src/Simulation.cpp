@@ -104,7 +104,6 @@ struct Person : PersonView {
 };
 struct Reservation : ReservationView {
   double checkoutCleanliness{100};
-  bool arrived{};
 };
 struct Task : TaskView {
   double total{};
@@ -1612,6 +1611,10 @@ struct Simulation::Impl {
       auto *target = getRoom(order.assetId);
       if (!target)
         continue;
+      // Simulation owns this work order whether or not a technician is
+      // currently available. Keeping it in the managed set prevents FINAL-04
+      // standalone progression from bypassing physical labor.
+      preventiveManagedEngineeringScratch.push_back(order.assetId);
       Person *best = nullptr;
       int bestDistance = std::numeric_limits<int>::max();
       for (auto &person : people) {
@@ -1642,10 +1645,8 @@ struct Simulation::Impl {
         best->position = route.front();
         ++best->travelSeconds;
         best->fatigue = std::min(100.0, best->fatigue + 4.0 / 3600.0);
-        preventiveManagedEngineeringScratch.push_back(order.assetId);
         continue;
       }
-      preventiveManagedEngineeringScratch.push_back(order.assetId);
       preventiveWorkingEngineeringScratch.push_back(order.assetId);
       best->state = PersonState::Working;
       best->fatigue = std::min(100.0, best->fatigue + 6.0 / 3600.0);
