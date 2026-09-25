@@ -332,6 +332,107 @@ void contextual_archetype_mix_responds_to_property_positioning_and_events() {
           "on-property event demand did not increase event-linked archetypes");
 }
 
+void contextual_archetype_mix_responds_to_seasonality_and_location() {
+  const auto sample = [](const GuestArchetypeContext &context,
+                         std::uint64_t seed) {
+    std::array<int, 20> counts{};
+    std::mt19937_64 random(seed);
+    for (int i = 0; i < 8000; ++i) {
+      const auto profile =
+          detail::generateGuestProfileFromRandom(random, context);
+      ++counts[static_cast<std::size_t>(profile.archetype)];
+    }
+    return counts;
+  };
+  const auto count = [](const std::array<int, 20> &counts,
+                        std::initializer_list<GuestArchetype> archetypes) {
+    int total{};
+    for (const auto archetype : archetypes)
+      total += counts[static_cast<std::size_t>(archetype)];
+    return total;
+  };
+
+  GuestArchetypeContext trough;
+  trough.weekday = 2;
+  trough.hotelStars = 3;
+  trough.hotelReputation = 75;
+  trough.roomRateCents = 17000;
+  trough.seasonMultiplierBasisPoints = 6500;
+  auto peak = trough;
+  peak.seasonMultiplierBasisPoints = 17500;
+
+  const auto troughCounts = sample(trough, 88004);
+  const auto peakCounts = sample(peak, 88004);
+  const int troughLeisure =
+      count(troughCounts, {GuestArchetype::CoupleLeisure,
+                           GuestArchetype::FamilyLeisure,
+                           GuestArchetype::LuxuryLeisure,
+                           GuestArchetype::WellnessTraveler,
+                           GuestArchetype::WeddingGuest,
+                           GuestArchetype::StaycationGuest});
+  const int peakLeisure =
+      count(peakCounts, {GuestArchetype::CoupleLeisure,
+                         GuestArchetype::FamilyLeisure,
+                         GuestArchetype::LuxuryLeisure,
+                         GuestArchetype::WellnessTraveler,
+                         GuestArchetype::WeddingGuest,
+                         GuestArchetype::StaycationGuest});
+  const int troughRecurring =
+      count(troughCounts, {GuestArchetype::BusinessTraveler,
+                           GuestArchetype::ExecutiveBusiness,
+                           GuestArchetype::ExtendedStayGuest,
+                           GuestArchetype::AirlineCrew});
+  const int peakRecurring =
+      count(peakCounts, {GuestArchetype::BusinessTraveler,
+                         GuestArchetype::ExecutiveBusiness,
+                         GuestArchetype::ExtendedStayGuest,
+                         GuestArchetype::AirlineCrew});
+  require(peakLeisure > troughLeisure,
+          "peak season did not increase discretionary leisure mix");
+  require(troughRecurring > peakRecurring,
+          "low season did not increase recurring work/long-stay share");
+
+  GuestArchetypeContext weakLocation;
+  weakLocation.weekday = 2;
+  weakLocation.hotelStars = 4;
+  weakLocation.hotelReputation = 82;
+  weakLocation.roomRateCents = 19000;
+  weakLocation.locationScore = 30;
+  auto strongLocation = weakLocation;
+  strongLocation.locationScore = 90;
+
+  const auto weakCounts = sample(weakLocation, 88005);
+  const auto strongCounts = sample(strongLocation, 88005);
+  const int weakLocationSensitive =
+      count(weakCounts, {GuestArchetype::BusinessTraveler,
+                         GuestArchetype::ExecutiveBusiness,
+                         GuestArchetype::LuxuryLeisure,
+                         GuestArchetype::ConferenceDelegate,
+                         GuestArchetype::WellnessTraveler,
+                         GuestArchetype::BleisureTraveler});
+  const int strongLocationSensitive =
+      count(strongCounts, {GuestArchetype::BusinessTraveler,
+                           GuestArchetype::ExecutiveBusiness,
+                           GuestArchetype::LuxuryLeisure,
+                           GuestArchetype::ConferenceDelegate,
+                           GuestArchetype::WellnessTraveler,
+                           GuestArchetype::BleisureTraveler});
+  const int weakValueLongStay =
+      count(weakCounts, {GuestArchetype::BudgetLeisure,
+                         GuestArchetype::Backpacker,
+                         GuestArchetype::ExtendedStayGuest,
+                         GuestArchetype::GroupTourTraveler});
+  const int strongValueLongStay =
+      count(strongCounts, {GuestArchetype::BudgetLeisure,
+                           GuestArchetype::Backpacker,
+                           GuestArchetype::ExtendedStayGuest,
+                           GuestArchetype::GroupTourTraveler});
+  require(strongLocationSensitive > weakLocationSensitive,
+          "strong location did not increase location-sensitive archetypes");
+  require(weakValueLongStay > strongValueLongStay,
+          "weak location did not increase value/long-stay share");
+}
+
 void archetypes_generate_trip_length_profiles() {
   GuestProfileView profile;
 
@@ -647,6 +748,7 @@ int main() {
     runCase("archetype_queue_tolerance_matches_trip_context", archetype_queue_tolerance_matches_trip_context);
     runCase("contextual_archetype_mix_responds_to_weekday_and_weekend_demand", contextual_archetype_mix_responds_to_weekday_and_weekend_demand);
     runCase("contextual_archetype_mix_responds_to_property_positioning_and_events", contextual_archetype_mix_responds_to_property_positioning_and_events);
+    runCase("contextual_archetype_mix_responds_to_seasonality_and_location", contextual_archetype_mix_responds_to_seasonality_and_location);
     runCase("archetypes_generate_trip_length_profiles", archetypes_generate_trip_length_profiles);
     runCase("traits_materially_modify_guest_preferences", traits_materially_modify_guest_preferences);
     runCase("awake_and_sleeping_need_updates_use_hmg_rates", awake_and_sleeping_need_updates_use_hmg_rates);
