@@ -926,6 +926,21 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
           assetSmokeFrame ? buildAssetSmokeSnapshot() : SimulationView{};
       const SimulationView &renderSnapshot =
           assetSmokeFrame ? assetSmokeSnapshot : c.snapshot;
+
+      // Frame 24 remains the stable hot-path binding contract from the
+      // selective runtime milestone. The A700 catalog intentionally overrides
+      // several of those visuals during normal presentation, so suppress the
+      // catalog for this one frame and exercise every named fallback binding.
+      // Frame 25 separately validates and renders the complete A001-A700
+      // catalog, keeping both contracts independently covered.
+      WorldAssetSet legacyAssetSmokeWorldAssets;
+      const WorldAssetSet *renderAssets = &c.worldAssets;
+      if (assetSmokeFrame) {
+        legacyAssetSmokeWorldAssets = c.worldAssets;
+        legacyAssetSmokeWorldAssets.catalog.clear();
+        renderAssets = &legacyAssetSmokeWorldAssets;
+      }
+
       const auto scene = assetCatalogSmokeFrame
           ? runtimeAssetCatalogScene(c.worldAssets, 1u, 700u)
           : worldScene(
@@ -936,7 +951,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
                  c.tool == Tool::Bedroom ? 6.f : 1.f,
                  !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
                  c.uiSettings.reducedMotion()},
-                &c.worldAssets);
+                renderAssets);
       if (assetSmokeFrame)
         validateAssetSmokeScene(scene, c.assetRegistry);
       if (assetCatalogSmokeFrame)
