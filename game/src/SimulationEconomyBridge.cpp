@@ -382,6 +382,10 @@ void SimulationEconomyBridge::applyReviewOutcome(const ReviewSignal &review) {
 }
 
 SimulationView SimulationEconomyBridge::view() const { return simulation_.view(); }
+SimulationView SimulationEconomyBridge::view(
+    bool includeCompletedReservationHistory) const {
+  return simulation_.view(includeCompletedReservationHistory);
+}
 LogisticsSnapshot SimulationEconomyBridge::logisticsSnapshot() const {
   return simulation_.logisticsSnapshot();
 }
