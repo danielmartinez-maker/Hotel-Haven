@@ -100,13 +100,18 @@ void captureClient(HWND window, const std::filesystem::path &path) {
 
 SimulationView buildAssetSmokeSnapshot() {
   SimulationView snapshot;
-  snapshot.width = 24;
-  snapshot.height = 20;
+  snapshot.width = 40;
+  snapshot.height = 24;
   snapshot.floors = 1;
   snapshot.tiles = {
+      // x=0..5 deliberately exercise all six legacy lobby decoration
+      // fallbacks when the A700 catalog is suppressed for the hot-path frame.
       {{0, 0, 0}, TileKind::Lobby},
+      {{0, 1, 0}, TileKind::Lobby},
       {{0, 2, 0}, TileKind::Lobby},
+      {{0, 3, 0}, TileKind::Lobby},
       {{0, 4, 0}, TileKind::Lobby},
+      {{0, 5, 0}, TileKind::Lobby},
       {{0, 6, 0}, TileKind::Entrance},
       {{0, 8, 0}, TileKind::StaffRoom},
       {{0, 10, 0}, TileKind::SupplyCloset},
@@ -115,21 +120,31 @@ SimulationView buildAssetSmokeSnapshot() {
       {{0, 16, 0}, TileKind::Door},
   };
 
-  RoomView room;
-  room.id = 810001;
-  room.name = "Asset smoke room";
-  room.door = {0, 1, 4};
-  room.status = RoomStatus::VacantReady;
-  room.floor = 0;
-  room.x = 1;
-  room.y = 3;
-  room.width = 7;
-  room.height = 7;
-  room.beds = 1;
-  room.baths = 1;
-  room.cleanliness = 100;
-  room.condition = 100;
-  snapshot.rooms.push_back(room);
+  auto addRoom = [&snapshot](EntityId id, int x, int width, int beds) {
+    RoomView room;
+    room.id = id;
+    room.name = "Asset smoke room";
+    room.door = {0, x, 3};
+    room.status = RoomStatus::VacantReady;
+    room.floor = 0;
+    room.x = x;
+    room.y = 3;
+    room.width = width;
+    room.height = 7;
+    room.beds = beds;
+    room.baths = 1;
+    room.cleanliness = 100;
+    room.condition = 100;
+    snapshot.rooms.push_back(room);
+  };
+
+  // Cover every legacy bed binding: single, double, queen, king, and both
+  // twin variants. Common room/bath furniture is exercised by each room.
+  addRoom(810001, 1, 4, 1);
+  addRoom(810002, 6, 5, 1);
+  addRoom(810003, 12, 6, 1);
+  addRoom(810004, 19, 8, 1);
+  addRoom(810005, 28, 8, 2);
 
   for (std::uint64_t index = 0; index < 30; ++index) {
     PersonView guest;
@@ -155,7 +170,13 @@ SimulationView buildAssetSmokeSnapshot() {
     staff.id = 100 + index;
     staff.name = "Asset smoke staff";
     staff.kind = staffKinds[index];
-    staff.state = PersonState::Idle;
+    // Active service staff also exercise the housekeeping and maintenance
+    // cart bindings; receptionists remain idle to cover their normal pose.
+    staff.state =
+        staff.kind == PersonKind::Housekeeper ||
+                staff.kind == PersonKind::Maintenance
+            ? PersonState::Working
+            : PersonState::Idle;
     staff.onShift = true;
     staff.position = {
         0,
@@ -179,6 +200,20 @@ void validateAssetSmokeScene(
     if (!present)
       throw std::runtime_error(
           "Asset smoke scene omitted runtime binding " + std::string(assetId));
+  }
+}
+
+void validateAssetCatalogSmokeScene(
+    const RenderScene &scene,
+    const RuntimeAssetRegistry &registry) {
+  for (const auto &asset : registry.assets()) {
+    const AssetHandle handle = registry.resolve(asset.assetId);
+    const bool present = std::any_of(
+        scene.meshes.begin(), scene.meshes.end(),
+        [handle](const MeshRenderItem &item) { return item.asset == handle; });
+    if (!present)
+      throw std::runtime_error(
+          "A700 catalog smoke scene omitted runtime asset " + asset.assetId);
   }
 }
 
@@ -795,7 +830,10 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       if (!loadResult)
         throw std::runtime_error(loadResult.message);
     }
-    c.worldAssets = loadWorldAssetsFromDirectory(c.assetRegistry, c.directory / L"data" / L"assets");
+    c.worldAssets = loadWorldAssetsFromDirectory(
+        c.assetRegistry, c.directory / L"data" / L"assets",
+        c.smoke ? RuntimeWorldAssetLoadMode::FullMilestone
+                : RuntimeWorldAssetLoadMode::Shipping);
     const DWORD len = GetEnvironmentVariableW(L"LOCALAPPDATA", path.data(), static_cast<DWORD>(path.size()));
     const auto userRoot = len > 0 && len < path.size()
                               ? std::filesystem::path(path.data())
@@ -894,10 +932,14 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
         refreshTime = 0;
       }
       const bool assetSmokeFrame = c.smoke && frames == 24;
-      const bool restoreAfterAssetSmoke = c.smoke && frames == 25;
+      const bool assetCatalogSmokeFrame = c.smoke && frames == 25;
+      const bool restoreAfterAssetSmoke = c.smoke && frames == 26;
       if (assetSmokeFrame) {
-        c.camera.setTarget({12.0f, 0.0f, 9.0f});
-        c.camera.setOrthoHeight(34.0f);
+        c.camera.setTarget({19.0f, 0.0f, 9.0f});
+        c.camera.setOrthoHeight(50.0f);
+      } else if (assetCatalogSmokeFrame) {
+        c.camera.setTarget({17.0f, 0.0f, 19.0f});
+        c.camera.setOrthoHeight(48.0f);
       } else if (restoreAfterAssetSmoke) {
         c.camera.setTarget({static_cast<float>(c.snapshot.width) * .5f, 0.0f,
                             static_cast<float>(c.snapshot.height) * .5f});
@@ -908,16 +950,36 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
           assetSmokeFrame ? buildAssetSmokeSnapshot() : SimulationView{};
       const SimulationView &renderSnapshot =
           assetSmokeFrame ? assetSmokeSnapshot : c.snapshot;
-      const auto scene = worldScene(
-          renderSnapshot,
-          {assetSmokeFrame ? 0 : c.floor, c.selected, c.overlay,
-           assetSmokeFrame ? -1 : c.hoverX, assetSmokeFrame ? -1 : c.hoverY,
-           c.tool == Tool::Bedroom ? 6.f : 1.f,
-           !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
-           c.uiSettings.reducedMotion()},
-          &c.worldAssets);
+
+      // Frame 24 remains the stable hot-path binding contract from the
+      // selective runtime milestone. The A700 catalog intentionally overrides
+      // several of those visuals during normal presentation, so suppress the
+      // catalog for this one frame and exercise every named fallback binding.
+      // Frame 25 separately validates and renders the complete A001-A700
+      // catalog, keeping both contracts independently covered.
+      WorldAssetSet legacyAssetSmokeWorldAssets;
+      const WorldAssetSet *renderAssets = &c.worldAssets;
+      if (assetSmokeFrame) {
+        legacyAssetSmokeWorldAssets = c.worldAssets;
+        legacyAssetSmokeWorldAssets.catalog.clear();
+        renderAssets = &legacyAssetSmokeWorldAssets;
+      }
+
+      const auto scene = assetCatalogSmokeFrame
+          ? runtimeAssetCatalogScene(c.worldAssets, 1u, 700u)
+          : worldScene(
+                renderSnapshot,
+                {assetSmokeFrame ? 0 : c.floor, c.selected, c.overlay,
+                 assetSmokeFrame ? -1 : c.hoverX,
+                 assetSmokeFrame ? -1 : c.hoverY,
+                 c.tool == Tool::Bedroom ? 6.f : 1.f,
+                 !assetSmokeFrame && c.tool != Tool::Inspect, c.previewValid,
+                 c.uiSettings.reducedMotion()},
+                renderAssets);
       if (assetSmokeFrame)
         validateAssetSmokeScene(scene, c.assetRegistry);
+      if (assetCatalogSmokeFrame)
+        validateAssetCatalogSmokeScene(scene, c.assetRegistry);
 
       const auto frame = composeVisibleFrame(
           scene, composer,
@@ -961,6 +1023,8 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       }
       if (c.smoke && frames == 25)
         captureClient(c.window, c.directory / L"smoke-assets.bmp");
+      if (c.smoke && frames == 26)
+        captureClient(c.window, c.directory / L"smoke-assets-a700.bmp");
       if (c.smoke && frames >= 30) {
         RECT viewSize{};
         GetClientRect(c.viewport, &viewSize);

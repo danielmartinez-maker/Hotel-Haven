@@ -27,13 +27,17 @@ def repo_root_from_script(script_path: Path) -> Path:
 def catalog_asset_types(repo_root: Path) -> dict[str, str]:
     defs = repo_root / "GameData" / "AssetDefinitions"
     master = load_json(defs / "hotel_haven_asset_manifest_v1.json")
+    milestone = load_json(defs / "runtime_asset_milestone_700_v1.json")
     profiles = master.get("profiles", {})
     if not isinstance(profiles, dict):
         raise AssertionError("master profiles must be an object")
 
     result: dict[str, str] = {}
-    for batch_spec in master.get("batches", []):
-        batch = load_json(repo_root / batch_spec["path"])
+    for batch_spec in milestone.get("batches", []):
+        path = batch_spec.get("path")
+        if not isinstance(path, str):
+            raise AssertionError("A700 milestone batch path must be a string")
+        batch = load_json(repo_root / path)
         for group in batch.get("groups", []):
             for row in group.get("assets", []):
                 if not isinstance(row, list) or len(row) < 5:
@@ -102,7 +106,7 @@ def validate(repo_root: Path) -> list[str]:
     for asset_id in ids:
         asset_type = catalog.get(asset_id)
         if asset_type is None:
-            errors.append(f"{asset_id}: missing from canonical 500-asset catalog")
+            errors.append(f"{asset_id}: missing from canonical A700 milestone catalog")
         elif asset_type not in supported_type_set:
             errors.append(
                 f"{asset_id}: catalog type {asset_type!r} is not runtime-renderable"
@@ -170,7 +174,9 @@ def main() -> int:
         repo_root / "GameData" / "AssetDefinitions" / "runtime_world_bindings_v1.json"
     )
     print("Hotel Haven runtime world binding validation PASSED")
-    print(f" - {contract['asset_count']} unique renderer-compatible startup assets")
+    live_v2 = contract.get("groups", {}).get("live_v2_presentation", [])
+    print(f" - {contract['asset_count']} unique renderer-compatible shipping assets")
+    print(f" - {len(live_v2)} V2 presentation assets are selective-startup dependencies")
     print(" - C++ binding IDs exactly match the canonical runtime binding manifest")
     print(" - guest/staff character variant ranges are complete")
     return 0

@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -34,8 +35,21 @@ public:
         const std::filesystem::path& cookedRoot,
         std::span<const std::string_view> requiredAssetIds);
 
+    // Milestone/package load path. Loads every matching cooked asset whose
+    // numeric suffix falls inside the inclusive range, while still requiring
+    // the supplied core IDs. Assets outside the milestone stay unloaded.
+    void loadDirectoryAssetRange(
+        const std::filesystem::path& cookedRoot,
+        std::string_view assetIdPrefix,
+        std::uint32_t firstAssetNumber,
+        std::uint32_t lastAssetNumber,
+        std::span<const std::string_view> requiredAssetIds = {});
+
     [[nodiscard]] AssetHandle resolve(std::string_view assetId) const;
+    [[nodiscard]] std::optional<AssetHandle> tryResolve(std::string_view assetId) const noexcept;
+    [[nodiscard]] bool contains(std::string_view assetId) const noexcept;
     [[nodiscard]] const RuntimeAsset& asset(AssetHandle handle) const;
+    [[nodiscard]] std::span<const RuntimeAsset> assets() const noexcept;
     [[nodiscard]] std::size_t size() const noexcept;
 
 private:

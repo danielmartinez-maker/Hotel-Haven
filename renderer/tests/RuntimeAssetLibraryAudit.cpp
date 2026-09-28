@@ -30,14 +30,15 @@ int main(int argc, char** argv) {
 
         hh::renderer::RuntimeAssetRegistry registry;
         registry.loadDirectory(std::filesystem::path(argv[1]));
-        if (registry.size() != 500u) {
+        if (registry.size() != 700u) {
             throw std::runtime_error(
-                "expected exactly 500 cooked gameplay assets, loaded " +
+                "expected exactly 700 cooked gameplay assets, loaded " +
                 std::to_string(registry.size()));
         }
 
         std::size_t staticMeshes = 0;
         std::size_t skinnedMeshes = 0;
+        std::size_t prefabs = 0;
         for (std::size_t index = 0; index < registry.size(); ++index) {
             const auto handle = hh::renderer::AssetHandle{
                 static_cast<std::uint32_t>(index)};
@@ -65,20 +66,25 @@ int main(int argc, char** argv) {
             case hh::assets::AssetType::SkinnedMesh:
                 ++skinnedMeshes;
                 break;
+            case hh::assets::AssetType::Prefab:
+                ++prefabs;
+                break;
             default:
                 throw std::runtime_error(
                     asset.assetId + " has a non-renderable cooked asset type");
             }
         }
 
-        if (staticMeshes != 450u || skinnedMeshes != 50u) {
+        if (staticMeshes != 536u || skinnedMeshes != 93u || prefabs != 71u) {
             throw std::runtime_error(
-                "expected 450 StaticMesh and 50 SkinnedMesh assets, loaded " +
-                std::to_string(staticMeshes) + " static and " +
-                std::to_string(skinnedMeshes) + " skinned");
+                "expected 536 StaticMesh, 93 SkinnedMesh and 71 mesh-backed Prefab assets, loaded " +
+                std::to_string(staticMeshes) + " static, " +
+                std::to_string(skinnedMeshes) + " skinned and " +
+                std::to_string(prefabs) + " prefabs");
         }
 
-        std::cout << "Loaded and validated 500 cooked renderer assets (450 static, 50 skinned bind-pose)\n";
+        std::cout << "Loaded and validated 700 cooked renderer assets "
+                     "(536 static, 93 skinned bind-pose, 71 mesh-backed prefabs)\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

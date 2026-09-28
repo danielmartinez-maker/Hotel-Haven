@@ -276,6 +276,97 @@ int main() {
               "world presentation omitted an integrated room/public-area asset");
     }
 
+    WorldAssetSet milestoneAssets = resolved;
+    const auto liveV2Ids = runtimeWorldPresentationAssetIds();
+    require(liveV2Ids.size() == 63u,
+            "live V2 presentation contract should contain 63 assets");
+    for (const auto id : liveV2Ids) {
+      milestoneAssets.catalog.emplace(std::string(id), visual(assetNumber(id)));
+    }
+    milestoneAssets.catalog.emplace("HH_A651", visual(651));
+    milestoneAssets.catalog.emplace("HH_A700", visual(700));
+
+    hh::game::SimulationView milestoneSnapshot;
+    milestoneSnapshot.width = 40;
+    milestoneSnapshot.height = 14;
+    milestoneSnapshot.floors = 1;
+    milestoneSnapshot.tiles = {
+        // x=0..19 deterministically exercise all twenty public-space motifs.
+        {{0, 0, 0}, hh::game::TileKind::Lobby},
+        {{0, 1, 0}, hh::game::TileKind::Lobby},
+        {{0, 2, 0}, hh::game::TileKind::Lobby},
+        {{0, 3, 0}, hh::game::TileKind::Lobby},
+        {{0, 4, 0}, hh::game::TileKind::Lobby},
+        {{0, 5, 0}, hh::game::TileKind::Lobby},
+        {{0, 6, 0}, hh::game::TileKind::Lobby},
+        {{0, 7, 0}, hh::game::TileKind::Lobby},
+        {{0, 8, 0}, hh::game::TileKind::Lobby},
+        {{0, 9, 0}, hh::game::TileKind::Lobby},
+        {{0, 10, 0}, hh::game::TileKind::Lobby},
+        {{0, 11, 0}, hh::game::TileKind::Lobby},
+        {{0, 12, 0}, hh::game::TileKind::Lobby},
+        {{0, 13, 0}, hh::game::TileKind::Lobby},
+        {{0, 14, 0}, hh::game::TileKind::Lobby},
+        {{0, 15, 0}, hh::game::TileKind::Lobby},
+        {{0, 16, 0}, hh::game::TileKind::Lobby},
+        {{0, 17, 0}, hh::game::TileKind::Lobby},
+        {{0, 18, 0}, hh::game::TileKind::Lobby},
+        {{0, 19, 0}, hh::game::TileKind::Lobby},
+        // y=1 makes x=0..4 cover all five deterministic reception variants.
+        {{0, 0, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 1, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 2, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 3, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 4, 1}, hh::game::TileKind::FrontDesk},
+        {{0, 22, 0}, hh::game::TileKind::Entrance},
+        {{0, 24, 0}, hh::game::TileKind::Stairs},
+        {{0, 25, 0}, hh::game::TileKind::Stairs},
+        {{0, 26, 0}, hh::game::TileKind::Stairs},
+    };
+
+    auto addMilestoneRoom = [&milestoneSnapshot](
+                                hh::game::EntityId id,
+                                int x,
+                                int width,
+                                int beds) {
+      hh::game::RoomView room;
+      room.id = id;
+      room.name = "Milestone asset room";
+      room.door = {0, x, 3};
+      room.status = hh::game::RoomStatus::VacantReady;
+      room.floor = 0;
+      room.x = x;
+      room.y = 3;
+      room.width = width;
+      room.height = 7;
+      room.beds = beds;
+      room.baths = 1;
+      room.cleanliness = 100;
+      room.condition = 100;
+      milestoneSnapshot.rooms.push_back(room);
+    };
+    addMilestoneRoom(720001, 1, 4, 1);
+    addMilestoneRoom(720002, 6, 5, 1);
+    addMilestoneRoom(720003, 12, 6, 1);
+    addMilestoneRoom(720004, 19, 8, 1);
+    addMilestoneRoom(720005, 28, 8, 2);
+
+    const auto milestoneScene =
+        worldScene(milestoneSnapshot, WorldViewOptions{}, &milestoneAssets);
+    for (const auto id : liveV2Ids) {
+      require(containsHandle(milestoneScene, assetNumber(id)),
+              "live V2 asset was available but not used by exhaustive presentation scene");
+    }
+
+    const auto catalogScene =
+        runtimeAssetCatalogScene(milestoneAssets, 501u, 700u);
+    require(containsHandle(catalogScene, 651),
+            "A651 F&B boundary asset was not renderer-smoke visible");
+    require(containsHandle(catalogScene, 700),
+            "A700 boundary asset was not renderer-smoke visible");
+    require(!containsHandle(catalogScene, 500),
+            "A700 catalog scene crossed below its requested smoke range");
+
     for (const auto &item : scene.items) {
       require(std::isfinite(item.center.x) && std::isfinite(item.center.y) &&
                   std::isfinite(item.center.z),

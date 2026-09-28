@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 #include <map>
 #include <tuple>
 namespace hh::client {
@@ -99,6 +100,28 @@ bool fittedMesh(RenderScene &scene, int floor, float x, float z, float y,
   return true;
 }
 
+std::string milestoneAssetId(std::uint32_t number) {
+  char buffer[16]{};
+  std::snprintf(buffer, sizeof(buffer), "HH_A%03u", number);
+  return buffer;
+}
+
+bool fittedCatalogMesh(RenderScene &scene, int floor, float x, float z, float y,
+                       float width, float depth, float height,
+                       const WorldAssetSet *assets, std::string_view assetId,
+                       Color tint = {1, 1, 1, 1},
+                       RenderCategory category = RenderCategory::Object,
+                       float yawRadians = 0) {
+  if (!assets)
+    return false;
+  const WorldAssetVisual *visual = findWorldAsset(*assets, assetId);
+  if (!visual)
+    return false;
+  const std::optional<WorldAssetVisual> wrapped{*visual};
+  return fittedMesh(scene, floor, x, z, y, width, depth, height, wrapped,
+                    tint, category, yawRadians);
+}
+
 void plant(RenderScene &s, int f, float x, float z,
            const WorldAssetSet *assets) {
   if (assets && fittedMesh(s, f, x, z, .58f, .75f, .70f, 1.16f,
@@ -114,30 +137,141 @@ void lobbyDecoration(RenderScene &s, const TileView &tile, float x, float z,
   if (!assets)
     return;
 
+  // A catalog-backed runtime gets the richer V2 motif library. Tests and
+  // incomplete packages that only expose the named legacy bindings retain the
+  // original six deterministic fallbacks.
+  const int motifCount = assets->catalog.empty() ? 6 : 20;
   int motif = (tile.position.x * 31 + tile.position.y * 17 +
                tile.position.floor * 13) %
-              6;
+              motifCount;
   if (motif < 0)
-    motif += 6;
+    motif += motifCount;
 
+  bool rendered = false;
   if (motif == 0) {
-    (void)fittedMesh(s, tile.position.floor, x, z, .40f, .88f, .55f, .80f,
-                     assets->lobbySofa);
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .40f,
+                                 .88f, .55f, .80f, assets, "HH_A609");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .40f, .88f, .55f, .80f,
+                       assets->lobbySofa);
   } else if (motif == 1) {
-    (void)fittedMesh(s, tile.position.floor, x, z, .68f, .34f, .34f, 1.36f,
-                     assets->lobbyFloorLamp);
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .68f,
+                                 .34f, .34f, 1.36f, assets, "HH_A619");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .68f, .34f, .34f, 1.36f,
+                       assets->lobbyFloorLamp);
   } else if (motif == 2) {
-    (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
-                     assets->lobbyArmchair);
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .43f,
+                                 .68f, .68f, .86f, assets, "HH_A611");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
+                       assets->lobbyArmchair);
   } else if (motif == 3) {
-    (void)fittedMesh(s, tile.position.floor, x, z, .58f, .58f, .58f, 1.16f,
-                     assets->lobbyPlanter);
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .52f,
+                                 .72f, .34f, 1.04f, assets, "HH_A623");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .58f, .58f, 1.16f,
+                       assets->lobbyPlanter);
   } else if (motif == 4) {
-    (void)fittedMesh(s, tile.position.floor, x, z, .19f, .70f, .55f, .38f,
-                     assets->lobbyCoffeeTable);
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .19f,
+                                 .70f, .55f, .38f, assets, "HH_A615");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .19f, .70f, .55f, .38f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 5) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .60f,
+                                 .58f, .68f, 1.20f, assets, "HH_A608");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .60f, .58f, .68f, 1.20f,
+                       assets->luggageCart);
+  } else if (motif == 6) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .40f,
+                                 .96f, .58f, .80f, assets, "HH_A610");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .40f, .96f, .58f, .80f,
+                       assets->lobbySofa);
+  } else if (motif == 7) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .24f,
+                                 .62f, .58f, .48f, assets, "HH_A614");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .34f, .58f, .58f, .68f,
+                       assets->lobbyArmchair);
+  } else if (motif == 8) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .58f,
+                                 .46f, .38f, 1.16f, assets, "HH_A643");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .46f, .38f, 1.16f,
+                       assets->pottedPlant);
+  } else if (motif == 9) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .64f,
+                                 .54f, .42f, 1.28f, assets, "HH_A644");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .54f, .42f, 1.16f,
+                       assets->pottedPlant);
+  } else if (motif == 10) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .43f,
+                                 .68f, .68f, .86f, assets, "HH_A612");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .43f, .68f, .68f, .86f,
+                       assets->lobbyArmchair);
+  } else if (motif == 11) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .36f,
+                                 .96f, .52f, .72f, assets, "HH_A613");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .38f, .92f, .54f, .76f,
+                       assets->lobbySofa);
+  } else if (motif == 12) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .19f,
+                                 .86f, .56f, .38f, assets, "HH_A616");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .19f, .78f, .54f, .38f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 13) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .24f,
+                                 .46f, .46f, .48f, assets, "HH_A617");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .20f, .50f, .50f, .40f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 14) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .39f,
+                                 .92f, .40f, .78f, assets, "HH_A618");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .24f, .86f, .42f, .48f,
+                       assets->lobbyCoffeeTable);
+  } else if (motif == 15) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .48f,
+                                 .30f, .30f, .96f, assets, "HH_A620");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .52f, .30f, .30f, 1.04f,
+                       assets->lobbyFloorLamp);
+  } else if (motif == 16) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .63f,
+                                 .92f, .24f, 1.25f, assets, "HH_A621");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .70f, .32f, 1.16f,
+                       assets->lobbyPlanter);
+  } else if (motif == 17) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .63f,
+                                 .92f, .24f, 1.25f, assets, "HH_A622");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .70f, .32f, 1.16f,
+                       assets->lobbyPlanter);
+  } else if (motif == 18) {
+    rendered = fittedCatalogMesh(s, tile.position.floor, x, z, .65f,
+                                 .46f, .46f, 1.30f, assets, "HH_A647");
+    if (!rendered)
+      (void)fittedMesh(s, tile.position.floor, x, z, .64f, .36f, .36f, 1.28f,
+                       assets->lobbyFloorLamp);
   } else {
-    (void)fittedMesh(s, tile.position.floor, x, z, .60f, .58f, .68f, 1.20f,
-                     assets->luggageCart);
+    const bool umbrella = fittedCatalogMesh(
+        s, tile.position.floor, x - .20f, z, .43f, .34f, .34f, .86f,
+        assets, "HH_A648");
+    const bool magazines = fittedCatalogMesh(
+        s, tile.position.floor, x + .22f, z, .24f, .52f, .42f, .48f,
+        assets, "HH_A649");
+    if (!umbrella && !magazines)
+      (void)fittedMesh(s, tile.position.floor, x, z, .58f, .54f, .42f, 1.16f,
+                       assets->pottedPlant);
   }
 }
 
@@ -153,6 +287,7 @@ void staffRoomFurniture(RenderScene &s, int floor, float x, float z,
 
 struct BedPresentation {
   const std::optional<WorldAssetVisual> *visual{};
+  std::string_view milestoneAssetId;
   float width{1.62f};
 };
 
@@ -163,25 +298,32 @@ BedPresentation roomBedPresentation(
     return {
         assets ? (bedIndex == 0 ? &assets->twinBedLeft : &assets->twinBedRight)
                : nullptr,
+        "HH_A554",
         .95f,
     };
   }
 
   if (room.width <= 4)
-    return {assets ? &assets->singleBed : nullptr, 1.00f};
+    return {assets ? &assets->singleBed : nullptr, "HH_A554", 1.00f};
   if (room.width <= 5)
-    return {assets ? &assets->doubleBed : nullptr, 1.40f};
+    return {assets ? &assets->doubleBed : nullptr, "HH_A551", 1.40f};
   if (room.width >= 8)
-    return {assets ? &assets->kingBed : nullptr, 1.90f};
-  return {assets ? &assets->queenBed : nullptr, 1.62f};
+    return {assets ? &assets->kingBed : nullptr, "HH_A553", 1.90f};
+  return {assets ? &assets->queenBed : nullptr, "HH_A552", 1.62f};
 }
 
 void bed(RenderScene &s, int f, float x, float z,
          const BedPresentation &presentation, const WorldAssetSet *assets) {
-  const bool assetBed =
-      presentation.visual &&
-      fittedMesh(s, f, x, z, .58f, presentation.width, 2.10f, 1.16f,
-                 *presentation.visual);
+  bool assetBed = false;
+  if (assets && !presentation.milestoneAssetId.empty()) {
+    assetBed = fittedCatalogMesh(
+        s, f, x, z, .58f, presentation.width, 2.10f, 1.16f,
+        assets, presentation.milestoneAssetId);
+  }
+  if (!assetBed && presentation.visual) {
+    assetBed = fittedMesh(s, f, x, z, .58f, presentation.width, 2.10f, 1.16f,
+                          *presentation.visual);
+  }
   if (!assetBed) {
     const float frameWidth = presentation.width * .94f;
     const float linenWidth = presentation.width * .90f;
@@ -194,16 +336,31 @@ void bed(RenderScene &s, int f, float x, float z,
   }
 
   const float nightstandX = x + presentation.width * .5f + .40f;
-  const bool assetNightstand =
-      assets && fittedMesh(s, f, nightstandX, z - .65f, .40f, .50f, .52f, .80f,
-                           assets->nightstand);
+  bool assetNightstand =
+      fittedCatalogMesh(s, f, nightstandX, z - .65f, .40f,
+                        .50f, .52f, .80f, assets, "HH_A557");
+  if (!assetNightstand && assets)
+    assetNightstand = fittedMesh(s, f, nightstandX, z - .65f, .40f,
+                                 .50f, .52f, .80f, assets->nightstand);
   if (!assetNightstand)
     box(s, f, nightstandX, z - .65f, .40f, .50f, .52f, .8f, wood);
-  const bool assetLamp =
-      assets && fittedMesh(s, f, nightstandX, z - .65f, .98f, .32f, .32f, .28f,
-                           assets->bedsideLamp);
+  bool assetLamp =
+      fittedCatalogMesh(s, f, nightstandX, z - .65f, .98f,
+                        .32f, .32f, .28f, assets, "HH_A559");
+  if (!assetLamp && assets)
+    assetLamp = fittedMesh(s, f, nightstandX, z - .65f, .98f,
+                           .32f, .32f, .28f, assets->bedsideLamp);
   if (!assetLamp)
     box(s, f, nightstandX, z - .65f, .98f, .32f, .32f, .28f, gold);
+
+  if (assets && presentation.width >= 1.40f) {
+    const float secondNightstandX = x - presentation.width * .5f - .40f;
+    if (fittedCatalogMesh(s, f, secondNightstandX, z - .65f, .40f,
+                          .50f, .52f, .80f, assets, "HH_A558")) {
+      (void)fittedCatalogMesh(s, f, secondNightstandX, z - .65f, .98f,
+                              .32f, .32f, .28f, assets, "HH_A559");
+    }
+  }
 }
 
 Color statusColor(RoomStatus st) {
@@ -301,9 +458,15 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
         box(s, f, x, z, 2.02f, .98f, .22f, .13f, wood);
       }
     } else if (t.kind == TileKind::FrontDesk) {
-      const bool assetDesk = assets &&
-          fittedMesh(s, f, x, z, .70f, 1.73f, .83f, 1.40f,
-                     assets->receptionDesk);
+      const std::uint32_t deskVariant =
+          601u + static_cast<std::uint32_t>(
+                     std::abs(t.position.x * 7 + t.position.y * 11) % 5);
+      bool assetDesk = fittedCatalogMesh(
+          s, f, x, z, .70f, 1.73f, .83f, 1.40f, assets,
+          milestoneAssetId(deskVariant));
+      if (!assetDesk && assets)
+        assetDesk = fittedMesh(s, f, x, z, .70f, 1.73f, .83f, 1.40f,
+                               assets->receptionDesk);
       if (!assetDesk) {
         box(s, f, x, z, .52f, 1.6f, .75f, 1.04f, teal);
         box(s, f, x, z, 1.08f, 1.73f, .83f, .13f, cream);
@@ -327,12 +490,25 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
                      assets->lobbyEntranceDoor);
       if (!assetEntrance)
         box(s, f, x, z, .05f, .96f, .96f, .05f, teal);
+      (void)fittedCatalogMesh(s, f, x, z, .05f, .92f, .72f, .10f,
+                              assets, "HH_A540");
+      (void)fittedCatalogMesh(s, f, x, z, 1.08f, 1.10f, .24f, 2.16f,
+                              assets, "HH_A539");
     } else if (t.kind == TileKind::StaffRoom) {
       staffRoomFurniture(s, f, x, z, assets);
     } else if (t.kind == TileKind::Stairs) {
-      const bool assetStair = assets &&
-          fittedMesh(s, f, x, z, .48f, .85f, 1.0f, .96f,
-                     assets->straightStair);
+      const std::uint32_t stairVariant =
+          511u + static_cast<std::uint32_t>(
+                     std::abs(t.position.x + t.position.y + t.position.floor) % 3);
+      bool assetStair = fittedCatalogMesh(
+          s, f, x, z, .48f, .85f, 1.0f, .96f, assets,
+          milestoneAssetId(stairVariant));
+      if (!assetStair && stairVariant != 511u)
+        assetStair = fittedCatalogMesh(
+            s, f, x, z, .48f, .85f, 1.0f, .96f, assets, "HH_A511");
+      if (!assetStair && assets)
+        assetStair = fittedMesh(s, f, x, z, .48f, .85f, 1.0f, .96f,
+                                assets->straightStair);
       if (!assetStair)
         for (int i = 0; i < 5; ++i)
           box(s, f, x, z - .4f + static_cast<float>(i) * .2f,
@@ -370,55 +546,113 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
     if (r.baths > 0) {
       box(s, f, x + w - 1.7f, z + d - 1.6f, .09f, 1.7f, 1.6f, .07f,
           {.80f, .88f, .84f, 1});
-      const bool assetToilet = assets &&
-          fittedMesh(s, f, x + w - 1.35f, z + d - 1.5f, .26f, .48f, .67f,
-                     .45f, assets->bathroomToilet);
+      bool assetToilet = fittedCatalogMesh(
+          s, f, x + w - 1.35f, z + d - 1.5f, .26f, .48f, .67f, .45f,
+          assets, "HH_A575");
+      if (!assetToilet && assets)
+        assetToilet = fittedMesh(s, f, x + w - 1.35f, z + d - 1.5f, .26f,
+                                 .48f, .67f, .45f, assets->bathroomToilet);
       if (!assetToilet)
         box(s, f, x + w - 1.35f, z + d - 1.5f, .26f, .48f, .67f, .45f,
             cream);
       box(s, f, x + w - 1.35f, z + d - 1.75f, .61f, .5f, .22f, .5f,
           cream);
-      const bool assetVanity = assets &&
-          fittedMesh(s, f, x + w - 2.1f, z + d - 1.35f, .59f, .65f, .55f,
-                     1.18f, assets->bathroomVanity);
+      bool assetVanity = fittedCatalogMesh(
+          s, f, x + w - 2.1f, z + d - 1.35f, .59f, .65f, .55f, 1.18f,
+          assets, "HH_A572");
+      if (!assetVanity && assets)
+        assetVanity = fittedMesh(s, f, x + w - 2.1f, z + d - 1.35f, .59f,
+                                 .65f, .55f, 1.18f, assets->bathroomVanity);
       if (!assetVanity) {
         box(s, f, x + w - 2.1f, z + d - 1.35f, .57f, .56f, .49f, 1.1f,
             wood);
         box(s, f, x + w - 2.1f, z + d - 1.35f, 1.15f, .65f, .55f, .09f,
             cream);
       }
-      const bool assetShower = assets &&
-          fittedMesh(s, f, x + w - 2.65f, z + d - 1.75f, .72f, .10f, 1.4f,
-                     1.3f, assets->showerGlass,
-                     {1.f, 1.f, 1.f, .62f});
+      bool assetShower = fittedCatalogMesh(
+          s, f, x + w - 2.65f, z + d - 1.75f, .72f, .10f, 1.4f, 1.3f,
+          assets, "HH_A577", {1.f, 1.f, 1.f, .62f});
+      if (!assetShower && assets)
+        assetShower = fittedMesh(s, f, x + w - 2.65f, z + d - 1.75f, .72f,
+                                 .10f, 1.4f, 1.3f, assets->showerGlass,
+                                 {1.f, 1.f, 1.f, .62f});
       if (!assetShower)
         box(s, f, x + w - 2.65f, z + d - 1.75f, .72f, .10f, 1.4f, 1.3f,
             {.63f, .79f, .77f, .55f});
+      // Small bathroom details share the authoritative room/bath footprint;
+      // they add presentation fidelity without creating a second placement
+      // model or interaction authority.
+      (void)fittedCatalogMesh(s, f, x + w - 2.65f, z + d - 1.75f, .08f,
+                              .82f, 1.12f, .12f, assets, "HH_A578");
+      (void)fittedCatalogMesh(s, f, x + w - 2.65f, z + d - .98f, 1.58f,
+                              .22f, .20f, .28f, assets, "HH_A579");
+      (void)fittedCatalogMesh(s, f, x + w - 1.72f, z + d - .83f, 1.08f,
+                              .72f, .12f, .18f, assets, "HH_A580");
+      (void)fittedCatalogMesh(s, f, x + w - 1.72f, z + d - .83f, 1.36f,
+                              .72f, .18f, .22f, assets, "HH_A581");
+      (void)fittedCatalogMesh(s, f, x + w - 2.10f, z + d - 1.35f, 1.24f,
+                              .34f, .24f, .10f, assets, "HH_A582");
+      (void)fittedCatalogMesh(s, f, x + w - 1.88f, z + d - 1.35f, 1.31f,
+                              .18f, .18f, .14f, assets, "HH_A583");
+      (void)fittedCatalogMesh(s, f, x + w - 2.42f, z + d - .83f, 1.18f,
+                              .20f, .14f, .30f, assets, "HH_A584");
     }
 
-    const bool assetGuestDesk = assets &&
-        fittedMesh(s, f, x + 1.6f, z + d - 1.4f, .40f, 1.45f, .56f, .80f,
-                   assets->guestDesk);
+    bool assetGuestDesk = fittedCatalogMesh(
+        s, f, x + 1.6f, z + d - 1.4f, .40f, 1.45f, .56f, .80f,
+        assets, "HH_A560");
+    if (!assetGuestDesk && assets)
+      assetGuestDesk = fittedMesh(s, f, x + 1.6f, z + d - 1.4f, .40f,
+                                  1.45f, .56f, .80f, assets->guestDesk);
     if (!assetGuestDesk)
       box(s, f, x + 1.6f, z + d - 1.4f, .73f, 1.45f, .56f, .12f, wood);
-    const bool assetDeskChair = assets &&
-        fittedMesh(s, f, x + 1.6f, z + d - 1.0f, .40f, .50f, .50f, .70f,
-                   assets->deskChair);
+    bool assetDeskChair = fittedCatalogMesh(
+        s, f, x + 1.6f, z + d - 1.0f, .40f, .50f, .50f, .70f,
+        assets, "HH_A561");
+    if (!assetDeskChair && assets)
+      assetDeskChair = fittedMesh(s, f, x + 1.6f, z + d - 1.0f, .40f,
+                                  .50f, .50f, .70f, assets->deskChair);
     if (!assetDeskChair)
       box(s, f, x + 1.6f, z + d - 1.0f, .40f, .5f, .5f, .70f, teal);
 
     if (assets && w >= 5.0f && d >= 5.0f) {
-      (void)fittedMesh(s, f, x + w - .72f, z + 1.10f, .88f,
-                       .76f, .50f, 1.76f, assets->wardrobe);
-      (void)fittedMesh(s, f, x + w - .42f, z + d * .50f, .36f,
-                       .62f, 1.08f, .72f, assets->tvConsole);
-      (void)fittedMesh(s, f, x + w - .11f, z + d * .50f, 1.46f,
-                       .12f, 1.00f, .58f, assets->wallTelevision);
-      (void)fittedMesh(s, f, x + w - 1.25f, z + 3.15f, .44f,
-                       .74f, .74f, .88f, assets->guestArmchair);
-      if (d >= 6.0f)
+      if (!fittedCatalogMesh(s, f, x + w - .72f, z + 1.10f, .88f,
+                             .76f, .50f, 1.76f, assets,
+                             w >= 7.0f ? "HH_A564" : "HH_A563"))
+        (void)fittedMesh(s, f, x + w - .72f, z + 1.10f, .88f,
+                         .76f, .50f, 1.76f, assets->wardrobe);
+      if (!fittedCatalogMesh(s, f, x + w - .42f, z + d * .50f, .36f,
+                             .62f, 1.08f, .72f, assets, "HH_A569"))
+        (void)fittedMesh(s, f, x + w - .42f, z + d * .50f, .36f,
+                         .62f, 1.08f, .72f, assets->tvConsole);
+      if (!fittedCatalogMesh(s, f, x + w - .11f, z + d * .50f, 1.46f,
+                             .12f, 1.00f, .58f, assets, "HH_A568"))
+        (void)fittedMesh(s, f, x + w - .11f, z + d * .50f, 1.46f,
+                         .12f, 1.00f, .58f, assets->wallTelevision);
+      if (!fittedCatalogMesh(s, f, x + w - 1.25f, z + 3.15f, .44f,
+                             .74f, .74f, .88f, assets,
+                             w >= 8.0f ? "HH_A593" : "HH_A562"))
+        (void)fittedMesh(s, f, x + w - 1.25f, z + 3.15f, .44f,
+                         .74f, .74f, .88f, assets->guestArmchair);
+      if (d >= 6.0f &&
+          !fittedCatalogMesh(s, f, x + 2.0f, z + 4.15f, .24f,
+                             1.20f, .46f, .48f, assets, "HH_A565"))
         (void)fittedMesh(s, f, x + 2.0f, z + 4.15f, .24f,
                          1.20f, .46f, .48f, assets->luggageBench);
+      (void)fittedCatalogMesh(s, f, x + .72f, z + 1.05f, .56f,
+                              .66f, .52f, 1.12f, assets, "HH_A566");
+      (void)fittedCatalogMesh(s, f, x + .72f, z + 1.65f, .42f,
+                              .58f, .48f, .84f, assets, "HH_A585");
+      if (w >= 6.0f && d >= 6.0f) {
+        (void)fittedCatalogMesh(s, f, x + .72f, z + 2.28f, .55f,
+                                .66f, .52f, 1.10f, assets, "HH_A586");
+        (void)fittedCatalogMesh(s, f, x + w * .50f, z + d - .10f, 1.42f,
+                                .90f, .10f, .76f, assets, "HH_A570");
+        (void)fittedCatalogMesh(s, f, x + .10f, z + d * .52f, 1.20f,
+                                .10f, .72f, 1.44f, assets, "HH_A571");
+        (void)fittedCatalogMesh(s, f, x + w - 2.02f, z + 3.15f, .27f,
+                                .48f, .48f, .54f, assets, "HH_A594");
+      }
     }
 
     plant(s, f, x + w - 1.5f, z + 1.5f, assets);
@@ -535,5 +769,30 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
         RenderCategory::Selection);
   }
   return s;
+}
+
+RenderScene runtimeAssetCatalogScene(
+    const WorldAssetSet &assets,
+    std::uint32_t firstAssetNumber,
+    std::uint32_t lastAssetNumber) {
+  RenderScene scene;
+  scene.activeFloor = 0;
+  if (firstAssetNumber > lastAssetNumber)
+    return scene;
+
+  constexpr std::uint32_t columns = 25u;
+  constexpr float spacing = 1.45f;
+  for (std::uint32_t number = firstAssetNumber;
+       number <= lastAssetNumber; ++number) {
+    const std::string assetId = milestoneAssetId(number);
+    if (!findWorldAsset(assets, assetId))
+      continue;
+    const std::uint32_t index = number - firstAssetNumber;
+    const float x = static_cast<float>(index % columns) * spacing;
+    const float z = static_cast<float>(index / columns) * spacing;
+    (void)fittedCatalogMesh(scene, 0, x, z, .65f, .92f, .92f, 1.30f,
+                            &assets, assetId);
+  }
+  return scene;
 }
 } // namespace hh::client

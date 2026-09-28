@@ -95,7 +95,7 @@ if(WIN32)
             "-DHH_RUNTIME_ASSET_ROOT=$<TARGET_FILE_DIR:hotel_haven>/data/assets"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/StageRuntimeAssets.cmake"
         DEPENDS hotel_haven
-        COMMENT "Staging 500 renderer-safe cooked Hotel Haven assets")
+        COMMENT "Staging 700 renderer-safe cooked Hotel Haven assets")
 
     install(TARGETS hotel_haven RUNTIME DESTINATION .)
     install(FILES renderer/shaders/InstancedBox.hlsl renderer/shaders/Mesh.hlsl DESTINATION shaders)

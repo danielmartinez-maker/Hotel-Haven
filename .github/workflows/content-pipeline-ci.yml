@@ -9,6 +9,10 @@ on:
       - 'Tools/ContentPipeline/**'
       - 'renderer/**'
       - 'game/app/WorldAssetBindings.cpp'
+      - 'game/app/WorldView.cpp'
+      - 'game/app/WorldView.h'
+      - 'game/app/RuntimeWorldAssets.cpp'
+      - 'game/app/RuntimeWorldAssets.h'
       - '.github/workflows/content-pipeline-ci.yml'
   pull_request:
     paths:
@@ -45,6 +49,9 @@ jobs:
       - name: Validate 500 asset library manifest
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
 
+      - name: Validate A700 runtime milestone
+        run: python Tools/ContentPipeline/scripts/validate_runtime_asset_milestone_700.py
+
       - name: Validate shipping runtime asset bindings
         run: python Tools/ContentPipeline/scripts/validate_runtime_world_bindings.py
 
@@ -76,8 +83,8 @@ jobs:
         shell: pwsh
         run: |
           $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
-          if ($assets.Count -ne 500) {
-            throw "Expected exactly 500 cooked assets; found $($assets.Count)"
+          if ($assets.Count -ne 700) {
+            throw "Expected exactly 700 cooked assets; found $($assets.Count)"
           }
           Write-Host "Verified $($assets.Count) cooked .hasset files"
 
@@ -87,7 +94,7 @@ jobs:
       - name: Build renderer runtime audit
         run: cmake --build runtime-audit-build --config Release --target hh_runtime_asset_library_audit
 
-      - name: Load all 500 cooked assets through renderer runtime
+      - name: Load all 700 cooked assets through renderer runtime
         run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
 
       - name: Upload generated and cooked asset package

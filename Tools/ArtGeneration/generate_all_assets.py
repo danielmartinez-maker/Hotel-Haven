@@ -5,7 +5,7 @@ import importlib
 import json
 from pathlib import Path
 
-BATCHES = tuple(range(1, 11))
+BATCHES = tuple(range(1, 15))
 
 
 def install_trimesh_color_guard():
@@ -82,6 +82,12 @@ def gameplay_manifest_metadata(root: Path) -> tuple[dict[str, dict], dict[str, d
 
 def normalize_gameplay_sidecar_data(sidecar: dict, meta: dict, contract: dict) -> dict:
     normalized = dict(sidecar)
+    # The manifest profile is authoritative for runtime representation. Legacy
+    # generators predate PrefabAsset and some animation-profile refinements, so
+    # preserving their historical asset_type here makes the cooked package
+    # disagree with the profile contract even when every other field is
+    # normalized correctly.
+    normalized['asset_type'] = contract['asset_type']
     normalized['units'] = contract['units']
     normalized['lod_policy'] = contract['lod_policy']
     normalized['cutaway_policy'] = contract['cutaway_policy']
@@ -216,11 +222,11 @@ def generate_all(repo_root: Path | str):
         'interaction_anchor_bindings': interaction_anchor_bindings,
         **tree,
     }
-    expected_records = 500 + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
-    if summary['gameplay_asset_count'] != 500:
-        raise RuntimeError(f"expected 500 gameplay assets, got {summary['gameplay_asset_count']}")
-    if normalized_gameplay != 500:
-        raise RuntimeError(f'expected 500 normalized gameplay sidecars, got {normalized_gameplay}')
+    expected_records = 700 + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
+    if summary['gameplay_asset_count'] != 700:
+        raise RuntimeError(f"expected 700 gameplay assets, got {summary['gameplay_asset_count']}")
+    if normalized_gameplay != 700:
+        raise RuntimeError(f'expected 700 normalized gameplay sidecars, got {normalized_gameplay}')
     if tree['generated_asset_records'] != expected_records:
         raise RuntimeError(f"expected {expected_records} generated records, got {tree['generated_asset_records']}")
     if linked != expected_links or deferred != 0:

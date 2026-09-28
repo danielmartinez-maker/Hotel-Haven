@@ -6,7 +6,9 @@
 #include <functional>
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 
 namespace hh::client {
 enum class Overlay {
@@ -77,18 +79,35 @@ struct WorldAssetSet {
       housekeeperCharacters{};
   std::array<std::optional<WorldAssetVisual>, MaintenanceVariantCount>
       maintenanceCharacters{};
+
+  // Full milestone library available to presentation code. Named members above
+  // remain the hot-path bindings for common gameplay visuals; this map lets
+  // V2 content scale without adding one C++ field per asset.
+  std::unordered_map<std::string, WorldAssetVisual> catalog;
 };
 
 using WorldAssetResolver =
     std::function<WorldAssetVisual(std::string_view assetId)>;
 
-// Stable shipping-client dependency set. The runtime registry uses this list to
-// decode only meshes that the current world presentation can instantiate.
+// Stable legacy hot-path dependency set. These named bindings remain required
+// for fallbacks, characters, and common world props even as V2 catalog content
+// expands around them.
 [[nodiscard]] std::span<const std::string_view> requiredWorldAssetIds() noexcept;
+
+// V2 catalog assets that normal gameplay can instantiate today. Keep this
+// separate from the legacy hot-path bindings so shipping startup can decode
+// only presentation-reachable content while smoke/audit mode can still load
+// the complete A700 milestone.
+[[nodiscard]] std::span<const std::string_view>
+runtimeWorldPresentationAssetIds() noexcept;
 
 // The string IDs are an installation/startup concern only. This converts them
 // once to the compact visual records consumed by every subsequent frame.
 WorldAssetSet resolveWorldAssets(const WorldAssetResolver &resolver);
+
+[[nodiscard]] const WorldAssetVisual* findWorldAsset(
+    const WorldAssetSet& assets,
+    std::string_view assetId) noexcept;
 
 struct WorldViewOptions {
   int floor{};
@@ -104,4 +123,11 @@ hh::renderer::RenderScene worldScene(
     const hh::game::SimulationView &,
     const WorldViewOptions &,
     const WorldAssetSet *assets = nullptr);
+
+// Deterministic renderer smoke/gallery scene for the bounded runtime catalog.
+// It has no simulation or placement authority.
+hh::renderer::RenderScene runtimeAssetCatalogScene(
+    const WorldAssetSet &assets,
+    std::uint32_t firstAssetNumber = 1u,
+    std::uint32_t lastAssetNumber = 700u);
 } // namespace hh::client

@@ -28,6 +28,10 @@ jobs:
         if: runner.os == 'Windows'
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
 
+      - name: Validate A700 runtime milestone
+        if: runner.os == 'Windows'
+        run: python Tools/ContentPipeline/scripts/validate_runtime_asset_milestone_700.py
+
       - name: Generate production asset library
         if: runner.os == 'Windows'
         run: python Tools/ArtGeneration/generate_all_assets.py .
@@ -86,10 +90,10 @@ jobs:
             $assets = @($archive.Entries | Where-Object {
               $_.FullName -match '(^|/)data/assets/HH_A\d{3}\.hasset$'
             })
-            if ($assets.Count -ne 500) {
-              throw "Expected 500 packaged cooked assets; found $($assets.Count)"
+            if ($assets.Count -ne 700) {
+              throw "Expected 700 packaged cooked assets; found $($assets.Count)"
             }
-            Write-Host "Verified 500 cooked runtime assets in $($zip.Name)"
+            Write-Host "Verified 700 cooked runtime assets in $($zip.Name)"
           } finally {
             $archive.Dispose()
           }
