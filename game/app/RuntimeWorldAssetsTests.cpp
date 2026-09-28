@@ -34,9 +34,10 @@ void appendValue(std::vector<std::byte>& bytes, const T& value) {
 std::vector<std::byte> makeMeshGlb(float alpha) {
   std::vector<std::byte> binary;
   const std::array<float, 9> positions{
-      -1.0f, 0.0f, -0.5f,
-       1.0f, 0.0f,  0.5f,
-       0.0f, 2.0f,  0.0f,
+      // Cooked Hotel Haven geometry is Z-up; the renderer maps Z to Y.
+      -1.0f, -0.5f, 0.0f,
+       1.0f,  0.5f, 0.0f,
+       0.0f,  0.0f, 2.0f,
   };
   for (const float value : positions)
     appendValue(binary, value);
