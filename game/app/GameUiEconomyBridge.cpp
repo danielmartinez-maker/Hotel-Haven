@@ -227,15 +227,23 @@ void mapControlState(const hh::game::SimulationEconomyBridge &simulation,
 
 hh::frontend::SimulationSnapshot
 makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge &simulation,
+                         const hh::game::SimulationView &view,
                          const GameUiBridgeContext &context) {
   auto bridgedContext = context;
   bridgedContext.economy = &simulation.economyRuntime();
-  auto snapshot =
-      makeGameUiSnapshotSource(simulation.physicalSimulation(), bridgedContext);
+  auto snapshot = makeGameUiSnapshotSource(
+      simulation.physicalSimulation(), view, bridgedContext);
   mapDiagnostics(simulation.economyDiagnostics(), snapshot.economy);
   mapControlState(simulation, snapshot.economy);
   mixEconomyRevision(snapshot.revision, snapshot.economy);
   return snapshot;
+}
+
+hh::frontend::SimulationSnapshot
+makeGameUiSnapshotSource(const hh::game::SimulationEconomyBridge &simulation,
+                         const GameUiBridgeContext &context) {
+  const auto view = simulation.view();
+  return makeGameUiSnapshotSource(simulation, view, context);
 }
 
 } // namespace hh::client

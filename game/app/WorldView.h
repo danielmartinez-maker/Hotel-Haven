@@ -54,6 +54,12 @@ struct WorldViewOptions {
   bool reducedMotion{};
 };
 
+void buildWorldScene(
+    hh::renderer::RenderScene &out,
+    const hh::game::SimulationView &,
+    const WorldViewOptions &,
+    const WorldAssetSet *assets = nullptr);
+
 hh::renderer::RenderScene worldScene(
     const hh::game::SimulationView &,
     const WorldViewOptions &,

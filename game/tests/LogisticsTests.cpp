@@ -17,6 +17,12 @@ int main() {
     logistics.tickSeconds(180);
     require(logistics.inventoryAt(receiving, "amenity_kit") == 0, "stock remained in receiving after move");
     require(logistics.inventoryUsable("amenity_kit") == 20, "stock move did not make inventory usable");
+    require(logistics.snapshot().purchaseOrders.size() == 1 &&
+                logistics.snapshot().stockMoves.size() == 1,
+            "full logistics snapshot lost completed history");
+    require(logistics.snapshot(false).purchaseOrders.empty() &&
+                logistics.snapshot(false).stockMoves.empty(),
+            "live logistics snapshot retained completed history");
   }
   {
     LogisticsSystem logistics;

@@ -2,6 +2,7 @@
 
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -65,10 +66,13 @@ private:
   [[nodiscard]] const ActiveOrder *order(RoomServiceOrderId id) const;
   void enter(ActiveOrder &order, RoomServiceStage stage, int seconds,
              BlockReason blocked = BlockReason::None);
+  void rebuildDerivedState();
 
   ServiceId nextId_{1};
   std::int64_t elapsedSeconds_{};
   std::vector<ActiveOrder> orders_;
+  std::unordered_map<RoomServiceOrderId, std::size_t> orderIndex_;
+  std::vector<std::size_t> activeOrders_;
 };
 
 } // namespace hh::game

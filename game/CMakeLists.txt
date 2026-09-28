@@ -24,6 +24,11 @@ add_library(hh_game
   src/EconomyRuntime.cpp
   src/EconomyRuntimeBridge.cpp
   src/EconomyDiagnostics.cpp
+  src/Workforce.cpp
+  src/Departments.cpp
+  src/StaffOptimization.cpp
+  src/WorkforcePlanning.cpp
+  src/DepartmentRoster.cpp
 )
 # FINAL-06 can add definition loaders independently of FINAL-07. Keep this
 # branch buildable before that lineage is present while ensuring PR merge builds
@@ -67,4 +72,23 @@ if(HH_GAME_BUILD_TESTS)
     target_link_libraries(hh_${economy_test}_tests PRIVATE hh_game)
     add_test(NAME ${economy_test} COMMAND hh_${economy_test}_tests)
   endforeach()
+  add_executable(hh_DepartmentRoster_tests tests/DepartmentRosterTests.cpp)
+  target_link_libraries(hh_DepartmentRoster_tests PRIVATE hh_game)
+  add_test(NAME DepartmentRoster COMMAND hh_DepartmentRoster_tests)
+
+  add_executable(hh_WorkforcePlanning_tests tests/WorkforcePlanningTests.cpp)
+  target_link_libraries(hh_WorkforcePlanning_tests PRIVATE hh_game)
+  add_test(NAME WorkforcePlanning COMMAND hh_WorkforcePlanning_tests)
+
+  add_executable(hh_WorkforceCore_tests tests/WorkforceCoreTests.cpp)
+  target_link_libraries(hh_WorkforceCore_tests PRIVATE hh_game)
+  add_test(NAME WorkforceCore COMMAND hh_WorkforceCore_tests)
+
+  add_executable(hh_DepartmentCore_tests tests/DepartmentCoreTests.cpp)
+  target_link_libraries(hh_DepartmentCore_tests PRIVATE hh_game)
+  add_test(NAME DepartmentCore COMMAND hh_DepartmentCore_tests)
+
+  add_executable(hh_StaffOptimizationCore_tests tests/StaffOptimizationCoreTests.cpp)
+  target_link_libraries(hh_StaffOptimizationCore_tests PRIVATE hh_game)
+  add_test(NAME StaffOptimizationCore COMMAND hh_StaffOptimizationCore_tests)
 endif()
