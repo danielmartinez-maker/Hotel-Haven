@@ -9,35 +9,36 @@ EngineeringSystem::EngineeringSystem(LogisticsSystem &logistics, std::uint64_t s
 void EngineeringSystem::registerAsset(AssetId id, int condition) {
   if (id == 0 || asset(id))
     return;
+  const auto index = assets_.size();
   assets_.push_back({id, std::clamp(condition, 0, 10000), 0, false});
+  assetIndex_.emplace(id, index);
 }
 
 EngineeringSystem::Asset *EngineeringSystem::asset(AssetId id) {
-  for (auto &entry : assets_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = assetIndex_.find(id);
+  return found == assetIndex_.end() ? nullptr : &assets_[found->second];
 }
 
 const EngineeringSystem::Asset *EngineeringSystem::asset(AssetId id) const {
-  for (const auto &entry : assets_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = assetIndex_.find(id);
+  return found == assetIndex_.end() ? nullptr : &assets_[found->second];
 }
 
 WorkOrderId EngineeringSystem::createWorkOrder(AssetId assetId,
                                                WorkOrderType type) {
   if (!asset(assetId))
     return 0;
-  for (const auto &order : workOrders_)
-    if (order.assetId == assetId && order.type == type &&
-        order.stage != WorkOrderStage::Completed)
+  for (const auto index : activeWorkOrders_) {
+    const auto &order = workOrders_[index];
+    if (order.assetId == assetId && order.type == type)
       return order.id;
+  }
   const auto id = nextId_++;
   const int work = type == WorkOrderType::Preventive ? 15 * 60 : 25 * 60;
+  const auto index = workOrders_.size();
   workOrders_.push_back({id, assetId, type, WorkOrderStage::Queued, work,
                          BlockReason::None, false});
+  activeWorkOrders_.push_back(index);
   return id;
 }
 
@@ -133,16 +134,27 @@ void EngineeringSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-EngineeringSnapshot EngineeringSystem::snapshot() const {
+EngineeringSnapshot EngineeringSystem::snapshot(bool includeHistory) const {
   EngineeringSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.failures = failures_;
+  out.assets.reserve(assets_.size());
+  out.workOrders.reserve(includeHistory ? workOrders_.size()
+                                        : activeWorkOrders_.size());
   for (const auto &entry : assets_)
     out.assets.push_back({entry.id, entry.condition, entry.failurePressure,
                           entry.failed});
-  for (const auto &order : workOrders_)
-    out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
-                              order.remainingSeconds, order.blockedReason});
+  if (includeHistory) {
+    for (const auto &order : workOrders_)
+      out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
+                                order.remainingSeconds, order.blockedReason});
+  } else {
+    for (const auto index : activeWorkOrders_) {
+      const auto &order = workOrders_[index];
+      out.workOrders.push_back({order.id, order.assetId, order.type, order.stage,
+                                order.remainingSeconds, order.blockedReason});
+    }
+  }
   return out;
 }
 
