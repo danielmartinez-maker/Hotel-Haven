@@ -91,6 +91,28 @@ if(WIN32)
     add_subdirectory(renderer)
     add_subdirectory(frontend)
 
+    # Compile the Win32 FINAL-07 shell independently from hh_game so UI
+    # regressions remain visible even when an unrelated simulation target fails.
+    add_library(hh_final07_ui_compile OBJECT
+        game/app/GameMain.cpp
+        game/app/ClientUi.cpp
+        game/app/Final07Panels.cpp)
+    target_compile_definitions(hh_final07_ui_compile PRIVATE
+        NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
+    target_compile_features(hh_final07_ui_compile PRIVATE cxx_std_20)
+    target_include_directories(hh_final07_ui_compile PRIVATE
+        game/app
+        game/include
+        frontend/include
+        renderer/include
+        renderer/src
+        Tools/ContentPipeline/include
+        optimization/include)
+    if(MSVC)
+        target_compile_options(hh_final07_ui_compile PRIVATE
+            /W4 /permissive- /utf-8)
+    endif()
+
     add_library(hh_runtime_world_assets STATIC game/app/RuntimeWorldAssets.cpp)
     target_include_directories(hh_runtime_world_assets PUBLIC game/app renderer/include)
     target_link_libraries(hh_runtime_world_assets PUBLIC hh_world_view hh_renderer_core)
