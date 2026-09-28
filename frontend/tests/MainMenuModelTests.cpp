@@ -34,3 +34,20 @@ TEST_CASE("disabled item cannot become selected") {
     static_cast<void>(model.select(hh::frontend::MainMenuItem::Continue));
     EXPECT_EQ(model.selected(), hh::frontend::MainMenuItem::NewHotel);
 }
+
+TEST_CASE("settings selection cycles independently from main menu selection") {
+    hh::frontend::MainMenuModel model(true);
+    EXPECT_EQ(model.settingsSelection(),
+              hh::frontend::MainMenuSettingsItem::UiScale);
+    const auto mainSelection = model.selected();
+
+    model.navigateSettings(1);
+    EXPECT_EQ(model.settingsSelection(),
+              hh::frontend::MainMenuSettingsItem::ReducedMotion);
+    EXPECT_EQ(model.selected(), mainSelection);
+
+    model.navigateSettings(-1);
+    EXPECT_EQ(model.settingsSelection(),
+              hh::frontend::MainMenuSettingsItem::UiScale);
+    EXPECT_EQ(model.selected(), mainSelection);
+}
