@@ -47,6 +47,8 @@ add_library(hh_game
   src/Workforce.cpp
   src/Departments.cpp
   src/StaffOptimization.cpp
+  src/WorkforcePlanning.cpp
+  src/DepartmentRoster.cpp
 )
 
 # FINAL-06 definition loaders are branch-independent and optional in older saves.
@@ -100,6 +102,26 @@ if(HH_GAME_BUILD_TESTS)
   target_include_directories(hh_optimizer_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
   target_link_libraries(hh_optimizer_tests PRIVATE hh_game hh_optimization)
   add_test(NAME Optimizer COMMAND hh_optimizer_tests)
+
+  add_executable(hh_DepartmentRoster_tests tests/DepartmentRosterTests.cpp)
+  target_link_libraries(hh_DepartmentRoster_tests PRIVATE hh_game)
+  add_test(NAME DepartmentRoster COMMAND hh_DepartmentRoster_tests)
+
+  add_executable(hh_WorkforcePlanning_tests tests/WorkforcePlanningTests.cpp)
+  target_link_libraries(hh_WorkforcePlanning_tests PRIVATE hh_game)
+  add_test(NAME WorkforcePlanning COMMAND hh_WorkforcePlanning_tests)
+
+  add_executable(hh_WorkforceCore_tests tests/WorkforceCoreTests.cpp)
+  target_link_libraries(hh_WorkforceCore_tests PRIVATE hh_game)
+  add_test(NAME WorkforceCore COMMAND hh_WorkforceCore_tests)
+
+  add_executable(hh_DepartmentCore_tests tests/DepartmentCoreTests.cpp)
+  target_link_libraries(hh_DepartmentCore_tests PRIVATE hh_game)
+  add_test(NAME DepartmentCore COMMAND hh_DepartmentCore_tests)
+
+  add_executable(hh_StaffOptimizationCore_tests tests/StaffOptimizationCoreTests.cpp)
+  target_link_libraries(hh_StaffOptimizationCore_tests PRIVATE hh_game)
+  add_test(NAME StaffOptimizationCore COMMAND hh_StaffOptimizationCore_tests)
 
   # FINAL-04/05.
   foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics SimulationServiceLogistics FoodService Event Amenity)
