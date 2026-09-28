@@ -125,6 +125,7 @@ struct Client {
   Client();
   ~Client();
   void refresh();
+  void invalidateUiControls();
   void refreshUi();
   void layout();
   [[nodiscard]] bool rebuildFonts(int scalePercent) noexcept;
