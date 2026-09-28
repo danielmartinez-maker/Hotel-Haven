@@ -83,6 +83,7 @@ struct Client {
   hh::frontend::UiSettings uiSettings;
   hh::frontend::KeyBindingEditor keyBindingEditor;
   hh::frontend::BuildPlacementPreview buildPreview;
+  Final07ControlTreeEpoch controlTreeEpoch;
   bool uiConfigured{};
   std::uint64_t previewRequestSerial{};
   std::uint64_t selectedAlertId{};
