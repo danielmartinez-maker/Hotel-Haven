@@ -1,5 +1,7 @@
 #include "hh/game/Logistics.h"
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace hh::game {
 
@@ -18,22 +20,20 @@ StorageNodeId LogisticsSystem::addStorage(const StorageNodeSpec &spec) {
   if (spec.capacityUnits <= 0)
     return 0;
   const auto id = nextId_++;
+  const auto index = storage_.size();
   storage_.push_back({id, spec.kind, spec.capacityUnits, 0, spec.operational});
+  storageIndex_.emplace(id, index);
   return id;
 }
 
 LogisticsSystem::StorageNode *LogisticsSystem::node(StorageNodeId id) {
-  for (auto &entry : storage_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = storageIndex_.find(id);
+  return found == storageIndex_.end() ? nullptr : &storage_[found->second];
 }
 
 const LogisticsSystem::StorageNode *LogisticsSystem::node(StorageNodeId id) const {
-  for (const auto &entry : storage_)
-    if (entry.id == id)
-      return &entry;
-  return nullptr;
+  const auto found = storageIndex_.find(id);
+  return found == storageIndex_.end() ? nullptr : &storage_[found->second];
 }
 
 int LogisticsSystem::usedUnits(StorageNodeId id) const {
@@ -206,9 +206,13 @@ OrderResult LogisticsSystem::placePurchaseOrder(std::string_view item, int quant
 
   const auto id = nextId_++;
   target->reservedUnits += quantity;
+  const auto index = orders_.size();
   orders_.push_back({id, std::string(item), quantity, destination,
                      PurchaseOrderState::InTransit, leadSeconds,
                      BlockReason::None});
+  orderIndex_.emplace(id, index);
+  activeOrders_.push_back(index);
+  transitOrders_.push_back(index);
   return {id, OrderError::None};
 }
 
@@ -222,12 +226,37 @@ void LogisticsSystem::requestWastePickup() {
     wastePickupRemaining_ = 120;
 }
 
+void LogisticsSystem::rebuildDerivedState() {
+  storageIndex_.clear();
+  storageIndex_.reserve(storage_.size());
+  for (std::size_t index = 0; index < storage_.size(); ++index)
+    storageIndex_.emplace(storage_[index].id, index);
+  orderIndex_.clear();
+  activeOrders_.clear();
+  transitOrders_.clear();
+  activeMoves_.clear();
+  orderIndex_.reserve(orders_.size());
+  activeOrders_.reserve(orders_.size());
+  transitOrders_.reserve(orders_.size());
+  activeMoves_.reserve(moves_.size());
+  for (std::size_t index = 0; index < orders_.size(); ++index) {
+    orderIndex_.emplace(orders_[index].id, index);
+    if (orders_[index].state != PurchaseOrderState::Completed &&
+        orders_[index].state != PurchaseOrderState::Cancelled)
+      activeOrders_.push_back(index);
+    if (orders_[index].state == PurchaseOrderState::InTransit)
+      transitOrders_.push_back(index);
+  }
+  for (std::size_t index = 0; index < moves_.size(); ++index)
+    if (!moves_[index].completed)
+      activeMoves_.push_back(index);
+}
+
 void LogisticsSystem::tickSecond() {
   ++elapsedSeconds_;
 
-  for (auto &order : orders_) {
-    if (order.state != PurchaseOrderState::InTransit)
-      continue;
+  for (const auto index : transitOrders_) {
+    auto &order = orders_[index];
     if (order.remainingSeconds > 0)
       --order.remainingSeconds;
     if (order.remainingSeconds > 0)
@@ -239,13 +268,21 @@ void LogisticsSystem::tickSecond() {
       continue;
     }
     order.state = PurchaseOrderState::Unloading;
+    const auto moveIndex = moves_.size();
     moves_.push_back({nextId_++, order.id, order.item, order.quantity, receiving,
                       order.destination, 120, false, BlockReason::None});
+    activeMoves_.push_back(moveIndex);
   }
+  transitOrders_.erase(
+      std::remove_if(transitOrders_.begin(), transitOrders_.end(),
+                     [&](std::size_t index) {
+                       return orders_[index].state !=
+                              PurchaseOrderState::InTransit;
+                     }),
+      transitOrders_.end());
 
-  for (auto &move : moves_) {
-    if (move.completed)
-      continue;
+  for (const auto index : activeMoves_) {
+    auto &move = moves_[index];
     auto *destination = node(move.to);
     if (!destination || !destination->operational) {
       move.blockedReason = BlockReason::MissingRoute;
@@ -268,13 +305,24 @@ void LogisticsSystem::tickSecond() {
     destination->reservedUnits = std::max(0, destination->reservedUnits - move.quantity);
     move.completed = true;
     move.blockedReason = BlockReason::None;
-    for (auto &order : orders_)
-      if (order.id == move.orderId) {
-        order.state = PurchaseOrderState::Completed;
-        order.blockedReason = BlockReason::None;
-        break;
-      }
+    const auto order = orderIndex_.find(move.orderId);
+    if (order != orderIndex_.end()) {
+      orders_[order->second].state = PurchaseOrderState::Completed;
+      orders_[order->second].blockedReason = BlockReason::None;
+    }
   }
+  activeMoves_.erase(
+      std::remove_if(activeMoves_.begin(), activeMoves_.end(),
+                     [&](std::size_t index) { return moves_[index].completed; }),
+      activeMoves_.end());
+  activeOrders_.erase(
+      std::remove_if(activeOrders_.begin(), activeOrders_.end(),
+                     [&](std::size_t index) {
+                       const auto state = orders_[index].state;
+                       return state == PurchaseOrderState::Completed ||
+                              state == PurchaseOrderState::Cancelled;
+                     }),
+      activeOrders_.end());
 
   if (wasteAtSources_ > 0 && wasteCollectionRemaining_ < 0)
     wasteCollectionRemaining_ = 120;
@@ -309,31 +357,66 @@ void LogisticsSystem::tickSeconds(std::int64_t seconds) {
     tickSecond();
 }
 
-LogisticsSnapshot LogisticsSystem::snapshot() const {
+LogisticsSnapshot LogisticsSystem::snapshot(bool includeHistory) const {
   LogisticsSnapshot out;
   out.elapsedSeconds = elapsedSeconds_;
   out.wasteAtSources = wasteAtSources_;
   out.wasteInBackOfHouse = 0;
   out.wasteOverflowUnits = wasteOverflowUnits_;
   out.wastePickupActive = wastePickupRemaining_ >= 0;
-  for (const auto &storage : storage_) {
-    out.storage.push_back({storage.id, storage.kind, storage.capacityUnits,
-                           usedUnits(storage.id), storage.reservedUnits,
-                           storage.operational});
+  out.storage.reserve(storage_.size());
+  out.inventory.reserve(inventory_.size());
+  out.purchaseOrders.reserve(includeHistory ? orders_.size()
+                                            : activeOrders_.size());
+  out.stockMoves.reserve(includeHistory ? moves_.size()
+                                        : activeMoves_.size());
+
+  std::unordered_map<StorageNodeId, int> usedByStorage;
+  usedByStorage.reserve(storage_.size());
+  std::unordered_set<StorageNodeId> wasteStorage;
+  wasteStorage.reserve(storage_.size());
+  for (const auto &storage : storage_)
     if (storage.kind == StorageKind::Waste)
-      out.wasteInBackOfHouse += inventoryAt(storage.id, "waste");
-  }
-  for (const auto &stack : inventory_)
+      wasteStorage.insert(storage.id);
+
+  for (const auto &stack : inventory_) {
+    usedByStorage[stack.storage] += stack.quantity;
+    if (stack.item == "waste" && wasteStorage.contains(stack.storage))
+      out.wasteInBackOfHouse += stack.quantity;
     out.inventory.push_back(
         {stack.storage, stack.item, stack.quantity, stack.reservedQuantity});
-  for (const auto &order : orders_)
-    out.purchaseOrders.push_back({order.id, order.item, order.quantity,
-                                  order.destination, order.state,
-                                  order.remainingSeconds, order.blockedReason});
-  for (const auto &move : moves_)
-    out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
-                              move.from, move.to, move.remainingSeconds,
-                              move.completed, move.blockedReason});
+  }
+
+  for (const auto &storage : storage_) {
+    const auto used = usedByStorage.find(storage.id);
+    out.storage.push_back(
+        {storage.id, storage.kind, storage.capacityUnits,
+         used == usedByStorage.end() ? 0 : used->second,
+         storage.reservedUnits, storage.operational});
+  }
+  if (includeHistory) {
+    for (const auto &order : orders_)
+      out.purchaseOrders.push_back({order.id, order.item, order.quantity,
+                                    order.destination, order.state,
+                                    order.remainingSeconds, order.blockedReason});
+    for (const auto &move : moves_)
+      out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
+                                move.from, move.to, move.remainingSeconds,
+                                move.completed, move.blockedReason});
+  } else {
+    for (const auto index : activeOrders_) {
+      const auto &order = orders_[index];
+      out.purchaseOrders.push_back({order.id, order.item, order.quantity,
+                                    order.destination, order.state,
+                                    order.remainingSeconds, order.blockedReason});
+    }
+    for (const auto index : activeMoves_) {
+      const auto &move = moves_[index];
+      out.stockMoves.push_back({move.id, move.orderId, move.item, move.quantity,
+                                move.from, move.to, move.remainingSeconds,
+                                move.completed, move.blockedReason});
+    }
+  }
   return out;
 }
 

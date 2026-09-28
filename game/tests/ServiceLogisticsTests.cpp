@@ -111,6 +111,12 @@ int main() {
   original.tickSeconds(5000);
   restored.tickSeconds(5000);
   require(original.save() == restored.save(), "loaded service continuation diverged");
+  require(!original.housekeepingSnapshot().jobs.empty() &&
+              original.housekeepingSnapshot(false).jobs.empty(),
+          "live housekeeping snapshot retained completed job history");
+  require(!original.engineeringSnapshot().workOrders.empty() &&
+              original.engineeringSnapshot(false).workOrders.empty(),
+          "live engineering snapshot retained completed work-order history");
   require(original.laundry().totalLinenUnits() == 13,
           "active service chains minted or lost linen across save/load");
 
