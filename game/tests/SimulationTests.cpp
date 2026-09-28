@@ -371,6 +371,13 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
       ++guests;
     }
   require(guests == 6, "layout benchmark did not fill equivalent hotels");
+  int latestLaunchDepartureDay = 0;
+  for (const auto &reservation : s.view().reservations)
+    if (launchReservationIds.contains(reservation.id))
+      latestLaunchDepartureDay =
+          std::max(latestLaunchDepartureDay, reservation.departureDay);
+  require(latestLaunchDepartureDay > 0,
+          "layout benchmark launch cohort has no dated departure");
   outcome.guestSatisfaction /= guests;
 
   // The $50 rate above is only a launch-cohort control so both layouts fill
@@ -391,13 +398,24 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
       count += reservation.walkedRelocated;
     return count;
   };
-  // Flush the deliberately discounted launch cohort before measuring the
-  // steady-state economics of the two layouts.
-  s.step(5 * 86400);
+  // Flush through two full service days after the cohort's actual latest
+  // departure. The target is derived from the six shared reservations, so both
+  // layouts enter steady state on the same simulation day without a magic wait.
+  const std::int64_t launchFlushTargetSecond =
+      static_cast<std::int64_t>(latestLaunchDepartureDay + 2) * 86400;
+  const auto beforeFlush = s.view();
+  require(launchFlushTargetSecond > beforeFlush.elapsedSeconds,
+          "layout benchmark launch flush target was not in the future");
+  s.step(static_cast<double>(launchFlushTargetSecond -
+                             beforeFlush.elapsedSeconds));
   const auto baseline = s.view();
-  outcome.launchCohortReputation = baseline.economy.reputation;
-  require(baseline.economy.completedStays >= 6,
+  int completedLaunchReservations = 0;
+  for (const auto &reservation : baseline.reservations)
+    if (launchReservationIds.contains(reservation.id) && reservation.completed)
+      ++completedLaunchReservations;
+  require(completedLaunchReservations == 6,
           "layout benchmark launch cohort did not clear before measurement");
+  outcome.launchCohortReputation = baseline.economy.reputation;
   // Use unsaturated steady demand so reputation/service quality can
   // materially affect conversion instead of being clamped to 100% demand.
   require(s.loadDefinitions(R"({"baseDemand":1.25})").ok,
