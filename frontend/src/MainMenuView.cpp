@@ -1,4 +1,5 @@
 #include "hh/frontend/MainMenuView.h"
+#include "hh/frontend/MainMenuModel.h"
 
 #include <algorithm>
 #include <cmath>
