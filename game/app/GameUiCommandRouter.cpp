@@ -104,13 +104,14 @@ routeGameUiCommand(const hh::frontend::UiCommand& command,
   case UiCommandType::BuildConfirm:
   case UiCommandType::BuildRotate:
   case UiCommandType::BuildCancel:
+  case UiCommandType::AssignDepartmentManager:
   case UiCommandType::SetFutureRate:
   case UiCommandType::SetOverbookingPolicy:
   case UiCommandType::StartMarketingCampaign:
   case UiCommandType::AcceptContract:
     if (!hooks.authorityCommand) {
       return unavailable("UI_AUTHORITY_UNAVAILABLE",
-                         "Authoritative gameplay command hook is unavailable");
+                         "This action is not connected to gameplay yet.");
     }
     return hooks.authorityCommand(command);
   }
