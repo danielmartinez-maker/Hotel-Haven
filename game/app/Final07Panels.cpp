@@ -377,8 +377,7 @@ void Client::scrollPanel(int delta) {
     return;
 
   tabScroll = next;
-  hoveredButton = -1;
-  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+  invalidateUiControls();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
 }
