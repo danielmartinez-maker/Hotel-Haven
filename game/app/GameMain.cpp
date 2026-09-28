@@ -317,7 +317,7 @@ void resetCampaignUiState(Client &c) {
   c.focusedButton = -1;
   c.hoveredButton = -1;
   c.keyBindingEditor.cancel();
-  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+  c.invalidateUiControls();
 }
 
 void performUiAction(Client &c, hh::frontend::UiAction action) {
