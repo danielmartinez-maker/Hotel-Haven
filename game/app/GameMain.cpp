@@ -51,6 +51,26 @@ std::optional<Position> pick(const Client &c, int x, int y) {
   return Position{c.floor, tx, ty};
 }
 
+bool launchLivingMenu(const std::filesystem::path &directory) {
+  const auto executable = directory / L"hotel_haven_menu_demo.exe";
+  std::error_code error;
+  if (!std::filesystem::is_regular_file(executable, error) || error)
+    return false;
+
+  std::wstring commandLine = L"\"" + executable.wstring() + L"\"";
+  STARTUPINFOW startup{};
+  startup.cb = sizeof(startup);
+  PROCESS_INFORMATION process{};
+  const BOOL launched = CreateProcessW(
+      executable.c_str(), commandLine.data(), nullptr, nullptr, FALSE, 0,
+      nullptr, directory.c_str(), &startup, &process);
+  if (!launched)
+    return false;
+  CloseHandle(process.hThread);
+  CloseHandle(process.hProcess);
+  return true;
+}
+
 std::string readFile(const std::filesystem::path &path) {
   std::ifstream stream(path, std::ios::binary);
   if (!stream)
@@ -302,6 +322,8 @@ void resetCampaignUiState(Client &c) {
 void performUiAction(Client &c, hh::frontend::UiAction action) {
   switch (clientUiIntent(action)) {
   case ClientUiIntent::FocusPrevious:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (!c.buttons.empty()) {
       c.focusedButton = c.focusedButton <= 0
                             ? static_cast<int>(c.buttons.size()) - 1
@@ -310,16 +332,24 @@ void performUiAction(Client &c, hh::frontend::UiAction action) {
     }
     return;
   case ClientUiIntent::FocusNext:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (!c.buttons.empty()) {
       c.focusedButton = (c.focusedButton + 1) % static_cast<int>(c.buttons.size());
       InvalidateRect(c.window, nullptr, FALSE);
     }
     return;
   case ClientUiIntent::Activate:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (c.focusedButton >= 0 && c.focusedButton < static_cast<int>(c.buttons.size())) {
       const int priorScale = c.uiSettings.scalePercent();
       auto buttonAction = c.buttons[static_cast<std::size_t>(c.focusedButton)].action;
       buttonAction();
+      c.controlTreeEpoch.invalidate();
+      c.buttons.clear();
+      c.hoveredButton = -1;
+      SetCursor(LoadCursorW(nullptr, IDC_ARROW));
       applyScaleIfChanged(c, priorScale);
       c.refresh();
     }
@@ -484,6 +514,8 @@ void Client::layout() {
 void Client::click(int x, int y) {
   uiSettings.setInputModality(hh::frontend::InputModality::Mouse);
   focusedButton = -1;
+  if (!controlTreeEpoch.current())
+    return;
   for (const auto &b : buttons) {
     if (x >= b.rect.left && x < b.rect.right && y >= b.rect.top && y < b.rect.bottom) {
       const int priorScale = uiSettings.scalePercent();
@@ -498,6 +530,10 @@ void Client::click(int x, int y) {
         hoveredButton = -1;
         SetCursor(LoadCursorW(nullptr, IDC_ARROW));
       }
+      controlTreeEpoch.invalidate();
+      buttons.clear();
+      hoveredButton = -1;
+      SetCursor(LoadCursorW(nullptr, IDC_ARROW));
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
@@ -759,13 +795,27 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
   using namespace hh::client;
   try {
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    Client c;
-    c.smoke = std::wstring(commandLine).find(L"--smoke-test") != std::wstring::npos;
+    const auto startupMode = parseGameStartupMode(commandLine);
     std::array<wchar_t, 32768> path{};
-    const DWORD n = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+    const DWORD n =
+        GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
     if (!n || n >= path.size())
       throw std::runtime_error("Cannot resolve game directory");
-    c.directory = std::filesystem::path(path.data()).parent_path();
+    const auto applicationDirectory =
+        std::filesystem::path(path.data()).parent_path();
+
+    if (startupMode == GameStartupMode::LivingMenu) {
+      if (launchLivingMenu(applicationDirectory))
+        return 0;
+      MessageBoxW(nullptr,
+                  L"The Living Hotel menu could not be started. "
+                  L"Hotel Haven will open the game client directly.",
+                  L"Hotel Haven", MB_OK | MB_ICONWARNING);
+    }
+
+    Client c;
+    c.smoke = startupMode == GameStartupMode::SmokeTest;
+    c.directory = applicationDirectory;
     const auto definitions = c.directory / L"data" / L"balance.json";
     if (std::filesystem::exists(definitions)) {
       const auto loadResult = c.simulation.loadDefinitions(readFile(definitions));
@@ -790,6 +840,12 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       c.settingsPath = hotelRoot / L"ui-settings.cfg";
       if (!c.loadUiPreferences())
         c.notice = L"UI preferences were invalid or unreadable; defaults are in use.";
+    }
+    if (startupMode == GameStartupMode::LoadLatest && !c.load()) {
+      MessageBoxW(nullptr, c.notice.c_str(), L"Hotel Haven — Load failed",
+                  MB_OK | MB_ICONERROR);
+      static_cast<void>(launchLivingMenu(c.directory));
+      return 4;
     }
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(wc);
