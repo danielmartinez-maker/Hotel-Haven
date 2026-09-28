@@ -10,6 +10,8 @@
 namespace hh::game {
 namespace {
 
+constexpr double MaxSingleBridgeStepSeconds = 31.0 * 86400.0;
+
 std::uint64_t fnv1a(std::string_view text) {
   std::uint64_t hash = 1469598103934665603ULL;
   for (const unsigned char c : text) {
@@ -327,7 +329,8 @@ CommandResult SimulationEconomyBridge::loadDefinitions(std::string_view jsonText
 }
 
 void SimulationEconomyBridge::step(double seconds) {
-  if (!std::isfinite(seconds) || seconds < 0.0)
+  if (!std::isfinite(seconds) || seconds < 0.0 ||
+      seconds > MaxSingleBridgeStepSeconds)
     throw std::invalid_argument("invalid bridge step");
   double remaining = seconds;
   while (remaining > 0.0) {
@@ -440,6 +443,12 @@ SimulationEconomyBridge SimulationEconomyBridge::load(std::string_view data) {
   SimulationEconomyBridge result(1);
   result.simulation_ = Simulation::load(simulationState);
   result.economy_ = EconomyRuntime::load(economyState);
+  const auto simulationDay = result.simulation_.view().day;
+  if (result.economy_.currentDay() != simulationDay ||
+      result.economy_.cumulativeSellableRoomNights() != sellable ||
+      result.economy_.cumulativeOccupiedRoomNights() != occupied)
+    throw std::invalid_argument(
+        "integrated save wrapper metrics do not match FINAL-06 state");
   result.cumulativeSellableRoomNights_ = sellable;
   result.cumulativeOccupiedRoomNights_ = occupied;
   result.resetBaseline();

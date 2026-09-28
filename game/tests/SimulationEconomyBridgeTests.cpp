@@ -1,6 +1,7 @@
 #include "hh/game/SimulationEconomyBridge.h"
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 using namespace hh::game;
 static void require(bool v, const char *m) { if (!v) throw std::runtime_error(m); }
@@ -137,6 +138,32 @@ int main() {
   require(restored.physicalSimulation().guestDemandEnvironment() ==
               competitiveEnvironment,
           "bridge load did not reconstruct competitive guest demand context from FINAL-06");
+
+  const std::string zeroMetricPrefix = "HHSIMECO 1 0 0";
+  require(saved.rfind(zeroMetricPrefix, 0) == 0,
+          "bridge metric corruption fixture expected zero cumulative nights");
+  auto corruptMetrics = saved;
+  corruptMetrics.replace(0, zeroMetricPrefix.size(), "HHSIMECO 1 1 0");
+  bool rejectedMetrics = false;
+  try {
+    (void)SimulationEconomyBridge::load(corruptMetrics);
+  } catch (const std::invalid_argument &) {
+    rejectedMetrics = true;
+  }
+  require(rejectedMetrics,
+          "integrated bridge accepted wrapper metrics that diverged from FINAL-06");
+
+  {
+    bool rejected = false;
+    try {
+      auto bounded = SimulationEconomyBridge::tutorial(9000);
+      bounded.step(32.0 * 86400.0);
+    } catch (const std::invalid_argument &) {
+      rejected = true;
+    }
+    require(rejected,
+            "integrated bridge accepted a time advance beyond the execution budget");
+  }
 
   auto blockedDemand = Simulation::tutorial(441);
   GuestDemandEnvironment blockedEnvironment;
