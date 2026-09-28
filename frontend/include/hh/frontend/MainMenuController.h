@@ -13,6 +13,7 @@ public:
     [[nodiscard]] MainMenuCommand confirmQuit() noexcept;
     [[nodiscard]] bool cancel() noexcept;
     [[nodiscard]] bool hover(MainMenuItem item) noexcept;
+    [[nodiscard]] bool hoverSettings(MainMenuSettingsItem item) noexcept;
 
 private:
     [[nodiscard]] static MainMenuCommand commandFor(MainMenuItem item) noexcept;
