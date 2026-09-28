@@ -205,6 +205,9 @@ struct Simulation::Impl {
   std::vector<Room> rooms;
   std::vector<Person> people;
   std::vector<Reservation> reservations;
+  std::unordered_map<EntityId, std::size_t> roomIndex;
+  std::unordered_map<EntityId, std::size_t> personIndex;
+  std::unordered_map<EntityId, std::size_t> reservationIndex;
   std::vector<Reservation> completedReservationHistory;
   std::vector<Task> tasks;
   std::vector<Task> completedTaskHistory;
@@ -273,9 +276,9 @@ struct Simulation::Impl {
     amenities.setElapsedSeconds(elapsed);
   }
 
-  [[nodiscard]] std::int64_t final05RevenueCents() const {
-    return food.snapshot().revenueCents + events.snapshot().revenueCents +
-           amenities.snapshot().revenueCents;
+  [[nodiscard]] std::int64_t final05RevenueCents() const noexcept {
+    return food.revenueCents() + events.revenueCents() +
+           amenities.revenueCents();
   }
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
@@ -288,24 +291,64 @@ struct Simulation::Impl {
       return false;
     return passableKind(map[index(p)]);
   }
-  std::vector<Position> neighbors(Position p) const {
-    std::vector<Position> n{{p.floor, p.x + 1, p.y},
-                            {p.floor, p.x - 1, p.y},
-                            {p.floor, p.x, p.y + 1},
-                            {p.floor, p.x, p.y - 1}};
-    if (inside(p) && map[index(p)] == TileKind::Stairs) {
-      n.push_back({p.floor + 1, p.x, p.y});
-      n.push_back({p.floor - 1, p.x, p.y});
-    }
-    n.erase(std::remove_if(n.begin(), n.end(),
-                           [&](auto q) {
-                             return !passable(q) ||
-                                    (q.floor != p.floor &&
-                                     map[index(q)] != TileKind::Stairs);
-                           }),
-            n.end());
-    return n;
+
+  void invalidateTopologyCaches() {
+    routeCache.clear();
+    specialTileCacheValid = false;
+    tileViewCacheValid = false;
   }
+
+  void refreshTileViewCache() const {
+    if (tileViewCacheValid)
+      return;
+    cachedTileViews.clear();
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
+      if (map[i] != TileKind::Empty)
+        cachedTileViews.push_back(
+            {{i / (width * height), i % width, (i / width) % height}, map[i]});
+    tileViewCacheValid = true;
+  }
+
+  void refreshSpecialTileCache() const {
+    if (specialTileCacheValid)
+      return;
+    cachedEntrance = {-1, -1, -1};
+    cachedSupply = {-1, -1, -1};
+    cachedFrontDesk = {-1, -1, -1};
+    for (int i = 0; i < static_cast<int>(map.size()); ++i) {
+      Position position{i / (width * height), i % width,
+                        (i / width) % height};
+      if (map[i] == TileKind::Entrance && cachedEntrance.floor < 0)
+        cachedEntrance = position;
+      else if (map[i] == TileKind::SupplyCloset && cachedSupply.floor < 0)
+        cachedSupply = position;
+      else if (map[i] == TileKind::FrontDesk && cachedFrontDesk.floor < 0)
+        cachedFrontDesk = position;
+      if (cachedEntrance.floor >= 0 && cachedSupply.floor >= 0 &&
+          cachedFrontDesk.floor >= 0)
+        break;
+    }
+    specialTileCacheValid = true;
+  }
+  template <typename Visitor>
+  void forEachNeighbor(Position p, Visitor &&visit) const {
+    const Position sameFloor[] = {{p.floor, p.x + 1, p.y},
+                                  {p.floor, p.x - 1, p.y},
+                                  {p.floor, p.x, p.y + 1},
+                                  {p.floor, p.x, p.y - 1}};
+    for (const auto next : sameFloor)
+      if (passable(next))
+        visit(next);
+
+    if (!inside(p) || map[index(p)] != TileKind::Stairs)
+      return;
+    const Position vertical[] = {{p.floor + 1, p.x, p.y},
+                                 {p.floor - 1, p.x, p.y}};
+    for (const auto next : vertical)
+      if (passable(next) && map[index(next)] == TileKind::Stairs)
+        visit(next);
+  }
+
   std::vector<Position> path(Position from, Position to) const {
     if (!passable(from) || !passable(to))
       return {};
@@ -314,15 +357,17 @@ struct Simulation::Impl {
     q.push(from);
     prev[index(from)] = index(from);
     while (!q.empty()) {
-      auto p = q.front();
+      const auto p = q.front();
       q.pop();
       if (same(p, to))
         break;
-      for (auto n : neighbors(p))
-        if (prev[index(n)] < 0) {
-          prev[index(n)] = index(p);
-          q.push(n);
+      forEachNeighbor(p, [&](Position next) {
+        const auto nextIndex = index(next);
+        if (prev[nextIndex] < 0) {
+          prev[nextIndex] = index(p);
+          q.push(next);
         }
+      });
     }
     if (prev[index(to)] < 0)
       return {};
@@ -335,6 +380,38 @@ struct Simulation::Impl {
     }
     std::reverse(out.begin(), out.end());
     return out;
+  }
+
+  [[nodiscard]] std::optional<Position> nextPathStep(Person &person) {
+    if (same(person.position, person.destination)) {
+      routeCache.erase(person.id);
+      return std::nullopt;
+    }
+
+    auto cached = routeCache.find(person.id);
+    if (cached == routeCache.end() ||
+        !same(cached->second.destination, person.destination) ||
+        !same(cached->second.expectedPosition, person.position) ||
+        cached->second.nextIndex >= cached->second.steps.size()) {
+      auto route = path(person.position, person.destination);
+      if (route.empty()) {
+        routeCache.erase(person.id);
+        return std::nullopt;
+      }
+      CachedRoute fresh;
+      fresh.destination = person.destination;
+      fresh.expectedPosition = person.position;
+      fresh.steps = std::move(route);
+      cached = routeCache.insert_or_assign(person.id, std::move(fresh)).first;
+    }
+
+    auto &route = cached->second;
+    const auto next = route.steps[route.nextIndex++];
+    route.expectedPosition = next;
+    if (route.nextIndex >= route.steps.size() ||
+        same(next, route.destination))
+      routeCache.erase(cached);
+    return next;
   }
 
   [[nodiscard]] std::vector<bool> reachableMask(Position from) const {
@@ -416,6 +493,9 @@ struct Simulation::Impl {
   Position supply() const { return locate(TileKind::SupplyCloset); }
   Position frontDesk() const { return locate(TileKind::FrontDesk); }
   bool has(TileKind kind) const {
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk)
+      return locate(kind).floor >= 0;
     return std::find(map.begin(), map.end(), kind) != map.end();
   }
 
@@ -1095,6 +1175,7 @@ struct Simulation::Impl {
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
+      reservationIndex[z.id] = reservations.size() - 1;
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
     }
@@ -1698,9 +1779,9 @@ struct Simulation::Impl {
         }
         if (p.state == PersonState::Traveling) {
           ++p.travelSeconds;
-          auto route = path(p.position, p.destination);
-          if (!route.empty())
-            p.position = route.front();
+          const auto next = nextPathStep(p);
+          if (next)
+            p.position = *next;
           else {
             p.queueWaitSeconds += 1;
             p.patience = std::max(0.0, p.patience - 1.0 / 120);
@@ -1779,12 +1860,15 @@ struct Simulation::Impl {
     for (auto &reservation : reservations)
       if (reservation.completed)
         completedReservationHistory.push_back(std::move(reservation));
+    const auto reservationsBefore = reservations.size();
     reservations.erase(
         std::remove_if(reservations.begin(), reservations.end(),
                        [](const auto &reservation) {
                          return reservation.completed;
                        }),
         reservations.end());
+    if (reservations.size() != reservationsBefore)
+      rebuildReservationIndex();
   }
   void tickServicesWithPhysicalLabor() {
     managedHousekeepingScratch.clear();
@@ -1864,7 +1948,8 @@ struct Simulation::Impl {
         continue;
 
       if (room.status == RoomStatus::Cleaning &&
-          !hasActiveTask(TaskKind::Turnover, room.id) &&
+          !std::binary_search(managedHousekeepingScratch.begin(),
+                              managedHousekeepingScratch.end(), room.id) &&
           services.housekeeping().roomStatus(room.id) ==
               ServiceRoomStatus::Ready) {
         if (room.condition < 35) {
@@ -1878,7 +1963,8 @@ struct Simulation::Impl {
       }
 
       if (room.status == RoomStatus::OutOfOrder &&
-          !hasActiveTask(TaskKind::Repair, room.id)) {
+          !std::binary_search(managedEngineeringScratch.begin(),
+                              managedEngineeringScratch.end(), room.id)) {
         const auto engineeringStage =
             services.engineering().latestWorkOrderStage(
                 room.id, WorkOrderType::Corrective);
@@ -1938,13 +2024,6 @@ struct Simulation::Impl {
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
-    int available = 0, occupied = 0;
-    for (auto &r : rooms)
-      if (!r.closed && r.status != RoomStatus::Incomplete) {
-        available++;
-        occupied += r.status == RoomStatus::Occupied;
-      }
-    economy.occupancy = available ? double(occupied) / available : 0;
   }
 };
 
@@ -2041,6 +2120,7 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
   if (impl_->map[impl_->index(p)] == k)
     return validation;
   impl_->map[impl_->index(p)] = k;
+  impl_->invalidateTopologyCaches();
   impl_->economy.cashCents -= 500;
   impl_->economy.constructionCostCents += 500;
   impl_->refreshReachability();
@@ -2067,6 +2147,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
                                                     : TileKind::Floor;
     }
   impl_->map[impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
+  impl_->invalidateTopologyCaches();
   Room r;
   r.id = impl_->nextId++;
   r.name = b.name;
@@ -2086,6 +2167,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->roomIndex[r.id] = impl_->rooms.size() - 1;
   impl_->services.registerRoom(
       r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
                                                  : ServiceRoomStatus::Blocked);
@@ -3149,7 +3231,9 @@ void Simulation::step(double seconds) {
     impl_->food.tickSecond();
     impl_->events.tickSecond();
     impl_->amenities.tickSecond();
-    for (const auto &handoff : impl_->food.pendingRoomServiceHandoffs())
+    impl_->food.pendingRoomServiceHandoffs(
+        impl_->pendingRoomServiceHandoffsScratch);
+    for (const auto &handoff : impl_->pendingRoomServiceHandoffsScratch)
       if (impl_->services.markRoomServiceProductionReady(
               handoff.roomServiceOrderId))
         (void)impl_->food.acknowledgeRoomServiceHandoff(
@@ -4509,6 +4593,7 @@ Simulation Simulation::load(std::string_view data) {
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
   }
+  d.rebuildEntityIndexes();
   d.compactTransientState();
   return s;
 }
