@@ -3,9 +3,50 @@
 #include "hh/frontend/GameUiTypes.h"
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace hh::client {
+
+
+enum class GameStartupMode {
+  LivingMenu,
+  NewHotel,
+  LoadLatest,
+  SmokeTest
+};
+
+[[nodiscard]] constexpr GameStartupMode
+parseGameStartupMode(std::wstring_view commandLine) noexcept {
+  if (commandLine.find(L"--smoke-test") != std::wstring_view::npos)
+    return GameStartupMode::SmokeTest;
+  if (commandLine.find(L"--game") == std::wstring_view::npos)
+    return GameStartupMode::LivingMenu;
+  if (commandLine.find(L"--load-save") != std::wstring_view::npos)
+    return GameStartupMode::LoadLatest;
+  return GameStartupMode::NewHotel;
+}
+
+struct Final07ControlTreeEpoch {
+  std::uint64_t stateRevision{1};
+  std::uint64_t renderedRevision{};
+
+  [[nodiscard]] constexpr bool current() const noexcept {
+    return stateRevision == renderedRevision;
+  }
+
+  constexpr void markRendered() noexcept {
+    renderedRevision = stateRevision;
+  }
+
+  constexpr void invalidate() noexcept {
+    ++stateRevision;
+    if (stateRevision == 0) {
+      stateRevision = 1;
+      renderedRevision = 0;
+    }
+  }
+};
 
 enum class Page {
   Build,
