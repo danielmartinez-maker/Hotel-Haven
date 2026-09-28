@@ -34,15 +34,15 @@ Controls:
 ```text
 Up / W             Previous enabled menu item
 Down / S           Next enabled menu item
-Enter / Space      Activate / confirm / toggle the Settings option
+Enter / Space      Activate / confirm / change the selected Settings option
 Escape             Cancel the active modal or overlay
-Mouse              Hover, activate, toggle Settings, and use quit buttons
-D-pad / Left stick Navigate enabled menu items
-Gamepad A           Activate / confirm / toggle the Settings option
+Mouse              Hover, activate, select/change Settings rows, and use quit buttons
+D-pad / Left stick Navigate enabled menu items or Settings rows
+Gamepad A           Activate / confirm / change the selected Settings option
 Gamepad B           Cancel the active modal or overlay
 ```
 
-Settings and Credits are lightweight overlays over the still-running Living Hotel scene. Settings currently exposes the v0.1 Reduced Motion option; toggling it freezes ambient presentation actors and disables menu camera motion without unloading the scene. Credits also overlays without reinitializing the renderer or backdrop.
+Settings and Credits are lightweight overlays over the still-running Living Hotel scene. Settings exposes UI Scale (90%, 100%, 110%, 125%, 150%) and Reduced Motion. UI Scale changes the menu immediately while preserving bounded layout density; Reduced Motion freezes ambient presentation actors and disables menu camera motion without unloading the scene. Credits also overlays without reinitializing the renderer or backdrop.
 
 Continue, New Hotel, Load Hotel, Scenarios, and Sandbox intentionally emit frontend/application commands or demo surfaces. Their full workflow internals are outside HH-UI-MAIN-001 v0.1.
 
