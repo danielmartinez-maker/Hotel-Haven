@@ -317,6 +317,10 @@ struct LayoutOutcome {
   double finalReputation{};
   int completedStays{};
   int walkedRelocations{};
+  std::int64_t revenueCents{};
+  std::int64_t payrollCents{};
+  std::int64_t supplyCostCents{};
+  std::int64_t utilityCostCents{};
   std::int64_t operatingProfitCents{};
 };
 
@@ -438,11 +442,17 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
   require(servedReservations == 6,
           "layout benchmark lost a launch reservation from history");
   outcome.guestSatisfaction /= servedReservations;
+  outcome.revenueCents =
+      economy.revenueCents - baseline.economy.revenueCents;
+  outcome.payrollCents =
+      economy.payrollCents - baseline.economy.payrollCents;
+  outcome.supplyCostCents =
+      economy.supplyCostCents - baseline.economy.supplyCostCents;
+  outcome.utilityCostCents =
+      economy.utilityCostCents - baseline.economy.utilityCostCents;
   outcome.operatingProfitCents =
-      (economy.revenueCents - baseline.economy.revenueCents) -
-      (economy.payrollCents - baseline.economy.payrollCents) -
-      (economy.supplyCostCents - baseline.economy.supplyCostCents) -
-      (economy.utilityCostCents - baseline.economy.utilityCostCents);
+      outcome.revenueCents - outcome.payrollCents - outcome.supplyCostCents -
+      outcome.utilityCostCents;
   return outcome;
 }
 
@@ -459,7 +469,12 @@ static void poor_layout_lowers_service_quality_and_profit() {
             << efficient.finalReputation << '/' << poor.finalReputation
             << ", stays " << efficient.completedStays << '/'
             << poor.completedStays << ", walks " << efficient.walkedRelocations
-            << '/' << poor.walkedRelocations << ", operating profit "
+            << '/' << poor.walkedRelocations << ", revenue "
+            << efficient.revenueCents << '/' << poor.revenueCents
+            << ", payroll " << efficient.payrollCents << '/' << poor.payrollCents
+            << ", supplies " << efficient.supplyCostCents << '/'
+            << poor.supplyCostCents << ", utilities " << efficient.utilityCostCents
+            << '/' << poor.utilityCostCents << ", operating profit "
             << efficient.operatingProfitCents << '/'
             << poor.operatingProfitCents << " cents\n";
   require(poor.guestTravelSeconds > efficient.guestTravelSeconds,
