@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
+#include <utility>
 
 namespace {
 void require(bool condition, const char *message) {
@@ -15,6 +16,34 @@ void require(bool condition, const char *message) {
 
 int main() {
   try {
+    using hh::client::Final07ControlTreeEpoch;
+    using hh::client::GameStartupMode;
+    using hh::client::parseGameStartupMode;
+
+    require(parseGameStartupMode(L"") == GameStartupMode::LivingMenu,
+            "normal launch must enter the Living Hotel menu first");
+    require(parseGameStartupMode(L"--game --new-hotel") ==
+                GameStartupMode::NewHotel,
+            "new-hotel launch must enter a fresh campaign");
+    require(parseGameStartupMode(L"--game --load-save") ==
+                GameStartupMode::LoadLatest,
+            "continue/load launch must restore the latest campaign");
+    require(parseGameStartupMode(L"--smoke-test") == GameStartupMode::SmokeTest,
+            "client smoke mode must bypass the Living Hotel launcher");
+
+    Final07ControlTreeEpoch controlTree;
+    require(!controlTree.current(),
+            "control tree must not be interactive before its first render");
+    controlTree.markRendered();
+    require(controlTree.current(),
+            "freshly rendered controls must be interactive");
+    controlTree.invalidate();
+    require(!controlTree.current(),
+            "a UI state change must make the prior clickable tree stale");
+    controlTree.markRendered();
+    require(controlTree.current(),
+            "repainted controls must become interactive again");
+
     constexpr std::array<int, 5> expectedSpeeds{0, 1, 2, 4, 8};
     require(hh::client::Final07SpeedButtons == expectedSpeeds,
             "FINAL-07 speed controls must be exactly 0x/1x/2x/4x/8x");
