@@ -1,12 +1,17 @@
 #include <windows.h>
 
+#include <array>
 #include <chrono>
 #include <filesystem>
+#include <optional>
 #include <string>
+#include <system_error>
+#include <vector>
 
 #include "ShowcaseHotelScene.h"
 #include "d2d/D2DUiRenderer.h"
 #include "d3d11/D3D11Renderer.h"
+#include "hh/frontend/MainMenuApplication.h"
 #include "hh/frontend/MainMenuController.h"
 #include "hh/frontend/MainMenuView.h"
 #include "hh/frontend/MenuSceneController.h"
@@ -45,34 +50,12 @@ hh::frontend::MenuPropertySummary demoProperty() {
     return summary;
 }
 
-bool hitMenuItem(
-    const hh::frontend::LayoutMetrics& layout,
-    POINT point,
-    hh::frontend::MainMenuItem& item) {
-    float y = layout.navigationTop;
-    for (const auto candidate : hh::frontend::MainMenuModel::orderedItems()) {
-        if (candidate == hh::frontend::MainMenuItem::Settings) {
-            y += 28.0F * layout.logicalScale;
-        }
-        const float height = 48.0F * layout.logicalScale;
-        const float left = layout.navigationLeft - 12.0F * layout.logicalScale;
-        const float right = layout.navigationLeft + layout.navigationWidth;
-        if (static_cast<float>(point.x) >= left && static_cast<float>(point.x) <= right &&
-            static_cast<float>(point.y) >= y && static_cast<float>(point.y) <= y + height) {
-            item = candidate;
-            return true;
-        }
-        y += 55.0F * layout.logicalScale;
-    }
-    return false;
-}
-
 QuitModalAction hitQuitModalAction(
     const hh::frontend::LayoutMetrics& layout,
     float width,
     float height,
     POINT point) noexcept {
-    const float scale = layout.logicalScale;
+    const float scale = layout.uiContentScale;
     const float modalWidth = 470.0F * scale;
     const float modalHeight = 190.0F * scale;
     const float left = (width - modalWidth) * 0.5F;
@@ -92,46 +75,123 @@ QuitModalAction hitQuitModalAction(
         : QuitModalAction::Cancel;
 }
 
-bool hitSettingsToggle(
+std::optional<hh::frontend::MainMenuSettingsItem> hitSettingsItem(
     const hh::frontend::LayoutMetrics& layout,
     float width,
     float height,
     POINT point) noexcept {
-    const float scale = layout.logicalScale;
+    const float scale = layout.uiContentScale;
     const float panelWidth = 620.0F * scale;
     const float panelHeight = 310.0F * scale;
     const float left = (width - panelWidth) * 0.5F;
     const float top = (height - panelHeight) * 0.5F;
     const float x = static_cast<float>(point.x);
     const float y = static_cast<float>(point.y);
-    return x >= left + 32.0F * scale && x <= left + panelWidth - 32.0F * scale &&
-           y >= top + 98.0F * scale && y <= top + 168.0F * scale;
+    const float rowLeft = left + 30.0F * scale;
+    const float rowRight = left + panelWidth - 30.0F * scale;
+    if (x < rowLeft || x > rowRight) {
+        return std::nullopt;
+    }
+    if (y >= top + 98.0F * scale && y <= top + 150.0F * scale) {
+        return hh::frontend::MainMenuSettingsItem::UiScale;
+    }
+    if (y >= top + 158.0F * scale && y <= top + 210.0F * scale) {
+        return hh::frontend::MainMenuSettingsItem::ReducedMotion;
+    }
+    return std::nullopt;
 }
 
-void executeCommand(hh::frontend::MainMenuCommand command, hh::renderer::Win32Window& window) {
+std::filesystem::path executableDirectory() {
+    std::array<wchar_t, 32768> path{};
+    const DWORD length =
+        GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+    if (length == 0 || length >= path.size()) {
+        return std::filesystem::current_path();
+    }
+    return std::filesystem::path(path.data()).parent_path();
+}
+
+std::filesystem::path defaultSavePath() {
+    std::array<wchar_t, 32768> path{};
+    const DWORD length = GetEnvironmentVariableW(
+        L"LOCALAPPDATA", path.data(), static_cast<DWORD>(path.size()));
+    const std::filesystem::path root =
+        length > 0 && length < path.size()
+            ? std::filesystem::path(path.data())
+            : executableDirectory();
+    return root / L"HotelHaven" / L"campaign.hhsave";
+}
+
+bool candidateSaveAvailable() {
+    std::error_code error;
+    const auto path = defaultSavePath();
+    return std::filesystem::is_regular_file(path, error) &&
+           !error && std::filesystem::file_size(path, error) > 0 && !error;
+}
+
+bool launchGame(const hh::frontend::MainMenuGameLaunchIntent& intent) {
+    const auto executable = executableDirectory() / L"hotel_haven.exe";
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(executable, error) || error) {
+        return false;
+    }
+
+    std::wstring commandLine =
+        L"\"" + executable.wstring() + L"\" " + intent.arguments;
+    std::vector<wchar_t> mutableCommand(
+        commandLine.begin(), commandLine.end());
+    mutableCommand.push_back(L'\0');
+
+    STARTUPINFOW startup{};
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION process{};
+    const auto workingDirectory = executable.parent_path();
+    const BOOL launched = CreateProcessW(
+        executable.c_str(), mutableCommand.data(), nullptr, nullptr, FALSE, 0,
+        nullptr, workingDirectory.c_str(), &startup, &process);
+    if (!launched) {
+        return false;
+    }
+    CloseHandle(process.hThread);
+    CloseHandle(process.hProcess);
+    return true;
+}
+
+void executeCommand(
+    hh::frontend::MainMenuCommand command,
+    hh::renderer::Win32Window& window) {
     using hh::frontend::MainMenuCommand;
-    switch (command) {
-        case MainMenuCommand::ExitApplication:
+    if (command == MainMenuCommand::ExitApplication) {
+        window.requestClose();
+        return;
+    }
+
+    if (const auto intent = hh::frontend::mainMenuGameLaunchIntent(command)) {
+        if (launchGame(*intent)) {
             window.requestClose();
-            break;
-        case MainMenuCommand::ContinueLatest:
-            window.setTitle(L"Hotel Haven — Continue transition fixture");
-            break;
-        case MainMenuCommand::StartNewHotel:
-            window.setTitle(L"Hotel Haven — New Hotel flow fixture");
-            break;
-        case MainMenuCommand::OpenLoadHotel:
-            window.setTitle(L"Hotel Haven — Load Hotel fixture");
-            break;
+        } else {
+            window.setTitle(
+                L"Hotel Haven — Game client could not be started");
+        }
+        return;
+    }
+
+    switch (command) {
         case MainMenuCommand::OpenScenarios:
-            window.setTitle(L"Hotel Haven — Scenarios fixture");
+            window.setTitle(
+                L"Hotel Haven — Scenarios are not available in this build");
             break;
         case MainMenuCommand::OpenSandbox:
-            window.setTitle(L"Hotel Haven — Sandbox fixture");
+            window.setTitle(
+                L"Hotel Haven — Sandbox is not available in this build");
             break;
+        case MainMenuCommand::None:
         case MainMenuCommand::OpenSettings:
         case MainMenuCommand::OpenCredits:
-        case MainMenuCommand::None:
+        case MainMenuCommand::ContinueLatest:
+        case MainMenuCommand::StartNewHotel:
+        case MainMenuCommand::OpenLoadHotel:
+        case MainMenuCommand::ExitApplication:
             break;
     }
 }
@@ -148,6 +208,22 @@ void toggleReducedMotion(
     if (reducedMotion) {
         scene = hh::frontend::ShowcaseHotelScene::build();
     }
+}
+
+void activateSelectedSetting(
+    const hh::frontend::MainMenuModel& model,
+    float& uiScale,
+    bool& reducedMotion,
+    hh::frontend::MenuSceneController& sceneController,
+    hh::frontend::MenuTransitionDirector& transitions,
+    hh::renderer::RenderScene& scene) {
+    if (model.settingsSelection() ==
+        hh::frontend::MainMenuSettingsItem::UiScale) {
+        uiScale = hh::frontend::nextMainMenuUiScale(uiScale);
+        return;
+    }
+    toggleReducedMotion(
+        reducedMotion, sceneController, transitions, model, scene);
 }
 
 }  // namespace
@@ -174,8 +250,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         return 2;
     }
 
-    const bool validSave = hasFlag(L"--valid-save");
+    const bool validSave = hasFlag(L"--valid-save") || candidateSaveAvailable();
     bool reducedMotion = hasFlag(L"--reduced-motion");
+    float uiScale = 1.0F;
     const auto property = demoProperty();
 
     hh::frontend::MainMenuModel model(validSave);
@@ -214,13 +291,19 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         const hh::frontend::MenuInputFrame gamepadInput = gamepad.poll();
         if (window.consumeKeyPressed(VK_UP) || window.consumeKeyPressed('W') ||
             gamepadInput.navigationDelta < 0) {
+            const auto previousSelection = model.selected();
             controller.navigate(-1);
-            transitions.retarget(model.selected(), reducedMotion);
+            if (model.selected() != previousSelection) {
+                transitions.retarget(model.selected(), reducedMotion);
+            }
         }
         if (window.consumeKeyPressed(VK_DOWN) || window.consumeKeyPressed('S') ||
             gamepadInput.navigationDelta > 0) {
+            const auto previousSelection = model.selected();
             controller.navigate(1);
-            transitions.retarget(model.selected(), reducedMotion);
+            if (model.selected() != previousSelection) {
+                transitions.retarget(model.selected(), reducedMotion);
+            }
         }
 
         const bool activatePressed =
@@ -230,7 +313,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
             if (model.modal() == hh::frontend::MainMenuModal::QuitConfirm) {
                 executeCommand(controller.confirmQuit(), window);
             } else if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
-                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
+                activateSelectedSetting(
+                    model, uiScale, reducedMotion, sceneController,
+                    transitions, scene);
             } else if (model.panel() == hh::frontend::MainMenuPanel::None) {
                 executeCommand(controller.activate(), window);
             }
@@ -245,17 +330,27 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
 
         const auto layout = view.layout(
             static_cast<float>(window.clientWidth()),
-            static_cast<float>(window.clientHeight()), 1.0F);
+            static_cast<float>(window.clientHeight()), uiScale);
         POINT pointer{};
-        hh::frontend::MainMenuItem hovered{};
         if (model.modal() == hh::frontend::MainMenuModal::None &&
-            model.panel() == hh::frontend::MainMenuPanel::None &&
-            window.mousePosition(pointer) &&
-            hitMenuItem(layout, pointer, hovered) &&
-            model.isEnabled(hovered) &&
-            hovered != model.selected()) {
-            if (controller.hover(hovered)) {
-                transitions.retarget(model.selected(), reducedMotion);
+            window.mousePosition(pointer)) {
+            if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
+                if (const auto setting = hitSettingsItem(
+                        layout,
+                        static_cast<float>(window.clientWidth()),
+                        static_cast<float>(window.clientHeight()),
+                        pointer)) {
+                    static_cast<void>(controller.hoverSettings(*setting));
+                }
+            } else if (model.panel() == hh::frontend::MainMenuPanel::None) {
+                const auto hovered = view.menuItemAt(
+                    layout, static_cast<float>(pointer.x),
+                    static_cast<float>(pointer.y));
+                if (hovered && model.isEnabled(*hovered) &&
+                    *hovered != model.selected() &&
+                    controller.hover(*hovered)) {
+                    transitions.retarget(model.selected(), reducedMotion);
+                }
             }
         }
 
@@ -272,19 +367,28 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
                 } else if (action == QuitModalAction::Cancel) {
                     static_cast<void>(controller.cancel());
                 }
-            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings &&
-                       hitSettingsToggle(
-                           layout,
-                           static_cast<float>(window.clientWidth()),
-                           static_cast<float>(window.clientHeight()),
-                           click)) {
-                toggleReducedMotion(reducedMotion, sceneController, transitions, model, scene);
-            } else if (model.panel() == hh::frontend::MainMenuPanel::None &&
-                       hitMenuItem(layout, click, hovered) && model.isEnabled(hovered)) {
-                if (hovered != model.selected() && controller.hover(hovered)) {
-                    transitions.retarget(model.selected(), reducedMotion);
+            } else if (model.panel() == hh::frontend::MainMenuPanel::Settings) {
+                if (const auto setting = hitSettingsItem(
+                        layout,
+                        static_cast<float>(window.clientWidth()),
+                        static_cast<float>(window.clientHeight()),
+                        click)) {
+                    static_cast<void>(controller.hoverSettings(*setting));
+                    activateSelectedSetting(
+                        model, uiScale, reducedMotion, sceneController,
+                        transitions, scene);
                 }
-                executeCommand(controller.activate(), window);
+            } else if (model.panel() == hh::frontend::MainMenuPanel::None) {
+                const auto clicked = view.menuItemAt(
+                    layout, static_cast<float>(click.x),
+                    static_cast<float>(click.y));
+                if (clicked && model.isEnabled(*clicked)) {
+                    if (*clicked != model.selected() &&
+                        controller.hover(*clicked)) {
+                        transitions.retarget(model.selected(), reducedMotion);
+                    }
+                    executeCommand(controller.activate(), window);
+                }
             }
         }
 
@@ -334,7 +438,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int showCommand) {
         hh::frontend::UiFrameState frame{};
         frame.width = static_cast<float>(window.clientWidth());
         frame.height = static_cast<float>(window.clientHeight());
-        frame.uiScale = 1.0F;
+        frame.uiScale = uiScale;
         frame.property = validSave ? &property : nullptr;
         frame.reducedMotion = reducedMotion;
         uiResult = ui.draw(model, view, frame);
