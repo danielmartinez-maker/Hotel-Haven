@@ -26,6 +26,7 @@ namespace {
 constexpr int MaxMapWidth = 512;
 constexpr int MaxMapHeight = 512;
 constexpr int MaxMapFloors = 64;
+constexpr double MaxSingleSimulationStepSeconds = 31.0 * 86400.0;
 
 bool same(Position a, Position b) {
   return a.floor == b.floor && a.x == b.x && a.y == b.y;
@@ -3157,7 +3158,8 @@ Simulation::recordGuestExperience(EntityId guestId,
 }
 
 void Simulation::step(double seconds) {
-  if (!std::isfinite(seconds) || seconds < 0 || seconds > 1.0e9)
+  if (!std::isfinite(seconds) || seconds < 0 ||
+      seconds > MaxSingleSimulationStepSeconds)
     throw std::invalid_argument("step seconds must be finite and bounded");
   impl_->remainderMillis += (std::int64_t)std::llround(seconds * 1000);
   while (impl_->remainderMillis >= 1000) {
