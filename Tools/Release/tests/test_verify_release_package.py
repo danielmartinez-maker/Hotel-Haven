@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 import zipfile
@@ -17,6 +18,29 @@ REQUIRED_FILES = {
 }
 
 
+SYNTHETIC_RUNTIME_ASSET_IDS = tuple(
+    f"HH_TEST_A{index:03d}" for index in range(1, 746)
+)
+
+
+def write_exports(exports_root: Path, asset_ids=SYNTHETIC_RUNTIME_ASSET_IDS):
+    exports_root.mkdir(parents=True, exist_ok=True)
+    for index, asset_id in enumerate(asset_ids):
+        sidecar = exports_root / f"{asset_id}.asset.json"
+        sidecar.write_text(
+            json.dumps(
+                {
+                    "schema": 1,
+                    "asset_id": asset_id,
+                    "asset_type": (
+                        "SkinnedMeshAsset" if index % 11 == 0 else "StaticMeshAsset"
+                    ),
+                }
+            ),
+            encoding="utf-8",
+        )
+
+
 def write_package(path: Path, *, omit=(), extras=None, duplicate=None):
     omit = set(omit)
     extras = extras or {}
@@ -24,8 +48,8 @@ def write_package(path: Path, *, omit=(), extras=None, duplicate=None):
         for name, payload in REQUIRED_FILES.items():
             if name not in omit:
                 archive.writestr(name, payload)
-        for index in range(1, 501):
-            name = f"data/assets/HH_A{index:03d}.hasset"
+        for asset_id in SYNTHETIC_RUNTIME_ASSET_IDS:
+            name = f"data/assets/{asset_id}.hasset"
             if name not in omit:
                 archive.writestr(name, b"asset")
         for name, payload in extras.items():
@@ -35,13 +59,17 @@ def write_package(path: Path, *, omit=(), extras=None, duplicate=None):
 
 
 class ReleasePackageIntegrityTests(unittest.TestCase):
-    def validate(self, **kwargs):
+    def validate(self, *, asset_ids=SYNTHETIC_RUNTIME_ASSET_IDS, **kwargs):
         with tempfile.TemporaryDirectory() as tmp:
-            package = Path(tmp) / "Hotel-Haven-0.1.0-Windows.zip"
+            root = Path(tmp)
+            package = root / "Hotel-Haven-0.1.0-Windows.zip"
+            exports_root = root / "exports"
+            write_exports(exports_root, asset_ids)
             write_package(package, **kwargs)
-            return validate_archive(package)
+            return validate_archive(package, exports_root)
 
     def test_accepts_complete_shipping_package(self):
+        self.assertEqual(745, len(SYNTHETIC_RUNTIME_ASSET_IDS))
         self.assertEqual([], self.validate())
 
     def test_rejects_missing_runtime_file(self):
@@ -49,8 +77,9 @@ class ReleasePackageIntegrityTests(unittest.TestCase):
         self.assertTrue(any("shaders/Mesh.hlsl" in error for error in errors))
 
     def test_rejects_incomplete_asset_set(self):
-        errors = self.validate(omit={"data/assets/HH_A500.hasset"})
-        self.assertTrue(any("500" in error and "asset" in error.lower() for error in errors))
+        missing_asset = SYNTHETIC_RUNTIME_ASSET_IDS[-1]
+        errors = self.validate(omit={f"data/assets/{missing_asset}.hasset"})
+        self.assertTrue(any("asset" in error.lower() for error in errors))
 
     def test_rejects_duplicate_archive_entry(self):
         errors = self.validate(duplicate="data/balance.json")
