@@ -51,6 +51,26 @@ std::optional<Position> pick(const Client &c, int x, int y) {
   return Position{c.floor, tx, ty};
 }
 
+bool launchLivingMenu(const std::filesystem::path &directory) {
+  const auto executable = directory / L"hotel_haven_menu_demo.exe";
+  std::error_code error;
+  if (!std::filesystem::is_regular_file(executable, error) || error)
+    return false;
+
+  std::wstring commandLine = L"\"" + executable.wstring() + L"\"";
+  STARTUPINFOW startup{};
+  startup.cb = sizeof(startup);
+  PROCESS_INFORMATION process{};
+  const BOOL launched = CreateProcessW(
+      executable.c_str(), commandLine.data(), nullptr, nullptr, FALSE, 0,
+      nullptr, directory.c_str(), &startup, &process);
+  if (!launched)
+    return false;
+  CloseHandle(process.hThread);
+  CloseHandle(process.hProcess);
+  return true;
+}
+
 std::string readFile(const std::filesystem::path &path) {
   std::ifstream stream(path, std::ios::binary);
   if (!stream)
@@ -169,6 +189,7 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       HDC dc = BeginPaint(window, &ps);
       if (!view) {
         c->paint(dc);
+        c->controlTreeEpoch.markRendered();
         if (c->uiSettings.visibleFocusRequired() && c->focusedButton >= 0 &&
             c->focusedButton < static_cast<int>(c->buttons.size())) {
           RECT focus = c->buttons[static_cast<std::size_t>(c->focusedButton)].rect;
@@ -185,6 +206,11 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       if (wp < 256) {
         c->keys[wp] = true;
         c->uiSettings.setInputModality(hh::frontend::InputModality::Keyboard);
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         if ((lp & (1LL << 30)) == 0)
           c->key(static_cast<int>(wp));
       }
@@ -208,11 +234,40 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       }
       return 0;
     case WM_MOUSEMOVE:
-      if (view)
+      if (view) {
+        if (c->hoveredButton != -1) {
+          c->hoveredButton = -1;
+          InvalidateRect(c->window, nullptr, FALSE);
+        }
         c->hover(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+      } else {
+        c->hoverUi(GET_X_LPARAM(lp), GET_Y_LPARAM(lp));
+        TRACKMOUSEEVENT tracking{};
+        tracking.cbSize = sizeof(tracking);
+        tracking.dwFlags = TME_LEAVE;
+        tracking.hwndTrack = window;
+        TrackMouseEvent(&tracking);
+      }
+      return 0;
+    case WM_MOUSELEAVE:
+      if (!view && c->hoveredButton != -1) {
+        c->hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+        InvalidateRect(c->window, nullptr, FALSE);
+      }
       return 0;
     case WM_MOUSEWHEEL: {
-      const float steps = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      const float steps =
+          static_cast<float>(GET_WHEEL_DELTA_WPARAM(wp)) / WHEEL_DELTA;
+      POINT point{GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+      ScreenToClient(c->window, &point);
+      const bool overPanel = final07PointInManagementPanel(
+          c->width, c->height, c->uiSettings.scalePercent(),
+          point.x, point.y);
+      if (overPanel) {
+        c->scrollPanel(steps > 0.0f ? -1 : 1);
+        return 0;
+      }
       c->camera.setOrthoHeight(std::clamp(
           c->camera.orthoHeight() * std::pow(.85f, steps), 8.f, 150.f));
       return 0;
@@ -243,9 +298,33 @@ void updateBuildPreview(Client &c, Position position) {
   c.refreshUi();
 }
 
+void resetCampaignUiState(Client &c) {
+  c.selected = 0;
+  c.selectedAlertId = 0;
+  c.tabScroll = 0;
+  c.operationsFilter = 0;
+  c.operationsSort = hh::frontend::OperationSort::SchedulerOrder;
+  c.financeView = FinanceView::Overview;
+  c.financeControlView = FinanceControlView::Pricing;
+  c.financeRuleIndex = 0;
+  c.financeOverbookingIndex = 0;
+  c.buildCategoryFilter.clear();
+  c.tool = Tool::Inspect;
+  c.buildPreview = {};
+  c.previewValid = false;
+  c.managementOverlay = hh::frontend::OverlayId::None;
+  c.overlay = Overlay::Natural;
+  c.focusedButton = -1;
+  c.hoveredButton = -1;
+  c.keyBindingEditor.cancel();
+  c.invalidateUiControls();
+}
+
 void performUiAction(Client &c, hh::frontend::UiAction action) {
   switch (clientUiIntent(action)) {
   case ClientUiIntent::FocusPrevious:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (!c.buttons.empty()) {
       c.focusedButton = c.focusedButton <= 0
                             ? static_cast<int>(c.buttons.size()) - 1
@@ -254,16 +333,21 @@ void performUiAction(Client &c, hh::frontend::UiAction action) {
     }
     return;
   case ClientUiIntent::FocusNext:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (!c.buttons.empty()) {
       c.focusedButton = (c.focusedButton + 1) % static_cast<int>(c.buttons.size());
       InvalidateRect(c.window, nullptr, FALSE);
     }
     return;
   case ClientUiIntent::Activate:
+    if (!c.controlTreeEpoch.current())
+      return;
     if (c.focusedButton >= 0 && c.focusedButton < static_cast<int>(c.buttons.size())) {
       const int priorScale = c.uiSettings.scalePercent();
       auto buttonAction = c.buttons[static_cast<std::size_t>(c.focusedButton)].action;
       buttonAction();
+      c.invalidateUiControls();
       applyScaleIfChanged(c, priorScale);
       c.refresh();
     }
@@ -317,6 +401,11 @@ void pollController(Client &c) {
     return;
   }
   c.uiSettings.setInputModality(hh::frontend::InputModality::Controller);
+  if (c.hoveredButton != -1) {
+    c.hoveredButton = -1;
+    SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+    InvalidateRect(c.window, nullptr, FALSE);
+  }
   if (pressed & (XINPUT_GAMEPAD_DPAD_DOWN | XINPUT_GAMEPAD_DPAD_RIGHT))
     performUiAction(c, hh::frontend::UiAction::NavigateNext);
   if (pressed & (XINPUT_GAMEPAD_DPAD_UP | XINPUT_GAMEPAD_DPAD_LEFT))
@@ -399,6 +488,13 @@ void Client::refresh() {
     InvalidateRect(window, nullptr, FALSE);
 }
 
+void Client::invalidateUiControls() {
+  controlTreeEpoch.invalidate();
+  buttons.clear();
+  hoveredButton = -1;
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+}
+
 void Client::result(const CommandResult &r) {
   notice = wide(r.message);
   if (notice.empty())
@@ -423,14 +519,23 @@ void Client::layout() {
 void Client::click(int x, int y) {
   uiSettings.setInputModality(hh::frontend::InputModality::Mouse);
   focusedButton = -1;
+  if (!controlTreeEpoch.current())
+    return;
   for (const auto &b : buttons) {
     if (x >= b.rect.left && x < b.rect.right && y >= b.rect.top && y < b.rect.bottom) {
       const int priorScale = uiSettings.scalePercent();
       const Page priorPage = page;
       auto fn = b.action;
       fn();
-      if (page != priorPage)
+      const bool pageChanged = page != priorPage;
+      const bool scaleChanged = uiSettings.scalePercent() != priorScale;
+      if (pageChanged)
         keyBindingEditor.cancel();
+      if (pageChanged || scaleChanged) {
+        hoveredButton = -1;
+        SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+      }
+      invalidateUiControls();
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
@@ -556,8 +661,16 @@ void Client::key(int k) {
     const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::LoadGame});
     if (!result.message.empty()) notice = wide(result.message);
   }
-  if (k == VK_F1) { page = Page::Guide; tabScroll = 0; }
-  if (k == 'O') { page = Page::Overlays; tabScroll = 0; }
+  if (k == VK_F1) {
+    page = Page::Guide;
+    tabScroll = 0;
+    invalidateUiControls();
+  }
+  if (k == 'O') {
+    page = Page::Overlays;
+    tabScroll = 0;
+    invalidateUiControls();
+  }
   if (k == 'C') context = !context;
   refresh();
 }
@@ -647,12 +760,7 @@ bool Client::load() {
     simulation = std::move(restored);
     pendingSimulationSeconds = 0;
     speed = 0;
-    selected = 0;
-    tabScroll = 0;
-    buildPreview = {};
-    previewValid = false;
-    managementOverlay = hh::frontend::OverlayId::None;
-    overlay = Overlay::Natural;
+    resetCampaignUiState(*this);
     refresh();
     changeFloor(std::min(floor, snapshot.floors - 1));
     notice = L"Campaign restored and paused.";
@@ -682,14 +790,10 @@ void Client::newCampaign() {
   }
   simulation = std::move(campaign);
   pendingSimulationSeconds = 0;
-  selected = 0;
   speed = 0;
   floor = 0;
   page = Page::Guide;
-  managementOverlay = hh::frontend::OverlayId::None;
-  overlay = Overlay::Natural;
-  buildPreview = {};
-  previewValid = false;
+  resetCampaignUiState(*this);
   refresh();
   camera.setTarget({static_cast<float>(snapshot.width) * .5f, 0,
                     static_cast<float>(snapshot.height) * .5f});
@@ -701,13 +805,27 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
   using namespace hh::client;
   try {
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    Client c;
-    c.smoke = std::wstring(commandLine).find(L"--smoke-test") != std::wstring::npos;
+    const auto startupMode = parseGameStartupMode(commandLine);
     std::array<wchar_t, 32768> path{};
-    const DWORD n = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+    const DWORD n =
+        GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
     if (!n || n >= path.size())
       throw std::runtime_error("Cannot resolve game directory");
-    c.directory = std::filesystem::path(path.data()).parent_path();
+    const auto applicationDirectory =
+        std::filesystem::path(path.data()).parent_path();
+
+    if (startupMode == GameStartupMode::LivingMenu) {
+      if (launchLivingMenu(applicationDirectory))
+        return 0;
+      MessageBoxW(nullptr,
+                  L"The Living Hotel menu could not be started. "
+                  L"Hotel Haven will open the game client directly.",
+                  L"Hotel Haven", MB_OK | MB_ICONWARNING);
+    }
+
+    Client c;
+    c.smoke = startupMode == GameStartupMode::SmokeTest;
+    c.directory = applicationDirectory;
     const auto definitions = c.directory / L"data" / L"balance.json";
     if (std::filesystem::exists(definitions)) {
       const auto loadResult = c.simulation.loadDefinitions(readFile(definitions));
@@ -732,6 +850,12 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine, int show) 
       c.settingsPath = hotelRoot / L"ui-settings.cfg";
       if (!c.loadUiPreferences())
         c.notice = L"UI preferences were invalid or unreadable; defaults are in use.";
+    }
+    if (startupMode == GameStartupMode::LoadLatest && !c.load()) {
+      MessageBoxW(nullptr, c.notice.c_str(), L"Hotel Haven — Load failed",
+                  MB_OK | MB_ICONERROR);
+      static_cast<void>(launchLivingMenu(c.directory));
+      return 4;
     }
     WNDCLASSEXW wc{};
     wc.cbSize = sizeof(wc);

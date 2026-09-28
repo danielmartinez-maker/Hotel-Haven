@@ -126,6 +126,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
   hooks.openSettings = [this] {
     page = Page::Settings;
     tabScroll = 0;
+    invalidateUiControls();
     return UiCommandResult{true, {}, {}};
   };
   hooks.openInspector = [this](EntityId id) {
@@ -149,6 +150,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case InspectorKind::BuildingSystem: page = Page::Operations; break;
     }
     tabScroll = 0;
+    invalidateUiControls();
   };
   hooks.openManagementPanel = [this](ManagementPanelId panel) {
     ui.openManagementPanel(panel);
@@ -165,6 +167,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case ManagementPanelId::Supplies: page = Page::Supplies; break;
     }
     tabScroll = 0;
+    invalidateUiControls();
   };
   hooks.setOverlay = [this](OverlayId requested) {
     if (requested != OverlayId::None) {
@@ -175,7 +178,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
           });
       if (available == ui.snapshot().overlays.end()) {
         return UiCommandResult{false, "OVERLAY_DATA_UNAVAILABLE",
-                               "This overlay is waiting for an authoritative simulation snapshot"};
+                               "This overlay has no live data yet."};
       }
     }
 
@@ -217,7 +220,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case OverlayId::SecurityCoverage:
     case OverlayId::Revenue:
       return UiCommandResult{false, "OVERLAY_RENDERER_UNAVAILABLE",
-                             "Authoritative values exist only where exposed; this world renderer has no binding for the selected overlay yet"};
+                             "This overlay cannot be drawn on the hotel yet."};
     }
 
     managementOverlay = requested;
@@ -236,7 +239,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     }
     if (authority.type == UiCommandType::BuildRotate) {
       return UiCommandResult{false, "BUILD_ROTATION_UNAVAILABLE",
-                             "The current authoritative construction baseline does not expose rotation for this tool"};
+                             "This construction item cannot be rotated yet."};
     }
     if (authority.type == UiCommandType::AssignDepartmentManager) {
       const auto first =

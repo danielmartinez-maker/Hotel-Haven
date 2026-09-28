@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 
+#include "hh/frontend/MainMenuApplication.h"
 #include "hh/frontend/MainMenuController.h"
 #include "hh/frontend/MainMenuView.h"
 #include "hh/frontend/MenuSceneController.h"
@@ -27,15 +28,32 @@ TEST_CASE("layout remains inside supported resolution matrix") {
         {1600.0F, 1200.0F},
     }};
 
+    EXPECT_EQ(hh::frontend::MainMenuUiScales.size(), std::size_t{5});
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.front(), 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::MainMenuUiScales.back(), 1.50F, 0.0001F);
+
     for (const auto& [width, height] : sizes) {
-        const auto layout = view.layout(width, height, 1.0F);
-        EXPECT_TRUE(layout.logicalScale > 0.0F);
-        EXPECT_TRUE(layout.navigationLeft >= 0.0F);
-        EXPECT_TRUE(layout.navigationTop >= 0.0F);
-        EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
-        EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
-        EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+        for (const float uiScale : hh::frontend::MainMenuUiScales) {
+            const auto layout = view.layout(width, height, uiScale);
+            EXPECT_TRUE(layout.logicalScale > 0.0F);
+            EXPECT_TRUE(layout.uiContentScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale > 0.0F);
+            EXPECT_TRUE(layout.uiDensityScale <= layout.uiContentScale + 0.001F);
+            EXPECT_TRUE(layout.navigationLeft >= 0.0F);
+            EXPECT_TRUE(layout.navigationTop >= 0.0F);
+            EXPECT_TRUE(layout.navigationLeft + layout.navigationWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.propertyCardLeft >= 0.0F);
+            EXPECT_TRUE(layout.propertyCardLeft + layout.propertyCardWidth <= width + 0.01F);
+            EXPECT_TRUE(layout.versionBottom <= height + 0.01F);
+
+            const float menuBottom =
+                layout.navigationTop +
+                (8.0F * 55.0F + 28.0F) * layout.uiContentScale;
+            EXPECT_TRUE(menuBottom <= height + 0.01F);
+            EXPECT_TRUE(layout.versionLeft >= 0.0F);
+            EXPECT_TRUE(layout.versionLeft + 300.0F * layout.uiContentScale <=
+                        width + 0.01F);
+        }
     }
 }
 
@@ -66,4 +84,90 @@ TEST_CASE("reduced motion removes idle and selection camera motion") {
     EXPECT_NEAR(pose.targetXOffset, 0.0F, 0.0001F);
     EXPECT_NEAR(pose.targetZOffset, 0.0F, 0.0001F);
     EXPECT_NEAR(pose.zoomScale, 1.0F, 0.0001F);
+}
+
+TEST_CASE("Living Hotel UI scale cycles through the shared supported sequence") {
+    float scale = 0.90F;
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.00F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.10F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.25F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 1.50F, 0.0001F);
+    scale = hh::frontend::nextMainMenuUiScale(scale);
+    EXPECT_NEAR(scale, 0.90F, 0.0001F);
+    EXPECT_NEAR(hh::frontend::nextMainMenuUiScale(1.234F),
+                1.00F, 0.0001F);
+}
+
+
+TEST_CASE("pointer hit testing follows rendered menu geometry at every supported scale") {
+    hh::frontend::MainMenuView view;
+    constexpr std::array<std::pair<float, float>, 4> sizes{{
+        {1280.0F, 720.0F},
+        {1600.0F, 900.0F},
+        {1920.0F, 1080.0F},
+        {2560.0F, 1080.0F},
+    }};
+
+    for (const auto& [width, height] : sizes) {
+        for (const float uiScale : hh::frontend::MainMenuUiScales) {
+            const auto layout = view.layout(width, height, uiScale);
+            for (const auto item : hh::frontend::MainMenuModel::orderedItems()) {
+                const auto rect = view.menuItemRect(layout, item);
+                const float x = (rect.left + rect.right) * 0.5F;
+                const float y = (rect.top + rect.bottom) * 0.5F;
+                const auto hit = view.menuItemAt(layout, x, y);
+                EXPECT_TRUE(hit.has_value());
+                EXPECT_EQ(*hit, item);
+            }
+        }
+    }
+}
+
+TEST_CASE("pointer hit testing rejects the visual gaps between menu rows") {
+    hh::frontend::MainMenuView view;
+    const auto layout = view.layout(1920.0F, 1080.0F, 1.25F);
+    const auto first = view.menuItemRect(
+        layout, hh::frontend::MainMenuItem::Continue);
+    const auto second = view.menuItemRect(
+        layout, hh::frontend::MainMenuItem::NewHotel);
+    const float x = (first.left + first.right) * 0.5F;
+    const float gapY = (first.bottom + second.top) * 0.5F;
+    EXPECT_FALSE(view.menuItemAt(layout, x, gapY).has_value());
+}
+
+TEST_CASE("application launch intents route real hotel starts and loads") {
+    using hh::frontend::MainMenuCommand;
+    using hh::frontend::MainMenuGameLaunchMode;
+
+    const auto start =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::StartNewHotel);
+    EXPECT_TRUE(start.has_value());
+    EXPECT_EQ(start->mode, MainMenuGameLaunchMode::NewHotel);
+    EXPECT_EQ(start->arguments, std::wstring{L"--game --new-hotel"});
+
+    const auto continueLatest =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::ContinueLatest);
+    EXPECT_TRUE(continueLatest.has_value());
+    EXPECT_EQ(continueLatest->mode, MainMenuGameLaunchMode::LoadLatest);
+    EXPECT_EQ(continueLatest->arguments, std::wstring{L"--game --load-save"});
+
+    const auto load =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenLoadHotel);
+    EXPECT_TRUE(load.has_value());
+    EXPECT_EQ(load->mode, MainMenuGameLaunchMode::LoadLatest);
+    EXPECT_EQ(load->arguments, std::wstring{L"--game --load-save"});
+
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenSettings)
+            .has_value());
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenCredits)
+            .has_value());
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::ExitApplication)
+            .has_value());
 }

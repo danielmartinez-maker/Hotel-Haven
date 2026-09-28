@@ -1005,7 +1005,8 @@ struct Simulation::Impl {
         static_cast<int>(std::clamp(z->satisfaction + z->checkoutCleanliness -
                                         80 - ((r && !r->reachable) ? 20 : 0),
                                     0.0, 100.0));
-    reviews.push_back({z->id, static_cast<int>(elapsed / 86400), score,
+    reviews.push_back({z->id, static_cast<int>(elapsed / 86400),
+                       static_cast<double>(score),
                        score >= 80   ? "A comfortable, well-run stay."
                        : score >= 60 ? "Fine, though service could improve."
                                      : "Service delays hurt the stay."});
