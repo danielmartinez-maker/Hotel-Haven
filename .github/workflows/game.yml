@@ -66,36 +66,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = Get-ChildItem build/package/*.zip | Select-Object -First 1
           if (-not $zip) { throw "Packaged Hotel Haven zip not found" }
-          $expected = @(
-            Get-ChildItem Art/Exports -Recurse -Filter *.asset.json -File |
-              ForEach-Object {
-                $metadata = Get-Content $_.FullName -Raw | ConvertFrom-Json
-                if ($metadata.asset_type -in @('StaticMeshAsset', 'SkinnedMeshAsset')) {
-                  [string]$metadata.asset_id
-                }
-              } |
-              Sort-Object -Unique
-          )
-          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
-          try {
-            $actual = @(
-              $archive.Entries |
-                Where-Object { $_.FullName -match '(^|/)data/assets/[^/]+\.hasset$' } |
-                ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) } |
-                Sort-Object -Unique
-            )
-            $difference = @(Compare-Object -ReferenceObject $expected -DifferenceObject $actual)
-            if ($difference.Count -ne 0) {
-              $sample = ($difference | Select-Object -First 20 | Out-String)
-              throw "Packaged runtime asset set diverges from source mesh metadata. $sample"
-            }
-            Write-Host "Verified exact packaged runtime asset set: $($actual.Count) assets in $($zip.Name)"
-          } finally {
-            $archive.Dispose()
-          }
+          python Tools/Release/verify_release_package.py --exports-root Art/Exports $zip.FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
