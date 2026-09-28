@@ -75,6 +75,33 @@ int main() {
             "simulation rejected deterministic fallback plan");
     require(sim.save() == before, "plan validation mutated simulation");
 
+    EntityId trainingHousekeeperId{}, trainingRoomId{};
+    auto trainingSim = scenario(trainingHousekeeperId, trainingRoomId);
+    const auto trainingStart = trainingSim.view().elapsedSeconds + 600;
+    const auto training =
+        trainingSim.scheduleTraining(trainingHousekeeperId, trainingStart, 30);
+    require(training.ok, "planning training fixture failed");
+    const auto trainingSnapshot = trainingSim.buildOptimizerSnapshot(3600);
+    require(std::none_of(trainingSnapshot.tasks.begin(), trainingSnapshot.tasks.end(),
+                         [&](const auto &candidate) {
+                           return candidate.id == training.id;
+                         }),
+            "scheduled training leaked into optimizer task proposals");
+    const auto trainingEmployee = std::find_if(
+        trainingSnapshot.employees.begin(), trainingSnapshot.employees.end(),
+        [&](const auto &employee) {
+          return employee.id == trainingHousekeeperId;
+        });
+    require(trainingEmployee != trainingSnapshot.employees.end(),
+            "training employee missing from optimizer snapshot");
+    require(std::any_of(trainingEmployee->unavailableWindows.begin(),
+                        trainingEmployee->unavailableWindows.end(),
+                        [&](const auto &window) {
+                          return window.startSecond <= trainingStart &&
+                                 window.endSecond >= trainingStart + 30 * 60;
+                        }),
+            "scheduled training did not reserve employee availability");
+
     bool rejected = false;
     try {
       (void)sim.buildOptimizerSnapshot(0);
