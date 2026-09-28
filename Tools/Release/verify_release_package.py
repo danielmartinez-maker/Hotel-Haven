@@ -10,6 +10,13 @@ from collections import Counter
 from pathlib import Path, PurePosixPath
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from Tools.ContentPipeline.scripts.verify_runtime_asset_set import expected_runtime_ids
+
+
 REQUIRED_RUNTIME_FILES = (
     "hotel_haven.exe",
     "hotel_haven_headless.exe",
@@ -19,7 +26,6 @@ REQUIRED_RUNTIME_FILES = (
     "README.md",
     "IMPLEMENTATION_STATUS.md",
 )
-EXPECTED_ASSETS = tuple(f"data/assets/HH_A{index:03d}.hasset" for index in range(1, 501))
 DEVELOPMENT_SUFFIXES = (".pdb", ".obj", ".ilk", ".lib", ".exp")
 DEVELOPMENT_NAMES = {"CMakeCache.txt"}
 
@@ -45,9 +51,16 @@ def _under_root(root: str, relative: str) -> str:
     return relative if not root else f"{root}/{relative}"
 
 
-def validate_archive(archive_path: Path | str) -> list[str]:
+def validate_archive(
+    archive_path: Path | str, exports_root: Path | str
+) -> list[str]:
     archive_path = Path(archive_path)
+    exports_root = Path(exports_root)
     errors: list[str] = []
+    try:
+        runtime_ids = expected_runtime_ids(exports_root)
+    except RuntimeError as exc:
+        return [f"unable to resolve expected runtime asset set: {exc}"]
     try:
         with zipfile.ZipFile(archive_path, "r") as archive:
             raw_names = [info.filename for info in archive.infolist() if not info.is_dir()]
@@ -74,7 +87,10 @@ def validate_archive(archive_path: Path | str) -> list[str]:
         if expected not in names:
             errors.append(f"missing required runtime file: {relative}")
 
-    expected_assets = {_under_root(root, relative) for relative in EXPECTED_ASSETS}
+    expected_assets = {
+        _under_root(root, f"data/assets/{asset_id}.hasset")
+        for asset_id in runtime_ids
+    }
     asset_prefix = _under_root(root, "data/assets/")
     packaged_assets = {
         name
@@ -82,12 +98,19 @@ def validate_archive(archive_path: Path | str) -> list[str]:
         if name.startswith(asset_prefix) and name.endswith(".hasset")
     }
     if packaged_assets != expected_assets:
-        missing_count = len(expected_assets - packaged_assets)
-        extra_count = len(packaged_assets - expected_assets)
+        missing = sorted(expected_assets - packaged_assets)
+        unexpected = sorted(packaged_assets - expected_assets)
         errors.append(
-            "expected exact 500-asset runtime set; "
-            f"found {len(packaged_assets)} (missing {missing_count}, unexpected {extra_count})"
+            "packaged runtime asset set diverges from source mesh metadata; "
+            f"found {len(packaged_assets)}, expected {len(expected_assets)} "
+            f"(missing {len(missing)}, unexpected {len(unexpected)})"
         )
+        if missing:
+            errors.append("missing runtime asset(s): " + ", ".join(missing[:25]))
+        if unexpected:
+            errors.append(
+                "unexpected runtime asset(s): " + ", ".join(unexpected[:25])
+            )
 
     root_prefix = f"{root}/" if root else ""
     for name in sorted(names):
@@ -106,10 +129,16 @@ def validate_archive(archive_path: Path | str) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--exports-root",
+        type=Path,
+        required=True,
+        help="Generated asset export root containing canonical .asset.json sidecars",
+    )
     parser.add_argument("archive", type=Path, help="CPack ZIP to validate")
     args = parser.parse_args(argv)
 
-    errors = validate_archive(args.archive)
+    errors = validate_archive(args.archive, args.exports_root)
     if errors:
         print("Hotel Haven release package integrity: FAILED", file=sys.stderr)
         for error in errors:
@@ -117,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print("Hotel Haven release package integrity: PASS")
-    print("Verified required runtime files and exact 500 cooked assets.")
+    print("Verified required runtime files and exact source-metadata runtime asset set.")
     return 0
 
 
