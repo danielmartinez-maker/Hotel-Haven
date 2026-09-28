@@ -1,4 +1,5 @@
 #include "hh/game/ServiceLogistics.h"
+#include <algorithm>
 #include <cstdint>
 #include <stdexcept>
 #include <unordered_set>
@@ -179,17 +180,30 @@ int main() {
       }
 
       for (int second = 0; second < 1600; ++second) {
-        const auto firstWork = runtime.workRoomTurnSecond(firstRoom);
-        const auto secondWork = runtime.workRoomTurnSecond(secondRoom);
-        const auto engineeringWork = runtime.workEngineeringSecond(
-            firstRoom, WorkOrderType::Preventive);
-        require(firstWork.valid && secondWork.valid && engineeringWork.valid,
-                "scheduled service work lost its authoritative job");
-        require(firstWork.blockedReason == BlockReason::None &&
-                    secondWork.blockedReason == BlockReason::None &&
-                    engineeringWork.blockedReason == BlockReason::None,
-                "scheduled service work unexpectedly blocked");
         runtime.tickSecond();
+
+        const auto housekeeping = runtime.housekeepingSnapshot();
+        const auto engineering = runtime.engineeringSnapshot();
+        const auto firstWork = std::find_if(
+            housekeeping.jobs.begin(), housekeeping.jobs.end(),
+            [firstRoom](const auto &job) { return job.roomId == firstRoom; });
+        const auto secondWork = std::find_if(
+            housekeeping.jobs.begin(), housekeeping.jobs.end(),
+            [secondRoom](const auto &job) { return job.roomId == secondRoom; });
+        const auto engineeringWork = std::find_if(
+            engineering.workOrders.begin(), engineering.workOrders.end(),
+            [firstRoom](const auto &order) {
+              return order.assetId == firstRoom &&
+                     order.type == WorkOrderType::Preventive;
+            });
+        require(firstWork != housekeeping.jobs.end() &&
+                    secondWork != housekeeping.jobs.end() &&
+                    engineeringWork != engineering.workOrders.end(),
+                "scheduled service work lost its authoritative job");
+        require(firstWork->blockedReason == BlockReason::None &&
+                    secondWork->blockedReason == BlockReason::None &&
+                    engineeringWork->blockedReason == BlockReason::None,
+                "scheduled service work unexpectedly blocked");
       }
       require(runtime.housekeeping().roomStatus(firstRoom) ==
                   ServiceRoomStatus::Ready &&
