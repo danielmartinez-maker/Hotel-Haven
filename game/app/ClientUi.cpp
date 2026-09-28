@@ -167,6 +167,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case ManagementPanelId::Supplies: page = Page::Supplies; break;
     }
     tabScroll = 0;
+    invalidateUiControls();
   };
   hooks.setOverlay = [this](OverlayId requested) {
     if (requested != OverlayId::None) {
