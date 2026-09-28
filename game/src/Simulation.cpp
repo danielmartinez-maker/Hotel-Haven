@@ -224,6 +224,20 @@ struct Simulation::Impl {
   std::vector<AssetId> workingEngineeringScratch;
   std::vector<AssetId> preventiveManagedEngineeringScratch;
   std::vector<AssetId> preventiveWorkingEngineeringScratch;
+  struct CachedRoute {
+    Position destination;
+    Position expectedPosition;
+    std::vector<Position> steps;
+    std::size_t nextIndex{};
+  };
+  std::unordered_map<EntityId, CachedRoute> routeCache;
+  mutable bool specialTileCacheValid{};
+  mutable Position cachedEntrance{-1, -1, -1};
+  mutable Position cachedSupply{-1, -1, -1};
+  mutable Position cachedFrontDesk{-1, -1, -1};
+  mutable bool tileViewCacheValid{};
+  mutable std::vector<TileView> cachedTileViews;
+  std::vector<PreparedRoomServiceHandoff> pendingRoomServiceHandoffsScratch;
   FoodServiceSystem food;
   EventsSystem events;
   AmenitiesSystem amenities;
@@ -424,40 +438,64 @@ struct Simulation::Impl {
     while (!pending.empty()) {
       const auto current = pending.front();
       pending.pop();
-      for (const auto next : neighbors(current)) {
+      forEachNeighbor(current, [&](Position next) {
         const auto nextIndex = static_cast<std::size_t>(index(next));
         if (!reachable[nextIndex]) {
           reachable[nextIndex] = true;
           pending.push(next);
         }
-      }
+      });
     }
     return reachable;
   }
 
+  void rebuildRoomIndex() {
+    roomIndex.clear();
+    roomIndex.reserve(rooms.size());
+    for (std::size_t i = 0; i < rooms.size(); ++i)
+      roomIndex.emplace(rooms[i].id, i);
+  }
+  void rebuildPersonIndex() {
+    personIndex.clear();
+    personIndex.reserve(people.size());
+    for (std::size_t i = 0; i < people.size(); ++i)
+      personIndex.emplace(people[i].id, i);
+  }
+  void rebuildReservationIndex() {
+    reservationIndex.clear();
+    reservationIndex.reserve(reservations.size());
+    for (std::size_t i = 0; i < reservations.size(); ++i)
+      reservationIndex.emplace(reservations[i].id, i);
+  }
+  void rebuildEntityIndexes() {
+    rebuildRoomIndex();
+    rebuildPersonIndex();
+    rebuildReservationIndex();
+  }
+
   Room *getRoom(EntityId id) {
-    for (auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = roomIndex.find(id);
+    return it != roomIndex.end() && it->second < rooms.size()
+               ? &rooms[it->second]
+               : nullptr;
   }
   Person *getPerson(EntityId id) {
-    for (auto &x : people)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = personIndex.find(id);
+    return it != personIndex.end() && it->second < people.size()
+               ? &people[it->second]
+               : nullptr;
   }
   Reservation *getReservation(EntityId id) {
-    for (auto &x : reservations)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = reservationIndex.find(id);
+    return it != reservationIndex.end() && it->second < reservations.size()
+               ? &reservations[it->second]
+               : nullptr;
   }
   const Room *getRoom(EntityId id) const {
-    for (const auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = roomIndex.find(id);
+    return it != roomIndex.end() && it->second < rooms.size()
+               ? &rooms[it->second]
+               : nullptr;
   }
   BuildJobSnapshot *getBuildJob(EntityId id) {
     for (auto &job : construction.buildJobs)
@@ -484,7 +522,16 @@ struct Simulation::Impl {
     return nullptr;
   }
   Position locate(TileKind kind) const {
-    for (int i = 0; i < (int)map.size(); ++i)
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk) {
+      refreshSpecialTileCache();
+      if (kind == TileKind::Entrance)
+        return cachedEntrance;
+      if (kind == TileKind::SupplyCloset)
+        return cachedSupply;
+      return cachedFrontDesk;
+    }
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
       if (map[i] == kind)
         return {i / (width * height), i % width, (i / width) % height};
     return {-1, -1, -1};
@@ -1206,6 +1253,7 @@ struct Simulation::Impl {
         p.reservation = z.id;
         p.reservationId = z.id;
         people.push_back(p);
+        personIndex[p.id] = people.size() - 1;
       }
   }
   void beginDepartures(int day) {
@@ -1559,16 +1607,16 @@ struct Simulation::Impl {
           p->fatigue = std::min(100.0, p->fatigue + 4.0 / 3600.0);
           ++p->travelSeconds;
         }
-        auto route = path(p->position, p->destination);
-        if (route.empty() && !same(p->position, p->destination)) {
+        const auto next = nextPathStep(*p);
+        if (!next && !same(p->position, p->destination)) {
           task.status = TaskStatus::Ready;
           task.employeeId = 0;
           p->task = 0;
           p->state = PersonState::Idle;
           continue;
         }
-        if (!route.empty())
-          p->position = route.front();
+        if (next)
+          p->position = *next;
         if (same(p->position, p->destination)) {
           if (task.kind == TaskKind::Turnover &&
               same(p->destination, supply()) && !task.resourcesClaimed) {
@@ -1826,22 +1874,28 @@ struct Simulation::Impl {
               walkRelocateGuest(p);
           }
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation) {
-            z.satisfaction = p.satisfaction;
-            if (!z.checkedIn) {
-              z.checkInTravelSeconds = p.travelSeconds;
-              z.checkInWaitSeconds = p.queueWaitSeconds;
-            }
+        if (auto *z = getReservation(p.reservation)) {
+          z->satisfaction = p.satisfaction;
+          if (!z->checkedIn) {
+            z->checkInTravelSeconds = p.travelSeconds;
+            z->checkInWaitSeconds = p.queueWaitSeconds;
           }
+        }
       }
   }
   void compactTransientState() {
+    for (const auto &person : people)
+      if (person.kind == PersonKind::Guest &&
+          person.state == PersonState::CheckedOut)
+        routeCache.erase(person.id);
+    const auto peopleBefore = people.size();
     people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
                    return p.kind == PersonKind::Guest &&
                           p.state == PersonState::CheckedOut;
                  }),
                  people.end());
+    if (people.size() != peopleBefore)
+      rebuildPersonIndex();
 
     for (auto &task : tasks)
       if (task.status == TaskStatus::Completed)
@@ -1906,6 +1960,15 @@ struct Simulation::Impl {
         workingEngineeringScratch.end(),
         preventiveWorkingEngineeringScratch.begin(),
         preventiveWorkingEngineeringScratch.end());
+
+    const auto sortUnique = [](auto &values) {
+      std::sort(values.begin(), values.end());
+      values.erase(std::unique(values.begin(), values.end()), values.end());
+    };
+    sortUnique(managedHousekeepingScratch);
+    sortUnique(workingHousekeepingScratch);
+    sortUnique(managedEngineeringScratch);
+    sortUnique(workingEngineeringScratch);
 
     const int engineeringConditionLossPerHour = std::clamp(
         static_cast<int>(std::llround(roomConditionLossPerDay * 100.0 / 24.0)),
@@ -2205,6 +2268,7 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   p.contract = {0, staffRole(h.role), p.hourlyWageCents, 0,
                 h.shiftStartHour, h.shiftEndHour};
   impl_->people.push_back(p);
+  impl_->personIndex[p.id] = impl_->people.size() - 1;
   return {true, "Staff hired", p.id};
 }
 std::vector<Applicant> Simulation::applicants() const {
@@ -2257,6 +2321,7 @@ HireResult Simulation::hireApplicant(ApplicantId applicantId) {
                 impl_->onboardingCostCents, found->shiftStartHour,
                 found->shiftEndHour};
   impl_->people.push_back(p);
+  impl_->personIndex[p.id] = impl_->people.size() - 1;
   impl_->consumedApplicantIds.push_back(found->id);
   impl_->economy.cashCents -= impl_->onboardingCostCents;
   impl_->economy.payrollCents += impl_->onboardingCostCents;
@@ -2284,7 +2349,9 @@ CommandResult Simulation::fireStaff(EntityId id) {
       t.status = TaskStatus::Ready;
     }
   impl_->postAccruedWage(*it);
+  impl_->routeCache.erase(id);
   impl_->people.erase(it);
+  impl_->rebuildPersonIndex();
   impl_->managers.erase(
       std::remove_if(impl_->managers.begin(), impl_->managers.end(),
                      [&](const ManagerAssignment &assignment) {
@@ -2749,6 +2816,8 @@ CommandResult Simulation::removeRoom(EntityId id) {
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
   impl_->removeRoomSystems(id);
   impl_->rooms.erase(it);
+  impl_->rebuildRoomIndex();
+  impl_->invalidateTopologyCaches();
   impl_->refreshReachability();
   return {true, "Room removed", id};
 }
@@ -3265,14 +3334,14 @@ void Simulation::step(double seconds) {
   }
 }
 
-LogisticsSnapshot Simulation::logisticsSnapshot() const {
-  return impl_->services.logisticsSnapshot();
+LogisticsSnapshot Simulation::logisticsSnapshot(bool includeHistory) const {
+  return impl_->services.logisticsSnapshot(includeHistory);
 }
-HousekeepingSnapshot Simulation::housekeepingSnapshot() const {
-  return impl_->services.housekeepingSnapshot();
+HousekeepingSnapshot Simulation::housekeepingSnapshot(bool includeHistory) const {
+  return impl_->services.housekeepingSnapshot(includeHistory);
 }
-EngineeringSnapshot Simulation::engineeringSnapshot() const {
-  return impl_->services.engineeringSnapshot();
+EngineeringSnapshot Simulation::engineeringSnapshot(bool includeHistory) const {
+  return impl_->services.engineeringSnapshot(includeHistory);
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
   auto *room = impl_->getRoom(roomId);
@@ -3336,14 +3405,14 @@ AmenityReservationResult Simulation::reserveAmenity(
     GuestId guestId, const AmenityRequest &request) {
   return impl_->amenities.reserveAmenity(guestId, request);
 }
-FoodServiceSnapshot Simulation::foodServiceSnapshot() const {
-  return impl_->food.snapshot();
+FoodServiceSnapshot Simulation::foodServiceSnapshot(bool includeHistory) const {
+  return impl_->food.snapshot(includeHistory);
 }
-EventsSnapshot Simulation::eventsSnapshot() const {
-  return impl_->events.snapshot();
+EventsSnapshot Simulation::eventsSnapshot(bool includeHistory) const {
+  return impl_->events.snapshot(includeHistory);
 }
-AmenitiesSnapshot Simulation::amenitiesSnapshot() const {
-  return impl_->amenities.snapshot();
+AmenitiesSnapshot Simulation::amenitiesSnapshot(bool includeHistory) const {
+  return impl_->amenities.snapshot(includeHistory);
 }
 
 bool Simulation::isReachable(Position a, Position b) const {
@@ -3351,6 +3420,10 @@ bool Simulation::isReachable(Position a, Position b) const {
          impl_->passable(b) && (same(a, b) || !impl_->path(a, b).empty());
 }
 SimulationView Simulation::view() const {
+  return view(true);
+}
+
+SimulationView Simulation::view(bool includeCompletedReservationHistory) const {
   SimulationView v;
   v.elapsedSeconds = impl_->elapsed;
   v.day = simulationDay(impl_->elapsed);
@@ -3358,19 +3431,26 @@ SimulationView Simulation::view() const {
   v.width = impl_->width;
   v.height = impl_->height;
   v.floors = impl_->floors;
-  for (int i = 0; i < (int)impl_->map.size(); ++i)
-    if (impl_->map[i] != TileKind::Empty)
-      v.tiles.push_back({{i / (impl_->width * impl_->height), i % impl_->width,
-                          (i / impl_->width) % impl_->height},
-                         impl_->map[i]});
+  v.rooms.reserve(impl_->rooms.size());
+  v.people.reserve(impl_->people.size());
+  v.reservations.reserve(
+      impl_->reservations.size() +
+      (includeCompletedReservationHistory
+           ? impl_->completedReservationHistory.size()
+           : 0));
+  v.tasks.reserve(impl_->tasks.size() + impl_->completedTaskHistory.size());
+  v.supplyOrders.reserve(impl_->orders.size());
+  impl_->refreshTileViewCache();
+  v.tiles = impl_->cachedTileViews;
   for (auto &r : impl_->rooms)
     v.rooms.push_back(r);
   for (auto &p : impl_->people)
     v.people.push_back(p);
   for (auto &r : impl_->reservations)
     v.reservations.push_back(r);
-  for (auto &r : impl_->completedReservationHistory)
-    v.reservations.push_back(r);
+  if (includeCompletedReservationHistory)
+    for (auto &r : impl_->completedReservationHistory)
+      v.reservations.push_back(r);
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)
