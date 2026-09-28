@@ -363,9 +363,6 @@ public:
   [[nodiscard]] std::vector<DepartmentView> departments() const;
   [[nodiscard]] DepartmentForecast departmentForecast(DepartmentId department,
                                                       SimDay day) const;
-  [[nodiscard]] OptimizerSnapshot buildOptimizerSnapshot() const;
-  [[nodiscard]] PlanValidation validatePlan(const OptimizerSnapshot &snapshot,
-                                            const AssignmentPlan &plan) const;
   CommandResult setRoomRate(EntityId roomId, double rate);
   CommandResult requestClean(EntityId roomId);
   CommandResult requestRepair(EntityId roomId);
@@ -430,7 +427,6 @@ public:
   [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot(bool includeHistory = true) const;
   [[nodiscard]] EventsSnapshot eventsSnapshot(bool includeHistory = true) const;
   [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot(bool includeHistory = true) const;
-  [[nodiscard]] std::vector<DepartmentView> departments() const;
 
   [[nodiscard]] OptimizerSnapshot
   buildOptimizerSnapshot(std::int64_t horizonSeconds = 24 * 60 * 60) const;
