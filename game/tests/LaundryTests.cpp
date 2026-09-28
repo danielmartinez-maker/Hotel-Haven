@@ -22,6 +22,27 @@ int main() {
   {
     auto logistics = LogisticsSystem::standardHotel();
     const auto dirty = logistics.firstStorage(StorageKind::DirtyLinen);
+    require(logistics.addInventory(dirty, "dirty_linen_set", 10),
+            "seed queued dirty linen");
+    LaundrySystem laundry(logistics, {1, 1, 1});
+    require(laundry.requestBatch(5) != 0, "first queued batch not created");
+    require(laundry.requestBatch(5) != 0, "second queued batch not created");
+    laundry.tickSecond();
+    auto queued = laundry.snapshot();
+    require(queued.batches[0].stage == LaundryStage::Washing,
+            "first batch did not claim the available washer");
+    require(queued.batches[1].stage == LaundryStage::AwaitingWasher &&
+                queued.batches[1].blockedReason == BlockReason::MissingWasher,
+            "second batch bypassed washer capacity");
+    laundry.tickSeconds(35 * 60);
+    queued = laundry.snapshot();
+    require(queued.batches[0].stage == LaundryStage::AwaitingDryer &&
+                queued.batches[1].stage == LaundryStage::Washing,
+            "washer capacity was not released deterministically in the same tick");
+  }
+  {
+    auto logistics = LogisticsSystem::standardHotel();
+    const auto dirty = logistics.firstStorage(StorageKind::DirtyLinen);
     require(logistics.addInventory(dirty, "dirty_linen_set", 5), "seed dirty linen");
     LaundrySystem laundry(logistics, {1, 0, 1});
     require(laundry.requestBatch(5) != 0, "batch not created");
