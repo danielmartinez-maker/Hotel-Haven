@@ -399,6 +399,13 @@ void Client::refresh() {
     InvalidateRect(window, nullptr, FALSE);
 }
 
+void Client::invalidateUiControls() {
+  controlTreeEpoch.invalidate();
+  buttons.clear();
+  hoveredButton = -1;
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+}
+
 void Client::result(const CommandResult &r) {
   notice = wide(r.message);
   if (notice.empty())
