@@ -42,6 +42,18 @@ static void requireLoadRejected(const std::string &encoded,
 }
 
 int main() {
+  {
+    bool rejected = false;
+    try {
+      ServiceLogisticsRuntime bounded(98);
+      bounded.tickSeconds(32LL * 86400LL);
+    } catch (const std::invalid_argument &) {
+      rejected = true;
+    }
+    require(rejected,
+            "FINAL-04 accepted a single time advance beyond the execution budget");
+  }
+
   ServiceLogisticsRuntime original(99);
   auto &logistics = original.logistics();
   const auto clean = logistics.firstStorage(StorageKind::CleanLinen);
