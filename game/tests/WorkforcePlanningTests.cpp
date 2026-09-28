@@ -101,6 +101,8 @@ int main() {
                                  window.endSecond >= trainingStart + 30 * 60;
                         }),
             "scheduled training did not reserve employee availability");
+    require(trainingEmployee->availableNow,
+            "future training incorrectly blocked current availability");
 
     bool rejected = false;
     try {
