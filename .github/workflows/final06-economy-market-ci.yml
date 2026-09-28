@@ -1,9 +1,6 @@
 name: FINAL-06 Economy Market Competition CI
 
 on:
-  push:
-    branches:
-      - feature/final-06-economy-market-competition
   pull_request:
     paths:
       - 'game/include/hh/game/MarketDemand.h'
@@ -46,11 +43,14 @@ on:
       - '.github/workflows/final06-economy-market-ci.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   portable-final06-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compile FINAL-06 portable systems
         run: |
           mkdir -p build/final06
@@ -98,7 +98,7 @@ jobs:
   sanitizer-final06-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and run ASan UBSan FINAL-06 suites
         run: |
           mkdir -p build/final06-sanitize
@@ -112,7 +112,7 @@ jobs:
   integrated-game-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure integrated game
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build integrated game

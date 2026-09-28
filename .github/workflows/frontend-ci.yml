@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   windows-build-test:
@@ -13,7 +15,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Configure frontend
         run: cmake -S frontend -B frontend/build -A x64
       - name: Build frontend

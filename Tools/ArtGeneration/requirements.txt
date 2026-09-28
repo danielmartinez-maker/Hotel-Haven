@@ -1,4 +1,4 @@
-trimesh>=4.4,<5
+trimesh>=5.1,<6
 numpy>=2,<3
-pytest>=8,<9
+pytest>=9.1,<10
 pillow>=12,<13

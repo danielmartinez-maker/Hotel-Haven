@@ -24,11 +24,14 @@ on:
       - '.github/workflows/final04-service-logistics-ci.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   portable-service-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compile FINAL-04 portable systems
         run: |
           mkdir -p build/final04
