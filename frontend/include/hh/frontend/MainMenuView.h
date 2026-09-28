@@ -1,12 +1,31 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 
+#include "hh/frontend/MainMenuCommands.h"
 #include "hh/frontend/MenuHotelProvider.h"
 
 namespace hh::frontend {
+
+inline constexpr std::array<float, 5> MainMenuUiScales{
+    0.90F, 1.00F, 1.10F, 1.25F, 1.50F};
+
+[[nodiscard]] float nextMainMenuUiScale(float currentScale) noexcept;
+
+struct MenuRect {
+    float left{};
+    float top{};
+    float right{};
+    float bottom{};
+
+    [[nodiscard]] bool contains(float x, float y) const noexcept {
+        return x >= left && x < right && y >= top && y < bottom;
+    }
+};
 
 struct PropertyCardText {
     std::string hotelName;
@@ -24,6 +43,8 @@ struct LayoutMetrics {
     float viewportHeight{};
     float logicalScale{1.0F};
     float uiScale{1.0F};
+    float uiContentScale{1.0F};
+    float uiDensityScale{1.0F};
     float safeZoneLeft{};
     float safeZoneTop{};
     float safeZoneWidth{};
@@ -59,6 +80,10 @@ public:
     explicit MainMenuView(const IMenuNumberFormatter& formatter) noexcept;
 
     [[nodiscard]] PropertyCardText formatProperty(const MenuPropertySummary& summary) const;
+    [[nodiscard]] MenuRect menuItemRect(
+        const LayoutMetrics& layout, MainMenuItem item) const noexcept;
+    [[nodiscard]] std::optional<MainMenuItem> menuItemAt(
+        const LayoutMetrics& layout, float x, float y) const noexcept;
     [[nodiscard]] LayoutMetrics layout(float physicalWidth, float physicalHeight, float requestedUiScale) const noexcept;
 
 private:
