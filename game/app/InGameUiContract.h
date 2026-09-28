@@ -2,9 +2,51 @@
 
 #include "hh/frontend/GameUiTypes.h"
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace hh::client {
+
+
+enum class GameStartupMode {
+  LivingMenu,
+  NewHotel,
+  LoadLatest,
+  SmokeTest
+};
+
+[[nodiscard]] constexpr GameStartupMode
+parseGameStartupMode(std::wstring_view commandLine) noexcept {
+  if (commandLine.find(L"--smoke-test") != std::wstring_view::npos)
+    return GameStartupMode::SmokeTest;
+  if (commandLine.find(L"--game") == std::wstring_view::npos)
+    return GameStartupMode::LivingMenu;
+  if (commandLine.find(L"--load-save") != std::wstring_view::npos)
+    return GameStartupMode::LoadLatest;
+  return GameStartupMode::NewHotel;
+}
+
+struct Final07ControlTreeEpoch {
+  std::uint64_t stateRevision{1};
+  std::uint64_t renderedRevision{};
+
+  [[nodiscard]] constexpr bool current() const noexcept {
+    return stateRevision == renderedRevision;
+  }
+
+  constexpr void markRendered() noexcept {
+    renderedRevision = stateRevision;
+  }
+
+  constexpr void invalidate() noexcept {
+    ++stateRevision;
+    if (stateRevision == 0) {
+      stateRevision = 1;
+      renderedRevision = 0;
+    }
+  }
+};
 
 enum class Page {
   Build,
@@ -27,6 +69,16 @@ enum class FinanceView {
   Market,
   Controls,
   Risk
+};
+
+enum class FinanceControlView {
+  Pricing,
+  Overbooking
+};
+
+enum class SettingsView {
+  Display,
+  Controls
 };
 
 enum class ClientUiIntent {
@@ -87,9 +139,28 @@ struct Final07Typography {
   int focusInsetPixels{};
 };
 
+struct Final07PanelLayout {
+  int densityScalePercent{};
+  int contentWidthPixels{};
+  int contentTopPixels{};
+  int contentBottomPixels{};
+  int contentHeightPixels{};
+  int buildColumns{};
+};
+
 [[nodiscard]] constexpr int final07ScalePixel(int logicalPixels,
                                                int scalePercent) noexcept {
   return (logicalPixels * scalePercent + 50) / 100;
+}
+
+[[nodiscard]] constexpr int
+final07DensityScalePercent(int scalePercent) noexcept {
+  return scalePercent > 115 ? 115 : scalePercent;
+}
+
+[[nodiscard]] constexpr int
+final07BuildCatalogColumns(int panelWidthPixels) noexcept {
+  return panelWidthPixels >= 360 ? 3 : 2;
 }
 
 [[nodiscard]] constexpr Final07Typography
@@ -116,6 +187,42 @@ computeFinal07Layout(int clientWidth, int clientHeight,
   result.viewportHeight =
       clientHeight - result.headerPixels - result.footerPixels;
   return result;
+}
+
+[[nodiscard]] constexpr Final07PanelLayout
+computeFinal07PanelLayout(int clientWidth, int clientHeight,
+                          int scalePercent) noexcept {
+  const auto shell = computeFinal07Layout(clientWidth, clientHeight, scalePercent);
+  Final07PanelLayout result;
+  result.densityScalePercent = final07DensityScalePercent(scalePercent);
+  result.contentWidthPixels =
+      shell.sidebarPixels - final07ScalePixel(40, scalePercent);
+  result.contentTopPixels =
+      shell.headerPixels + final07ScalePixel(126, result.densityScalePercent);
+  result.contentBottomPixels =
+      clientHeight - shell.footerPixels -
+      final07ScalePixel(52, result.densityScalePercent);
+  result.contentHeightPixels =
+      result.contentBottomPixels > result.contentTopPixels
+          ? result.contentBottomPixels - result.contentTopPixels
+          : 0;
+  result.buildColumns = final07BuildCatalogColumns(result.contentWidthPixels);
+  return result;
+}
+
+[[nodiscard]] constexpr bool
+final07PointInManagementPanel(int clientWidth, int clientHeight,
+                              int scalePercent, int x, int y) noexcept {
+  const auto shell = computeFinal07Layout(clientWidth, clientHeight, scalePercent);
+  return x >= clientWidth - shell.sidebarPixels && x < clientWidth &&
+         y >= shell.headerPixels &&
+         y < clientHeight - shell.footerPixels;
+}
+
+[[nodiscard]] constexpr int
+final07ValidatedControlIndex(int index, std::size_t controlCount) noexcept {
+  return index >= 0 && static_cast<std::size_t>(index) < controlCount ? index
+                                                                     : -1;
 }
 
 static_assert(Final07PageLabels.size() == 12);
