@@ -107,7 +107,9 @@ int main() {
 
     WorldViewOptions options;
     options.selected = snapshot.rooms.front().id;
-    const auto scene = worldScene(snapshot, options, &assets);
+    hh::renderer::RenderScene reusableScene;
+    buildWorldScene(reusableScene, snapshot, options, &assets);
+    const auto scene = reusableScene;
     require(!scene.meshes.empty(), "world omitted asset-backed furnishing geometry");
     require(containsHandle(scene, 113), "guest bed did not use its asset handle");
     require(containsHandle(scene, 121), "nightstand did not use its asset handle");
@@ -118,6 +120,17 @@ int main() {
     require(containsHandle(scene, 186), "front desk did not use its asset handle");
     require(containsHandle(scene, 396), "potted plants did not use their asset handle");
     require(scene.focusTarget.has_value(), "selected room has no cutaway focus");
+
+    hh::game::SimulationView emptySnapshot;
+    emptySnapshot.width = 4;
+    emptySnapshot.height = 4;
+    emptySnapshot.floors = 1;
+    WorldViewOptions emptyOptions;
+    buildWorldScene(reusableScene, emptySnapshot, emptyOptions, nullptr);
+    require(!reusableScene.focusTarget.has_value(),
+            "reused world scene retained stale focus state");
+    require(reusableScene.meshes.empty(),
+            "reused world scene retained stale mesh geometry");
 
     for (const auto &item : scene.items) {
       require(std::isfinite(item.center.x) && std::isfinite(item.center.y) &&
