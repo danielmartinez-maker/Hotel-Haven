@@ -90,7 +90,8 @@ void Client::refreshUi() {
   contextView.cutaway = wallMode == hh::renderer::WallRenderMode::Cutaway;
   contextView.currentTool = toolName(tool);
   contextView.buildPreview = buildPreview;
-  auto source = makeGameUiSnapshotSource(simulation, contextView);
+  auto source =
+      makeGameUiSnapshotSource(simulation, snapshot, contextView);
   attachLiveBuildCatalog(source);
   ui.update(source);
   hudModel.update(ui.snapshot().hud);

@@ -205,6 +205,9 @@ struct Simulation::Impl {
   std::vector<Room> rooms;
   std::vector<Person> people;
   std::vector<Reservation> reservations;
+  std::unordered_map<EntityId, std::size_t> roomIndex;
+  std::unordered_map<EntityId, std::size_t> personIndex;
+  std::unordered_map<EntityId, std::size_t> reservationIndex;
   std::vector<Reservation> completedReservationHistory;
   std::vector<Task> tasks;
   std::vector<Task> completedTaskHistory;
@@ -221,6 +224,20 @@ struct Simulation::Impl {
   std::vector<AssetId> workingEngineeringScratch;
   std::vector<AssetId> preventiveManagedEngineeringScratch;
   std::vector<AssetId> preventiveWorkingEngineeringScratch;
+  struct CachedRoute {
+    Position destination;
+    Position expectedPosition;
+    std::vector<Position> steps;
+    std::size_t nextIndex{};
+  };
+  std::unordered_map<EntityId, CachedRoute> routeCache;
+  mutable bool specialTileCacheValid{};
+  mutable Position cachedEntrance{-1, -1, -1};
+  mutable Position cachedSupply{-1, -1, -1};
+  mutable Position cachedFrontDesk{-1, -1, -1};
+  mutable bool tileViewCacheValid{};
+  mutable std::vector<TileView> cachedTileViews;
+  std::vector<PreparedRoomServiceHandoff> pendingRoomServiceHandoffsScratch;
   FoodServiceSystem food;
   EventsSystem events;
   AmenitiesSystem amenities;
@@ -273,9 +290,9 @@ struct Simulation::Impl {
     amenities.setElapsedSeconds(elapsed);
   }
 
-  [[nodiscard]] std::int64_t final05RevenueCents() const {
-    return food.snapshot().revenueCents + events.snapshot().revenueCents +
-           amenities.snapshot().revenueCents;
+  [[nodiscard]] std::int64_t final05RevenueCents() const noexcept {
+    return food.revenueCents() + events.revenueCents() +
+           amenities.revenueCents();
   }
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
@@ -288,24 +305,64 @@ struct Simulation::Impl {
       return false;
     return passableKind(map[index(p)]);
   }
-  std::vector<Position> neighbors(Position p) const {
-    std::vector<Position> n{{p.floor, p.x + 1, p.y},
-                            {p.floor, p.x - 1, p.y},
-                            {p.floor, p.x, p.y + 1},
-                            {p.floor, p.x, p.y - 1}};
-    if (inside(p) && map[index(p)] == TileKind::Stairs) {
-      n.push_back({p.floor + 1, p.x, p.y});
-      n.push_back({p.floor - 1, p.x, p.y});
-    }
-    n.erase(std::remove_if(n.begin(), n.end(),
-                           [&](auto q) {
-                             return !passable(q) ||
-                                    (q.floor != p.floor &&
-                                     map[index(q)] != TileKind::Stairs);
-                           }),
-            n.end());
-    return n;
+
+  void invalidateTopologyCaches() {
+    routeCache.clear();
+    specialTileCacheValid = false;
+    tileViewCacheValid = false;
   }
+
+  void refreshTileViewCache() const {
+    if (tileViewCacheValid)
+      return;
+    cachedTileViews.clear();
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
+      if (map[i] != TileKind::Empty)
+        cachedTileViews.push_back(
+            {{i / (width * height), i % width, (i / width) % height}, map[i]});
+    tileViewCacheValid = true;
+  }
+
+  void refreshSpecialTileCache() const {
+    if (specialTileCacheValid)
+      return;
+    cachedEntrance = {-1, -1, -1};
+    cachedSupply = {-1, -1, -1};
+    cachedFrontDesk = {-1, -1, -1};
+    for (int i = 0; i < static_cast<int>(map.size()); ++i) {
+      Position position{i / (width * height), i % width,
+                        (i / width) % height};
+      if (map[i] == TileKind::Entrance && cachedEntrance.floor < 0)
+        cachedEntrance = position;
+      else if (map[i] == TileKind::SupplyCloset && cachedSupply.floor < 0)
+        cachedSupply = position;
+      else if (map[i] == TileKind::FrontDesk && cachedFrontDesk.floor < 0)
+        cachedFrontDesk = position;
+      if (cachedEntrance.floor >= 0 && cachedSupply.floor >= 0 &&
+          cachedFrontDesk.floor >= 0)
+        break;
+    }
+    specialTileCacheValid = true;
+  }
+  template <typename Visitor>
+  void forEachNeighbor(Position p, Visitor &&visit) const {
+    const Position sameFloor[] = {{p.floor, p.x + 1, p.y},
+                                  {p.floor, p.x - 1, p.y},
+                                  {p.floor, p.x, p.y + 1},
+                                  {p.floor, p.x, p.y - 1}};
+    for (const auto next : sameFloor)
+      if (passable(next))
+        visit(next);
+
+    if (!inside(p) || map[index(p)] != TileKind::Stairs)
+      return;
+    const Position vertical[] = {{p.floor + 1, p.x, p.y},
+                                 {p.floor - 1, p.x, p.y}};
+    for (const auto next : vertical)
+      if (passable(next) && map[index(next)] == TileKind::Stairs)
+        visit(next);
+  }
+
   std::vector<Position> path(Position from, Position to) const {
     if (!passable(from) || !passable(to))
       return {};
@@ -314,15 +371,17 @@ struct Simulation::Impl {
     q.push(from);
     prev[index(from)] = index(from);
     while (!q.empty()) {
-      auto p = q.front();
+      const auto p = q.front();
       q.pop();
       if (same(p, to))
         break;
-      for (auto n : neighbors(p))
-        if (prev[index(n)] < 0) {
-          prev[index(n)] = index(p);
-          q.push(n);
+      forEachNeighbor(p, [&](Position next) {
+        const auto nextIndex = index(next);
+        if (prev[nextIndex] < 0) {
+          prev[nextIndex] = index(p);
+          q.push(next);
         }
+      });
     }
     if (prev[index(to)] < 0)
       return {};
@@ -337,6 +396,38 @@ struct Simulation::Impl {
     return out;
   }
 
+  [[nodiscard]] std::optional<Position> nextPathStep(Person &person) {
+    if (same(person.position, person.destination)) {
+      routeCache.erase(person.id);
+      return std::nullopt;
+    }
+
+    auto cached = routeCache.find(person.id);
+    if (cached == routeCache.end() ||
+        !same(cached->second.destination, person.destination) ||
+        !same(cached->second.expectedPosition, person.position) ||
+        cached->second.nextIndex >= cached->second.steps.size()) {
+      auto route = path(person.position, person.destination);
+      if (route.empty()) {
+        routeCache.erase(person.id);
+        return std::nullopt;
+      }
+      CachedRoute fresh;
+      fresh.destination = person.destination;
+      fresh.expectedPosition = person.position;
+      fresh.steps = std::move(route);
+      cached = routeCache.insert_or_assign(person.id, std::move(fresh)).first;
+    }
+
+    auto &route = cached->second;
+    const auto next = route.steps[route.nextIndex++];
+    route.expectedPosition = next;
+    if (route.nextIndex >= route.steps.size() ||
+        same(next, route.destination))
+      routeCache.erase(cached);
+    return next;
+  }
+
   [[nodiscard]] std::vector<bool> reachableMask(Position from) const {
     std::vector<bool> reachable(map.size(), false);
     if (!passable(from))
@@ -347,40 +438,64 @@ struct Simulation::Impl {
     while (!pending.empty()) {
       const auto current = pending.front();
       pending.pop();
-      for (const auto next : neighbors(current)) {
+      forEachNeighbor(current, [&](Position next) {
         const auto nextIndex = static_cast<std::size_t>(index(next));
         if (!reachable[nextIndex]) {
           reachable[nextIndex] = true;
           pending.push(next);
         }
-      }
+      });
     }
     return reachable;
   }
 
+  void rebuildRoomIndex() {
+    roomIndex.clear();
+    roomIndex.reserve(rooms.size());
+    for (std::size_t i = 0; i < rooms.size(); ++i)
+      roomIndex.emplace(rooms[i].id, i);
+  }
+  void rebuildPersonIndex() {
+    personIndex.clear();
+    personIndex.reserve(people.size());
+    for (std::size_t i = 0; i < people.size(); ++i)
+      personIndex.emplace(people[i].id, i);
+  }
+  void rebuildReservationIndex() {
+    reservationIndex.clear();
+    reservationIndex.reserve(reservations.size());
+    for (std::size_t i = 0; i < reservations.size(); ++i)
+      reservationIndex.emplace(reservations[i].id, i);
+  }
+  void rebuildEntityIndexes() {
+    rebuildRoomIndex();
+    rebuildPersonIndex();
+    rebuildReservationIndex();
+  }
+
   Room *getRoom(EntityId id) {
-    for (auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = roomIndex.find(id);
+    return it != roomIndex.end() && it->second < rooms.size()
+               ? &rooms[it->second]
+               : nullptr;
   }
   Person *getPerson(EntityId id) {
-    for (auto &x : people)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = personIndex.find(id);
+    return it != personIndex.end() && it->second < people.size()
+               ? &people[it->second]
+               : nullptr;
   }
   Reservation *getReservation(EntityId id) {
-    for (auto &x : reservations)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = reservationIndex.find(id);
+    return it != reservationIndex.end() && it->second < reservations.size()
+               ? &reservations[it->second]
+               : nullptr;
   }
   const Room *getRoom(EntityId id) const {
-    for (const auto &x : rooms)
-      if (x.id == id)
-        return &x;
-    return nullptr;
+    const auto it = roomIndex.find(id);
+    return it != roomIndex.end() && it->second < rooms.size()
+               ? &rooms[it->second]
+               : nullptr;
   }
   BuildJobSnapshot *getBuildJob(EntityId id) {
     for (auto &job : construction.buildJobs)
@@ -407,7 +522,16 @@ struct Simulation::Impl {
     return nullptr;
   }
   Position locate(TileKind kind) const {
-    for (int i = 0; i < (int)map.size(); ++i)
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk) {
+      refreshSpecialTileCache();
+      if (kind == TileKind::Entrance)
+        return cachedEntrance;
+      if (kind == TileKind::SupplyCloset)
+        return cachedSupply;
+      return cachedFrontDesk;
+    }
+    for (int i = 0; i < static_cast<int>(map.size()); ++i)
       if (map[i] == kind)
         return {i / (width * height), i % width, (i / width) % height};
     return {-1, -1, -1};
@@ -416,6 +540,9 @@ struct Simulation::Impl {
   Position supply() const { return locate(TileKind::SupplyCloset); }
   Position frontDesk() const { return locate(TileKind::FrontDesk); }
   bool has(TileKind kind) const {
+    if (kind == TileKind::Entrance || kind == TileKind::SupplyCloset ||
+        kind == TileKind::FrontDesk)
+      return locate(kind).floor >= 0;
     return std::find(map.begin(), map.end(), kind) != map.end();
   }
 
@@ -1095,6 +1222,7 @@ struct Simulation::Impl {
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
       reservations.push_back(z);
+      reservationIndex[z.id] = reservations.size() - 1;
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
     }
@@ -1125,6 +1253,7 @@ struct Simulation::Impl {
         p.reservation = z.id;
         p.reservationId = z.id;
         people.push_back(p);
+        personIndex[p.id] = people.size() - 1;
       }
   }
   void beginDepartures(int day) {
@@ -1478,16 +1607,16 @@ struct Simulation::Impl {
           p->fatigue = std::min(100.0, p->fatigue + 4.0 / 3600.0);
           ++p->travelSeconds;
         }
-        auto route = path(p->position, p->destination);
-        if (route.empty() && !same(p->position, p->destination)) {
+        const auto next = nextPathStep(*p);
+        if (!next && !same(p->position, p->destination)) {
           task.status = TaskStatus::Ready;
           task.employeeId = 0;
           p->task = 0;
           p->state = PersonState::Idle;
           continue;
         }
-        if (!route.empty())
-          p->position = route.front();
+        if (next)
+          p->position = *next;
         if (same(p->position, p->destination)) {
           if (task.kind == TaskKind::Turnover &&
               same(p->destination, supply()) && !task.resourcesClaimed) {
@@ -1698,9 +1827,9 @@ struct Simulation::Impl {
         }
         if (p.state == PersonState::Traveling) {
           ++p.travelSeconds;
-          auto route = path(p.position, p.destination);
-          if (!route.empty())
-            p.position = route.front();
+          const auto next = nextPathStep(p);
+          if (next)
+            p.position = *next;
           else {
             p.queueWaitSeconds += 1;
             p.patience = std::max(0.0, p.patience - 1.0 / 120);
@@ -1745,22 +1874,28 @@ struct Simulation::Impl {
               walkRelocateGuest(p);
           }
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation) {
-            z.satisfaction = p.satisfaction;
-            if (!z.checkedIn) {
-              z.checkInTravelSeconds = p.travelSeconds;
-              z.checkInWaitSeconds = p.queueWaitSeconds;
-            }
+        if (auto *z = getReservation(p.reservation)) {
+          z->satisfaction = p.satisfaction;
+          if (!z->checkedIn) {
+            z->checkInTravelSeconds = p.travelSeconds;
+            z->checkInWaitSeconds = p.queueWaitSeconds;
           }
+        }
       }
   }
   void compactTransientState() {
+    for (const auto &person : people)
+      if (person.kind == PersonKind::Guest &&
+          person.state == PersonState::CheckedOut)
+        routeCache.erase(person.id);
+    const auto peopleBefore = people.size();
     people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
                    return p.kind == PersonKind::Guest &&
                           p.state == PersonState::CheckedOut;
                  }),
                  people.end());
+    if (people.size() != peopleBefore)
+      rebuildPersonIndex();
 
     for (auto &task : tasks)
       if (task.status == TaskStatus::Completed)
@@ -1779,12 +1914,15 @@ struct Simulation::Impl {
     for (auto &reservation : reservations)
       if (reservation.completed)
         completedReservationHistory.push_back(std::move(reservation));
+    const auto reservationsBefore = reservations.size();
     reservations.erase(
         std::remove_if(reservations.begin(), reservations.end(),
                        [](const auto &reservation) {
                          return reservation.completed;
                        }),
         reservations.end());
+    if (reservations.size() != reservationsBefore)
+      rebuildReservationIndex();
   }
   void tickServicesWithPhysicalLabor() {
     managedHousekeepingScratch.clear();
@@ -1822,6 +1960,15 @@ struct Simulation::Impl {
         workingEngineeringScratch.end(),
         preventiveWorkingEngineeringScratch.begin(),
         preventiveWorkingEngineeringScratch.end());
+
+    const auto sortUnique = [](auto &values) {
+      std::sort(values.begin(), values.end());
+      values.erase(std::unique(values.begin(), values.end()), values.end());
+    };
+    sortUnique(managedHousekeepingScratch);
+    sortUnique(workingHousekeepingScratch);
+    sortUnique(managedEngineeringScratch);
+    sortUnique(workingEngineeringScratch);
 
     const int engineeringConditionLossPerHour = std::clamp(
         static_cast<int>(std::llround(roomConditionLossPerDay * 100.0 / 24.0)),
@@ -1864,7 +2011,8 @@ struct Simulation::Impl {
         continue;
 
       if (room.status == RoomStatus::Cleaning &&
-          !hasActiveTask(TaskKind::Turnover, room.id) &&
+          !std::binary_search(managedHousekeepingScratch.begin(),
+                              managedHousekeepingScratch.end(), room.id) &&
           services.housekeeping().roomStatus(room.id) ==
               ServiceRoomStatus::Ready) {
         if (room.condition < 35) {
@@ -1878,7 +2026,8 @@ struct Simulation::Impl {
       }
 
       if (room.status == RoomStatus::OutOfOrder &&
-          !hasActiveTask(TaskKind::Repair, room.id)) {
+          !std::binary_search(managedEngineeringScratch.begin(),
+                              managedEngineeringScratch.end(), room.id)) {
         const auto engineeringStage =
             services.engineering().latestWorkOrderStage(
                 room.id, WorkOrderType::Corrective);
@@ -1938,13 +2087,6 @@ struct Simulation::Impl {
       economy.distressed = economy.cashCents < 0;
       economy.stars = std::min(5, 1 + economy.completedStays / 15);
     }
-    int available = 0, occupied = 0;
-    for (auto &r : rooms)
-      if (!r.closed && r.status != RoomStatus::Incomplete) {
-        available++;
-        occupied += r.status == RoomStatus::Occupied;
-      }
-    economy.occupancy = available ? double(occupied) / available : 0;
   }
 };
 
@@ -2041,6 +2183,7 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
   if (impl_->map[impl_->index(p)] == k)
     return validation;
   impl_->map[impl_->index(p)] = k;
+  impl_->invalidateTopologyCaches();
   impl_->economy.cashCents -= 500;
   impl_->economy.constructionCostCents += 500;
   impl_->refreshReachability();
@@ -2067,6 +2210,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
                                                     : TileKind::Floor;
     }
   impl_->map[impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
+  impl_->invalidateTopologyCaches();
   Room r;
   r.id = impl_->nextId++;
   r.name = b.name;
@@ -2086,6 +2230,7 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
   r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
   impl_->rooms.push_back(r);
+  impl_->roomIndex[r.id] = impl_->rooms.size() - 1;
   impl_->services.registerRoom(
       r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
                                                  : ServiceRoomStatus::Blocked);
@@ -2123,6 +2268,7 @@ CommandResult Simulation::hireStaff(const StaffHire &h) {
   p.contract = {0, staffRole(h.role), p.hourlyWageCents, 0,
                 h.shiftStartHour, h.shiftEndHour};
   impl_->people.push_back(p);
+  impl_->personIndex[p.id] = impl_->people.size() - 1;
   return {true, "Staff hired", p.id};
 }
 std::vector<Applicant> Simulation::applicants() const {
@@ -2175,6 +2321,7 @@ HireResult Simulation::hireApplicant(ApplicantId applicantId) {
                 impl_->onboardingCostCents, found->shiftStartHour,
                 found->shiftEndHour};
   impl_->people.push_back(p);
+  impl_->personIndex[p.id] = impl_->people.size() - 1;
   impl_->consumedApplicantIds.push_back(found->id);
   impl_->economy.cashCents -= impl_->onboardingCostCents;
   impl_->economy.payrollCents += impl_->onboardingCostCents;
@@ -2202,7 +2349,9 @@ CommandResult Simulation::fireStaff(EntityId id) {
       t.status = TaskStatus::Ready;
     }
   impl_->postAccruedWage(*it);
+  impl_->routeCache.erase(id);
   impl_->people.erase(it);
+  impl_->rebuildPersonIndex();
   impl_->managers.erase(
       std::remove_if(impl_->managers.begin(), impl_->managers.end(),
                      [&](const ManagerAssignment &assignment) {
@@ -2461,137 +2610,6 @@ DepartmentForecast Simulation::departmentForecast(DepartmentId department,
   return forecast;
 }
 
-OptimizerSnapshot Simulation::buildOptimizerSnapshot() const {
-  OptimizerSnapshot snapshot;
-  snapshot.capturedSecond = impl_->elapsed;
-  snapshot.horizonEndSecond = impl_->elapsed + 86400;
-  const int currentDay = simulationDay(impl_->elapsed);
-
-  auto serviceRole = [](TaskKind kind) {
-    if (kind == TaskKind::Turnover || kind == TaskKind::Restock)
-      return StaffRole::Housekeeper;
-    if (kind == TaskKind::Repair || kind == TaskKind::Build)
-      return StaffRole::Maintenance;
-    return StaffRole::Receptionist;
-  };
-  auto addWindow = [&](std::vector<OptimizationWindow> &windows,
-                       std::int64_t start, std::int64_t end) {
-    start = std::max(start, snapshot.capturedSecond);
-    end = std::min(end, snapshot.horizonEndSecond);
-    if (end > start)
-      windows.push_back({start, end});
-  };
-
-  for (const auto &person : impl_->people) {
-    if (person.kind == PersonKind::Guest)
-      continue;
-    OptimizerEmployee employee;
-    employee.id = person.id;
-    employee.role = staffRole(person.kind);
-    employee.absent = person.absent;
-    employee.availableNow = person.onShift && !person.absent && person.task == 0;
-
-    const std::int64_t shiftDuration =
-        person.shiftStartHour == person.shiftEndHour
-            ? 86400
-            : static_cast<std::int64_t>(
-                  (person.shiftEndHour - person.shiftStartHour + 24) % 24) *
-                  3600;
-    for (int offset = -1; offset <= 2; ++offset) {
-      const int startDay = currentDay + offset;
-      const std::int64_t shiftStart =
-          static_cast<std::int64_t>(startDay) * 86400 +
-          person.shiftStartHour * 3600LL;
-      const std::int64_t shiftEnd = shiftStart + shiftDuration;
-      const std::int64_t key = static_cast<std::int64_t>(startDay) * 24 +
-                               person.shiftStartHour;
-      if (!(person.absent && person.shiftInstanceKey == key))
-        addWindow(employee.shiftWindows, shiftStart, shiftEnd);
-
-      if (impl_->staffBreakAfterMinutes > 0) {
-        const std::int64_t breakStart =
-            shiftStart + impl_->staffBreakAfterMinutes * 60LL;
-        const std::int64_t breakEnd = std::min<std::int64_t>(
-            shiftEnd,
-            breakStart +
-                static_cast<std::int64_t>(impl_->staffBreakDurationMinutes) *
-                    60);
-        const bool alreadyTookCurrentBreak =
-            key == person.shiftInstanceKey && person.breakMinutesTakenToday > 0;
-        if (!alreadyTookCurrentBreak)
-          addWindow(employee.unavailableWindows, breakStart, breakEnd);
-      }
-    }
-
-    for (const auto &task : impl_->tasks) {
-      if (task.status == TaskStatus::Completed)
-        continue;
-      if ((task.kind == TaskKind::Break || task.kind == TaskKind::Training) &&
-          task.targetId == person.id) {
-        const auto start =
-            task.status == TaskStatus::Working ? impl_->elapsed
-                                               : task.notBeforeSecond;
-        const auto duration = static_cast<std::int64_t>(
-            std::ceil(task.status == TaskStatus::Working
-                          ? task.workRemainingSeconds
-                          : task.total));
-        addWindow(employee.unavailableWindows, start, start + duration);
-      } else if (task.employeeId == person.id &&
-                 task.kind != TaskKind::Break &&
-                 task.kind != TaskKind::Training) {
-        const auto duration = static_cast<std::int64_t>(
-            std::ceil(std::max(1.0, task.workRemainingSeconds)));
-        addWindow(employee.unavailableWindows, impl_->elapsed,
-                  impl_->elapsed + duration);
-      }
-    }
-
-    std::sort(employee.shiftWindows.begin(), employee.shiftWindows.end(),
-              [](const auto &a, const auto &b) {
-                if (a.startSecond != b.startSecond)
-                  return a.startSecond < b.startSecond;
-                return a.endSecond < b.endSecond;
-              });
-    std::sort(employee.unavailableWindows.begin(),
-              employee.unavailableWindows.end(), [](const auto &a, const auto &b) {
-                if (a.startSecond != b.startSecond)
-                  return a.startSecond < b.startSecond;
-                return a.endSecond < b.endSecond;
-              });
-    snapshot.employees.push_back(std::move(employee));
-  }
-
-  for (const auto &task : impl_->tasks) {
-    if (task.employeeId != 0 || task.status == TaskStatus::Completed ||
-        task.kind == TaskKind::Break || task.kind == TaskKind::Training)
-      continue;
-    OptimizerTask view;
-    view.id = task.id;
-    view.requiredRole = serviceRole(task.kind);
-    view.critical = task.kind == TaskKind::Repair ||
-                    task.kind == TaskKind::CheckIn ||
-                    task.kind == TaskKind::CheckOut;
-    view.earliestStartSecond =
-        std::max(impl_->elapsed, task.notBeforeSecond);
-    view.durationSeconds = static_cast<int>(std::clamp<std::int64_t>(
-        static_cast<std::int64_t>(
-            std::ceil(std::max(1.0, task.workRemainingSeconds))),
-        1, 7LL * 86400LL));
-    snapshot.tasks.push_back(view);
-  }
-
-  std::sort(snapshot.employees.begin(), snapshot.employees.end(),
-            [](const auto &a, const auto &b) { return a.id < b.id; });
-  std::sort(snapshot.tasks.begin(), snapshot.tasks.end(),
-            [](const auto &a, const auto &b) { return a.id < b.id; });
-  return snapshot;
-}
-
-PlanValidation Simulation::validatePlan(const OptimizerSnapshot &snapshot,
-                                        const AssignmentPlan &plan) const {
-  return validateAssignmentPlan(snapshot, plan);
-}
-
 CommandResult Simulation::setRoomRate(EntityId id, double rate) {
   auto *r = impl_->getRoom(id);
   if (!r || !std::isfinite(rate) || rate < 20 || rate > 5000)
@@ -2667,6 +2685,8 @@ CommandResult Simulation::removeRoom(EntityId id) {
       impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
   impl_->removeRoomSystems(id);
   impl_->rooms.erase(it);
+  impl_->rebuildRoomIndex();
+  impl_->invalidateTopologyCaches();
   impl_->refreshReachability();
   return {true, "Room removed", id};
 }
@@ -3149,7 +3169,9 @@ void Simulation::step(double seconds) {
     impl_->food.tickSecond();
     impl_->events.tickSecond();
     impl_->amenities.tickSecond();
-    for (const auto &handoff : impl_->food.pendingRoomServiceHandoffs())
+    impl_->food.pendingRoomServiceHandoffs(
+        impl_->pendingRoomServiceHandoffsScratch);
+    for (const auto &handoff : impl_->pendingRoomServiceHandoffsScratch)
       if (impl_->services.markRoomServiceProductionReady(
               handoff.roomServiceOrderId))
         (void)impl_->food.acknowledgeRoomServiceHandoff(
@@ -3181,14 +3203,14 @@ void Simulation::step(double seconds) {
   }
 }
 
-LogisticsSnapshot Simulation::logisticsSnapshot() const {
-  return impl_->services.logisticsSnapshot();
+LogisticsSnapshot Simulation::logisticsSnapshot(bool includeHistory) const {
+  return impl_->services.logisticsSnapshot(includeHistory);
 }
-HousekeepingSnapshot Simulation::housekeepingSnapshot() const {
-  return impl_->services.housekeepingSnapshot();
+HousekeepingSnapshot Simulation::housekeepingSnapshot(bool includeHistory) const {
+  return impl_->services.housekeepingSnapshot(includeHistory);
 }
-EngineeringSnapshot Simulation::engineeringSnapshot() const {
-  return impl_->services.engineeringSnapshot();
+EngineeringSnapshot Simulation::engineeringSnapshot(bool includeHistory) const {
+  return impl_->services.engineeringSnapshot(includeHistory);
 }
 TaskId Simulation::requestRoomTurn(RoomId roomId) {
   auto *room = impl_->getRoom(roomId);
@@ -3252,14 +3274,14 @@ AmenityReservationResult Simulation::reserveAmenity(
     GuestId guestId, const AmenityRequest &request) {
   return impl_->amenities.reserveAmenity(guestId, request);
 }
-FoodServiceSnapshot Simulation::foodServiceSnapshot() const {
-  return impl_->food.snapshot();
+FoodServiceSnapshot Simulation::foodServiceSnapshot(bool includeHistory) const {
+  return impl_->food.snapshot(includeHistory);
 }
-EventsSnapshot Simulation::eventsSnapshot() const {
-  return impl_->events.snapshot();
+EventsSnapshot Simulation::eventsSnapshot(bool includeHistory) const {
+  return impl_->events.snapshot(includeHistory);
 }
-AmenitiesSnapshot Simulation::amenitiesSnapshot() const {
-  return impl_->amenities.snapshot();
+AmenitiesSnapshot Simulation::amenitiesSnapshot(bool includeHistory) const {
+  return impl_->amenities.snapshot(includeHistory);
 }
 
 bool Simulation::isReachable(Position a, Position b) const {
@@ -3267,6 +3289,10 @@ bool Simulation::isReachable(Position a, Position b) const {
          impl_->passable(b) && (same(a, b) || !impl_->path(a, b).empty());
 }
 SimulationView Simulation::view() const {
+  return view(true);
+}
+
+SimulationView Simulation::view(bool includeCompletedReservationHistory) const {
   SimulationView v;
   v.elapsedSeconds = impl_->elapsed;
   v.day = simulationDay(impl_->elapsed);
@@ -3274,19 +3300,26 @@ SimulationView Simulation::view() const {
   v.width = impl_->width;
   v.height = impl_->height;
   v.floors = impl_->floors;
-  for (int i = 0; i < (int)impl_->map.size(); ++i)
-    if (impl_->map[i] != TileKind::Empty)
-      v.tiles.push_back({{i / (impl_->width * impl_->height), i % impl_->width,
-                          (i / impl_->width) % impl_->height},
-                         impl_->map[i]});
+  v.rooms.reserve(impl_->rooms.size());
+  v.people.reserve(impl_->people.size());
+  v.reservations.reserve(
+      impl_->reservations.size() +
+      (includeCompletedReservationHistory
+           ? impl_->completedReservationHistory.size()
+           : 0));
+  v.tasks.reserve(impl_->tasks.size() + impl_->completedTaskHistory.size());
+  v.supplyOrders.reserve(impl_->orders.size());
+  impl_->refreshTileViewCache();
+  v.tiles = impl_->cachedTileViews;
   for (auto &r : impl_->rooms)
     v.rooms.push_back(r);
   for (auto &p : impl_->people)
     v.people.push_back(p);
   for (auto &r : impl_->reservations)
     v.reservations.push_back(r);
-  for (auto &r : impl_->completedReservationHistory)
-    v.reservations.push_back(r);
+  if (includeCompletedReservationHistory)
+    for (auto &r : impl_->completedReservationHistory)
+      v.reservations.push_back(r);
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)
@@ -4509,6 +4542,7 @@ Simulation Simulation::load(std::string_view data) {
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
   }
+  d.rebuildEntityIndexes();
   d.compactTransientState();
   return s;
 }

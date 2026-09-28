@@ -152,10 +152,23 @@ Color diagnosticGoodness(float value) {
 }
 } // namespace
 
-RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c,
-                       const WorldAssetSet *assets) {
-  RenderScene s;
+void buildWorldScene(RenderScene &s, const SimulationView &snapshot,
+                     const WorldViewOptions &c,
+                     const WorldAssetSet *assets) {
+  s.items.clear();
+  s.meshes.clear();
+  s.focusTarget.reset();
   s.activeFloor = c.floor;
+
+  const std::size_t estimatedBoxes =
+      snapshot.tiles.size() * 2 + snapshot.rooms.size() * 18 +
+      snapshot.people.size() * 9 + 64;
+  const std::size_t estimatedMeshes =
+      snapshot.rooms.size() * 7 + snapshot.tiles.size() / 4 + 32;
+  if (s.items.capacity() < estimatedBoxes)
+    s.items.reserve(estimatedBoxes);
+  if (s.meshes.capacity() < estimatedMeshes)
+    s.meshes.reserve(estimatedMeshes);
 
   std::map<EntityId, int> openTaskCount;
   if (c.overlay == Overlay::OpenTaskDensity) {
@@ -364,6 +377,12 @@ RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c
                        : Color{.88f, .24f, .19f, .55f},
         RenderCategory::Selection);
   }
-  return s;
+}
+
+RenderScene worldScene(const SimulationView &snapshot, const WorldViewOptions &c,
+                       const WorldAssetSet *assets) {
+  RenderScene scene;
+  buildWorldScene(scene, snapshot, c, assets);
+  return scene;
 }
 } // namespace hh::client

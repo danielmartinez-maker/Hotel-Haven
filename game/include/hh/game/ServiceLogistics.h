@@ -46,9 +46,9 @@ public:
   [[nodiscard]] bool hasRegisteredAsset(AssetId asset) const noexcept;
   [[nodiscard]] std::size_t registeredRoomCount() const noexcept;
   [[nodiscard]] std::size_t registeredAssetCount() const noexcept;
-  [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
-  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;
-  [[nodiscard]] EngineeringSnapshot engineeringSnapshot() const;
+  [[nodiscard]] LogisticsSnapshot logisticsSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] EngineeringSnapshot engineeringSnapshot(bool includeHistory = true) const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId room);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId asset, WorkOrderType type);

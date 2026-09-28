@@ -3,6 +3,7 @@
 #include "hh/game/Logistics.h"
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 namespace hh::game {
@@ -40,7 +41,7 @@ public:
   [[nodiscard]] ServiceRoomStatus roomStatus(RoomId room) const;
   void tickSecond();
   void tickSeconds(std::int64_t seconds);
-  [[nodiscard]] HousekeepingSnapshot snapshot() const;
+  [[nodiscard]] HousekeepingSnapshot snapshot(bool includeHistory = true) const;
 
 private:
   friend class ServiceLogisticsRuntime;
@@ -61,6 +62,7 @@ private:
   [[nodiscard]] bool beginStage(Job &job);
   void completeStage(Job &job);
   void tickJobSecond(Job &job);
+  void rebuildActiveJobs();
   void tickSecondFor(const std::vector<RoomId> &managedRooms,
                      const std::vector<RoomId> &workingRooms);
   [[nodiscard]] static int duration(HousekeepingStage stage);
@@ -70,6 +72,8 @@ private:
   std::int64_t elapsedSeconds_{};
   std::vector<RoomState> rooms_;
   std::vector<Job> jobs_;
+  std::unordered_map<RoomId, std::size_t> roomIndex_;
+  std::vector<std::size_t> activeJobs_;
 };
 
 } // namespace hh::game
