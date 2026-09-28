@@ -381,7 +381,7 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
             "layout benchmark steady-state rate rejected");
   // Use unsaturated steady demand so reputation/service quality can
   // materially affect conversion instead of being clamped to 100% demand.
-  require(s.loadDefinitions(R"({"baseDemand":1.15})").ok,
+  require(s.loadDefinitions(R"({"baseDemand":1.25})").ok,
           "layout benchmark steady demand rejected");
   const auto countWalked = [](const SimulationView &view) {
     int count = 0;
