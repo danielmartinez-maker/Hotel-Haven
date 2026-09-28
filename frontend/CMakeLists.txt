@@ -18,6 +18,7 @@ endif()
 add_library(hh_frontend_core STATIC
     src/MainMenuModel.cpp
     src/MainMenuController.cpp
+    src/MainMenuApplication.cpp
     src/MainMenuView.cpp
     src/MenuInput.cpp
     src/MenuTransitionDirector.cpp
