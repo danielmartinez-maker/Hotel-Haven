@@ -350,9 +350,12 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
                 .ok,
             "layout benchmark room build failed");
   }
-  require(s.hireStaff({"Desk", PersonKind::Receptionist, 9, 23, 20}).ok,
+  // Keep the six-room benchmark economically viable at unsaturated demand.
+  // Higher fixed wages force demand into saturation, which masks the layout
+  // throughput signal this acceptance test is meant to measure.
+  require(s.hireStaff({"Desk", PersonKind::Receptionist, 9, 23, 16}).ok,
           "layout benchmark receptionist hire failed");
-  require(s.hireStaff({"Rooms", PersonKind::Housekeeper, 8, 20, 18}).ok,
+  require(s.hireStaff({"Rooms", PersonKind::Housekeeper, 8, 20, 14}).ok,
           "layout benchmark housekeeper hire failed");
   for (const auto &room : s.view().rooms)
     require(s.setRoomRate(room.id, 50).ok,
@@ -422,7 +425,7 @@ static LayoutOutcome run_layout_campaign(bool efficient) {
   outcome.launchCohortReputation = baseline.economy.reputation;
   // Use unsaturated steady demand so reputation/service quality can
   // materially affect conversion instead of being clamped to 100% demand.
-  require(s.loadDefinitions(R"({"baseDemand":1.25})").ok,
+  require(s.loadDefinitions(R"({"baseDemand":1.15})").ok,
           "layout benchmark steady demand rejected");
   s.step(20 * 86400);
   const auto final = s.view();
