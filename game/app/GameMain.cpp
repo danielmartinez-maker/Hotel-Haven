@@ -189,6 +189,7 @@ LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wp, LPARAM lp) {
       HDC dc = BeginPaint(window, &ps);
       if (!view) {
         c->paint(dc);
+        c->controlTreeEpoch.markRendered();
         if (c->uiSettings.visibleFocusRequired() && c->focusedButton >= 0 &&
             c->focusedButton < static_cast<int>(c->buttons.size())) {
           RECT focus = c->buttons[static_cast<std::size_t>(c->focusedButton)].rect;
