@@ -101,10 +101,29 @@ void EngineeringSystem::tickReliabilitySecond(int conditionLossPerHour,
   }
 }
 
+void EngineeringSystem::rebuildActiveWorkOrders() {
+  assetIndex_.clear();
+  assetIndex_.reserve(assets_.size());
+  for (std::size_t index = 0; index < assets_.size(); ++index)
+    assetIndex_.emplace(assets_[index].id, index);
+  activeWorkOrders_.clear();
+  activeWorkOrders_.reserve(workOrders_.size());
+  for (std::size_t index = 0; index < workOrders_.size(); ++index)
+    if (workOrders_[index].stage != WorkOrderStage::Completed)
+      activeWorkOrders_.push_back(index);
+}
+
 void EngineeringSystem::tickSecond() {
   ++elapsedSeconds_;
-  for (auto &order : workOrders_)
-    tickWorkOrderSecond(order);
+  for (const auto index : activeWorkOrders_)
+    tickWorkOrderSecond(workOrders_[index]);
+  activeWorkOrders_.erase(
+      std::remove_if(activeWorkOrders_.begin(), activeWorkOrders_.end(),
+                     [&](std::size_t index) {
+                       return workOrders_[index].stage ==
+                              WorkOrderStage::Completed;
+                     }),
+      activeWorkOrders_.end());
   tickReliabilitySecond();
 }
 
@@ -113,16 +132,34 @@ void EngineeringSystem::tickSecondFor(
     const std::vector<AssetId> &workingAssets,
     int conditionLossPerHour) {
   ++elapsedSeconds_;
-  for (auto &order : workOrders_) {
+  const bool managedSorted =
+      std::is_sorted(managedAssets.begin(), managedAssets.end());
+  const bool workingSorted =
+      std::is_sorted(workingAssets.begin(), workingAssets.end());
+  for (const auto index : activeWorkOrders_) {
+    auto &order = workOrders_[index];
     const bool managed =
-        std::find(managedAssets.begin(), managedAssets.end(), order.assetId) !=
-        managedAssets.end();
+        managedSorted
+            ? std::binary_search(managedAssets.begin(), managedAssets.end(),
+                                 order.assetId)
+            : std::find(managedAssets.begin(), managedAssets.end(),
+                        order.assetId) != managedAssets.end();
     const bool working =
-        std::find(workingAssets.begin(), workingAssets.end(), order.assetId) !=
-        workingAssets.end();
+        workingSorted
+            ? std::binary_search(workingAssets.begin(), workingAssets.end(),
+                                 order.assetId)
+            : std::find(workingAssets.begin(), workingAssets.end(),
+                        order.assetId) != workingAssets.end();
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
+  activeWorkOrders_.erase(
+      std::remove_if(activeWorkOrders_.begin(), activeWorkOrders_.end(),
+                     [&](std::size_t index) {
+                       return workOrders_[index].stage ==
+                              WorkOrderStage::Completed;
+                     }),
+      activeWorkOrders_.end());
   // Reliability/condition remains authoritative in FINAL-04 for both
   // standalone and integrated execution. Simulation supplies labor gating for
   // work orders, then mirrors this hourly state into physical RoomView state.
