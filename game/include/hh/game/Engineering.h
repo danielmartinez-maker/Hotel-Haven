@@ -68,6 +68,7 @@ private:
   [[nodiscard]] Asset *asset(AssetId id);
   [[nodiscard]] const Asset *asset(AssetId id) const;
   void tickWorkOrderSecond(WorkOrder &order);
+  void rebuildActiveWorkOrders();
   void tickReliabilitySecond(int conditionLossPerHour = 10,
                              bool generateFailures = true);
   void tickSecondFor(const std::vector<AssetId> &managedAssets,
