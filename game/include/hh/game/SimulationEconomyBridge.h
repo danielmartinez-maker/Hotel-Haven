@@ -41,6 +41,8 @@ public:
   void applyReviewOutcome(const ReviewSignal &review);
 
   [[nodiscard]] SimulationView view() const;
+  [[nodiscard]] SimulationView
+  view(bool includeCompletedReservationHistory) const;
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
   [[nodiscard]] EventsSnapshot eventsSnapshot() const;

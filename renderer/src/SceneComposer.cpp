@@ -4,18 +4,23 @@
 
 namespace hh::renderer {
 
-ComposedScene SceneComposer::compose(
+void SceneComposer::compose(
     const RenderScene& scene,
     FloorContextMode contextMode,
     WallRenderMode wallMode,
-    Vec3 cameraWorldPosition) const {
-    ComposedScene result;
-    result.opaque.reserve(scene.items.size());
-    result.translucent.reserve(scene.items.size());
-    result.wireframe.reserve(scene.items.size());
-    result.opaqueMeshes.reserve(scene.meshes.size());
-    result.translucentMeshes.reserve(scene.meshes.size());
-    result.wireframeMeshes.reserve(scene.meshes.size());
+    Vec3 cameraWorldPosition,
+    ComposedScene& result) const {
+    result.opaque.clear();
+    result.translucent.clear();
+    result.wireframe.clear();
+    result.opaqueMeshes.clear();
+    result.translucentMeshes.clear();
+    result.wireframeMeshes.clear();
+
+    if (result.opaque.capacity() < scene.items.size())
+        result.opaque.reserve(scene.items.size());
+    if (result.opaqueMeshes.capacity() < scene.meshes.size())
+        result.opaqueMeshes.reserve(scene.meshes.size());
 
     for (const BoxRenderItem& sourceItem : scene.items) {
         const FloorRenderVisibility visibility =
@@ -87,6 +92,15 @@ ComposedScene SceneComposer::compose(
         }
     }
 
+}
+
+ComposedScene SceneComposer::compose(
+    const RenderScene& scene,
+    FloorContextMode contextMode,
+    WallRenderMode wallMode,
+    Vec3 cameraWorldPosition) const {
+    ComposedScene result;
+    compose(scene, contextMode, wallMode, cameraWorldPosition, result);
     return result;
 }
 

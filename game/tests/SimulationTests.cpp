@@ -484,6 +484,50 @@ static void construction_preserves_property_invariants() {
   require(!room(s.view(), r.id).reachable, "room reachability not invalidated");
 }
 
+static void cached_routes_invalidate_after_topology_edits() {
+  Simulation s(91, 16, 10, 1);
+  for (int x = 0; x <= 11; ++x)
+    require(
+        s.buildTile({0, x, 3}, x == 0 ? TileKind::Entrance : TileKind::Floor)
+            .ok,
+        "route-cache corridor build failed");
+  require(s.buildTile({0, 2, 3}, TileKind::SupplyCloset).ok,
+          "route-cache closet build failed");
+  const auto built =
+      s.buildFurnishedRoom({"101", 0, 10, 4, 3, 3, {0, 10, 4}, 1, 1, 120});
+  require(built.ok, "route-cache room build failed");
+  const auto cleaner =
+      s.hireStaff({"Cleaner", PersonKind::Housekeeper, 0, 0, 18});
+  require(cleaner.ok, "route-cache cleaner hire failed");
+  require(s.loadDefinitions(R"({"baseDemand":0})").ok,
+          "route-cache definitions rejected");
+  require(s.requestClean(built.id).ok,
+          "route-cache cleaning request failed");
+
+  s.step(3);
+  auto beforeEdit = s.view();
+  const auto cleanerBefore =
+      std::find_if(beforeEdit.people.begin(), beforeEdit.people.end(),
+                   [&](const auto &person) { return person.id == cleaner.id; });
+  require(cleanerBefore != beforeEdit.people.end() &&
+              cleanerBefore->position.x == 3,
+          "route-cache test did not establish an active cached route");
+
+  require(s.buildTile({0, 5, 3}, TileKind::Wall).ok,
+          "route-cache topology edit was rejected");
+  require(!s.isReachable({0, 3, 3}, {0, 10, 4}),
+          "route-cache topology edit did not sever the corridor");
+
+  s.step(5);
+  const auto afterEdit = s.view();
+  const auto cleanerAfter =
+      std::find_if(afterEdit.people.begin(), afterEdit.people.end(),
+                   [&](const auto &person) { return person.id == cleaner.id; });
+  require(cleanerAfter != afterEdit.people.end() &&
+              cleanerAfter->position.x == 3,
+          "traveler followed a stale cached route through a new wall");
+}
+
 static void invalid_inputs_are_rejected() {
   auto s = Simulation::tutorial(16);
   auto cash = s.view().economy.cashCents;
@@ -821,6 +865,14 @@ static void checkout_requires_physical_reception_service() {
   require(recovered.economy.completedStays > 0 && !recovered.reviews.empty() &&
               recovered.economy.revenueCents > 0,
           "checkout service did not finalize stays and revenue");
+  const auto liveView = s.view(false);
+  require(std::all_of(liveView.reservations.begin(), liveView.reservations.end(),
+                      [](const auto &reservation) {
+                        return !reservation.completed;
+                      }),
+          "client view retained completed reservation history");
+  require(s.view().reservations.size() > liveView.reservations.size(),
+          "full SimulationView no longer retained completed reservations");
 }
 
 static void room_commands_preserve_reservations_and_repair_state() {
@@ -985,6 +1037,7 @@ int main() {
     extreme_room_footprints_fail_closed_without_overflow();
     corrupt_room_spatial_state_is_rejected_on_load();
     construction_preserves_property_invariants();
+    cached_routes_invalidate_after_topology_edits();
     invalid_inputs_are_rejected();
     corrupt_task_progress_is_rejected_on_load();
     completed_tasks_do_not_replay_when_staff_are_fired();

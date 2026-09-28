@@ -99,10 +99,17 @@ void appendVisible(
 
 }  // namespace
 
-ComposedScene prepareVisibleScene(
+void prepareVisibleScene(
     const ComposedScene& scene,
-    const OrthoCamera& camera) {
-    ComposedScene visible;
+    const OrthoCamera& camera,
+    ComposedScene& visible) {
+    visible.opaque.clear();
+    visible.translucent.clear();
+    visible.wireframe.clear();
+    visible.opaqueMeshes.clear();
+    visible.translucentMeshes.clear();
+    visible.wireframeMeshes.clear();
+
     const DirectX::XMMATRIX viewProjection = camera.viewProjectionMatrix();
 
     appendVisible(scene.opaque, visible.opaque, viewProjection);
@@ -126,6 +133,13 @@ ComposedScene prepareVisibleScene(
             return viewDepth(lhs, view) > viewDepth(rhs, view);
         });
 
+}
+
+ComposedScene prepareVisibleScene(
+    const ComposedScene& scene,
+    const OrthoCamera& camera) {
+    ComposedScene visible;
+    prepareVisibleScene(scene, camera, visible);
     return visible;
 }
 
