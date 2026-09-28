@@ -346,10 +346,7 @@ void performUiAction(Client &c, hh::frontend::UiAction action) {
       const int priorScale = c.uiSettings.scalePercent();
       auto buttonAction = c.buttons[static_cast<std::size_t>(c.focusedButton)].action;
       buttonAction();
-      c.controlTreeEpoch.invalidate();
-      c.buttons.clear();
-      c.hoveredButton = -1;
-      SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+      c.invalidateUiControls();
       applyScaleIfChanged(c, priorScale);
       c.refresh();
     }
@@ -490,6 +487,13 @@ void Client::refresh() {
     InvalidateRect(window, nullptr, FALSE);
 }
 
+void Client::invalidateUiControls() {
+  controlTreeEpoch.invalidate();
+  buttons.clear();
+  hoveredButton = -1;
+  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+}
+
 void Client::result(const CommandResult &r) {
   notice = wide(r.message);
   if (notice.empty())
@@ -530,10 +534,7 @@ void Client::click(int x, int y) {
         hoveredButton = -1;
         SetCursor(LoadCursorW(nullptr, IDC_ARROW));
       }
-      controlTreeEpoch.invalidate();
-      buttons.clear();
-      hoveredButton = -1;
-      SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+      invalidateUiControls();
       applyScaleIfChanged(*this, priorScale);
       refresh();
       return;
@@ -659,8 +660,16 @@ void Client::key(int k) {
     const auto result = ui.dispatchUiCommand(UiCommand{UiCommandType::LoadGame});
     if (!result.message.empty()) notice = wide(result.message);
   }
-  if (k == VK_F1) { page = Page::Guide; tabScroll = 0; }
-  if (k == 'O') { page = Page::Overlays; tabScroll = 0; }
+  if (k == VK_F1) {
+    page = Page::Guide;
+    tabScroll = 0;
+    invalidateUiControls();
+  }
+  if (k == 'O') {
+    page = Page::Overlays;
+    tabScroll = 0;
+    invalidateUiControls();
+  }
   if (k == 'C') context = !context;
   refresh();
 }
