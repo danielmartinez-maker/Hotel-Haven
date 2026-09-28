@@ -100,6 +100,18 @@ jobs:
             $actual = @(
               $archive.Entries |
                 Where-Object { $_.FullName -match '(^|/)data/assets/[^/]+\.hasset
+                Sort-Object -Unique
+            )
+            $difference = @(Compare-Object -ReferenceObject $expected -DifferenceObject $actual)
+            if ($difference.Count -ne 0) {
+              $sample = ($difference | Select-Object -First 20 | Out-String)
+              throw "Packaged runtime asset set diverges from source mesh metadata. $sample"
+            }
+            Write-Host "Verified exact packaged runtime asset set: $($actual.Count) assets in $($zip.Name)"
+          } finally {
+            $archive.Dispose()
+          }
+
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
         with:
