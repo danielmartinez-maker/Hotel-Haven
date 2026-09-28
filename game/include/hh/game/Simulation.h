@@ -410,9 +410,9 @@ public:
   CommandResult recordGuestExperience(EntityId guestId,
                                       const ExperienceEvent &event);
 
-  [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
-  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;
-  [[nodiscard]] EngineeringSnapshot engineeringSnapshot() const;
+  [[nodiscard]] LogisticsSnapshot logisticsSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] EngineeringSnapshot engineeringSnapshot(bool includeHistory = true) const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
   [[nodiscard]] LaundryBatchId requestLaundryBatch(int quantity);
   [[nodiscard]] WorkOrderId createWorkOrder(AssetId assetId, WorkOrderType type);
