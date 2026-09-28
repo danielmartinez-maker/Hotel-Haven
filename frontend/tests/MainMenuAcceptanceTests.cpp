@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 
+#include "hh/frontend/MainMenuApplication.h"
 #include "hh/frontend/MainMenuController.h"
 #include "hh/frontend/MainMenuView.h"
 #include "hh/frontend/MenuSceneController.h"
@@ -99,4 +100,74 @@ TEST_CASE("Living Hotel UI scale cycles through the shared supported sequence") 
     EXPECT_NEAR(scale, 0.90F, 0.0001F);
     EXPECT_NEAR(hh::frontend::nextMainMenuUiScale(1.234F),
                 1.00F, 0.0001F);
+}
+
+
+TEST_CASE("pointer hit testing follows rendered menu geometry at every supported scale") {
+    hh::frontend::MainMenuView view;
+    constexpr std::array<std::pair<float, float>, 4> sizes{{
+        {1280.0F, 720.0F},
+        {1600.0F, 900.0F},
+        {1920.0F, 1080.0F},
+        {2560.0F, 1080.0F},
+    }};
+
+    for (const auto& [width, height] : sizes) {
+        for (const float uiScale : hh::frontend::MainMenuUiScales) {
+            const auto layout = view.layout(width, height, uiScale);
+            for (const auto item : hh::frontend::MainMenuModel::orderedItems()) {
+                const auto rect = view.menuItemRect(layout, item);
+                const float x = (rect.left + rect.right) * 0.5F;
+                const float y = (rect.top + rect.bottom) * 0.5F;
+                const auto hit = view.menuItemAt(layout, x, y);
+                EXPECT_TRUE(hit.has_value());
+                EXPECT_EQ(*hit, item);
+            }
+        }
+    }
+}
+
+TEST_CASE("pointer hit testing rejects the visual gaps between menu rows") {
+    hh::frontend::MainMenuView view;
+    const auto layout = view.layout(1920.0F, 1080.0F, 1.25F);
+    const auto first = view.menuItemRect(
+        layout, hh::frontend::MainMenuItem::Continue);
+    const auto second = view.menuItemRect(
+        layout, hh::frontend::MainMenuItem::NewHotel);
+    const float x = (first.left + first.right) * 0.5F;
+    const float gapY = (first.bottom + second.top) * 0.5F;
+    EXPECT_FALSE(view.menuItemAt(layout, x, gapY).has_value());
+}
+
+TEST_CASE("application launch intents route real hotel starts and loads") {
+    using hh::frontend::MainMenuCommand;
+    using hh::frontend::MainMenuGameLaunchMode;
+
+    const auto start =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::StartNewHotel);
+    EXPECT_TRUE(start.has_value());
+    EXPECT_EQ(start->mode, MainMenuGameLaunchMode::NewHotel);
+    EXPECT_EQ(start->arguments, std::wstring{L"--game --new-hotel"});
+
+    const auto continueLatest =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::ContinueLatest);
+    EXPECT_TRUE(continueLatest.has_value());
+    EXPECT_EQ(continueLatest->mode, MainMenuGameLaunchMode::LoadLatest);
+    EXPECT_EQ(continueLatest->arguments, std::wstring{L"--game --load-save"});
+
+    const auto load =
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenLoadHotel);
+    EXPECT_TRUE(load.has_value());
+    EXPECT_EQ(load->mode, MainMenuGameLaunchMode::LoadLatest);
+    EXPECT_EQ(load->arguments, std::wstring{L"--game --load-save"});
+
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenSettings)
+            .has_value());
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::OpenCredits)
+            .has_value());
+    EXPECT_FALSE(
+        hh::frontend::mainMenuGameLaunchIntent(MainMenuCommand::ExitApplication)
+            .has_value());
 }

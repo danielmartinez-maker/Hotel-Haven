@@ -165,6 +165,7 @@ if(WIN32)
         shell32
         xinput9_1_0)
     target_include_directories(hotel_haven PRIVATE game/app)
+    add_dependencies(hotel_haven hotel_haven_menu_demo)
     if(MSVC)
         target_compile_options(hotel_haven PRIVATE /W4 /permissive- /utf-8)
     endif()

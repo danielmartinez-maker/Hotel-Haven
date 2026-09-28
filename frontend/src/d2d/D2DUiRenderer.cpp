@@ -199,17 +199,10 @@ UiRendererResult D2DUiRenderer::draw(
                     brandTop + 108.0F * ui),
         kBrass);
 
-    float y = layout.navigationTop;
     for (const MainMenuItem item : MainMenuModel::orderedItems()) {
-        if (item == MainMenuItem::Settings) {
-            y += 28.0F * ui;
-        }
-        const float itemHeight = 48.0F * ui;
-        const D2D1_RECT_F rect = D2D1::RectF(
-            layout.navigationLeft - 12.0F * ui,
-            y,
-            layout.navigationLeft + layout.navigationWidth,
-            y + itemHeight);
+        const MenuRect bounds = view.menuItemRect(layout, item);
+        const D2D1_RECT_F rect =
+            D2D1::RectF(bounds.left, bounds.top, bounds.right, bounds.bottom);
         const bool enabled = model.isEnabled(item);
         const bool selected = model.selected() == item;
         if (selected && enabled) {
@@ -227,10 +220,11 @@ UiRendererResult D2DUiRenderer::draw(
             itemLabel += L"  ·  NO SAVE";
         }
         drawText(itemLabel,
-                 D2D1::RectF(layout.navigationLeft + shift, y + 9.0F * ui,
-                             layout.navigationLeft + layout.navigationWidth, y + itemHeight),
+                 D2D1::RectF(layout.navigationLeft + shift,
+                             bounds.top + 9.0F * ui,
+                             layout.navigationLeft + layout.navigationWidth,
+                             bounds.bottom),
                  menuFormat.Get(), enabled ? kIvory : kDisabled);
-        y += 55.0F * ui;
     }
 
     drawText(widen(frameState.version),

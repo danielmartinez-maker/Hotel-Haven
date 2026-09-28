@@ -126,6 +126,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
   hooks.openSettings = [this] {
     page = Page::Settings;
     tabScroll = 0;
+    invalidateUiControls();
     return UiCommandResult{true, {}, {}};
   };
   hooks.openInspector = [this](EntityId id) {
@@ -149,6 +150,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case InspectorKind::BuildingSystem: page = Page::Operations; break;
     }
     tabScroll = 0;
+    invalidateUiControls();
   };
   hooks.openManagementPanel = [this](ManagementPanelId panel) {
     ui.openManagementPanel(panel);
@@ -165,6 +167,7 @@ Client::dispatchUiCommand(const hh::frontend::UiCommand &command) {
     case ManagementPanelId::Supplies: page = Page::Supplies; break;
     }
     tabScroll = 0;
+    invalidateUiControls();
   };
   hooks.setOverlay = [this](OverlayId requested) {
     if (requested != OverlayId::None) {

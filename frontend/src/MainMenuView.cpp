@@ -1,4 +1,5 @@
 #include "hh/frontend/MainMenuView.h"
+#include "hh/frontend/MainMenuModel.h"
 
 #include <algorithm>
 #include <cmath>
@@ -88,6 +89,36 @@ float nextMainMenuUiScale(float currentScale) noexcept {
 MainMenuView::MainMenuView() noexcept : formatter_(&defaultFormatter_) {}
 
 MainMenuView::MainMenuView(const IMenuNumberFormatter& formatter) noexcept : formatter_(&formatter) {}
+
+MenuRect MainMenuView::menuItemRect(
+    const LayoutMetrics& layout, MainMenuItem item) const noexcept {
+    float y = layout.navigationTop;
+    for (const auto candidate : MainMenuModel::orderedItems()) {
+        if (candidate == MainMenuItem::Settings) {
+            y += 28.0F * layout.uiContentScale;
+        }
+        const float height = 48.0F * layout.uiContentScale;
+        if (candidate == item) {
+            return MenuRect{
+                layout.navigationLeft - 12.0F * layout.uiContentScale,
+                y,
+                layout.navigationLeft + layout.navigationWidth,
+                y + height};
+        }
+        y += 55.0F * layout.uiContentScale;
+    }
+    return {};
+}
+
+std::optional<MainMenuItem> MainMenuView::menuItemAt(
+    const LayoutMetrics& layout, float x, float y) const noexcept {
+    for (const auto item : MainMenuModel::orderedItems()) {
+        if (menuItemRect(layout, item).contains(x, y)) {
+            return item;
+        }
+    }
+    return std::nullopt;
+}
 
 PropertyCardText MainMenuView::formatProperty(const MenuPropertySummary& summary) const {
     PropertyCardText result;

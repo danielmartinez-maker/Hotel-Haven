@@ -335,6 +335,13 @@ std::wstring personState(hh::game::PersonState state) {
 
 void Client::hoverUi(int x, int y) {
   uiSettings.setInputModality(hh::frontend::InputModality::Mouse);
+  if (!controlTreeEpoch.current()) {
+    if (hoveredButton != -1) {
+      hoveredButton = -1;
+      SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+    }
+    return;
+  }
   int nextHover = -1;
   for (std::size_t index = 0; index < buttons.size(); ++index) {
     const auto &rect = buttons[index].rect;
@@ -370,8 +377,7 @@ void Client::scrollPanel(int delta) {
     return;
 
   tabScroll = next;
-  hoveredButton = -1;
-  SetCursor(LoadCursorW(nullptr, IDC_ARROW));
+  invalidateUiControls();
   if (window)
     InvalidateRect(window, nullptr, FALSE);
 }
@@ -1597,6 +1603,7 @@ void Client::paint(HDC output) {
            std::max(1, sidebarX - px(44)), px(18), ChromeMuted,
            DT_LEFT | DT_SINGLELINE | DT_END_ELLIPSIS);
 
+  controlTreeEpoch.markRendered();
   focusedButton =
       final07ValidatedControlIndex(focusedButton, buttons.size());
   hoveredButton =
