@@ -2,6 +2,7 @@
 
 #include "hh/game/EconomyRuntime.h"
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cmath>
 #include <iomanip>
@@ -134,6 +135,64 @@ std::string personKindText(hh::game::PersonKind kind) {
   case hh::game::PersonKind::Maintenance: return "Engineering";
   }
   return "Person";
+}
+
+std::string guestArchetypeText(hh::game::GuestArchetype archetype) {
+  using hh::game::GuestArchetype;
+  switch (archetype) {
+  case GuestArchetype::BudgetLeisure: return "Budget leisure";
+  case GuestArchetype::Backpacker: return "Backpacker";
+  case GuestArchetype::BusinessTraveler: return "Business traveler";
+  case GuestArchetype::ExecutiveBusiness: return "Executive business";
+  case GuestArchetype::CoupleLeisure: return "Couple leisure";
+  case GuestArchetype::FamilyLeisure: return "Family leisure";
+  case GuestArchetype::LuxuryLeisure: return "Luxury leisure";
+  case GuestArchetype::ConferenceDelegate: return "Conference delegate";
+  case GuestArchetype::GroupTourTraveler: return "Group / tour";
+  case GuestArchetype::AirportTransitTraveler: return "Airport / transit";
+  case GuestArchetype::WellnessTraveler: return "Wellness traveler";
+  case GuestArchetype::VipCelebrity: return "VIP / celebrity";
+  case GuestArchetype::CriticReviewer: return "Critic / reviewer";
+  case GuestArchetype::DigitalNomad: return "Digital nomad";
+  case GuestArchetype::BleisureTraveler: return "Bleisure traveler";
+  case GuestArchetype::ExtendedStayGuest: return "Extended-stay guest";
+  case GuestArchetype::AirlineCrew: return "Airline crew";
+  case GuestArchetype::WeddingGuest: return "Wedding guest";
+  case GuestArchetype::StaycationGuest: return "Staycation guest";
+  case GuestArchetype::SportsTeamTraveler: return "Sports team traveler";
+  }
+  return "Guest";
+}
+
+std::string guestTraitText(const hh::game::GuestProfileView &profile) {
+  using hh::game::GuestTrait;
+  const std::array<std::pair<GuestTrait, const char *>, 17> names{{
+      {GuestTrait::Patient, "Patient"},
+      {GuestTrait::Impatient, "Impatient"},
+      {GuestTrait::Neat, "Neat"},
+      {GuestTrait::Messy, "Messy"},
+      {GuestTrait::LightSleeper, "Light sleeper"},
+      {GuestTrait::HeavySleeper, "Heavy sleeper"},
+      {GuestTrait::Foodie, "Foodie"},
+      {GuestTrait::Workaholic, "Workaholic"},
+      {GuestTrait::Social, "Social"},
+      {GuestTrait::Private, "Private"},
+      {GuestTrait::Frugal, "Frugal"},
+      {GuestTrait::StatusConscious, "Status conscious"},
+      {GuestTrait::FitnessFocused, "Fitness focused"},
+      {GuestTrait::EarlyRiser, "Early riser"},
+      {GuestTrait::NightOwl, "Night owl"},
+      {GuestTrait::ComplaintProne, "Complaint prone"},
+      {GuestTrait::Forgiving, "Forgiving"},
+  }};
+  std::string result;
+  for (const auto &[trait, name] : names)
+    if ((profile.traitFlags & hh::game::guestTraitFlag(trait)) != 0) {
+      if (!result.empty())
+        result += ", ";
+      result += name;
+    }
+  return result.empty() ? "None" : result;
 }
 
 InspectorKind inspectorKind(hh::game::PersonKind kind) noexcept {
@@ -499,6 +558,25 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
                         std::to_string(person.shiftEndHour) + ":00"});
       entity.fields.push_back({"On shift", person.onShift ? "Yes" : "No"});
       entity.fields.push_back({"Hourly wage", cents(person.hourlyWageCents)});
+    } else {
+      entity.fields.push_back(
+          {"Archetype", guestArchetypeText(person.profile.archetype)});
+      entity.fields.push_back(
+          {"Nightly budget", cents(person.profile.budgetPerNightCents)});
+      entity.fields.push_back(
+          {"Queue tolerance", std::to_string(person.queueToleranceSeconds) + " s"});
+      entity.fields.push_back({"Traits", guestTraitText(person.profile)});
+      const auto reservation = std::find_if(
+          view.reservations.begin(), view.reservations.end(),
+          [&](const auto &candidate) {
+            return candidate.id == person.reservationId;
+          });
+      if (reservation != view.reservations.end()) {
+        const int nights =
+            std::max(0, reservation->departureDay - reservation->arrivalDay);
+        entity.fields.push_back(
+            {"Stay", std::to_string(nights) + (nights == 1 ? " night" : " nights")});
+      }
     }
     out.entities.push_back(std::move(entity));
 
@@ -534,6 +612,12 @@ makeGameUiSnapshotSource(const hh::game::Simulation& simulation,
     hashValue(revision, static_cast<std::uint64_t>(person.state));
     hashValue(revision, static_cast<std::uint64_t>(std::lround(person.satisfaction * 100.0)));
     hashValue(revision, static_cast<std::uint64_t>(person.queueWaitSeconds));
+    if (person.kind == hh::game::PersonKind::Guest) {
+      hashValue(revision, static_cast<std::uint64_t>(person.profile.archetype));
+      hashValue(revision, static_cast<std::uint64_t>(person.profile.traitFlags));
+      hashValue(revision, static_cast<std::uint64_t>(
+                              std::max<std::int64_t>(0, person.profile.budgetPerNightCents)));
+    }
   }
 
   if (guestSatisfactionCount > 0) {

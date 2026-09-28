@@ -36,7 +36,7 @@ jobs:
       - name: Test art generators
         run: python -m pytest Tools/ArtGeneration/tests -q
 
-      - name: Validate 500 asset library manifest
+      - name: Validate legacy catalog compatibility
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
 
       - name: Generate full asset library
@@ -63,14 +63,8 @@ jobs:
       - name: Cook renderer-safe gameplay asset library
         run: Tools/ContentPipeline/build/Release/asset.exe cook --runtime
 
-      - name: Verify cooked asset count
-        shell: pwsh
-        run: |
-          $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
-          if ($assets.Count -ne 500) {
-            throw "Expected exactly 500 cooked assets; found $($assets.Count)"
-          }
-          Write-Host "Verified $($assets.Count) cooked .hasset files"
+      - name: Verify cooked runtime asset set
+        run: python Tools/ContentPipeline/scripts/verify_runtime_asset_set.py Art/Exports Build/CookedAssets
 
       - name: Configure renderer runtime audit
         run: cmake -S . -B runtime-audit-build -A x64
@@ -78,7 +72,7 @@ jobs:
       - name: Build renderer runtime audit
         run: cmake --build runtime-audit-build --config Release --target hh_runtime_asset_library_audit
 
-      - name: Load all 500 cooked assets through renderer runtime
+      - name: Load all cooked mesh assets through renderer runtime
         run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
 
       - name: Upload generated and cooked asset package

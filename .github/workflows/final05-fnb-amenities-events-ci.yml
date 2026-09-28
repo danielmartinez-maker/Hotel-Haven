@@ -22,6 +22,7 @@ on:
       - 'game/data/fnb_recipes.json'
       - 'game/data/fnb_service_constants.json'
       - 'game/data/amenities.json'
+      - 'game/tests/ServiceLogisticsSoakTests.cpp'
       - 'game/CMakeLists.txt'
       - '.github/workflows/final05-fnb-amenities-events-ci.yml'
   workflow_dispatch:

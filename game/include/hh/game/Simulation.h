@@ -4,6 +4,10 @@
 #include "hh/game/Events.h"
 #include "hh/game/FoodService.h"
 #include "hh/game/ServiceLogistics.h"
+#include "hh/game/Departments.h"
+#include "hh/game/StaffOptimization.h"
+#include "hh/game/Workforce.h"
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -14,10 +18,31 @@ namespace hh::game {
 
 using EntityId = std::uint64_t;
 
+struct ConstructionCommand;
+struct ConstructionPreview;
+struct ConstructionResult;
+struct ConstructionMaterials;
+struct BuildPlan;
+struct BuildQueueResult;
+struct ConstructionSnapshot;
+enum class UtilityKind;
+enum class InfrastructureKind;
+enum class ElevatorKind;
+struct BuildingSystemsSnapshot;
+struct RoomSaleValidation;
+struct ElevatorSpec;
+struct GuestPsychologySnapshot;
+struct GuestOpportunitySnapshot;
+struct GoalSelection;
+struct GuestGroup;
+struct SatisfactionBreakdown;
+struct ExperienceEvent;
+
 struct Position {
   int floor{};
   int x{};
   int y{};
+  bool operator==(const Position &) const = default;
 };
 enum class TileKind {
   Empty,
@@ -42,6 +67,67 @@ enum class RoomStatus {
   OutOfOrder
 };
 enum class PersonKind { Guest, Receptionist, Housekeeper, Maintenance };
+enum class GuestArchetype {
+  BudgetLeisure,
+  Backpacker,
+  BusinessTraveler,
+  ExecutiveBusiness,
+  CoupleLeisure,
+  FamilyLeisure,
+  LuxuryLeisure,
+  ConferenceDelegate,
+  GroupTourTraveler,
+  AirportTransitTraveler,
+  WellnessTraveler,
+  VipCelebrity,
+  CriticReviewer,
+  DigitalNomad,
+  BleisureTraveler,
+  ExtendedStayGuest,
+  AirlineCrew,
+  WeddingGuest,
+  StaycationGuest,
+  SportsTeamTraveler
+};
+enum class GuestTrait : std::uint8_t {
+  Patient,
+  Impatient,
+  Neat,
+  Messy,
+  LightSleeper,
+  HeavySleeper,
+  Foodie,
+  Workaholic,
+  Social,
+  Private,
+  Frugal,
+  StatusConscious,
+  FitnessFocused,
+  EarlyRiser,
+  NightOwl,
+  ComplaintProne,
+  Forgiving
+};
+constexpr std::uint32_t guestTraitFlag(GuestTrait trait) noexcept {
+  return std::uint32_t{1} << static_cast<std::uint8_t>(trait);
+}
+
+struct GuestDemandEnvironment {
+  // 10,000 is neutral. Values above/below represent market peak/trough.
+  int seasonMultiplierBasisPoints{10000};
+  // -1 is neutral/unknown; otherwise 0..100 follows FINAL-06 locationScore.
+  int locationScore{-1};
+  // FINAL-06 competitive capture projected onto the physical guest
+  // archetypes. 10,000 means no competitive dilution; 0 suppresses bookings
+  // for that archetype. The bridge derives this array from the market model.
+  std::array<int, 20> archetypeMarketCaptureBasisPoints{
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000,
+      10000, 10000, 10000, 10000, 10000};
+  bool operator==(const GuestDemandEnvironment &) const = default;
+};
+
 enum class PersonState {
   OffDuty,
   Idle,
@@ -51,7 +137,16 @@ enum class PersonState {
   Sleeping,
   CheckedOut
 };
-enum class TaskKind { CheckIn, Turnover, Restock, Repair, CheckOut };
+enum class TaskKind {
+  CheckIn,
+  Turnover,
+  Restock,
+  Repair,
+  CheckOut,
+  Build,
+  Break,
+  Training
+};
 enum class TaskStatus { Ready, Traveling, Working, Blocked, Completed };
 
 struct TileView {
@@ -78,6 +173,21 @@ struct RoomView {
   bool reachable{};
   bool closed{};
 };
+struct GuestProfileView {
+  GuestArchetype archetype{GuestArchetype::BudgetLeisure};
+  std::int64_t budgetPerNightCents{16000};
+  double priceSensitivity{0.5};
+  double serviceSensitivity{0.5};
+  double cleanlinessSensitivity{0.5};
+  double noiseSensitivity{0.5};
+  double privacySensitivity{0.5};
+  double safetySensitivity{0.5};
+  double comfortSensitivity{0.5};
+  double foodSensitivity{0.5};
+  double patience{0.5};
+  std::uint32_t traitFlags{};
+  bool operator==(const GuestProfileView &) const = default;
+};
 struct PersonView {
   EntityId id{};
   std::string name;
@@ -96,8 +206,19 @@ struct PersonView {
   int shiftEndHour{};
   std::int64_t travelSeconds{};
   int queueWaitSeconds{};
+  int queueToleranceSeconds{};
+  EntityId reservationId{};
+  GuestProfileView profile;
   std::string goal;
   bool onShift{};
+  double reliability{100.0};
+  double morale{100.0};
+  bool absent{};
+  bool onBreak{};
+  bool inTraining{};
+  int breakMinutesTakenToday{};
+  double trainingProgress{};
+  EmployeeContract contract;
 };
 struct ReservationView {
   EntityId id{};
@@ -107,9 +228,16 @@ struct ReservationView {
   int departureDay{};
   std::int64_t nightlyRateCents{};
   double nightlyRate{};
+  double satisfaction{70};
+  std::int64_t checkInTravelSeconds{};
+  int checkInWaitSeconds{};
   bool checkedIn{};
   bool checkoutStarted{};
   bool completed{};
+  bool walkedRelocated{};
+  GuestProfileView profile;
+  std::string psychologyArchive;
+  std::string guestGroupArchive;
 };
 struct TaskView {
   EntityId id{};
@@ -120,11 +248,12 @@ struct TaskView {
   Position target;
   double workRemainingSeconds{};
   std::string blockedReason;
+  std::int64_t notBeforeSecond{};
 };
 struct ReviewView {
   EntityId reservationId{};
   int day{};
-  int score{};
+  double score{};
   std::string text;
 };
 struct InventoryView {
@@ -169,6 +298,7 @@ struct SimulationView {
   InventoryView inventory;
   EconomyView economy;
   std::vector<SupplyOrderView> supplyOrders;
+  std::vector<DepartmentView> departments;
 };
 
 struct RoomBlueprint {
@@ -221,8 +351,21 @@ public:
   CommandResult buildTile(Position, TileKind);
   CommandResult buildFurnishedRoom(const RoomBlueprint &);
   CommandResult hireStaff(const StaffHire &);
+  [[nodiscard]] std::vector<Applicant> applicants() const;
+  HireResult hireApplicant(ApplicantId applicantId);
   CommandResult fireStaff(EntityId employeeId);
   CommandResult setStaffShift(EntityId employeeId, int startHour, int endHour);
+  CommandResult scheduleTraining(EntityId employeeId,
+                                 std::int64_t startSecond,
+                                 int durationMinutes = 60);
+  CommandResult assignDepartmentManager(DepartmentId department,
+                                        EntityId employeeId);
+  [[nodiscard]] std::vector<DepartmentView> departments() const;
+  [[nodiscard]] DepartmentForecast departmentForecast(DepartmentId department,
+                                                      SimDay day) const;
+  [[nodiscard]] OptimizerSnapshot buildOptimizerSnapshot() const;
+  [[nodiscard]] PlanValidation validatePlan(const OptimizerSnapshot &snapshot,
+                                            const AssignmentPlan &plan) const;
   CommandResult setRoomRate(EntityId roomId, double rate);
   CommandResult requestClean(EntityId roomId);
   CommandResult requestRepair(EntityId roomId);
@@ -230,6 +373,42 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  // External market context is derived from FINAL-06 in the integrated game.
+  // It affects future guest composition only and is not a second demand authority.
+  void setGuestDemandEnvironment(const GuestDemandEnvironment &environment);
+  [[nodiscard]] GuestDemandEnvironment guestDemandEnvironment() const noexcept;
+  void setStaffOptimizerEnabled(bool enabled);
+
+  [[nodiscard]] ConstructionPreview
+  previewConstruction(const ConstructionCommand &) const;
+  ConstructionResult executeConstruction(const ConstructionCommand &);
+  BuildQueueResult queueBuild(const BuildPlan &);
+  CommandResult cancelBuild(EntityId jobId);
+  CommandResult addConstructionMaterials(const ConstructionMaterials &);
+  [[nodiscard]] ConstructionSnapshot constructionSnapshot() const;
+
+  CommandResult setRoomUtility(EntityId roomId, UtilityKind kind,
+                               bool connected);
+  CommandResult setRoomInfrastructure(EntityId roomId,
+                                      InfrastructureKind kind, bool installed);
+  [[nodiscard]] RoomSaleValidation validateRoomForSale(EntityId roomId) const;
+  CommandResult installElevator(const ElevatorSpec &);
+  CommandResult requestElevator(EntityId elevatorId, int pickupFloor,
+                                int destinationFloor);
+  CommandResult requestElevator(ElevatorKind kind, int pickupFloor,
+                                int destinationFloor);
+  [[nodiscard]] BuildingSystemsSnapshot buildingSystemsSnapshot() const;
+
+  [[nodiscard]] GuestPsychologySnapshot guestPsychology(EntityId guestId) const;
+  [[nodiscard]] GoalSelection
+  chooseGuestGoal(EntityId guestId,
+                  const GuestOpportunitySnapshot &opportunities) const;
+  CommandResult createGuestGroup(const GuestGroup &specification);
+  [[nodiscard]] std::vector<GuestGroup> guestGroupsSnapshot() const;
+  [[nodiscard]] SatisfactionBreakdown
+  finalizeStaySatisfaction(EntityId guestId) const;
+  CommandResult recordGuestExperience(EntityId guestId,
+                                      const ExperienceEvent &event);
 
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] HousekeepingSnapshot housekeepingSnapshot() const;

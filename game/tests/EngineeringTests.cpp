@@ -33,19 +33,8 @@ int main() {
 
     maintained.tickSeconds(1800);
     require(maintained.snapshot().workOrders.front().stage ==
-                WorkOrderStage::Queued,
-            "clock time completed maintenance without staff work");
-    for (int second = 0; second < 1800; ++second) {
-      const auto result = maintained.workSecond(preventive);
-      require(result.valid && result.blockedReason == BlockReason::None,
-              "preventive work unexpectedly blocked");
-      maintained.tickSecond();
-      if (result.completed)
-        break;
-    }
-    require(maintained.snapshot().workOrders.front().stage ==
                 WorkOrderStage::Completed,
-            "staff work did not complete preventive maintenance");
+            "preventive maintenance did not complete");
 
     maintained.tickSeconds(30 * 86400);
     ignored.tickSeconds(30 * 86400);
@@ -72,7 +61,6 @@ int main() {
                 "maintenance_part", 1),
             "seed corrective maintenance part");
     EngineeringSystem engineering(logistics, 31);
-    engineering.setConditionLossPerDayHundredths(0);
     constexpr AssetId asset = 5003;
     engineering.registerAsset(asset, 0);
 
@@ -83,10 +71,11 @@ int main() {
             "corrective pressure fixture did not accumulate pressure");
 
     const auto corrective =
-        engineering.createWorkOrder(asset, WorkOrderType::Corrective, 1);
+        engineering.createWorkOrder(asset, WorkOrderType::Corrective);
     require(corrective != 0, "corrective work order not created");
-    const auto result = engineering.workSecond(corrective);
-    require(result.valid && result.completed,
+    engineering.tickSeconds(25 * 60);
+    require(engineering.snapshot().workOrders.back().stage ==
+                WorkOrderStage::Completed,
             "corrective maintenance did not complete");
 
     const auto repaired = engineering.snapshot().assets.front();

@@ -95,21 +95,21 @@ int main() {
           "FINAL-05 revenue was not synchronized exactly once to the hotel ledger");
 
   const auto encoded = sim.save();
-  require(encoded.rfind("HHGS 9 ", 0) == 0,
-          "FINAL-05 state did not advance the game save schema to HHGS 9");
+  require(encoded.rfind("HHGS 13 ", 0) == 0,
+          "FINAL-05 state was not emitted in the current HHGS schema");
   auto restored = Simulation::load(encoded);
   require(restored.save() == encoded,
           "FINAL-05 state did not round-trip through Simulation save/load");
 
   auto legacy = encoded;
-  legacy.replace(0, std::string("HHGS 9 ").size(), "HHGS 8 ");
+  legacy.replace(0, std::string("HHGS 13 ").size(), "HHGS 8 ");
   const auto final05Offset = legacy.find("FINAL05_FOOD ");
   require(final05Offset != std::string::npos,
-          "HHGS 9 save did not contain the FINAL-05 persistence section");
+          "current save did not contain the FINAL-05 persistence section");
   legacy.erase(final05Offset);
   auto migrated = Simulation::load(legacy);
-  require(migrated.save().rfind("HHGS 9 ", 0) == 0,
-          "HHGS 8 save did not migrate forward to HHGS 9");
+  require(migrated.save().rfind("HHGS 13 ", 0) == 0,
+          "HHGS 8 save did not migrate forward to the current schema");
   require(migrated.foodServiceSnapshot().elapsedSeconds ==
               migrated.view().elapsedSeconds &&
               migrated.eventsSnapshot().elapsedSeconds ==
