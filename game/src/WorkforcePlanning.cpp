@@ -32,12 +32,16 @@ StaffRole requiredRole(TaskKind kind) {
   case TaskKind::Restock:
     return StaffRole::Housekeeper;
   case TaskKind::Repair:
+  case TaskKind::Build:
     return StaffRole::Maintenance;
   case TaskKind::CheckIn:
   case TaskKind::CheckOut:
     return StaffRole::Receptionist;
+  case TaskKind::Break:
+  case TaskKind::Training:
+    break;
   }
-  throw std::invalid_argument("unknown task kind");
+  throw std::invalid_argument("non-assignable task kind");
 }
 
 bool criticalTask(TaskKind kind) {
@@ -141,10 +145,27 @@ Simulation::buildOptimizerSnapshot(std::int64_t horizonSeconds) const {
     OptimizerEmployee employee;
     employee.id = person.id;
     employee.role = staffRole(person.kind);
+    employee.absent = person.absent;
     employee.shiftWindows =
         shiftWindows(person, snapshot.capturedSecond, snapshot.horizonEndSecond);
 
     for (const auto &task : current.tasks) {
+      if ((task.kind == TaskKind::Break || task.kind == TaskKind::Training) &&
+          task.targetId == person.id && task.status != TaskStatus::Completed) {
+        const auto start =
+            (task.status == TaskStatus::Traveling ||
+             task.status == TaskStatus::Working)
+                ? snapshot.capturedSecond
+                : std::max(snapshot.capturedSecond, task.notBeforeSecond);
+        const auto duration = static_cast<std::int64_t>(
+            std::ceil(std::max(0.0, task.workRemainingSeconds)));
+        if (duration > 0 && start < snapshot.horizonEndSecond) {
+          employee.unavailableWindows.push_back(
+              {start, std::min(snapshot.horizonEndSecond, start + duration)});
+        }
+        continue;
+      }
+
       if (task.employeeId != person.id ||
           (task.status != TaskStatus::Traveling &&
            task.status != TaskStatus::Working))
@@ -158,14 +179,21 @@ Simulation::buildOptimizerSnapshot(std::int64_t horizonSeconds) const {
     }
 
     employee.availableNow =
+        !employee.absent &&
         containsNow(employee.shiftWindows, snapshot.capturedSecond) &&
-        employee.unavailableWindows.empty();
+        std::none_of(employee.unavailableWindows.begin(),
+                     employee.unavailableWindows.end(),
+                     [&](const auto &window) {
+                       return snapshot.capturedSecond >= window.startSecond &&
+                              snapshot.capturedSecond < window.endSecond;
+                     });
     snapshot.employees.push_back(std::move(employee));
   }
 
   snapshot.tasks.reserve(current.tasks.size());
   for (const auto &task : current.tasks) {
-    if (task.status != TaskStatus::Ready || task.employeeId != 0)
+    if (task.status != TaskStatus::Ready || task.employeeId != 0 ||
+        task.kind == TaskKind::Break || task.kind == TaskKind::Training)
       continue;
     const auto duration = static_cast<std::int64_t>(
         std::ceil(std::max(1.0, task.workRemainingSeconds)));
@@ -173,7 +201,8 @@ Simulation::buildOptimizerSnapshot(std::int64_t horizonSeconds) const {
     planned.id = task.id;
     planned.requiredRole = requiredRole(task.kind);
     planned.critical = criticalTask(task.kind);
-    planned.earliestStartSecond = snapshot.capturedSecond;
+    planned.earliestStartSecond =
+        std::max(snapshot.capturedSecond, task.notBeforeSecond);
     planned.durationSeconds = static_cast<int>(
         std::min<std::int64_t>(duration, std::numeric_limits<int>::max()));
     snapshot.tasks.push_back(planned);
