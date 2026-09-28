@@ -427,13 +427,21 @@ public:
   [[nodiscard]] EventBookingId confirmEvent(const EventRequest &request);
   [[nodiscard]] AmenityReservationResult reserveAmenity(
       GuestId guestId, const AmenityRequest &request);
-  [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot() const;
-  [[nodiscard]] EventsSnapshot eventsSnapshot() const;
-  [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot() const;
+  [[nodiscard]] FoodServiceSnapshot foodServiceSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] EventsSnapshot eventsSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] AmenitiesSnapshot amenitiesSnapshot(bool includeHistory = true) const;
+  [[nodiscard]] std::vector<DepartmentView> departments() const;
+
+  [[nodiscard]] OptimizerSnapshot
+  buildOptimizerSnapshot(std::int64_t horizonSeconds = 24 * 60 * 60) const;
+  [[nodiscard]] PlanValidation
+  validatePlan(const OptimizerSnapshot &snapshot,
+               const AssignmentPlan &plan) const;
 
   void step(double seconds);
 
   [[nodiscard]] SimulationView view() const;
+  [[nodiscard]] SimulationView view(bool includeCompletedReservationHistory) const;
   [[nodiscard]] bool isReachable(Position from, Position to) const;
   [[nodiscard]] std::string save() const;
   static Simulation load(std::string_view data);
