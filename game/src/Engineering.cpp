@@ -81,11 +81,14 @@ void EngineeringSystem::tickWorkOrderSecond(WorkOrder &order) {
   order.blockedReason = BlockReason::None;
 }
 
-void EngineeringSystem::tickReliabilitySecond() {
-  if (elapsedSeconds_ % 3600 != 0)
+void EngineeringSystem::tickReliabilitySecond(int conditionLossPerHour,
+                                             bool generateFailures) {
+  if (elapsedSeconds_ % 3600 != 0 || conditionLossPerHour <= 0)
     return;
   for (auto &entry : assets_) {
-    entry.condition = std::max(0, entry.condition - 10);
+    entry.condition = std::max(0, entry.condition - conditionLossPerHour);
+    if (!generateFailures)
+      continue;
     const int pressureGain = std::max(1, (7000 - entry.condition) / 8);
     entry.failurePressure =
         std::clamp(entry.failurePressure + pressureGain, 0, 9500);
@@ -106,7 +109,8 @@ void EngineeringSystem::tickSecond() {
 
 void EngineeringSystem::tickSecondFor(
     const std::vector<AssetId> &managedAssets,
-    const std::vector<AssetId> &workingAssets) {
+    const std::vector<AssetId> &workingAssets,
+    int conditionLossPerHour) {
   ++elapsedSeconds_;
   for (auto &order : workOrders_) {
     const bool managed =
@@ -118,8 +122,10 @@ void EngineeringSystem::tickSecondFor(
     if (!managed || working)
       tickWorkOrderSecond(order);
   }
-  // Integrated Simulation owns room wear/failure generation. Standalone
-  // EngineeringSystem::tickSecond() retains FINAL-04 reliability behavior.
+  // Reliability/condition remains authoritative in FINAL-04 for both
+  // standalone and integrated execution. Simulation supplies labor gating for
+  // work orders, then mirrors this hourly state into physical RoomView state.
+  tickReliabilitySecond(conditionLossPerHour, false);
 }
 
 void EngineeringSystem::tickSeconds(std::int64_t seconds) {

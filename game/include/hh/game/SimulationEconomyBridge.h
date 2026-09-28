@@ -48,6 +48,7 @@ public:
   void step(double seconds);
 
   void setPlayerHotelOffer(const MarketHotelOffer &offer);
+  void setDemandModifiers(const MarketDemandModifiers &modifiers);
   void setCompetitors(std::vector<CompetitorOffer> competitors);
   [[nodiscard]] PricingRuleResult setPricingRule(const PricingRuleCommand &command);
   [[nodiscard]] OverbookingResult setOverbookingPolicy(const OverbookingPolicy &policy);
@@ -94,6 +95,7 @@ private:
 
   void resetBaseline();
   void synchronizeCapacity();
+  void synchronizeGuestDemandEnvironment();
   void reconcile(std::uint64_t sourceId, std::string_view memo);
   void recordDayBoundary(const SimulationView &view);
 };

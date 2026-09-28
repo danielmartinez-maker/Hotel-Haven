@@ -50,6 +50,38 @@ std::string_view phraseFor(const GuestMemory &memory) noexcept {
   return {};
 }
 
+double reviewCategoryEmphasis(const GuestProfileView &profile,
+                            ExperienceCategory category) noexcept {
+  double sensitivity = profile.serviceSensitivity;
+  switch (category) {
+  case ExperienceCategory::Room:
+  case ExperienceCategory::Amenities:
+    sensitivity = profile.comfortSensitivity;
+    break;
+  case ExperienceCategory::Service:
+  case ExperienceCategory::Convenience:
+  case ExperienceCategory::ArrivalDeparture:
+    sensitivity = profile.serviceSensitivity;
+    break;
+  case ExperienceCategory::Cleanliness:
+    sensitivity = profile.cleanlinessSensitivity;
+    break;
+  case ExperienceCategory::Food:
+    sensitivity = profile.foodSensitivity;
+    break;
+  case ExperienceCategory::Quiet:
+    sensitivity = profile.noiseSensitivity;
+    break;
+  case ExperienceCategory::Value:
+    sensitivity = profile.priceSensitivity;
+    break;
+  }
+  // Neutral sensitivity (0.5) keeps legacy ranking unchanged. The bounded
+  // 0.75x..1.25x range makes personal priorities matter without allowing a
+  // trivial incident to outrank a genuinely major one.
+  return .75 + .5 * std::clamp(sensitivity, 0.0, 1.0);
+}
+
 struct RankedMemory {
   const GuestMemory *memory{};
   double strength{};
@@ -74,7 +106,8 @@ GuestReviewDraft buildGuestReview(const GuestPsychologySnapshot &psychology,
   ranked.reserve(psychology.memories.size());
   for (const auto &memory : psychology.memories) {
     const double strength =
-        std::abs(GuestPsychology::memoryContribution(memory, nowSeconds));
+        std::abs(GuestPsychology::memoryContribution(memory, nowSeconds)) *
+        reviewCategoryEmphasis(psychology.profile, memory.category);
     if (strength >= 10.0)
       ranked.push_back({&memory, strength});
   }

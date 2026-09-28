@@ -410,6 +410,10 @@ static void stable_commands_and_save_boundary() {
   const auto repairGateRooms = repairSellabilityGate.view().rooms;
   require(repairGateRooms.size() >= 2,
           "repair sellability-gate fixture requires two rooms");
+  require(repairSellabilityGate
+              .hireStaff({"Drain Tech", PersonKind::Maintenance, 0, 0, 25})
+              .ok,
+          "repair sellability-gate could not staff canonical part drain");
   require(repairSellabilityGate.createWorkOrder(
               repairGateRooms[0].id, WorkOrderType::Preventive) != 0,
           "repair sellability-gate could not drain canonical part");
@@ -652,8 +656,10 @@ static void stable_commands_and_save_boundary() {
           "demolition test definitions rejected");
   for (int x = 0; x < 10; ++x)
     require(demolition
-                .buildTile({0, x, 1},
-                           x == 0 ? TileKind::Entrance : TileKind::Floor)
+                .buildTile(
+                    {0, x, 1},
+                    x == 0 ? TileKind::Entrance
+                           : x == 2 ? TileKind::SupplyCloset : TileKind::Floor)
                 .ok,
             "demolition test corridor build failed");
   const auto built = demolition.buildFurnishedRoom(
@@ -664,6 +670,11 @@ static void stable_commands_and_save_boundary() {
           "demolition test room turn not created");
   require(!demolition.removeRoom(built.id),
           "room demolished while FINAL-04 housekeeping work was active");
+  require(
+      demolition.hireStaff(
+                    {"Demo Rooms", PersonKind::Housekeeper, 0, 0, 18})
+          .ok,
+      "demolition fixture could not hire housekeeping coverage");
   demolition.step(2400);
   require(demolition.removeRoom(built.id).ok,
           "room could not be demolished after FINAL-04 work completed");
@@ -832,10 +843,14 @@ static void simulation_supply_orders_enter_receiving() {
   require(submitted.purchaseOrders.size() == before + 1,
           "Simulation supply order bypassed FINAL-04 purchasing");
 
-  sim.step(2 * 86400.0);
+  require(!submitted.purchaseOrders.empty() &&
+              submitted.purchaseOrders.back().remainingSeconds > 0,
+          "physical supply order did not expose a positive transit ETA");
+  sim.step(static_cast<double>(
+      submitted.purchaseOrders.back().remainingSeconds));
   const auto arrived = sim.logisticsSnapshot();
   require(itemAt(arrived, StorageKind::Receiving, "amenity_kit") == 3,
-          "delivery did not physically arrive at receiving");
+          "delivery did not physically arrive at receiving at its ETA");
   sim.step(180.0);
   require(itemAt(sim.logisticsSnapshot(), StorageKind::Receiving,
                  "amenity_kit") == 0,

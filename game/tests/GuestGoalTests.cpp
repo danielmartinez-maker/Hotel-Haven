@@ -80,6 +80,73 @@ void business_preferences_materially_reorder_discretionary_goals() {
           "business preference vector did not materially favor work over swimming");
 }
 
+void archetype_routines_reorder_discretionary_goals_by_time_of_day() {
+  GuestOpportunitySnapshot snapshot;
+  snapshot.opportunities = {opportunity(10, GuestGoalClass::Relax, 40),
+                            opportunity(20, GuestGoalClass::Work, 40)};
+
+  GuestProfileView nomad;
+  nomad.archetype = GuestArchetype::DigitalNomad;
+  const auto nomadMorning =
+      applyGuestArchetypeRoutine(nomad, 10, snapshot);
+  const auto nomadChoice = chooseGuestGoal(6001, nomadMorning);
+  require(nomadChoice.valid && nomadChoice.goal == GuestGoalClass::Work,
+          "digital nomad routine did not favor daytime work");
+
+  GuestProfileView staycation;
+  staycation.archetype = GuestArchetype::StaycationGuest;
+  const auto staycationDay =
+      applyGuestArchetypeRoutine(staycation, 14, snapshot);
+  const auto staycationChoice = chooseGuestGoal(6002, staycationDay);
+  require(staycationChoice.valid &&
+              staycationChoice.goal == GuestGoalClass::Relax,
+          "staycation routine did not favor daytime relaxation");
+}
+
+void event_and_recovery_archetypes_have_distinct_routines() {
+  GuestOpportunitySnapshot eventSnapshot;
+  eventSnapshot.opportunities = {
+      opportunity(10, GuestGoalClass::Relax, 40),
+      opportunity(20, GuestGoalClass::AttendEvent, 40),
+      opportunity(30, GuestGoalClass::Socialize, 40)};
+
+  GuestProfileView wedding;
+  wedding.archetype = GuestArchetype::WeddingGuest;
+  const auto weddingEvening =
+      applyGuestArchetypeRoutine(wedding, 20, eventSnapshot);
+  const auto weddingChoice = chooseGuestGoal(6003, weddingEvening);
+  require(weddingChoice.valid &&
+              weddingChoice.goal == GuestGoalClass::AttendEvent,
+          "wedding guest routine did not favor evening event attendance");
+
+  GuestOpportunitySnapshot recoverySnapshot;
+  recoverySnapshot.opportunities = {
+      opportunity(10, GuestGoalClass::Socialize, 40),
+      opportunity(20, GuestGoalClass::Sleep, 40)};
+  GuestProfileView crew;
+  crew.archetype = GuestArchetype::AirlineCrew;
+  const auto crewRoutine =
+      applyGuestArchetypeRoutine(crew, 14, recoverySnapshot);
+  const auto crewChoice = chooseGuestGoal(6004, crewRoutine);
+  require(crewChoice.valid && crewChoice.goal == GuestGoalClass::Sleep,
+          "airline crew routine did not favor recovery sleep");
+}
+
+void routine_weighting_preserves_mandatory_lifecycle_goals() {
+  GuestOpportunitySnapshot snapshot;
+  snapshot.opportunities = {opportunity(1, GuestGoalClass::Relax, 0),
+                            opportunity(99, GuestGoalClass::Checkout, 100)};
+  snapshot.opportunities.back().mandatory = true;
+
+  GuestProfileView staycation;
+  staycation.archetype = GuestArchetype::StaycationGuest;
+  const auto scheduled =
+      applyGuestArchetypeRoutine(staycation, 14, snapshot);
+  const auto selected = chooseGuestGoal(6005, scheduled);
+  require(selected.valid && selected.goal == GuestGoalClass::Checkout,
+          "archetype routine weighting weakened a mandatory lifecycle goal");
+}
+
 void preferences_do_not_weaken_mandatory_lifecycle_goals() {
   GuestPreferenceState preferences;
   preferences.pool = 0;
@@ -251,6 +318,9 @@ int main() {
     mandatory_lifecycle_goal_overrides_discretionary_utility();
     distance_and_wait_reduce_discretionary_utility();
     business_preferences_materially_reorder_discretionary_goals();
+    archetype_routines_reorder_discretionary_goals_by_time_of_day();
+    event_and_recovery_archetypes_have_distinct_routines();
+    routine_weighting_preserves_mandatory_lifecycle_goals();
     preferences_do_not_weaken_mandatory_lifecycle_goals();
     live_business_guest_uses_authoritative_preferences();
     group_proposal_uses_documented_thirty_percent_acceptance_band();

@@ -48,11 +48,11 @@ void complete_construction_state_round_trips_and_migrates_v10() {
   sim.step(1);
 
   const auto saved = sim.save();
-  require(saved.starts_with("HHGS 12 "),
-          "FINAL-02 state did not bump the save format to v12");
+  require(saved.starts_with("HHGS 13 "),
+          "save fixture did not use the current HHGS v13 format");
   auto loaded = Simulation::load(saved);
   require(loaded.save() == saved,
-          "v12 construction/building state was not byte-stable after load");
+          "v13 construction/building state was not byte-stable after load");
   require(loaded.constructionSnapshot() == sim.constructionSnapshot(),
           "construction state did not round-trip");
   require(loaded.buildingSystemsSnapshot() == sim.buildingSystemsSnapshot(),
@@ -60,15 +60,15 @@ void complete_construction_state_round_trips_and_migrates_v10() {
 
   Simulation empty(4002, 4, 4, 1);
   auto legacy = empty.save();
-  const auto marker = legacy.find("HHGS 12 ");
-  require(marker == 0, "v12 migration fixture header missing");
+  const auto marker = legacy.find("HHGS 13 ");
+  require(marker == 0, "v13 migration fixture header missing");
   const auto final02 = legacy.find("FINAL02_PSYCHOLOGY ");
   require(final02 != std::string::npos,
           "v12 migration fixture FINAL-02 section missing");
   legacy.erase(final02);
   legacy.replace(5, 2, "10");
   auto migrated = Simulation::load(legacy);
-  require(migrated.save().starts_with("HHGS 12 ") &&
+  require(migrated.save().starts_with("HHGS 13 ") &&
               migrated.constructionSnapshot().objects.empty() &&
               migrated.constructionSnapshot().buildJobs.empty() &&
               migrated.buildingSystemsSnapshot().elevators.empty(),
