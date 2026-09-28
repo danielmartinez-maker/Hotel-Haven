@@ -56,6 +56,9 @@ target_include_directories(hotel_haven_menu_demo PRIVATE ${CMAKE_CURRENT_SOURCE_
 target_compile_definitions(hotel_haven_menu_demo PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN UNICODE _UNICODE)
 target_link_libraries(hotel_haven_menu_demo PRIVATE hh_frontend_core hh_frontend_d2d hh_renderer_core hh_renderer_d3d11 hh_renderer_win32 xinput9_1_0)
 hh_enable_strict_warnings(hotel_haven_menu_demo)
+set_target_properties(hotel_haven_menu_demo PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+install(TARGETS hotel_haven_menu_demo RUNTIME DESTINATION .)
 
 add_custom_command(TARGET hotel_haven_menu_demo POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:hotel_haven_menu_demo>/shaders"
