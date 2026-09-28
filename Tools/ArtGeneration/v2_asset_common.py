@@ -134,6 +134,20 @@ def sofa(name: str, mat: str) -> trimesh.Scene:
         add(scene, box((0.59, 0.10, 0.48), (x, 0.20, 0.86), 'MAT_UPHOLSTERY'), f'BackCushion_{i}')
     for side, x in (('L', -width / 2 - 0.05), ('R', width / 2 + 0.05)):
         add(scene, box((0.10, 0.68, 0.34), (x, 0, 0.58), mat), f'Arm_{side}')
+    # Give the upholstered body explicit load-bearing legs. The previous
+    # procedural sofa began at Z=0.37m, which violated floor-contact placement
+    # for every P_FURNITURE_STATIC sofa generated from this primitive.
+    leg_h = 0.37
+    for i, (x, y) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
+        add(
+            scene,
+            box(
+                (0.07, 0.07, leg_h),
+                (x * width * 0.42, y * 0.70 * 0.36, leg_h / 2),
+                'MAT_BLACKENED_STEEL',
+            ),
+            f'Leg_{i}',
+        )
     return scene
 
 
@@ -260,8 +274,8 @@ def elevator_or_door(name: str, mat: str) -> trimesh.Scene:
         w = 1.30 if 'Single' in name else 1.85
         h = 2.20
         add(scene, box((w + 0.18, 0.16, h + 0.16), (0, 0, (h + 0.16) / 2), mat), 'Frame')
-        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), 'DoorLeft')
-        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), 'DoorRight')
+        add(scene, box((w * 0.48, 0.08, h), (-w * 0.25, -0.05, h / 2), mat), 'MOV_ElevatorDoor')
+        add(scene, box((w * 0.48, 0.08, h), (w * 0.25, -0.05, h / 2), mat), 'ElevatorDoorRight')
         add(scene, box((0.30, 0.025, 0.12), (0, -0.10, h + 0.06), 'MAT_ELECTRONICS'), 'Indicator')
     return scene
 
@@ -274,8 +288,8 @@ def stair(name: str, mat: str) -> trimesh.Scene:
         rise = 0.17
         run = 0.27
         add(scene, box((width, run, rise), (0, i * run, rise / 2 + i * rise), mat), f'Step_{i}')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (-width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_L')
-    add(scene, box((0.08, steps * 0.27, steps * 0.17), (width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'Stringer_R')
+    add(scene, box((0.08, steps * 0.27, steps * 0.17), (-width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'FrameStringer_L')
+    add(scene, box((0.08, steps * 0.27, steps * 0.17), (width * 0.48, steps * 0.27 / 2, steps * 0.17 / 2), 'MAT_BLACKENED_STEEL'), 'FrameStringer_R')
     return scene
 
 
@@ -283,7 +297,13 @@ def luggage_or_accessibility(name: str, mat: str) -> trimesh.Scene:
     scene = trimesh.Scene()
     if 'Wheelchair' in name:
         for side, x in (('L', -0.32), ('R', 0.32)):
-            add(scene, cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28), f'Wheel_{side}')
+            wheel = cyl(0.31, 0.045, (x, 0, 0.31), 'MAT_BLACKENED_STEEL', 28)
+            wheel.apply_transform(
+                trimesh.transformations.rotation_matrix(
+                    np.pi / 2, [1, 0, 0], [x, 0, 0.31]
+                )
+            )
+            add(scene, wheel, f'Wheel_{side}')
         add(scene, box((0.54, 0.48, 0.08), (0, 0, 0.53), mat), 'Seat')
         add(scene, box((0.54, 0.08, 0.62), (0, 0.20, 0.82), mat), 'Back')
         add(scene, box((0.62, 0.05, 0.05), (0, 0.28, 1.10), 'MAT_STAINLESS'), 'Handle')

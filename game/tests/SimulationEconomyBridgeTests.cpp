@@ -1,4 +1,5 @@
 #include "hh/game/SimulationEconomyBridge.h"
+#include <algorithm>
 #include <stdexcept>
 
 using namespace hh::game;
@@ -34,11 +35,93 @@ int main() {
   require(suppliesAfter.economics.cashCents == bridge.view().economy.cashCents,
           "bridge ledger diverged from simulation cash after supplies");
 
-  bridge.setPlayerHotelOffer({1, 15'000, 75, 4, 80, 80, 75, true});
+  require(bridge.loadDefinitions(R"({"onboardingCostCents":5000})").ok,
+          "bridge workforce fixture could not configure onboarding cost");
+  const auto candidates = bridge.applicants();
+  require(!candidates.empty(),
+          "bridge did not expose deterministic workforce applicants");
+  const auto applicantCashBefore = bridge.financialSnapshot().economics.cashCents;
+  const auto laborCostBefore = bridge.economyDiagnostics().laborCostCents;
+  const auto hiredApplicant = bridge.hireApplicant(candidates.front().id);
+  require(hiredApplicant.ok && hiredApplicant.employeeId != 0,
+          "bridge rejected a valid workforce applicant");
+  const auto applicantCashAfter = bridge.financialSnapshot().economics.cashCents;
+  require(applicantCashAfter == bridge.view().economy.cashCents,
+          "applicant onboarding bypassed FINAL-06 cash reconciliation");
+  require(applicantCashAfter < applicantCashBefore,
+          "applicant onboarding did not charge its authoritative cost");
+  require(bridge.economyDiagnostics().laborCostCents - laborCostBefore ==
+              applicantCashBefore - applicantCashAfter,
+          "applicant onboarding cost was not classified as labor");
+
+  EntityId housekeepingManager{};
+  for (const auto &person : bridge.view().people) {
+    if (person.kind == PersonKind::Housekeeper) {
+      housekeepingManager = person.id;
+      break;
+    }
+  }
+  require(housekeepingManager != 0,
+          "bridge workforce fixture has no housekeeping employee");
+  require(bridge
+              .assignDepartmentManager(DepartmentId::Housekeeping,
+                                       housekeepingManager)
+              .ok,
+          "bridge rejected valid department manager assignment");
+  const auto departments = bridge.departments();
+  const auto housekeeping = std::find_if(
+      departments.begin(), departments.end(), [](const DepartmentView &value) {
+        return value.id == DepartmentId::Housekeeping;
+      });
+  require(housekeeping != departments.end() &&
+              housekeeping->managerId == housekeepingManager,
+          "department manager state was not exposed through the bridge");
+
+  const auto forecast =
+      bridge.departmentForecast(DepartmentId::Housekeeping, bridge.view().day);
+  require(forecast.department == DepartmentId::Housekeeping,
+          "department forecast did not preserve requested department");
+  require(bridge
+              .scheduleTraining(hiredApplicant.employeeId,
+                                bridge.view().elapsedSeconds + 600, 30)
+              .ok,
+          "bridge rejected valid scheduled training");
+  require(bridge.financialSnapshot().economics.cashCents ==
+              bridge.view().economy.cashCents,
+          "non-financial workforce command disturbed ledger parity");
+
+  const auto optimizerSnapshot = bridge.buildOptimizerSnapshot();
+  require(!optimizerSnapshot.employees.empty(),
+          "bridge did not expose optimizer workforce snapshot");
+
+  bridge.setPlayerHotelOffer({1, 15'000, 75, 4, 80, 88, 75, true});
+  MarketDemandModifiers demandModifiers;
+  demandModifiers.seasonMultiplierBasisPoints = 16500;
+  bridge.setDemandModifiers(demandModifiers);
+  const auto guestEnvironment =
+      bridge.physicalSimulation().guestDemandEnvironment();
+  const auto businessIndex =
+      static_cast<std::size_t>(GuestArchetype::BusinessTraveler);
+  require(guestEnvironment.locationScore == 88 &&
+              guestEnvironment.seasonMultiplierBasisPoints == 16500,
+          "FINAL-06 location/season context did not reach physical guest generation");
+  require(guestEnvironment.archetypeMarketCaptureBasisPoints[businessIndex] ==
+              10000,
+          "competitor-free market should not dilute physical guest demand");
+
   bridge.setCompetitors({{2, "Comparable", 16'000, 76, 4, 80, 80, 75},
                          {3, "Premium", 22'000, 88, 5, 92, 90, 88}});
   require(bridge.marketSnapshot().comparableMedianRateCents == 19'000,
           "bridge did not expose FINAL-06 market state");
+  const auto competitiveEnvironment =
+      bridge.physicalSimulation().guestDemandEnvironment();
+  require(
+      competitiveEnvironment.archetypeMarketCaptureBasisPoints[businessIndex] >
+          0 &&
+          competitiveEnvironment
+                  .archetypeMarketCaptureBasisPoints[businessIndex] <
+              10000,
+      "competitors did not propagate into physical business demand");
   require(bridge.setOverbookingPolicy({"standard", 1, 25'000, 5, 10}).ok,
           "bridge rejected valid dated overbooking policy");
 
@@ -51,4 +134,20 @@ int main() {
   require(restored.financialSnapshot().economics.cashCents ==
               restored.view().economy.cashCents,
           "restored bridge ledger diverged from simulation cash");
+  require(restored.physicalSimulation().guestDemandEnvironment() ==
+              competitiveEnvironment,
+          "bridge load did not reconstruct competitive guest demand context from FINAL-06");
+
+  auto blockedDemand = Simulation::tutorial(441);
+  GuestDemandEnvironment blockedEnvironment;
+  blockedEnvironment.archetypeMarketCaptureBasisPoints.fill(0);
+  blockedDemand.setGuestDemandEnvironment(blockedEnvironment);
+  blockedDemand.step(3 * 86400.0);
+  require(blockedDemand.view().reservations.empty(),
+          "zero market capture still created physical reservations");
+
+  auto neutralDemand = Simulation::tutorial(441);
+  neutralDemand.step(3 * 86400.0);
+  require(!neutralDemand.view().reservations.empty(),
+          "neutral physical demand fixture unexpectedly produced no reservations");
 }

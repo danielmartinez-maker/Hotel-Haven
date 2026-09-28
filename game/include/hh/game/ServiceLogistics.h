@@ -79,7 +79,8 @@ private:
       const std::vector<RoomId> &managedHousekeepingRooms,
       const std::vector<RoomId> &workingHousekeepingRooms,
       const std::vector<AssetId> &managedEngineeringAssets,
-      const std::vector<AssetId> &workingEngineeringAssets);
+      const std::vector<AssetId> &workingEngineeringAssets,
+      int engineeringConditionLossPerHour);
 
   struct Impl;
   std::unique_ptr<Impl> impl_;
