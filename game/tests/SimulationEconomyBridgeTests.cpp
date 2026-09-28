@@ -100,14 +100,28 @@ int main() {
   bridge.setDemandModifiers(demandModifiers);
   const auto guestEnvironment =
       bridge.physicalSimulation().guestDemandEnvironment();
+  const auto businessIndex =
+      static_cast<std::size_t>(GuestArchetype::BusinessTraveler);
   require(guestEnvironment.locationScore == 88 &&
               guestEnvironment.seasonMultiplierBasisPoints == 16500,
           "FINAL-06 location/season context did not reach physical guest generation");
+  require(guestEnvironment.archetypeMarketCaptureBasisPoints[businessIndex] ==
+              10000,
+          "competitor-free market should not dilute physical guest demand");
 
   bridge.setCompetitors({{2, "Comparable", 16'000, 76, 4, 80, 80, 75},
                          {3, "Premium", 22'000, 88, 5, 92, 90, 88}});
   require(bridge.marketSnapshot().comparableMedianRateCents == 19'000,
           "bridge did not expose FINAL-06 market state");
+  const auto competitiveEnvironment =
+      bridge.physicalSimulation().guestDemandEnvironment();
+  require(
+      competitiveEnvironment.archetypeMarketCaptureBasisPoints[businessIndex] >
+          0 &&
+          competitiveEnvironment
+                  .archetypeMarketCaptureBasisPoints[businessIndex] <
+              10000,
+      "competitors did not propagate into physical business demand");
   require(bridge.setOverbookingPolicy({"standard", 1, 25'000, 5, 10}).ok,
           "bridge rejected valid dated overbooking policy");
 
@@ -121,6 +135,19 @@ int main() {
               restored.view().economy.cashCents,
           "restored bridge ledger diverged from simulation cash");
   require(restored.physicalSimulation().guestDemandEnvironment() ==
-              guestEnvironment,
-          "bridge load did not reconstruct guest demand context from FINAL-06");
+              competitiveEnvironment,
+          "bridge load did not reconstruct competitive guest demand context from FINAL-06");
+
+  auto blockedDemand = Simulation::tutorial(441);
+  GuestDemandEnvironment blockedEnvironment;
+  blockedEnvironment.archetypeMarketCaptureBasisPoints.fill(0);
+  blockedDemand.setGuestDemandEnvironment(blockedEnvironment);
+  blockedDemand.step(3 * 86400.0);
+  require(blockedDemand.view().reservations.empty(),
+          "zero market capture still created physical reservations");
+
+  auto neutralDemand = Simulation::tutorial(441);
+  neutralDemand.step(3 * 86400.0);
+  require(!neutralDemand.view().reservations.empty(),
+          "neutral physical demand fixture unexpectedly produced no reservations");
 }

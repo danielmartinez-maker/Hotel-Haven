@@ -168,13 +168,15 @@ void ServiceLogisticsRuntime::tickSimulationSecond(
     const std::vector<RoomId> &managedHousekeepingRooms,
     const std::vector<RoomId> &workingHousekeepingRooms,
     const std::vector<AssetId> &managedEngineeringAssets,
-    const std::vector<AssetId> &workingEngineeringAssets) {
+    const std::vector<AssetId> &workingEngineeringAssets,
+    int engineeringConditionLossPerHour) {
   ++impl_->elapsedSeconds;
   impl_->housekeeping.tickSecondFor(managedHousekeepingRooms,
                                     workingHousekeepingRooms);
   impl_->laundry.tickSecond();
   impl_->engineering.tickSecondFor(managedEngineeringAssets,
-                                   workingEngineeringAssets);
+                                   workingEngineeringAssets,
+                                   engineeringConditionLossPerHour);
   impl_->roomService.tickSecond();
   impl_->logistics.tickSecond();
 }

@@ -843,10 +843,14 @@ static void simulation_supply_orders_enter_receiving() {
   require(submitted.purchaseOrders.size() == before + 1,
           "Simulation supply order bypassed FINAL-04 purchasing");
 
-  sim.step(2 * 86400.0);
+  require(!submitted.purchaseOrders.empty() &&
+              submitted.purchaseOrders.back().remainingSeconds > 0,
+          "physical supply order did not expose a positive transit ETA");
+  sim.step(static_cast<double>(
+      submitted.purchaseOrders.back().remainingSeconds));
   const auto arrived = sim.logisticsSnapshot();
   require(itemAt(arrived, StorageKind::Receiving, "amenity_kit") == 3,
-          "delivery did not physically arrive at receiving");
+          "delivery did not physically arrive at receiving at its ETA");
   sim.step(180.0);
   require(itemAt(sim.logisticsSnapshot(), StorageKind::Receiving,
                  "amenity_kit") == 0,

@@ -138,6 +138,11 @@ public:
                                          const MarketHotelOffer &hotel) const;
   [[nodiscard]] double playerChoiceWeight(const BookingRequest &request,
                                           const MarketHotelOffer &hotel) const;
+  // Expected player share among eligible hotels for a representative request
+  // in this segment. This is deterministic and does not advance market RNG.
+  // 10,000 means no competitive dilution; 0 means the player offer is
+  // ineligible against the segment's baseline budget.
+  [[nodiscard]] int competitiveCaptureBasisPoints(MarketSegment segment) const;
   [[nodiscard]] MarketSnapshot snapshot() const;
   [[nodiscard]] std::string save() const;
   static MarketDemandSystem load(std::string_view data);

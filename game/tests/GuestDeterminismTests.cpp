@@ -34,6 +34,43 @@ void requireSameReviews(const SimulationView &first, const SimulationView &secon
   }
 }
 
+void booking_profile_stream_ignores_unrelated_entity_ids() {
+  constexpr std::uint64_t seed = 0x424f4f4b494e47ULL;
+  auto baseline = Simulation::tutorial(seed);
+  auto perturbed = Simulation::tutorial(seed);
+
+  require(perturbed
+              .hireStaff({"Off-shift spare", PersonKind::Maintenance, 0, 1, 25})
+              .ok,
+          "could not create unrelated entity-id perturbation");
+
+  require(baseline.loadDefinitions(R"({"baseDemand":100,"roomConditionLossPerDay":0})").ok &&
+              perturbed.loadDefinitions(R"({"baseDemand":100,"roomConditionLossPerDay":0})").ok,
+          "booking-stream fixture definitions rejected");
+  for (const auto &room : baseline.view().rooms)
+    require(baseline.setRoomRate(room.id, 50).ok,
+            "baseline booking-stream rate rejected");
+  for (const auto &room : perturbed.view().rooms)
+    require(perturbed.setRoomRate(room.id, 50).ok,
+            "perturbed booking-stream rate rejected");
+
+  baseline.step(3600);
+  perturbed.step(3600);
+  const auto a = baseline.view();
+  const auto b = perturbed.view();
+  require(a.reservations.size() == b.reservations.size() &&
+              !a.reservations.empty(),
+          "entity-id perturbation changed booking count");
+  for (std::size_t index = 0; index < a.reservations.size(); ++index) {
+    require(a.reservations[index].profile == b.reservations[index].profile,
+            "unrelated entity-id churn changed guest profile stream");
+    require(a.reservations[index].arrivalDay == b.reservations[index].arrivalDay &&
+                a.reservations[index].departureDay ==
+                    b.reservations[index].departureDay,
+            "unrelated entity-id churn changed deterministic stay length");
+  }
+}
+
 void twenty_day_same_seed_campaign_is_byte_deterministic() {
   constexpr std::uint64_t seed = 0x484156454eULL;
   auto first = Simulation::tutorial(seed);
@@ -69,6 +106,7 @@ void twenty_day_same_seed_campaign_is_byte_deterministic() {
 
 int main() {
   try {
+    booking_profile_stream_ignores_unrelated_entity_ids();
     twenty_day_same_seed_campaign_is_byte_deterministic();
   } catch (const std::exception &error) {
     std::cerr << "FAIL: " << error.what() << '\n';
