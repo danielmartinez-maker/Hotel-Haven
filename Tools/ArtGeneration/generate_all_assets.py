@@ -3,9 +3,9 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import shutil
 from pathlib import Path
-
-BATCHES = tuple(range(1, 15))
+from asset_manifest import AssetManifest, load_active_manifest
 
 
 def install_trimesh_color_guard():
@@ -29,13 +29,25 @@ def install_trimesh_color_guard():
     cls._hotel_haven_color_guard = True
 
 
-def generator_source(batch: int) -> str:
+def generator_source(batch: int, family: str | None = None) -> str:
+    if family is not None:
+        return 'Tools/ArtGeneration/generator_registry.py'
     return f'Tools/ArtGeneration/batch{batch:02d}_generate.py'
 
 
-def run_batch_generator(module, batch: int, manifest: Path, out: Path):
+def resolve_batch_generator(entry):
+    if entry.generator_family is None:
+        return importlib.import_module(f'batch{entry.batch:02d}_generate')
+    from generator_registry import GENERATOR_FAMILIES
+    builder = GENERATOR_FAMILIES.get(entry.generator_family)
+    if builder is None:
+        raise ValueError(f'unknown generator family: {entry.generator_family}')
+    return builder
+
+
+def run_batch_generator(module, batch: int, manifest: Path, out: Path, family: str | None = None):
     if hasattr(module, 'generate_package'):
-        return module.generate_package(manifest, out, generator_source(batch))
+        return module.generate_package(manifest, out, generator_source(batch, family))
     if hasattr(module, 'generate'):
         return module.generate(manifest, out, True)
     raise RuntimeError(f'batch {batch:02d} generator exposes neither generate_package nor generate')
@@ -45,6 +57,8 @@ def normalize_sidecars(exports_root: Path) -> int:
     renamed = 0
     for sidecar in sorted(exports_root.rglob('*.asset.json')):
         if not sidecar.exists():
+            continue
+        if sidecar.name.endswith(('.glb.asset.json', '.anim.json.asset.json', '.animset.json.asset.json', '.skeleton.json.asset.json')):
             continue
         base = sidecar.name[:-len('.asset.json')]
         candidates = [
@@ -58,25 +72,26 @@ def normalize_sidecars(exports_root: Path) -> int:
             )
         target = sidecar.parent / (candidates[0].name + '.asset.json')
         if target != sidecar:
+            if target.exists():
+                previous = json.loads(target.read_text())
+                current = json.loads(sidecar.read_text())
+                if any(previous.get(key) != current.get(key) for key in ('asset_id', 'source')) or not set(current.get('dependencies', [])).issubset(previous.get('dependencies', [])):
+                    raise RuntimeError(f'conflicting sidecars for {target}')
+                sidecar.unlink()
+                continue
             sidecar.replace(target)
             renamed += 1
     return renamed
 
 
 def gameplay_manifest_metadata(root: Path) -> tuple[dict[str, dict], dict[str, dict]]:
-    definitions = root / 'GameData' / 'AssetDefinitions'
-    master = json.loads((definitions / 'hotel_haven_asset_manifest_v1.json').read_text(encoding='utf-8'))
-    profiles = master['profiles']
+    active = load_active_manifest(root)
+    profiles = active.profiles
     assets: dict[str, dict] = {}
-    manifest_dir = definitions / 'Manifest'
-    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
-        data = json.loads(manifest.read_text(encoding='utf-8'))
-        for group in data['groups']:
-            for row in group['assets']:
-                assets[row[0]] = {
-                    'profile': row[4],
-                    'interaction_anchors': list(row[6]),
-                }
+    for _family, _path, row in active.iter_rows():
+        if row[0] in assets:
+            raise RuntimeError(f'duplicate canonical gameplay asset: {row[0]}')
+        assets[row[0]] = {'profile': row[4], 'interaction_anchors': list(row[6])}
     return assets, profiles
 
 
@@ -115,7 +130,7 @@ def normalize_gameplay_sidecars(root: Path, exports_root: Path) -> tuple[int, in
     assets, profiles = gameplay_manifest_metadata(root)
     normalized_count = 0
     anchor_bindings = 0
-    for sidecar_path in sorted(exports_root.glob('Batch*/*.asset.json')):
+    for sidecar_path in sorted(exports_root.glob('Batch*/*.glb.asset.json')):
         data = json.loads(sidecar_path.read_text(encoding='utf-8'))
         asset_id = data.get('asset_id')
         meta = assets.get(asset_id)
@@ -132,12 +147,8 @@ def normalize_gameplay_sidecars(root: Path, exports_root: Path) -> tuple[int, in
     return normalized_count, anchor_bindings
 
 
-def expected_animation_bindings(manifest_dir: Path) -> int:
-    total = 0
-    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
-        data = json.loads(manifest.read_text())
-        total += sum(1 for group in data['groups'] for row in group['assets'] if row[5])
-    return total
+def expected_animation_bindings(manifest: AssetManifest) -> int:
+    return sum(bool(row[5]) for _, _, row in manifest.iter_rows())
 
 
 def validate_generated_tree(root: Path, exports: Path) -> dict:
@@ -179,16 +190,26 @@ def generate_all(repo_root: Path | str):
     from floor_contact_hardening import harden_floor_supports
 
     root = Path(repo_root)
+    active = load_active_manifest(root)
     manifest_dir = root / 'GameData' / 'AssetDefinitions' / 'Manifest'
     exports = root / 'Art' / 'Exports'
     exports.mkdir(parents=True, exist_ok=True)
+    # Rebuild only declared generated outputs. Stale sidecars from a previous
+    # run must never masquerade as another canonical asset or dependency.
+    for entry in active.batch_entries:
+        shutil.rmtree(exports / f'Batch{entry.batch:02d}', ignore_errors=True)
+    for generated_dir in ('Animations', 'AnimationsHumanoid'):
+        shutil.rmtree(exports / generated_dir, ignore_errors=True)
     batch_counts = {}
 
-    for batch in BATCHES:
-        module = importlib.import_module(f'batch{batch:02d}_generate')
-        manifest = manifest_dir / f'asset_batch_{batch:02d}.json'
+    for entry in active.batch_entries:
+        batch = entry.batch
+        module = resolve_batch_generator(entry)
+        manifest = active.batch_path(batch)
         out = exports / f'Batch{batch:02d}'
-        paths = run_batch_generator(module, batch, manifest, out)
+        paths = run_batch_generator(module, batch, manifest, out, entry.generator_family)
+        if len(paths) != entry.asset_count:
+            raise RuntimeError(f'batch {batch} generated {len(paths)} assets, expected {entry.asset_count}')
         batch_counts[f'{batch:02d}'] = len(paths)
 
     floor_support_assets = harden_floor_supports(exports)
@@ -200,8 +221,11 @@ def generate_all(repo_root: Path | str):
     linked, deferred = link(manifest_dir, exports)
     normalized = normalize_sidecars(exports)
     normalized_gameplay, interaction_anchor_bindings = normalize_gameplay_sidecars(root, exports)
+    # Some legacy batch exporters write a second short sidecar during their
+    # post-export metadata pass. Reconcile it against the normalized payload.
+    normalize_sidecars(exports)
     tree = validate_generated_tree(root, exports)
-    expected_links = expected_animation_bindings(manifest_dir)
+    expected_links = expected_animation_bindings(active)
 
     summary = {
         'schema': 1,
@@ -222,11 +246,11 @@ def generate_all(repo_root: Path | str):
         'interaction_anchor_bindings': interaction_anchor_bindings,
         **tree,
     }
-    expected_records = 700 + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
-    if summary['gameplay_asset_count'] != 700:
-        raise RuntimeError(f"expected 700 gameplay assets, got {summary['gameplay_asset_count']}")
-    if normalized_gameplay != 700:
-        raise RuntimeError(f'expected 700 normalized gameplay sidecars, got {normalized_gameplay}')
+    expected_records = active.asset_count + mech_clips + mech_sets + hum_skeletons + hum_clips + hum_sets
+    if summary['gameplay_asset_count'] != active.asset_count:
+        raise RuntimeError(f"expected {active.asset_count} gameplay assets, got {summary['gameplay_asset_count']}")
+    if normalized_gameplay != active.asset_count:
+        raise RuntimeError(f'expected {active.asset_count} normalized gameplay sidecars, got {normalized_gameplay}')
     if tree['generated_asset_records'] != expected_records:
         raise RuntimeError(f"expected {expected_records} generated records, got {tree['generated_asset_records']}")
     if linked != expected_links or deferred != 0:

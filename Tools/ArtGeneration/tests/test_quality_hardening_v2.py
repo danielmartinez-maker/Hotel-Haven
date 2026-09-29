@@ -158,7 +158,7 @@ def test_release_audit_reports_profile_anchor_and_placement_gates():
         'placement_failure_count': 0,
     }
 
-    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)})
+    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)}, 700)
 
     assert '- Interaction anchors normalized: **118 / 118**' in text
     assert '- Profile contract conformance: **PASS** with **0** failures' in text
@@ -180,4 +180,3 @@ def test_runtime_binding_preview_contract_tracks_shipping_assets():
         'HH_A511', 'HH_A512', 'HH_A513', 'HH_A539', 'HH_A540',
     ]
     assert ids[-3:] == ['HH_A647', 'HH_A648', 'HH_A649']
-

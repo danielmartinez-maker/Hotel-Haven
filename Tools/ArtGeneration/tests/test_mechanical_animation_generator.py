@@ -16,18 +16,19 @@ def test_exact_shared_mechanical_set_and_clip_counts():
     sets = mod.build_sets()
     assert set(sets) == {
         'ANSET_MECH_DOOR','ANSET_MECH_SLIDING_DOOR','ANSET_MECH_REVOLVING_DOOR',
-        'ANSET_MECH_ELEVATOR','ANSET_MECH_OVERHEAD_DOOR','ANSET_MECH_CURTAIN','ANSET_SERVICE_CART'
+        'ANSET_MECH_ELEVATOR','ANSET_MECH_OVERHEAD_DOOR','ANSET_MECH_CURTAIN','ANSET_SERVICE_CART',
+        'ANSET_CLEANING_BRUSH','ANSET_MOP_WRINGER'
     }
-    assert sum(len(s['clips']) for s in sets.values()) == 24
+    assert sum(len(s['clips']) for s in sets.values()) == 28
 
 
 def test_generator_emits_clip_and_set_payloads_with_sidecars(tmp_path):
     clips, sets = mod.generate(tmp_path)
-    assert clips == 24 and sets == 7
-    assert len(list(tmp_path.glob('AN_*.anim.json'))) == 24
-    assert len(list(tmp_path.glob('AN_*.anim.asset.json'))) == 24
-    assert len(list(tmp_path.glob('ANSET_*.animset.json'))) == 7
-    assert len(list(tmp_path.glob('ANSET_*.animset.asset.json'))) == 7
+    assert clips == 28 and sets == 9
+    assert len(list(tmp_path.glob('AN_*.anim.json'))) == 28
+    assert len(list(tmp_path.glob('AN_*.anim.asset.json'))) == 28
+    assert len(list(tmp_path.glob('ANSET_*.animset.json'))) == 9
+    assert len(list(tmp_path.glob('ANSET_*.animset.asset.json'))) == 9
 
 
 def test_animation_sidecars_are_hmg070_compatible(tmp_path):

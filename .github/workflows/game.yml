@@ -52,7 +52,7 @@ jobs:
 
       - name: Audit all cooked renderer assets
         if: runner.os == 'Windows'
-        run: build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
+        run: build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets .
 
       - name: Stage runtime assets beside client
         if: runner.os == 'Windows'
@@ -88,12 +88,18 @@ jobs:
           $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
           try {
             $assets = @($archive.Entries | Where-Object {
-              $_.FullName -match '(^|/)data/assets/HH_A\d{3}\.hasset$'
+              $_.FullName -match '(^|/)data/assets/HH_A\d{3,}\.hasset$'
             })
-            if ($assets.Count -ne 700) {
-              throw "Expected 700 packaged cooked assets; found $($assets.Count)"
+            $manifest = Get-Content GameData/AssetDefinitions/hotel_haven_asset_manifest_v2.json -Raw | ConvertFrom-Json
+            if ($assets.Count -ne $manifest.asset_count) {
+              throw "Expected $($manifest.asset_count) packaged cooked assets; found $($assets.Count)"
             }
-            Write-Host "Verified 700 cooked runtime assets in $($zip.Name)"
+            $actualNames = @($assets | ForEach-Object { [System.IO.Path]::GetFileName($_.FullName) } | Sort-Object)
+            $expectedNames = @(1..$manifest.asset_count | ForEach-Object { 'HH_A{0:D3}.hasset' -f $_ } | Sort-Object)
+            if (Compare-Object $expectedNames $actualNames) {
+              throw "Packaged cooked asset IDs differ from the active manifest namespace"
+            }
+            Write-Host "Verified $($manifest.asset_count) cooked runtime assets in $($zip.Name)"
           } finally {
             $archive.Dispose()
           }

@@ -46,7 +46,7 @@ jobs:
       - name: Test art generators
         run: python -m pytest Tools/ArtGeneration/tests -q
 
-      - name: Validate 500 asset library manifest
+      - name: Validate active asset library manifest
         run: python Tools/ContentPipeline/scripts/validate_asset_library.py
 
       - name: Validate A700 runtime milestone
@@ -83,8 +83,9 @@ jobs:
         shell: pwsh
         run: |
           $assets = @(Get-ChildItem Build/CookedAssets -Filter *.hasset -File)
-          if ($assets.Count -ne 700) {
-            throw "Expected exactly 700 cooked assets; found $($assets.Count)"
+          $manifest = Get-Content GameData/AssetDefinitions/hotel_haven_asset_manifest_v2.json -Raw | ConvertFrom-Json
+          if ($assets.Count -ne $manifest.asset_count) {
+            throw "Expected exactly $($manifest.asset_count) cooked assets; found $($assets.Count)"
           }
           Write-Host "Verified $($assets.Count) cooked .hasset files"
 
@@ -94,8 +95,8 @@ jobs:
       - name: Build renderer runtime audit
         run: cmake --build runtime-audit-build --config Release --target hh_runtime_asset_library_audit
 
-      - name: Load all 700 cooked assets through renderer runtime
-        run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets
+      - name: Load all cooked assets through renderer runtime
+        run: runtime-audit-build/renderer/Release/hh_runtime_asset_library_audit.exe Build/CookedAssets .
 
       - name: Upload generated and cooked asset package
         if: always()

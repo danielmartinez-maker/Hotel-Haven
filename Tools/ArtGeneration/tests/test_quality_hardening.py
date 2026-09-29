@@ -108,8 +108,8 @@ def test_release_audit_markdown_reports_release_gate_evidence():
         'nonwhite_material_ratio': 0.91,
         'profile_face_budgets': {'P_CHARACTER': 2500},
     }
-    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)})
-    assert '# Hotel Haven A700 Runtime Milestone Release Audit V1' in text
+    text = build(summary, report, {f'{i:02d}': 'PRODUCTION_GENERATOR_VALIDATED' for i in range(1, 15)}, 700)
+    assert '# Hotel Haven Runtime Asset Library Release Audit V1' in text
     assert '- Gameplay-facing assets: **700 / 700**' in text
     assert '- Animation dependencies linked: **71 / 71**' in text
     assert '- Geometry QC: **PASS** with **0** failures' in text

@@ -391,7 +391,7 @@ def cart(name: str, mat: str) -> trimesh.Scene:
     add(scene, box((width * 0.90, length * 0.78, 0.54), (0, 0, 0.52), mat), 'PrimaryForm')
     add(scene, box((width * 0.74, 0.06, 0.42), (0, length * 0.48, 0.72), 'MAT_BLACKENED_STEEL'), 'Handle')
     for i, (x, y) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
-        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{i}')
+        add(scene, cyl(0.09, 0.05, (x * width * 0.40, y * length * 0.38, 0.09), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{i}')
     if 'Housekeeping' in name or 'Linen' in name:
         add(scene, box((width * 0.65, length * 0.34, 0.28), (0, -length * 0.20, h), 'MAT_LINEN'), 'ServiceDetail')
     elif 'Luggage' in name or 'Bell' in name:
@@ -520,14 +520,14 @@ def luggage_or_accessibility(name: str, mat: str) -> trimesh.Scene:
     scene = trimesh.Scene()
     if 'Wheelchair' in name:
         for side, x in (('L', -0.32), ('R', 0.32)):
-            add(scene, cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28), f'Wheel_{side}')
+            add(scene, cyl(0.31, 0.045, (x, 0, 0.36), 'MAT_BLACKENED_STEEL', 28), f'MOV_Wheel_{side}')
         add(scene, box((0.54, 0.48, 0.08), (0, 0, 0.53), mat), 'Seat')
         add(scene, box((0.54, 0.08, 0.62), (0, 0.20, 0.82), mat), 'Back')
         add(scene, box((0.62, 0.05, 0.05), (0, 0.28, 1.10), 'MAT_STAINLESS'), 'Handle')
     elif 'Walker' in name:
         for side, x in (('L', -0.28), ('R', 0.28)):
             add(scene, box((0.035, 0.52, 0.88), (x, 0, 0.44), 'MAT_STAINLESS'), f'Frame_{side}')
-            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'Wheel_{side}')
+            add(scene, cyl(0.07, 0.035, (x, -0.23, 0.07), 'MAT_BLACKENED_STEEL', 16), f'MOV_Wheel_{side}')
         add(scene, box((0.58, 0.05, 0.05), (0, 0.24, 0.86), 'MAT_STAINLESS'), 'Handle')
     else:
         w = 0.42 if 'Carry On' in name else 0.58

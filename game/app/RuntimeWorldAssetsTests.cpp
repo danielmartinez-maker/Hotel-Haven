@@ -238,7 +238,7 @@ int main() {
 
     // Extra milestone assets are deliberately present on disk but unreachable
     // by normal world presentation. Shipping startup must leave them undecoded;
-    // full milestone smoke mode must include the in-range files.
+    // full catalog smoke mode must include every staged gameplay asset.
     writeBytes(root / "HH_A001.hasset",
                makeHasset("HH_A001", 1.0f,
                           hh::assets::AssetType::StaticMesh));
@@ -280,25 +280,25 @@ int main() {
             milestoneRegistry, root,
             hh::client::RuntimeWorldAssetLoadMode::FullMilestone);
     require(milestoneRegistry.size() ==
-                required.size() + presentation.size() + 3u,
-            "full milestone mode did not decode every available A001-A700 asset");
+                required.size() + presentation.size() + 4u,
+            "full catalog mode did not decode every available asset");
     require(milestoneRegistry.contains("HH_A001"),
             "milestone loader omitted an in-range legacy asset");
     require(milestoneRegistry.contains("HH_A501"),
             "milestone loader omitted the first unused V2 tranche asset");
     require(milestoneRegistry.contains("HH_A700"),
             "milestone loader omitted the A700 boundary asset");
-    require(!milestoneRegistry.contains("HH_A701"),
-            "milestone loader crossed into the A701+ tranche");
+    require(milestoneRegistry.contains("HH_A701"),
+            "full catalog loader omitted the A701 tranche");
     require(findWorldAsset(milestoneAssets, "HH_A501") != nullptr,
             "full milestone catalog omitted A501");
     require(findWorldAsset(milestoneAssets, "HH_A700") != nullptr,
             "full milestone catalog omitted A700");
-    require(findWorldAsset(milestoneAssets, "HH_A701") == nullptr,
-            "full milestone catalog exposed an out-of-range asset");
+    require(findWorldAsset(milestoneAssets, "HH_A701") != nullptr,
+            "full milestone catalog omitted A701");
     std::filesystem::remove_all(root);
 
-    std::cout << "Selective shipping + A700 smoke runtime bridge passed\n";
+    std::cout << "Selective shipping + full catalog smoke runtime bridge passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;

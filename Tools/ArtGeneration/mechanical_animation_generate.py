@@ -87,6 +87,20 @@ def build_sets():
                 'AN_CART_ROLL': clip(0.70, True, channel('MOV_Wheel*','rotation_x_degrees',[(0,0.0),(1,360.0)])),
             },
         },
+        'ANSET_CLEANING_BRUSH': {
+            'skeleton_id': 'SK_ServiceProp',
+            'clips': {
+                'AN_BRUSH_IDLE': clip(0.0, True, channel('MOV_Brush*', 'rotation_z_degrees', [(0, 0.0)])),
+                'AN_BRUSH_SPIN': clip(0.6, True, channel('MOV_Brush*', 'rotation_z_degrees', [(0, 0.0), (1, 360.0)])),
+            },
+        },
+        'ANSET_MOP_WRINGER': {
+            'skeleton_id': 'SK_ServiceProp',
+            'clips': {
+                'AN_WRINGER_IDLE': clip(0.0, True, channel('MOV_Wringer*', 'rotation_x_degrees', [(0, 0.0)])),
+                'AN_WRINGER_PRESS': clip(0.8, False, channel('MOV_Wringer*', 'rotation_x_degrees', [(0, 0.0), (0.5, 35.0), (1, 0.0)])),
+            },
+        },
     }
 
 

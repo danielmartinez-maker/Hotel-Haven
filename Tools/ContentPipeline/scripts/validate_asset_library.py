@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Hotel Haven's canonical 500-asset production catalog.
+"""Validate Hotel Haven's active canonical production catalog.
 
 Uses only Python's standard library so CI can run it before the native cooker build.
 """
@@ -41,7 +41,9 @@ def repo_root_from_script(script: Path) -> Path:
 def validate(repo_root: Path) -> list[str]:
     errors: list[str] = []
     defs = repo_root / "GameData" / "AssetDefinitions"
-    manifest_path = defs / "hotel_haven_asset_manifest_v1.json"
+    manifest_path = defs / "hotel_haven_asset_manifest_v2.json"
+    if not manifest_path.is_file():
+        manifest_path = defs / "hotel_haven_asset_manifest_v1.json"
     material_path = defs / "material_families_v1.json"
     animation_path = defs / "animation_sets_v1.json"
 
@@ -52,10 +54,12 @@ def validate(repo_root: Path) -> list[str]:
     except AssertionError as exc:
         return [str(exc)]
 
-    if manifest.get("schema") != 1:
-        errors.append("master manifest schema must be 1")
-    if manifest.get("asset_count") != 500:
-        errors.append(f"master asset_count must be 500, got {manifest.get('asset_count')!r}")
+    if manifest.get("schema") not in (1, 2):
+        errors.append("master manifest schema must be 1 or 2")
+    asset_count = manifest.get("asset_count")
+    if not isinstance(asset_count, int) or asset_count <= 0 or asset_count % 50:
+        errors.append(f"master asset_count must be a positive multiple of 50, got {asset_count!r}")
+        asset_count = 0
     if manifest.get("storage") != "sharded_by_production_batch":
         errors.append("master storage must be sharded_by_production_batch")
 
@@ -74,8 +78,8 @@ def validate(repo_root: Path) -> list[str]:
     if not isinstance(family_targets, dict):
         errors.append("family_targets must be an object")
         family_targets = {}
-    elif sum(family_targets.values()) != 500:
-        errors.append(f"family_targets must sum to 500, got {sum(family_targets.values())}")
+    elif sum(family_targets.values()) != asset_count:
+        errors.append(f"family_targets must sum to {asset_count}, got {sum(family_targets.values())}")
 
     material_rows = materials.get("families", [])
     material_ids = [row.get("material_family_id") for row in material_rows if isinstance(row, dict)]
@@ -96,8 +100,8 @@ def validate(repo_root: Path) -> list[str]:
             )
 
     batch_specs = manifest.get("batches")
-    if not isinstance(batch_specs, list) or len(batch_specs) != 10:
-        errors.append(f"master manifest must define 10 batches, got {len(batch_specs or [])}")
+    if not isinstance(batch_specs, list) or len(batch_specs) != asset_count // 50:
+        errors.append(f"master manifest must define {asset_count // 50} batches, got {len(batch_specs or [])}")
         batch_specs = []
 
     all_rows: list[tuple[int, str, str, str, str, str | None, list]] = []
@@ -118,8 +122,8 @@ def validate(repo_root: Path) -> list[str]:
         except AssertionError as exc:
             errors.append(str(exc))
             continue
-        if batch.get("schema") != 1:
-            errors.append(f"batch {expected_batch} schema must be 1")
+        if batch.get("schema") not in (1, 2):
+            errors.append(f"batch {expected_batch} schema must be 1 or 2")
         if batch.get("batch") != expected_batch:
             errors.append(f"batch file {batch_path} declares batch {batch.get('batch')!r}, expected {expected_batch}")
         if batch.get("asset_count") != 50:
@@ -165,13 +169,13 @@ def validate(repo_root: Path) -> list[str]:
             errors.append(f"batch {expected_batch} contains {batch_rows} rows, expected 50")
 
     ids = [row[2] for row in all_rows]
-    if len(ids) != 500:
-        errors.append(f"catalog contains {len(ids)} rows, expected 500")
+    if len(ids) != asset_count:
+        errors.append(f"catalog contains {len(ids)} rows, expected {asset_count}")
     if len(ids) != len(set(ids)):
         duplicates = sorted(asset_id for asset_id, count in Counter(ids).items() if count > 1)
         errors.append(f"duplicate asset IDs: {duplicates}")
 
-    expected_ids = {f"HH_A{i:03d}" for i in range(1, 501)}
+    expected_ids = {f"HH_A{i:03d}" for i in range(1, asset_count + 1)}
     actual_ids = set(ids)
     missing = sorted(expected_ids - actual_ids)
     extra = sorted(actual_ids - expected_ids)
@@ -189,8 +193,8 @@ def validate(repo_root: Path) -> list[str]:
             errors.append(f"family {family} has {actual} assets, expected {target}")
 
     character_rows = [row for row in all_rows if row[1] == "guests_staff"]
-    if len(character_rows) != 50:
-        errors.append(f"guests_staff must contain 50 assets, got {len(character_rows)}")
+    if len(character_rows) != family_targets.get("guests_staff"):
+        errors.append(f"guests_staff must contain {family_targets.get('guests_staff')} assets, got {len(character_rows)}")
     for _, _, asset_id, _, profile_id, animation_id, _ in character_rows:
         if profile_id != "P_CHARACTER":
             errors.append(f"{asset_id}: character must use P_CHARACTER")
@@ -209,8 +213,9 @@ def main() -> int:
             print(f" - {error}")
         return 1
     print("Hotel Haven asset-library validation PASSED")
-    print(" - 500 unique gameplay-facing assets")
-    print(" - 10 production batches x 50 assets")
+    manifest = load_json(repo_root / "GameData/AssetDefinitions" / "hotel_haven_asset_manifest_v2.json") if (repo_root / "GameData/AssetDefinitions" / "hotel_haven_asset_manifest_v2.json").is_file() else load_json(repo_root / "GameData/AssetDefinitions" / "hotel_haven_asset_manifest_v1.json")
+    print(f" - {manifest['asset_count']} unique gameplay-facing assets")
+    print(f" - {len(manifest['batches'])} production batches x 50 assets")
     print(" - family totals, profiles, materials, animations, skeletons, and character mappings resolve")
     return 0
 

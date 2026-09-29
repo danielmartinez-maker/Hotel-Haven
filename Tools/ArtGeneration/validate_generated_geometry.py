@@ -8,6 +8,7 @@ import numpy as np
 import trimesh
 
 from semantic_asset_quality import semantic_contract_failures, variant_signature_failures
+from asset_manifest import load_active_manifest
 
 EXPECTED_MOVING = {
     'ANSET_MECH_DOOR': ('MOV_DoorLeaf',),
@@ -17,6 +18,8 @@ EXPECTED_MOVING = {
     'ANSET_MECH_OVERHEAD_DOOR': ('MOV_DockPanel',),
     'ANSET_MECH_CURTAIN': ('MOV_CurtainPanel',),
     'ANSET_SERVICE_CART': ('MOV_Wheel',),
+    'ANSET_CLEANING_BRUSH': ('MOV_Brush',),
+    'ANSET_MOP_WRINGER': ('MOV_Wringer',),
 }
 CHARACTER_NODES = {
     'Hips', 'Spine', 'Chest', 'Head',
@@ -56,7 +59,8 @@ CONTEXTUAL_PLACEMENT_OVERRIDES = {
 
 def manifest_rows(manifest_dir: Path):
     out = {}
-    for path in sorted(manifest_dir.glob('asset_batch_*.json')):
+    active = load_active_manifest(manifest_dir.resolve().parents[2])
+    for path in active.iter_batch_paths():
         data = json.loads(path.read_text())
         for group in data['groups']:
             for row in group['assets']:
@@ -70,8 +74,7 @@ def manifest_rows(manifest_dir: Path):
 
 
 def profile_contracts(repo_root: Path) -> dict[str, dict]:
-    path = repo_root / 'GameData' / 'AssetDefinitions' / 'hotel_haven_asset_manifest_v1.json'
-    return json.loads(path.read_text(encoding='utf-8'))['profiles']
+    return load_active_manifest(repo_root).profiles
 
 
 def material_rgb(geom):
@@ -169,7 +172,7 @@ def placement_failures(asset_id: str, pivot_profile: str, bounds_min, bounds_max
     return failures
 
 
-def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str, str]) -> str:
+def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str, str], expected_count: int) -> str:
     gameplay = summary.get('gameplay_asset_count', 0)
     linked = summary.get('animation_links', 0)
     expected = summary.get('expected_animation_links', 0)
@@ -186,17 +189,17 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     expected_anchor_bindings = report.get('expected_interaction_anchor_bindings', 0)
 
     unresolved = qc_failures + deferred
-    if gameplay != 700:
+    if gameplay != expected_count:
         unresolved += 1
     if linked != expected:
         unresolved += 1
 
     lines = [
-        '# Hotel Haven A700 Runtime Milestone Release Audit V1',
+        '# Hotel Haven Runtime Asset Library Release Audit V1',
         '',
         '## Release gate',
         '',
-        f'- Gameplay-facing assets: **{gameplay} / 700**',
+        f'- Gameplay-facing assets: **{gameplay} / {expected_count}**',
         f'- Generated asset records (gameplay + animation support): **{summary.get("generated_asset_records", 0)}**',
         f'- Animation dependencies linked: **{linked} / {expected}**',
         f'- Deferred animation dependencies: **{deferred}**',
@@ -234,6 +237,7 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
 
 
 def validate(repo_root: Path) -> dict:
+    active = load_active_manifest(repo_root)
     manifest_dir = repo_root / 'GameData' / 'AssetDefinitions' / 'Manifest'
     manifests = manifest_rows(manifest_dir)
     contracts = profile_contracts(repo_root)
@@ -254,8 +258,8 @@ def validate(repo_root: Path) -> dict:
         for path in exports.rglob('ANSET_*.animset.json.asset.json')
     }
     paths = sorted(exports.glob('Batch*/*.glb'))
-    if len(paths) != 700:
-        failures.append(f'expected 700 GLBs, found {len(paths)}')
+    if len(paths) != active.asset_count:
+        failures.append(f'expected {active.asset_count} GLBs, found {len(paths)}')
 
     for path in paths:
         asset_id = path.stem
@@ -450,7 +454,7 @@ def validate(repo_root: Path) -> dict:
             for i in range(1, 15)
         }
         (validation_dir / 'library_release_audit_v1.md').write_text(
-            release_audit_markdown(summary, report, batch_statuses)
+            release_audit_markdown(summary, report, batch_statuses, active.asset_count)
         )
     if failures:
         raise RuntimeError('\n'.join(failures))

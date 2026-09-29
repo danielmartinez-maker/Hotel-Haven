@@ -37,8 +37,7 @@ WorldAssetSet loadWorldAssetsFromDirectory(
     const std::filesystem::path& cookedRoot,
     RuntimeWorldAssetLoadMode mode) {
   if (mode == RuntimeWorldAssetLoadMode::FullMilestone) {
-    registry.loadDirectoryAssetRange(
-        cookedRoot, "HH_A", 1u, 700u, requiredWorldAssetIds());
+    registry.loadDirectory(cookedRoot);
     return worldAssetsFromRegistry(registry);
   }
 

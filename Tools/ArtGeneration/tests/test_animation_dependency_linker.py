@@ -15,12 +15,20 @@ def write_json(path: Path, data):
     path.write_text(json.dumps(data))
 
 
+def declared_manifest(tmp_path):
+    manifests = tmp_path / 'GameData' / 'AssetDefinitions' / 'Manifest'
+    write_json(tmp_path / 'GameData' / 'AssetDefinitions' / 'hotel_haven_asset_manifest_v2.json',
+               {'asset_count': 50, 'batches': [{'batch': 1, 'path': 'GameData/AssetDefinitions/Manifest/asset_batch_01.json', 'asset_count': 50}]})
+    return manifests
+
+
 def test_links_only_available_animation_sets(tmp_path):
-    manifests = tmp_path / 'Manifest'; exports = tmp_path / 'Exports'
+    manifests = declared_manifest(tmp_path); exports = tmp_path / 'Exports'
     write_json(manifests/'asset_batch_01.json', {'groups':[{'assets':[
         ['HH_A001','Door','doors','MAT_WOOD_WARM','P_ARCH_ANIMATED','ANSET_MECH_DOOR',[]],
         ['HH_A002','Static','walls','MAT_PLASTER_WARM','P_ARCH_STATIC',None,[]],
         ['HH_A003','Future','character','MAT_CHARACTER','P_CHARACTER','ANSET_GUEST_LOCOMOTION',[]],
+        *[[f'HH_A{i:03d}', 'Static', 'walls', 'MAT_PLASTER_WARM', 'P_ARCH_STATIC', None, []] for i in range(4, 51)],
     ]}]})
     write_json(exports/'Animations'/'ANSET_MECH_DOOR.animset.asset.json', {'asset_id':'ANSET_MECH_DOOR'})
     base={'schema':1,'dependencies':[]}
@@ -35,8 +43,9 @@ def test_links_only_available_animation_sets(tmp_path):
 
 
 def test_linking_is_idempotent(tmp_path):
-    manifests=tmp_path/'Manifest'; exports=tmp_path/'Exports'
-    write_json(manifests/'asset_batch_01.json', {'groups':[{'assets':[['HH_A001','Door','doors','M','P','ANSET_MECH_DOOR',[]]]}]})
+    manifests=declared_manifest(tmp_path); exports=tmp_path/'Exports'
+    write_json(manifests/'asset_batch_01.json', {'groups':[{'assets':[['HH_A001','Door','doors','M','P','ANSET_MECH_DOOR',[]],
+        *[[f'HH_A{i:03d}', 'Static', 'walls', 'M', 'P', None, []] for i in range(2, 51)]]}]})
     write_json(exports/'Animations'/'ANSET_MECH_DOOR.animset.asset.json', {'asset_id':'ANSET_MECH_DOOR'})
     write_json(exports/'Batch01'/'HH_A001.asset.json', {'asset_id':'HH_A001','dependencies':['BASE_DEP']})
     mod.link(manifests,exports); mod.link(manifests,exports)

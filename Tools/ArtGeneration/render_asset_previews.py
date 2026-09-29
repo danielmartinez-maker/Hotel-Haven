@@ -139,9 +139,9 @@ def names_for_batch(manifest: Path):
 
 
 def all_asset_names(repo_root: Path) -> dict[str, str]:
+    from asset_manifest import load_active_manifest
     names = {}
-    manifest_dir = repo_root / 'GameData' / 'AssetDefinitions' / 'Manifest'
-    for manifest in sorted(manifest_dir.glob('asset_batch_*.json')):
+    for manifest in load_active_manifest(repo_root).iter_batch_paths():
         names.update(names_for_batch(manifest))
     return names
 
@@ -250,15 +250,18 @@ def runtime_binding_sheet(repo_root: Path, out: Path):
 
 
 def generate(repo_root: Path):
+    from asset_manifest import load_active_manifest
+    active = load_active_manifest(repo_root)
     preview_dir = repo_root / 'Art' / 'Validation' / 'Previews'
     results = {}
-    for i in range(1, 15):
+    for entry in active.batch_entries:
+        i = entry.batch
         batch = f'{i:02d}'
         results[batch] = contact_sheet(
             repo_root / 'Art' / 'Exports' / f'Batch{batch}',
-            repo_root / 'GameData' / 'AssetDefinitions' / 'Manifest' / f'asset_batch_{batch}.json',
+            active.batch_path(i),
             preview_dir / f'Batch{batch}.png',
-            expected_count=50,
+            expected_count=entry.asset_count,
         )
     runtime_bindings = runtime_binding_sheet(
         repo_root,
@@ -275,7 +278,7 @@ def generate(repo_root: Path):
     preview_dir.mkdir(parents=True, exist_ok=True)
     (preview_dir / 'preview_qc.json').write_text(json.dumps(report, indent=2, sort_keys=True) + '\n')
     print(
-        'generated 14 batch preview sheets plus runtime binding sheet; '
+        f'generated {len(results)} batch preview sheets plus runtime binding sheet; '
         'preview QA PASSED'
     )
     return report

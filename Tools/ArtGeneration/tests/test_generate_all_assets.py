@@ -7,8 +7,10 @@ sys.path.insert(0,str(ROOT))
 import generate_all_assets as g
 
 def test_batch_registry_is_complete():
-    assert g.BATCHES==tuple(range(1,15))
-    assert [g.generator_source(i) for i in g.BATCHES]==[f'Tools/ArtGeneration/batch{i:02d}_generate.py' for i in range(1,15)]
+    from asset_manifest import load_active_manifest
+    batches = load_active_manifest(ROOT.parent.parent).batch_numbers
+    assert batches == tuple(range(1, 17))
+    assert [g.generator_source(i) for i in batches] == [f'Tools/ArtGeneration/batch{i:02d}_generate.py' for i in batches]
 
 def test_sidecar_normalization_matches_exact_export_filename(tmp_path):
     export=tmp_path/'HH_A001.glb'; export.write_bytes(b'x')

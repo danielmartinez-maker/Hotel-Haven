@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from asset_manifest import load_active_manifest
 
 
 def manifest_animation_bindings(manifest_dir: Path) -> dict[str, str]:
     bindings: dict[str, str] = {}
-    for manifest_path in sorted(manifest_dir.glob('asset_batch_*.json')):
+    active = load_active_manifest(manifest_dir.resolve().parents[2])
+    for manifest_path in active.iter_batch_paths():
         data = json.loads(manifest_path.read_text())
         for group in data['groups']:
             for row in group['assets']:
