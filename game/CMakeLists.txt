@@ -43,4 +43,9 @@ if(HH_GAME_BUILD_TESTS)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
   endforeach()
+
+  add_executable(hh_guest_model_tests tests/GuestModelTests.cpp)
+  target_link_libraries(hh_guest_model_tests PRIVATE hh_game)
+  add_test(NAME GuestModel COMMAND hh_guest_model_tests)
 endif()
+
