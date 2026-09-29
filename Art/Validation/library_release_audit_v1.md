@@ -2,15 +2,15 @@
 
 ## Release gate
 
-- Gameplay-facing assets: **1250 / 1250**
-- Generated asset records (gameplay + animation support): **1347**
-- Animation dependencies linked: **238 / 238**
+- Gameplay-facing assets: **1500 / 1500**
+- Generated asset records (gameplay + animation support): **1597**
+- Animation dependencies linked: **268 / 268**
 - Deferred animation dependencies: **0**
 - Interaction anchors normalized: **354 / 354**
 - Profile contract conformance: **PASS** with **0** failures
 - Placement/pivot QC: **PASS** with **0** failures
 - Semantic identity QC: **PASS** with **0** failures
-- Contextual placement exceptions: **10** documented assets
+- Contextual placement exceptions: **20** documented assets
 - Floor-support hardening applied: **1** generated assets
 - Mechanical animation coverage: **28 clips / 9 sets**
 - Humanoid animation coverage: **47 clips / 11 sets / 2 skeletons**
@@ -61,6 +61,11 @@
 | Batch 23 | PRODUCTION_GENERATOR_VALIDATED |
 | Batch 24 | PRODUCTION_GENERATOR_VALIDATED |
 | Batch 25 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 26 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 27 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 28 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 29 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 30 | PRODUCTION_GENERATOR_VALIDATED |
 
 ## Operational note
 

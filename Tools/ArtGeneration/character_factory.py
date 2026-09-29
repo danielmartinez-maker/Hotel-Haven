@@ -24,6 +24,10 @@ def add(scene,mesh,node,parent=None):
  scene.add_geometry(mesh,**kw)
 
 def role_palette(name,idx):
+ if 'Spa Therapist' in name:return COLORS['teal'],COLORS['white']
+ if 'Lifeguard' in name:return COLORS['red'],COLORS['navy']
+ if 'Event Coordinator' in name:return COLORS['navy'],COLORS['charcoal']
+ if 'Valet' in name:return COLORS['navy'],COLORS['black']
  if 'Receptionist' in name or 'Concierge' in name:return COLORS['navy'],COLORS['charcoal']
  if 'Bellhop' in name:return COLORS['burgundy'],COLORS['black']
  if 'Housekeeper' in name:return COLORS['teal'],COLORS['charcoal']
@@ -105,6 +109,19 @@ def add_archetype_details(scene,name,index,scale,cloth,pants):
   add(scene,cyl(.022*scale,.90*scale,(.36*scale,0,.45*scale),COLORS['black'],'cane',10),'Accessory_Cane','Hand_R')
 
 def add_staff_details(scene,name,scale):
+ if 'Spa Therapist' in name:
+  add(scene,box((.36*scale,.025*scale,.44*scale),(0,-.145*scale,1.12*scale),COLORS['white'],'spa_tunic'),'Accessory_SpaTunic','Spine')
+  add(scene,box((.10*scale,.02*scale,.05*scale),(.13*scale,-.16*scale,1.35*scale),COLORS['teal'],'spa_badge'),'Accessory_SpaBadge','Chest')
+ if 'Lifeguard' in name:
+  add(scene,box((.18*scale,.12*scale,.40*scale),(.31*scale,-.03*scale,.70*scale),COLORS['red'],'rescue_can'),'Accessory_RescueCan','Hand_R')
+  add(scene,box((.07*scale,.06*scale,.04*scale),(0,-.155*scale,1.39*scale),COLORS['gold'],'whistle'),'Accessory_LifeguardWhistle','Chest')
+ if 'Event Coordinator' in name:
+  add(scene,box((.12*scale,.035*scale,.045*scale),(.12*scale,-.15*scale,1.37*scale),COLORS['gold'],'event_badge'),'Accessory_EventBadge','Chest')
+  add(scene,box((.22*scale,.035*scale,.055*scale),(.20*scale,-.12*scale,1.58*scale),COLORS['black'],'headset'),'Accessory_EventHeadset','Head')
+  add(scene,cyl(.014*scale,.16*scale,(.29*scale,-.13*scale,1.51*scale),COLORS['black'],'headset_mic',8),'Accessory_EventMic','Head')
+ if 'Valet' in name:
+  add(scene,cyl(.15*scale,.11*scale,(0,0,1.79*scale),COLORS['navy'],'valet_cap',18),'Accessory_ValetCap','Head')
+  add(scene,box((.12*scale,.025*scale,.035*scale),(0,-.145*scale,1.37*scale),COLORS['gold'],'valet_badge'),'Accessory_ValetBadge','Chest')
  if 'Receptionist' in name or 'Concierge' in name:
   add_lapels(scene,scale,COLORS['gold']);add(scene,box((.08*scale,.02*scale,.04*scale),(.12*scale,-.145*scale,1.36*scale),COLORS['gold'],'badge'),'Accessory_NameBadge','Chest')
  if 'Receptionist' in name:

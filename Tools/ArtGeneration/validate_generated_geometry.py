@@ -54,6 +54,8 @@ CONTEXTUAL_PLACEMENT_OVERRIDES = {
     'HH_A238': 'wall/lobby clock',
     'HH_A371': 'presentation screen',
     'HH_A372': 'conference whiteboard',
+    **{f'HH_A{i:04d}': 'wall-mounted lobby sconce' for i in range(1456, 1461)},
+    **{f'HH_A{i:04d}': 'ceiling-mounted lobby chandelier' for i in range(1461, 1466)},
 }
 
 

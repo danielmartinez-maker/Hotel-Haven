@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 30,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1451",
+          "Hotel Table Centerpiece Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1452",
+          "Hotel Table Centerpiece Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1453",
+          "Hotel Table Centerpiece Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1454",
+          "Hotel Table Centerpiece High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1455",
+          "Hotel Table Centerpiece Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1456",
+          "Wall Sconce Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1457",
+          "Wall Sconce Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1458",
+          "Wall Sconce Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1459",
+          "Wall Sconce High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1460",
+          "Wall Sconce Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1461",
+          "Grand Chandelier Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1462",
+          "Grand Chandelier Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1463",
+          "Grand Chandelier Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1464",
+          "Grand Chandelier High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1465",
+          "Grand Chandelier Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1466",
+          "Framed Hotel Artwork Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1467",
+          "Framed Hotel Artwork Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1468",
+          "Framed Hotel Artwork Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1469",
+          "Framed Hotel Artwork High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1470",
+          "Framed Hotel Artwork Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1471",
+          "Lobby Wall Clock Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1472",
+          "Lobby Wall Clock Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1473",
+          "Lobby Wall Clock Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1474",
+          "Lobby Wall Clock High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1475",
+          "Lobby Wall Clock Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1476",
+          "Wayfinding Totem Compact",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1477",
+          "Wayfinding Totem Standard",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1478",
+          "Wayfinding Totem Extended",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1479",
+          "Wayfinding Totem High Capacity",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1480",
+          "Wayfinding Totem Grand",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1481",
+          "Guest Room Number Plaque Compact",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1482",
+          "Guest Room Number Plaque Standard",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1483",
+          "Guest Room Number Plaque Extended",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1484",
+          "Guest Room Number Plaque High Capacity",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1485",
+          "Guest Room Number Plaque Grand",
+          "decor",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1486",
+          "Hotel Entrance Mat Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1487",
+          "Hotel Entrance Mat Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1488",
+          "Hotel Entrance Mat Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1489",
+          "Hotel Entrance Mat High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1490",
+          "Hotel Entrance Mat Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1491",
+          "Decorative Ceramic Vase Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1492",
+          "Decorative Ceramic Vase Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1493",
+          "Decorative Ceramic Vase Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1494",
+          "Decorative Ceramic Vase High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1495",
+          "Decorative Ceramic Vase Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A1496",
+          "Folding Privacy Screen Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1497",
+          "Folding Privacy Screen Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1498",
+          "Folding Privacy Screen Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1499",
+          "Folding Privacy Screen High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1500",
+          "Folding Privacy Screen Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

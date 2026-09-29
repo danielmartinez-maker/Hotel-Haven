@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 27,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1301",
+          "Ergonomic Work Chair Compact",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1302",
+          "Ergonomic Work Chair Standard",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1303",
+          "Ergonomic Work Chair Extended",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1304",
+          "Ergonomic Work Chair High Capacity",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1305",
+          "Ergonomic Work Chair Grand",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1306",
+          "Guest Accent Armchair Compact",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1307",
+          "Guest Accent Armchair Standard",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1308",
+          "Guest Accent Armchair Extended",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1309",
+          "Guest Accent Armchair High Capacity",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1310",
+          "Guest Accent Armchair Grand",
+          "guest_room",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1311",
+          "Bedside Drawer Table Compact",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1312",
+          "Bedside Drawer Table Standard",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1313",
+          "Bedside Drawer Table Extended",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1314",
+          "Bedside Drawer Table High Capacity",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1315",
+          "Bedside Drawer Table Grand",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1316",
+          "In-Room Media Console Compact",
+          "guest_room",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1317",
+          "In-Room Media Console Standard",
+          "guest_room",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1318",
+          "In-Room Media Console Extended",
+          "guest_room",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1319",
+          "In-Room Media Console High Capacity",
+          "guest_room",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1320",
+          "In-Room Media Console Grand",
+          "guest_room",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1321",
+          "In-Room Coffee Cabinet Compact",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1322",
+          "In-Room Coffee Cabinet Standard",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1323",
+          "In-Room Coffee Cabinet Extended",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1324",
+          "In-Room Coffee Cabinet High Capacity",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1325",
+          "In-Room Coffee Cabinet Grand",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1326",
+          "Foldable Luggage Rack Compact",
+          "guest_room",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1327",
+          "Foldable Luggage Rack Standard",
+          "guest_room",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1328",
+          "Foldable Luggage Rack Extended",
+          "guest_room",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1329",
+          "Foldable Luggage Rack High Capacity",
+          "guest_room",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1330",
+          "Foldable Luggage Rack Grand",
+          "guest_room",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1331",
+          "Full-Length Guest Mirror Compact",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1332",
+          "Full-Length Guest Mirror Standard",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1333",
+          "Full-Length Guest Mirror Extended",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1334",
+          "Full-Length Guest Mirror High Capacity",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1335",
+          "Full-Length Guest Mirror Grand",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1336",
+          "Double Basin Vanity Compact",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1337",
+          "Double Basin Vanity Standard",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1338",
+          "Double Basin Vanity Extended",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1339",
+          "Double Basin Vanity High Capacity",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1340",
+          "Double Basin Vanity Grand",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1341",
+          "Frameless Shower Enclosure Compact",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1342",
+          "Frameless Shower Enclosure Standard",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1343",
+          "Frameless Shower Enclosure Extended",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1344",
+          "Frameless Shower Enclosure High Capacity",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1345",
+          "Frameless Shower Enclosure Grand",
+          "guest_room",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1346",
+          "Deep Soaking Bathtub Compact",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1347",
+          "Deep Soaking Bathtub Standard",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1348",
+          "Deep Soaking Bathtub Extended",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1349",
+          "Deep Soaking Bathtub High Capacity",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1350",
+          "Deep Soaking Bathtub Grand",
+          "guest_room",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

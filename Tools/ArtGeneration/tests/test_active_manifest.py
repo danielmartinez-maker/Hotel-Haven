@@ -13,17 +13,19 @@ from batch16_generate import build_asset as build_batch16
 
 
 class ActiveManifestTests(unittest.TestCase):
-    def test_1250_canonical_ids_and_declared_batches(self):
+    def test_1500_canonical_ids_and_declared_batches(self):
         active = load_active_manifest(ROOT)
-        self.assertEqual(active.asset_count, 1250)
-        self.assertEqual(active.batch_numbers, tuple(range(1, 26)))
+        self.assertEqual(active.asset_count, 1500)
+        self.assertEqual(active.batch_numbers, tuple(range(1, 31)))
         ids = [row[0] for _, _, row in active.iter_rows()]
-        self.assertEqual(set(ids), {f'HH_A{i:03d}' for i in range(1, 1251)})
+        self.assertEqual(set(ids), {f'HH_A{i:03d}' for i in range(1, 1501)})
         self.assertEqual(active.batch_entries[16].generator_family, 'architectural_modules')
         self.assertTrue(all(entry.generator_family == 'curated_hotel'
                             for entry in active.batch_entries[17:21]))
         self.assertTrue(all(entry.generator_family == 'extended_hotel'
-                            for entry in active.batch_entries[21:]))
+                            for entry in active.batch_entries[21:25]))
+        self.assertTrue(all(entry.generator_family == 'catalog_expansion'
+                            for entry in active.batch_entries[25:]))
         metadata, _ = gameplay_manifest_metadata(ROOT)
         self.assertEqual(set(metadata), set(ids))
         self.assertEqual(len(manifest_animation_bindings(ROOT / 'GameData/AssetDefinitions/Manifest')),

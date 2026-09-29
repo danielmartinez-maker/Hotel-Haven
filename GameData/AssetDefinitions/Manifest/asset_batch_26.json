@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 26,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1251",
+          "Guest Honeymooner Woman Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1252",
+          "Guest Honeymooner Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1253",
+          "Guest Honeymooner Woman Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1254",
+          "Guest Honeymooner Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1255",
+          "Guest Honeymooner Woman Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1256",
+          "Guest Accessible Traveler Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1257",
+          "Guest Accessible Traveler Man Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1258",
+          "Guest Accessible Traveler Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1259",
+          "Guest Accessible Traveler Man High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1260",
+          "Guest Accessible Traveler Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1261",
+          "Hotel Spa Therapist Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1262",
+          "Hotel Spa Therapist Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1263",
+          "Hotel Spa Therapist Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1264",
+          "Hotel Spa Therapist Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1265",
+          "Hotel Spa Therapist Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1266",
+          "Pool Lifeguard Attendant Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1267",
+          "Pool Lifeguard Attendant Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1268",
+          "Pool Lifeguard Attendant Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1269",
+          "Pool Lifeguard Attendant Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1270",
+          "Pool Lifeguard Attendant Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1271",
+          "Conference Event Coordinator Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1272",
+          "Conference Event Coordinator Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1273",
+          "Conference Event Coordinator Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1274",
+          "Conference Event Coordinator Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1275",
+          "Conference Event Coordinator Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1276",
+          "Hotel Valet Attendant Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1277",
+          "Hotel Valet Attendant Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1278",
+          "Hotel Valet Attendant Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1279",
+          "Hotel Valet Attendant Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1280",
+          "Hotel Valet Attendant Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1281",
+          "Presidential King Bed Compact",
+          "guest_room",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1282",
+          "Presidential King Bed Standard",
+          "guest_room",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1283",
+          "Presidential King Bed Extended",
+          "guest_room",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1284",
+          "Presidential King Bed High Capacity",
+          "guest_room",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1285",
+          "Presidential King Bed Grand",
+          "guest_room",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1286",
+          "Guest Suite Armoire Compact",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1287",
+          "Guest Suite Armoire Standard",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1288",
+          "Guest Suite Armoire Extended",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1289",
+          "Guest Suite Armoire High Capacity",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1290",
+          "Guest Suite Armoire Grand",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1291",
+          "Bedroom Dresser Chest Compact",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1292",
+          "Bedroom Dresser Chest Standard",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1293",
+          "Bedroom Dresser Chest Extended",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1294",
+          "Bedroom Dresser Chest High Capacity",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1295",
+          "Bedroom Dresser Chest Grand",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A1296",
+          "Executive Writing Desk Compact",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1297",
+          "Executive Writing Desk Standard",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1298",
+          "Executive Writing Desk Extended",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1299",
+          "Executive Writing Desk High Capacity",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1300",
+          "Executive Writing Desk Grand",
+          "guest_room",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
