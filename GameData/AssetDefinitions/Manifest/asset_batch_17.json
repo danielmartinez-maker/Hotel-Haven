@@ -1,0 +1,471 @@
+{
+  "schema": 2,
+  "batch": 17,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A801",
+          "Corridor Floor Inlay Compact",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A802",
+          "Corridor Floor Inlay Standard",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A803",
+          "Corridor Floor Inlay Extended",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A804",
+          "Corridor Floor Inlay High Capacity",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A805",
+          "Corridor Floor Inlay Grand",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A806",
+          "Wainscot Wall Panel Compact",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A807",
+          "Wainscot Wall Panel Standard",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A808",
+          "Wainscot Wall Panel Extended",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A809",
+          "Wainscot Wall Panel High Capacity",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A810",
+          "Wainscot Wall Panel Grand",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A811",
+          "Glazed Corridor Partition Compact",
+          "architectural_module",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A812",
+          "Glazed Corridor Partition Standard",
+          "architectural_module",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A813",
+          "Glazed Corridor Partition Extended",
+          "architectural_module",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A814",
+          "Glazed Corridor Partition High Capacity",
+          "architectural_module",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A815",
+          "Glazed Corridor Partition Grand",
+          "architectural_module",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A816",
+          "Corner Protection Column Compact",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A817",
+          "Corner Protection Column Standard",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A818",
+          "Corner Protection Column Extended",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A819",
+          "Corner Protection Column High Capacity",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A820",
+          "Corner Protection Column Grand",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A821",
+          "Accessible Door Threshold Compact",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A822",
+          "Accessible Door Threshold Standard",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A823",
+          "Accessible Door Threshold Extended",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A824",
+          "Accessible Door Threshold High Capacity",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A825",
+          "Accessible Door Threshold Grand",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A826",
+          "Service Riser Casing Compact",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A827",
+          "Service Riser Casing Standard",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A828",
+          "Service Riser Casing Extended",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A829",
+          "Service Riser Casing High Capacity",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A830",
+          "Service Riser Casing Grand",
+          "architectural_module",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A831",
+          "Open Passage Arch Compact",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A832",
+          "Open Passage Arch Standard",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A833",
+          "Open Passage Arch Extended",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A834",
+          "Open Passage Arch High Capacity",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A835",
+          "Open Passage Arch Grand",
+          "architectural_module",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A836",
+          "Integrated Planter Divider Compact",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A837",
+          "Integrated Planter Divider Standard",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A838",
+          "Integrated Planter Divider Extended",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A839",
+          "Integrated Planter Divider High Capacity",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A840",
+          "Integrated Planter Divider Grand",
+          "architectural_module",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A841",
+          "Acoustic Baffle Wall Compact",
+          "architectural_module",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A842",
+          "Acoustic Baffle Wall Standard",
+          "architectural_module",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A843",
+          "Acoustic Baffle Wall Extended",
+          "architectural_module",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A844",
+          "Acoustic Baffle Wall High Capacity",
+          "architectural_module",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A845",
+          "Acoustic Baffle Wall Grand",
+          "architectural_module",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A846",
+          "Safety Guard Rail Compact",
+          "architectural_module",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A847",
+          "Safety Guard Rail Standard",
+          "architectural_module",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A848",
+          "Safety Guard Rail Extended",
+          "architectural_module",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A849",
+          "Safety Guard Rail High Capacity",
+          "architectural_module",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A850",
+          "Safety Guard Rail Grand",
+          "architectural_module",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

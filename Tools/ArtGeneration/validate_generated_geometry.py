@@ -224,8 +224,8 @@ def release_audit_markdown(summary: dict, report: dict, batch_statuses: dict[str
     for profile, budget in sorted(report.get('profile_face_budgets', {}).items()):
         lines.append(f'| {profile} | {budget} |')
     lines.extend(['', '## Batch status', '', '| Batch | Status |', '| --- | --- |'])
-    for batch in range(1, 15):
-        lines.append(f'| Batch {batch:02d} | {batch_statuses.get(f"{batch:02d}", "UNKNOWN")} |')
+    for batch, status in sorted(batch_statuses.items()):
+        lines.append(f'| Batch {batch} | {status} |')
     lines.extend([
         '',
         '## Operational note',
@@ -445,14 +445,7 @@ def validate(repo_root: Path) -> dict:
     if summary_path.is_file():
         summary = json.loads(summary_path.read_text())
         counts = summary.get('batch_counts', {})
-        batch_statuses = {
-            f'{i:02d}': (
-                'PRODUCTION_GENERATOR_VALIDATED'
-                if counts.get(f'{i:02d}') == 50
-                else f'INCOMPLETE_{counts.get(f"{i:02d}", 0)}_OF_50'
-            )
-            for i in range(1, 15)
-        }
+        batch_statuses = audited_batch_statuses(counts, active.batch_numbers)
         (validation_dir / 'library_release_audit_v1.md').write_text(
             release_audit_markdown(summary, report, batch_statuses, active.asset_count)
         )
@@ -464,6 +457,17 @@ def validate(repo_root: Path) -> dict:
         f"anchors={anchor_bindings}/{expected_anchor_bindings}; contracts=PASS; placement=PASS; semantic=PASS"
     )
     return report
+
+
+def audited_batch_statuses(counts, batch_numbers):
+    return {
+        f'{number:02d}': (
+            'PRODUCTION_GENERATOR_VALIDATED'
+            if counts.get(f'{number:02d}') == 50
+            else f'INCOMPLETE_{counts.get(f"{number:02d}", 0)}_OF_50'
+        )
+        for number in batch_numbers
+    }
 
 
 def main():

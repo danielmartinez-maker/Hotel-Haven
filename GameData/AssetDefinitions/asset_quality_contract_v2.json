@@ -85,7 +85,17 @@
     "v2_restaurant_tables": ["HH_A651", "HH_A652", "HH_A653"],
     "v2_housekeeping_carts": ["HH_A701", "HH_A702", "HH_A703", "HH_A704"],
     "v2_gym_equipment": ["HH_A754", "HH_A755", "HH_A756", "HH_A757", "HH_A758", "HH_A759"],
-    "v2_luggage": ["HH_A777", "HH_A778", "HH_A779", "HH_A780"]
+    "v2_luggage": ["HH_A777", "HH_A778", "HH_A779", "HH_A780"],
+    "corridor_module_0": ["HH_A801", "HH_A802", "HH_A803", "HH_A804", "HH_A805"],
+    "corridor_module_1": ["HH_A806", "HH_A807", "HH_A808", "HH_A809", "HH_A810"],
+    "corridor_module_2": ["HH_A811", "HH_A812", "HH_A813", "HH_A814", "HH_A815"],
+    "corridor_module_3": ["HH_A816", "HH_A817", "HH_A818", "HH_A819", "HH_A820"],
+    "corridor_module_4": ["HH_A821", "HH_A822", "HH_A823", "HH_A824", "HH_A825"],
+    "corridor_module_5": ["HH_A826", "HH_A827", "HH_A828", "HH_A829", "HH_A830"],
+    "corridor_module_6": ["HH_A831", "HH_A832", "HH_A833", "HH_A834", "HH_A835"],
+    "corridor_module_7": ["HH_A836", "HH_A837", "HH_A838", "HH_A839", "HH_A840"],
+    "corridor_module_8": ["HH_A841", "HH_A842", "HH_A843", "HH_A844", "HH_A845"],
+    "corridor_module_9": ["HH_A846", "HH_A847", "HH_A848", "HH_A849", "HH_A850"]
   },
   "variant_checks": {
     "compare": ["geometry_signature", "bounds_ratio", "semantic_node_set", "perceptual_signature", "silhouette_signature"],

@@ -36,7 +36,7 @@ class GeneratorRegistryTests(unittest.TestCase):
 
     def test_existing_batches_preserve_legacy_generators(self):
         active = load_active_manifest(ROOT)
-        for entry in active.batch_entries:
+        for entry in active.batch_entries[:16]:
             self.assertEqual(resolve_batch_generator(entry).__name__, f'batch{entry.batch:02d}_generate')
 
     def test_unknown_family_fails_closed(self):

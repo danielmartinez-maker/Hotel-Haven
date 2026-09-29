@@ -47,6 +47,8 @@ SEMANTIC_NODE_REQUIREMENTS = {
 }
 
 DISTINCT_VARIANT_GROUPS = {
+    **{f'corridor_module_{family}': tuple(f'HH_A{i:03d}' for i in range(801 + family * 5, 806 + family * 5))
+       for family in range(10)},
     'wall_clocks': ('HH_A392', 'HH_A393'),
     'room_number_plaques': ('HH_A402', 'HH_A403'),
     'directional_signs': ('HH_A404', 'HH_A405'),
