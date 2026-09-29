@@ -7,6 +7,7 @@ from core_hotel_expansion_factory import build_asset as build_core_hotel_expansi
 from design_completion_factory import build_asset as build_design_completion
 from hotel_continuation_factory import build_asset as build_hotel_continuation
 from hotel_finalization_factory import build_asset as build_hotel_finalization
+from hotel_catalog_completion_factory import build_asset as build_hotel_catalog_completion
 from curated_hotel_factory import build_asset as build_curated_hotel
 from destination_expansion_factory import build_asset as build_destination_expansion
 from extended_hotel_factory import build_asset as build_extended_hotel
@@ -40,4 +41,5 @@ GENERATOR_FAMILIES = {
     'hotel_continuation': FamilyGenerator(build_hotel_continuation),
     'design_completion': FamilyGenerator(build_design_completion),
     'hotel_finalization': FamilyGenerator(build_hotel_finalization),
+    'hotel_catalog_completion': FamilyGenerator(build_hotel_catalog_completion),
 }

@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 78,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3851",
+          "Hotel Crest Relief Plaque Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3852",
+          "Hotel Crest Relief Plaque Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3853",
+          "Hotel Crest Relief Plaque Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3854",
+          "Hotel Crest Relief Plaque High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3855",
+          "Hotel Crest Relief Plaque Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3856",
+          "Heritage Photograph Triptych Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3857",
+          "Heritage Photograph Triptych Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3858",
+          "Heritage Photograph Triptych Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3859",
+          "Heritage Photograph Triptych High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3860",
+          "Heritage Photograph Triptych Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3861",
+          "Seasonal Flower Arrangement Bowl Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3862",
+          "Seasonal Flower Arrangement Bowl Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3863",
+          "Seasonal Flower Arrangement Bowl Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3864",
+          "Seasonal Flower Arrangement Bowl High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3865",
+          "Seasonal Flower Arrangement Bowl Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3866",
+          "Concierge Desk Bookend Set Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3867",
+          "Concierge Desk Bookend Set Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3868",
+          "Concierge Desk Bookend Set Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3869",
+          "Concierge Desk Bookend Set High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3870",
+          "Concierge Desk Bookend Set Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3871",
+          "Glass Bowl on Brass Stand Compact",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3872",
+          "Glass Bowl on Brass Stand Standard",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3873",
+          "Glass Bowl on Brass Stand Extended",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3874",
+          "Glass Bowl on Brass Stand High Capacity",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3875",
+          "Glass Bowl on Brass Stand Grand",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3876",
+          "Antique Compass Globe Display Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3877",
+          "Antique Compass Globe Display Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3878",
+          "Antique Compass Globe Display Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3879",
+          "Antique Compass Globe Display High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3880",
+          "Antique Compass Globe Display Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3881",
+          "Paired Lobby Floor Lanterns Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3882",
+          "Paired Lobby Floor Lanterns Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3883",
+          "Paired Lobby Floor Lanterns Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3884",
+          "Paired Lobby Floor Lanterns High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3885",
+          "Paired Lobby Floor Lanterns Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3886",
+          "Miniature Hotel Glass Vitrine Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3887",
+          "Miniature Hotel Glass Vitrine Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3888",
+          "Miniature Hotel Glass Vitrine Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3889",
+          "Miniature Hotel Glass Vitrine High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3890",
+          "Miniature Hotel Glass Vitrine Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A3891",
+          "Courtyard Drinking Fountain Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3892",
+          "Courtyard Drinking Fountain Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3893",
+          "Courtyard Drinking Fountain Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3894",
+          "Courtyard Drinking Fountain High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3895",
+          "Courtyard Drinking Fountain Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A3896",
+          "Arrival Curb Delineator Set Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3897",
+          "Arrival Curb Delineator Set Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3898",
+          "Arrival Curb Delineator Set Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3899",
+          "Arrival Curb Delineator Set High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3900",
+          "Arrival Curb Delineator Set Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

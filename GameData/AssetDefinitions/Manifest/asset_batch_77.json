@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 77,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3801",
+          "Spa Reception Service Podium Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3802",
+          "Spa Reception Service Podium Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3803",
+          "Spa Reception Service Podium Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3804",
+          "Spa Reception Service Podium High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3805",
+          "Spa Reception Service Podium Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3806",
+          "Lobby Meeting Table and Stools Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3807",
+          "Lobby Meeting Table and Stools Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3808",
+          "Lobby Meeting Table and Stools Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3809",
+          "Lobby Meeting Table and Stools High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3810",
+          "Lobby Meeting Table and Stools Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3811",
+          "Conference Badge Check In Kiosk Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3812",
+          "Conference Badge Check In Kiosk Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3813",
+          "Conference Badge Check In Kiosk Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3814",
+          "Conference Badge Check In Kiosk High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3815",
+          "Conference Badge Check In Kiosk Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3816",
+          "Reading Room Magazine Stand Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3817",
+          "Reading Room Magazine Stand Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3818",
+          "Reading Room Magazine Stand Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3819",
+          "Reading Room Magazine Stand High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3820",
+          "Reading Room Magazine Stand Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3821",
+          "Stroller and Mobility Rack Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3822",
+          "Stroller and Mobility Rack Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3823",
+          "Stroller and Mobility Rack Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3824",
+          "Stroller and Mobility Rack High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3825",
+          "Stroller and Mobility Rack Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3826",
+          "Banquet Water Refill Island Compact",
+          "public",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3827",
+          "Banquet Water Refill Island Standard",
+          "public",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3828",
+          "Banquet Water Refill Island Extended",
+          "public",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3829",
+          "Banquet Water Refill Island High Capacity",
+          "public",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3830",
+          "Banquet Water Refill Island Grand",
+          "public",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3831",
+          "Lobby Parcel Pickup Counter Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3832",
+          "Lobby Parcel Pickup Counter Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3833",
+          "Lobby Parcel Pickup Counter Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3834",
+          "Lobby Parcel Pickup Counter High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3835",
+          "Lobby Parcel Pickup Counter Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3836",
+          "Event Registration Table Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3837",
+          "Event Registration Table Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3838",
+          "Event Registration Table Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3839",
+          "Event Registration Table High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3840",
+          "Event Registration Table Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3841",
+          "Ceramic Vessel Trio Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3842",
+          "Ceramic Vessel Trio Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3843",
+          "Ceramic Vessel Trio Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3844",
+          "Ceramic Vessel Trio High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3845",
+          "Ceramic Vessel Trio Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3846",
+          "Brass and Marble Abstract Sculpture Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3847",
+          "Brass and Marble Abstract Sculpture Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3848",
+          "Brass and Marble Abstract Sculpture Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3849",
+          "Brass and Marble Abstract Sculpture High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3850",
+          "Brass and Marble Abstract Sculpture Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

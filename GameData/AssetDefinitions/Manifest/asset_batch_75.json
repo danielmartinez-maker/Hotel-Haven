@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 75,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3701",
+          "Ballroom Stage Lighting Portal Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3702",
+          "Ballroom Stage Lighting Portal Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3703",
+          "Ballroom Stage Lighting Portal Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3704",
+          "Ballroom Stage Lighting Portal High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3705",
+          "Ballroom Stage Lighting Portal Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3706",
+          "Rooftop Intake Louver Bank Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3707",
+          "Rooftop Intake Louver Bank Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3708",
+          "Rooftop Intake Louver Bank Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3709",
+          "Rooftop Intake Louver Bank High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3710",
+          "Rooftop Intake Louver Bank Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3711",
+          "Ballroom Floor Expansion Joint Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3712",
+          "Ballroom Floor Expansion Joint Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3713",
+          "Ballroom Floor Expansion Joint Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3714",
+          "Ballroom Floor Expansion Joint High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3715",
+          "Ballroom Floor Expansion Joint Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3716",
+          "Courtyard Glass Door Jamb Compact",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3717",
+          "Courtyard Glass Door Jamb Standard",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3718",
+          "Courtyard Glass Door Jamb Extended",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3719",
+          "Courtyard Glass Door Jamb High Capacity",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3720",
+          "Courtyard Glass Door Jamb Grand",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3721",
+          "Accessible Corridor Ramp Handrail Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3722",
+          "Accessible Corridor Ramp Handrail Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3723",
+          "Accessible Corridor Ramp Handrail Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3724",
+          "Accessible Corridor Ramp Handrail High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3725",
+          "Accessible Corridor Ramp Handrail Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3726",
+          "Ballroom Stage Front Fascia Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3727",
+          "Ballroom Stage Front Fascia Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3728",
+          "Ballroom Stage Front Fascia Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3729",
+          "Ballroom Stage Front Fascia High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3730",
+          "Ballroom Stage Front Fascia Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3731",
+          "Roof Drain Overflow Pan Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3732",
+          "Roof Drain Overflow Pan Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3733",
+          "Roof Drain Overflow Pan Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3734",
+          "Roof Drain Overflow Pan High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3735",
+          "Roof Drain Overflow Pan Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3736",
+          "Guest Corridor Corner Guard Compact",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3737",
+          "Guest Corridor Corner Guard Standard",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3738",
+          "Guest Corridor Corner Guard Extended",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3739",
+          "Guest Corridor Corner Guard High Capacity",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3740",
+          "Guest Corridor Corner Guard Grand",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3741",
+          "Service Riser Access Panel Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3742",
+          "Service Riser Access Panel Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3743",
+          "Service Riser Access Panel Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3744",
+          "Service Riser Access Panel High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3745",
+          "Service Riser Access Panel Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3746",
+          "Night Arrival Wind Screen Compact",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3747",
+          "Night Arrival Wind Screen Standard",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3748",
+          "Night Arrival Wind Screen Extended",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3749",
+          "Night Arrival Wind Screen High Capacity",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3750",
+          "Night Arrival Wind Screen Grand",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

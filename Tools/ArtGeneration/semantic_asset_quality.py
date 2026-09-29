@@ -153,6 +153,16 @@ DISTINCT_VARIANT_GROUPS = {
     **{f'finalization_amenity_{group}': tuple(f'HH_A{i:04d}' for i in range(3651 + group * 5, 3656 + group * 5))
        for group in range(9)},
     'finalization_decor_0': tuple(f'HH_A{i:04d}' for i in range(3696, 3701)),
+    **{f'catalog_completion_architecture_{group}': tuple(f'HH_A{i:04d}' for i in range(3701 + group * 5, 3706 + group * 5))
+       for group in range(10)},
+    **{f'catalog_completion_guestroom_{group}': tuple(f'HH_A{i:04d}' for i in range(3751 + group * 5, 3756 + group * 5))
+       for group in range(10)},
+    **{f'catalog_completion_public_{group}': tuple(f'HH_A{i:04d}' for i in range(3801 + group * 5, 3806 + group * 5))
+       for group in range(8)},
+    **{f'catalog_completion_decor_{group}': tuple(f'HH_A{i:04d}' for i in range(3841 + group * 5, 3846 + group * 5))
+       for group in range(10)},
+    **{f'catalog_completion_exterior_{group}': tuple(f'HH_A{i:04d}' for i in range(3891 + group * 5, 3896 + group * 5))
+       for group in range(2)},
     **{f'curated_hotel_{group}': tuple(f'HH_A{i:03d}' for i in range(851 + group * 5, 856 + group * 5))
        for group in range(40)},
     **{f'corridor_module_{family}': tuple(f'HH_A{i:03d}' for i in range(801 + family * 5, 806 + family * 5))
