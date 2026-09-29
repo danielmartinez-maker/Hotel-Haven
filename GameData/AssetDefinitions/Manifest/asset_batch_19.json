@@ -1,0 +1,471 @@
+{
+  "schema": 2,
+  "batch": 19,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A901",
+          "Restaurant Dining Table Compact",
+          "table",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A902",
+          "Restaurant Dining Table Standard",
+          "table",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A903",
+          "Restaurant Dining Table Expanded",
+          "table",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A904",
+          "Restaurant Dining Table High Capacity",
+          "table",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A905",
+          "Restaurant Dining Table Grand",
+          "table",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A906",
+          "Dining Banquette Compact",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A907",
+          "Dining Banquette Standard",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A908",
+          "Dining Banquette Expanded",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A909",
+          "Dining Banquette High Capacity",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A910",
+          "Dining Banquette Grand",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A911",
+          "Bar Service Counter Compact",
+          "counter",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A912",
+          "Bar Service Counter Standard",
+          "counter",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A913",
+          "Bar Service Counter Expanded",
+          "counter",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A914",
+          "Bar Service Counter High Capacity",
+          "counter",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A915",
+          "Bar Service Counter Grand",
+          "counter",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A916",
+          "Buffet Island Compact",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A917",
+          "Buffet Island Standard",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A918",
+          "Buffet Island Expanded",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A919",
+          "Buffet Island High Capacity",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A920",
+          "Buffet Island Grand",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A921",
+          "Kitchen Prep Station Compact",
+          "counter",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A922",
+          "Kitchen Prep Station Standard",
+          "counter",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A923",
+          "Kitchen Prep Station Expanded",
+          "counter",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A924",
+          "Kitchen Prep Station High Capacity",
+          "counter",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A925",
+          "Kitchen Prep Station Grand",
+          "counter",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A926",
+          "Coffee Service Station Compact",
+          "coffee",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A927",
+          "Coffee Service Station Standard",
+          "coffee",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A928",
+          "Coffee Service Station Expanded",
+          "coffee",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A929",
+          "Coffee Service Station High Capacity",
+          "coffee",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A930",
+          "Coffee Service Station Grand",
+          "coffee",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A931",
+          "Pastry Display Case Compact",
+          "display",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A932",
+          "Pastry Display Case Standard",
+          "display",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A933",
+          "Pastry Display Case Expanded",
+          "display",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A934",
+          "Pastry Display Case High Capacity",
+          "display",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A935",
+          "Pastry Display Case Grand",
+          "display",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A936",
+          "Wine Bottle Rack Compact",
+          "rack",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A937",
+          "Wine Bottle Rack Standard",
+          "rack",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A938",
+          "Wine Bottle Rack Expanded",
+          "rack",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A939",
+          "Wine Bottle Rack High Capacity",
+          "rack",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A940",
+          "Wine Bottle Rack Grand",
+          "rack",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A941",
+          "Host Reception Podium Compact",
+          "podium",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A942",
+          "Host Reception Podium Standard",
+          "podium",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A943",
+          "Host Reception Podium Expanded",
+          "podium",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A944",
+          "Host Reception Podium High Capacity",
+          "podium",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A945",
+          "Host Reception Podium Grand",
+          "podium",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A946",
+          "Dish Return Station Compact",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A947",
+          "Dish Return Station Standard",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A948",
+          "Dish Return Station Expanded",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A949",
+          "Dish Return Station High Capacity",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A950",
+          "Dish Return Station Grand",
+          "buffet",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

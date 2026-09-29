@@ -52,7 +52,7 @@ class AssetManifest:
             if len(rows) != entry.asset_count:
                 raise ValueError(f'batch {entry.batch} declares {len(rows)} rows, expected {entry.asset_count}')
             all_ids.extend(row[0] for row in rows)
-        if sorted(all_ids) != [f'HH_A{i:03d}' for i in range(1, self.asset_count + 1)]:
+        if set(all_ids) != {f'HH_A{i:03d}' for i in range(1, self.asset_count + 1)} or len(all_ids) != len(set(all_ids)):
             raise ValueError('canonical IDs must be contiguous and unique across declared shards')
 
     @property

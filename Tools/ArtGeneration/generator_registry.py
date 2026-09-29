@@ -2,6 +2,7 @@
 
 from architecture_factory import build_asset as build_architecture
 from architectural_modules_factory import build_asset as build_architectural_modules
+from curated_hotel_factory import build_asset as build_curated_hotel
 from v2_asset_common import generate_manifest_batch
 
 
@@ -16,4 +17,5 @@ class FamilyGenerator:
 GENERATOR_FAMILIES = {
     'architecture': FamilyGenerator(build_architecture),
     'architectural_modules': FamilyGenerator(build_architectural_modules),
+    'curated_hotel': FamilyGenerator(build_curated_hotel),
 }

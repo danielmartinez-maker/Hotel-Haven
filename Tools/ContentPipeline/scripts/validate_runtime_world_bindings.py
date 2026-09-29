@@ -8,8 +8,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-ASSET_ID_RE = re.compile(r"^HH_A\d{3}$")
-CPP_ASSET_ID_RE = re.compile(r'"(HH_A\d{3})"')
+ASSET_ID_RE = re.compile(r"^HH_A\d{3,}$")
+CPP_ASSET_ID_RE = re.compile(r'"(HH_A\d{3,})"')
 
 
 def load_json(path: Path) -> dict:

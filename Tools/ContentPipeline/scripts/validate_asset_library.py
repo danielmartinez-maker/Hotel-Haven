@@ -23,7 +23,7 @@ REQUIRED_ENTRY_COLUMNS = [
 ANIMATED_PROFILES = {
     "P_ARCH_ANIMATED", "P_SERVICE_PROP_ANIMATED", "P_INTERACTIVE_ANIMATED", "P_CHARACTER",
 }
-ASSET_ID_RE = re.compile(r"^HH_A(\d{3})$")
+ASSET_ID_RE = re.compile(r"^HH_A(\d{3,})$")
 
 
 def load_json(path: Path) -> dict:

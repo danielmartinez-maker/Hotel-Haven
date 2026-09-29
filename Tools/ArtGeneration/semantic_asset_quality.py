@@ -47,6 +47,8 @@ SEMANTIC_NODE_REQUIREMENTS = {
 }
 
 DISTINCT_VARIANT_GROUPS = {
+    **{f'curated_hotel_{group}': tuple(f'HH_A{i:03d}' for i in range(851 + group * 5, 856 + group * 5))
+       for group in range(40)},
     **{f'corridor_module_{family}': tuple(f'HH_A{i:03d}' for i in range(801 + family * 5, 806 + family * 5))
        for family in range(10)},
     'wall_clocks': ('HH_A392', 'HH_A393'),

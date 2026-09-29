@@ -13,13 +13,15 @@ from batch16_generate import build_asset as build_batch16
 
 
 class ActiveManifestTests(unittest.TestCase):
-    def test_850_canonical_ids_and_declared_batches(self):
+    def test_1050_canonical_ids_and_declared_batches(self):
         active = load_active_manifest(ROOT)
-        self.assertEqual(active.asset_count, 850)
-        self.assertEqual(active.batch_numbers, tuple(range(1, 18)))
+        self.assertEqual(active.asset_count, 1050)
+        self.assertEqual(active.batch_numbers, tuple(range(1, 22)))
         ids = [row[0] for _, _, row in active.iter_rows()]
-        self.assertEqual(sorted(ids), [f'HH_A{i:03d}' for i in range(1, 851)])
-        self.assertEqual(active.batch_entries[-1].generator_family, 'architectural_modules')
+        self.assertEqual(set(ids), {f'HH_A{i:03d}' for i in range(1, 1051)})
+        self.assertEqual(active.batch_entries[16].generator_family, 'architectural_modules')
+        self.assertTrue(all(entry.generator_family == 'curated_hotel'
+                            for entry in active.batch_entries[17:]))
         metadata, _ = gameplay_manifest_metadata(ROOT)
         self.assertEqual(set(metadata), set(ids))
         self.assertEqual(len(manifest_animation_bindings(ROOT / 'GameData/AssetDefinitions/Manifest')),

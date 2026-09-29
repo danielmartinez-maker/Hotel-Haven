@@ -1,0 +1,471 @@
+{
+  "schema": 2,
+  "batch": 18,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A851",
+          "Upholstered Bed Compact",
+          "bed",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A852",
+          "Upholstered Bed Standard",
+          "bed",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A853",
+          "Upholstered Bed Expanded",
+          "bed",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A854",
+          "Upholstered Bed High Capacity",
+          "bed",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A855",
+          "Upholstered Bed Grand",
+          "bed",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A856",
+          "Bedside Cabinet Compact",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A857",
+          "Bedside Cabinet Standard",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A858",
+          "Bedside Cabinet Expanded",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A859",
+          "Bedside Cabinet High Capacity",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A860",
+          "Bedside Cabinet Grand",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A861",
+          "Guest Wardrobe Compact",
+          "wardrobe",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A862",
+          "Guest Wardrobe Standard",
+          "wardrobe",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A863",
+          "Guest Wardrobe Expanded",
+          "wardrobe",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A864",
+          "Guest Wardrobe High Capacity",
+          "wardrobe",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A865",
+          "Guest Wardrobe Grand",
+          "wardrobe",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A866",
+          "Guest Lounge Sofa Compact",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A867",
+          "Guest Lounge Sofa Standard",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A868",
+          "Guest Lounge Sofa Expanded",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A869",
+          "Guest Lounge Sofa High Capacity",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A870",
+          "Guest Lounge Sofa Grand",
+          "sofa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A871",
+          "Guest Work Desk Compact",
+          "desk",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A872",
+          "Guest Work Desk Standard",
+          "desk",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A873",
+          "Guest Work Desk Expanded",
+          "desk",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A874",
+          "Guest Work Desk High Capacity",
+          "desk",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A875",
+          "Guest Work Desk Grand",
+          "desk",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A876",
+          "Minibar Console Compact",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A877",
+          "Minibar Console Standard",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A878",
+          "Minibar Console Expanded",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A879",
+          "Minibar Console High Capacity",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A880",
+          "Minibar Console Grand",
+          "cabinet",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A881",
+          "Luggage Bench Compact",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A882",
+          "Luggage Bench Standard",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A883",
+          "Luggage Bench Expanded",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A884",
+          "Luggage Bench High Capacity",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A885",
+          "Luggage Bench Grand",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A886",
+          "Vanity Station Compact",
+          "vanity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A887",
+          "Vanity Station Standard",
+          "vanity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A888",
+          "Vanity Station Expanded",
+          "vanity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A889",
+          "Vanity Station High Capacity",
+          "vanity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A890",
+          "Vanity Station Grand",
+          "vanity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A891",
+          "Bathroom Storage Compact",
+          "wardrobe",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A892",
+          "Bathroom Storage Standard",
+          "wardrobe",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A893",
+          "Bathroom Storage Expanded",
+          "wardrobe",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A894",
+          "Bathroom Storage High Capacity",
+          "wardrobe",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A895",
+          "Bathroom Storage Grand",
+          "wardrobe",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A896",
+          "Reading Floor Lamp Compact",
+          "lamp",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A897",
+          "Reading Floor Lamp Standard",
+          "lamp",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A898",
+          "Reading Floor Lamp Expanded",
+          "lamp",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A899",
+          "Reading Floor Lamp High Capacity",
+          "lamp",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A900",
+          "Reading Floor Lamp Grand",
+          "lamp",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

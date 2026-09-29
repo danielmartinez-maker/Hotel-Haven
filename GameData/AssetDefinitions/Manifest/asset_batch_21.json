@@ -1,0 +1,471 @@
+{
+  "schema": 2,
+  "batch": 21,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1001",
+          "Courtyard Planter Compact",
+          "planter",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1002",
+          "Courtyard Planter Standard",
+          "planter",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1003",
+          "Courtyard Planter Expanded",
+          "planter",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1004",
+          "Courtyard Planter High Capacity",
+          "planter",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1005",
+          "Courtyard Planter Grand",
+          "planter",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1006",
+          "Garden Seat Compact",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1007",
+          "Garden Seat Standard",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1008",
+          "Garden Seat Expanded",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1009",
+          "Garden Seat High Capacity",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1010",
+          "Garden Seat Grand",
+          "bench",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1011",
+          "Pergola Bay Compact",
+          "pergola",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1012",
+          "Pergola Bay Standard",
+          "pergola",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1013",
+          "Pergola Bay Expanded",
+          "pergola",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1014",
+          "Pergola Bay High Capacity",
+          "pergola",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1015",
+          "Pergola Bay Grand",
+          "pergola",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1016",
+          "Poolside Side Table Compact",
+          "table",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1017",
+          "Poolside Side Table Standard",
+          "table",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1018",
+          "Poolside Side Table Expanded",
+          "table",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1019",
+          "Poolside Side Table High Capacity",
+          "table",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1020",
+          "Poolside Side Table Grand",
+          "table",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1021",
+          "Exterior Wayfinding Post Compact",
+          "post",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1022",
+          "Exterior Wayfinding Post Standard",
+          "post",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1023",
+          "Exterior Wayfinding Post Expanded",
+          "post",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1024",
+          "Exterior Wayfinding Post High Capacity",
+          "post",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1025",
+          "Exterior Wayfinding Post Grand",
+          "post",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1026",
+          "Bicycle Parking Stand Compact",
+          "bike",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1027",
+          "Bicycle Parking Stand Standard",
+          "bike",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1028",
+          "Bicycle Parking Stand Expanded",
+          "bike",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1029",
+          "Bicycle Parking Stand High Capacity",
+          "bike",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1030",
+          "Bicycle Parking Stand Grand",
+          "bike",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1031",
+          "Garden Boundary Wall Compact",
+          "wall",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1032",
+          "Garden Boundary Wall Standard",
+          "wall",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1033",
+          "Garden Boundary Wall Expanded",
+          "wall",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1034",
+          "Garden Boundary Wall High Capacity",
+          "wall",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1035",
+          "Garden Boundary Wall Grand",
+          "wall",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1036",
+          "Hedge Planter Row Compact",
+          "hedge",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1037",
+          "Hedge Planter Row Standard",
+          "hedge",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1038",
+          "Hedge Planter Row Expanded",
+          "hedge",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1039",
+          "Hedge Planter Row High Capacity",
+          "hedge",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1040",
+          "Hedge Planter Row Grand",
+          "hedge",
+          "MAT_VEGETATION",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1041",
+          "Exterior Lamp Post Compact",
+          "lamp",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1042",
+          "Exterior Lamp Post Standard",
+          "lamp",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1043",
+          "Exterior Lamp Post Expanded",
+          "lamp",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1044",
+          "Exterior Lamp Post High Capacity",
+          "lamp",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1045",
+          "Exterior Lamp Post Grand",
+          "lamp",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1046",
+          "Entry Canopy Bay Compact",
+          "canopy",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1047",
+          "Entry Canopy Bay Standard",
+          "canopy",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1048",
+          "Entry Canopy Bay Expanded",
+          "canopy",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1049",
+          "Entry Canopy Bay High Capacity",
+          "canopy",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1050",
+          "Entry Canopy Bay Grand",
+          "canopy",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

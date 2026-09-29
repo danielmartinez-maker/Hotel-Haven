@@ -4,7 +4,7 @@
   "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
   "quality_contract": "GameData/AssetDefinitions/asset_quality_contract_v2.json",
   "previous_manifest": "GameData/AssetDefinitions/hotel_haven_asset_manifest_v1.json",
-  "asset_count": 850,
+  "asset_count": 1050,
   "storage": "sharded_by_production_batch",
   "entry_columns": [
     "asset_id",
@@ -108,13 +108,13 @@
   "family_targets": {
     "architecture_construction": 170,
     "finish_systems": 40,
-    "guest_room_furniture_fixtures": 125,
+    "guest_room_furniture_fixtures": 175,
     "front_of_house_public": 110,
-    "restaurant_bar_food_service": 95,
-    "housekeeping_maintenance_logistics": 105,
+    "restaurant_bar_food_service": 145,
+    "housekeeping_maintenance_logistics": 155,
     "amenities_events": 52,
     "decor_clutter_signage": 45,
-    "exterior_landscaping": 38,
+    "exterior_landscaping": 88,
     "guests_staff": 70
   },
   "batches": [
@@ -134,7 +134,11 @@
     {"batch": 14, "path": "GameData/AssetDefinitions/Manifest/asset_batch_14.json", "asset_count": 50},
     {"batch": 15, "path": "GameData/AssetDefinitions/Manifest/asset_batch_15.json", "asset_count": 50},
     {"batch": 16, "path": "GameData/AssetDefinitions/Manifest/asset_batch_16.json", "asset_count": 50},
-    {"batch": 17, "path": "GameData/AssetDefinitions/Manifest/asset_batch_17.json", "asset_count": 50, "generator_family": "architectural_modules"}
+    {"batch": 17, "path": "GameData/AssetDefinitions/Manifest/asset_batch_17.json", "asset_count": 50, "generator_family": "architectural_modules"},
+    {"batch": 18, "path": "GameData/AssetDefinitions/Manifest/asset_batch_18.json", "asset_count": 50, "generator_family": "curated_hotel"},
+    {"batch": 19, "path": "GameData/AssetDefinitions/Manifest/asset_batch_19.json", "asset_count": 50, "generator_family": "curated_hotel"},
+    {"batch": 20, "path": "GameData/AssetDefinitions/Manifest/asset_batch_20.json", "asset_count": 50, "generator_family": "curated_hotel"},
+    {"batch": 21, "path": "GameData/AssetDefinitions/Manifest/asset_batch_21.json", "asset_count": 50, "generator_family": "curated_hotel"}
   ],
   "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, reachability, task, and interaction authority remain in their owning game-data systems.",
   "runtime_contract": "Shipping executables consume deterministic cooked .hasset assets only; authoring generators and optional DCC/AI tooling are offline-only."
