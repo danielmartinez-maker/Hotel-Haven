@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 57,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2801",
+          "Convertible Sofa Bed Frame Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2802",
+          "Convertible Sofa Bed Frame Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2803",
+          "Convertible Sofa Bed Frame Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2804",
+          "Convertible Sofa Bed Frame High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2805",
+          "Convertible Sofa Bed Frame Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2806",
+          "Built-In Window Seat Module Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2807",
+          "Built-In Window Seat Module Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2808",
+          "Built-In Window Seat Module Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2809",
+          "Built-In Window Seat Module High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2810",
+          "Built-In Window Seat Module Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2811",
+          "Underbed Luggage Drawer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2812",
+          "Underbed Luggage Drawer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2813",
+          "Underbed Luggage Drawer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2814",
+          "Underbed Luggage Drawer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2815",
+          "Underbed Luggage Drawer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2816",
+          "Robe Valet Stand Compact",
+          "guestroom",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2817",
+          "Robe Valet Stand Standard",
+          "guestroom",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2818",
+          "Robe Valet Stand Extended",
+          "guestroom",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2819",
+          "Robe Valet Stand High Capacity",
+          "guestroom",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2820",
+          "Robe Valet Stand Grand",
+          "guestroom",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2821",
+          "Guest Minibar Lock Cabinet Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2822",
+          "Guest Minibar Lock Cabinet Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2823",
+          "Guest Minibar Lock Cabinet Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2824",
+          "Guest Minibar Lock Cabinet High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2825",
+          "Guest Minibar Lock Cabinet Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2826",
+          "In-Room Coffee Niche Cabinet Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2827",
+          "In-Room Coffee Niche Cabinet Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2828",
+          "In-Room Coffee Niche Cabinet Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2829",
+          "In-Room Coffee Niche Cabinet High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2830",
+          "In-Room Coffee Niche Cabinet Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2831",
+          "Wardrobe Safe Shelf Insert Compact",
+          "guestroom",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2832",
+          "Wardrobe Safe Shelf Insert Standard",
+          "guestroom",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2833",
+          "Wardrobe Safe Shelf Insert Extended",
+          "guestroom",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2834",
+          "Wardrobe Safe Shelf Insert High Capacity",
+          "guestroom",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2835",
+          "Wardrobe Safe Shelf Insert Grand",
+          "guestroom",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2836",
+          "Writing Desk Hutch Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2837",
+          "Writing Desk Hutch Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2838",
+          "Writing Desk Hutch Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2839",
+          "Writing Desk Hutch High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2840",
+          "Writing Desk Hutch Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2841",
+          "Rollaway Guest Cot Compact",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2842",
+          "Rollaway Guest Cot Standard",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2843",
+          "Rollaway Guest Cot Extended",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2844",
+          "Rollaway Guest Cot High Capacity",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2845",
+          "Rollaway Guest Cot Grand",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A2846",
+          "Headboard Reading-Light Wing Assembly Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2847",
+          "Headboard Reading-Light Wing Assembly Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2848",
+          "Headboard Reading-Light Wing Assembly Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2849",
+          "Headboard Reading-Light Wing Assembly High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2850",
+          "Headboard Reading-Light Wing Assembly Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

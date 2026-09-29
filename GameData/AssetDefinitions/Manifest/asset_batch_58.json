@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 58,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2851",
+          "Concierge Service Workstation Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2852",
+          "Concierge Service Workstation Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2853",
+          "Concierge Service Workstation Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2854",
+          "Concierge Service Workstation High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2855",
+          "Concierge Service Workstation Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2856",
+          "Lobby Queue Stanchion Pair Compact",
+          "public",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2857",
+          "Lobby Queue Stanchion Pair Standard",
+          "public",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2858",
+          "Lobby Queue Stanchion Pair Extended",
+          "public",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2859",
+          "Lobby Queue Stanchion Pair High Capacity",
+          "public",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2860",
+          "Lobby Queue Stanchion Pair Grand",
+          "public",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2861",
+          "Luggage Claim Bench Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2862",
+          "Luggage Claim Bench Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2863",
+          "Luggage Claim Bench Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2864",
+          "Luggage Claim Bench High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2865",
+          "Luggage Claim Bench Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2866",
+          "Public Coat-Check Ticket Rack Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2867",
+          "Public Coat-Check Ticket Rack Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2868",
+          "Public Coat-Check Ticket Rack Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2869",
+          "Public Coat-Check Ticket Rack High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2870",
+          "Public Coat-Check Ticket Rack Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2871",
+          "Guest Charging Tower Compact",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2872",
+          "Guest Charging Tower Standard",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2873",
+          "Guest Charging Tower Extended",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2874",
+          "Guest Charging Tower High Capacity",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2875",
+          "Guest Charging Tower Grand",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2876",
+          "Guest Message Cubbie Cabinet Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2877",
+          "Guest Message Cubbie Cabinet Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2878",
+          "Guest Message Cubbie Cabinet Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2879",
+          "Guest Message Cubbie Cabinet High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2880",
+          "Guest Message Cubbie Cabinet Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2881",
+          "Quiet Room Phone Booth Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2882",
+          "Quiet Room Phone Booth Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2883",
+          "Quiet Room Phone Booth Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2884",
+          "Quiet Room Phone Booth High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2885",
+          "Quiet Room Phone Booth Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2886",
+          "Bell Cart Dock Frame Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2887",
+          "Bell Cart Dock Frame Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2888",
+          "Bell Cart Dock Frame Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2889",
+          "Bell Cart Dock Frame High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2890",
+          "Bell Cart Dock Frame Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2891",
+          "Hotel Information Kiosk Compact",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2892",
+          "Hotel Information Kiosk Standard",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2893",
+          "Hotel Information Kiosk Extended",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2894",
+          "Hotel Information Kiosk High Capacity",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2895",
+          "Hotel Information Kiosk Grand",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A2896",
+          "Curved Lobby Banquette Compact",
+          "public",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2897",
+          "Curved Lobby Banquette Standard",
+          "public",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2898",
+          "Curved Lobby Banquette Extended",
+          "public",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2899",
+          "Curved Lobby Banquette High Capacity",
+          "public",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2900",
+          "Curved Lobby Banquette Grand",
+          "public",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

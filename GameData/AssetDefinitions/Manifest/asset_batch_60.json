@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 60,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2951",
+          "Live Pasta Service Counter Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2952",
+          "Live Pasta Service Counter Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2953",
+          "Live Pasta Service Counter Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2954",
+          "Live Pasta Service Counter High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2955",
+          "Live Pasta Service Counter Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2956",
+          "Chilled Charcuterie Showcase Compact",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2957",
+          "Chilled Charcuterie Showcase Standard",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2958",
+          "Chilled Charcuterie Showcase Extended",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2959",
+          "Chilled Charcuterie Showcase High Capacity",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2960",
+          "Chilled Charcuterie Showcase Grand",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2961",
+          "Tiered Buffet Display Riser Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2962",
+          "Tiered Buffet Display Riser Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2963",
+          "Tiered Buffet Display Riser Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2964",
+          "Tiered Buffet Display Riser High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2965",
+          "Tiered Buffet Display Riser Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2966",
+          "Ice Cream Cold-Pan Case Compact",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2967",
+          "Ice Cream Cold-Pan Case Standard",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2968",
+          "Ice Cream Cold-Pan Case Extended",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2969",
+          "Ice Cream Cold-Pan Case High Capacity",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2970",
+          "Ice Cream Cold-Pan Case Grand",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2971",
+          "Coffee Urn Service Console Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2972",
+          "Coffee Urn Service Console Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2973",
+          "Coffee Urn Service Console Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2974",
+          "Coffee Urn Service Console High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2975",
+          "Coffee Urn Service Console Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2976",
+          "Dumpling Steam Cabinet Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2977",
+          "Dumpling Steam Cabinet Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2978",
+          "Dumpling Steam Cabinet Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2979",
+          "Dumpling Steam Cabinet High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2980",
+          "Dumpling Steam Cabinet Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2981",
+          "Restaurant Wine Cooler Rack Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2982",
+          "Restaurant Wine Cooler Rack Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2983",
+          "Restaurant Wine Cooler Rack Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2984",
+          "Restaurant Wine Cooler Rack High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2985",
+          "Restaurant Wine Cooler Rack Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2986",
+          "Tableside Flamb\u00e9 Cart Compact",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2987",
+          "Tableside Flamb\u00e9 Cart Standard",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2988",
+          "Tableside Flamb\u00e9 Cart Extended",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2989",
+          "Tableside Flamb\u00e9 Cart High Capacity",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2990",
+          "Tableside Flamb\u00e9 Cart Grand",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2991",
+          "Tableside Salad Trolley Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2992",
+          "Tableside Salad Trolley Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2993",
+          "Tableside Salad Trolley Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2994",
+          "Tableside Salad Trolley High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2995",
+          "Tableside Salad Trolley Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2996",
+          "Cheese Aging Showcase Compact",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2997",
+          "Cheese Aging Showcase Standard",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2998",
+          "Cheese Aging Showcase Extended",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2999",
+          "Cheese Aging Showcase High Capacity",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3000",
+          "Cheese Aging Showcase Grand",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

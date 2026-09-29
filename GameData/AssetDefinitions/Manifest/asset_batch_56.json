@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 56,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2751",
+          "Fire-Rated Corridor Door Set Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2752",
+          "Fire-Rated Corridor Door Set Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2753",
+          "Fire-Rated Corridor Door Set Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2754",
+          "Fire-Rated Corridor Door Set High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2755",
+          "Fire-Rated Corridor Door Set Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2756",
+          "Service-Core Elevator Jamb Portal Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2757",
+          "Service-Core Elevator Jamb Portal Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2758",
+          "Service-Core Elevator Jamb Portal Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2759",
+          "Service-Core Elevator Jamb Portal High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2760",
+          "Service-Core Elevator Jamb Portal Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2761",
+          "Ballroom Operable Partition Track Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2762",
+          "Ballroom Operable Partition Track Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2763",
+          "Ballroom Operable Partition Track Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2764",
+          "Ballroom Operable Partition Track High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2765",
+          "Ballroom Operable Partition Track Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2766",
+          "Cantilevered Terrace Balcony Bay Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2767",
+          "Cantilevered Terrace Balcony Bay Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2768",
+          "Cantilevered Terrace Balcony Bay Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2769",
+          "Cantilevered Terrace Balcony Bay High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2770",
+          "Cantilevered Terrace Balcony Bay Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2771",
+          "Reinforced Shear Wall Node Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2772",
+          "Reinforced Shear Wall Node Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2773",
+          "Reinforced Shear Wall Node Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2774",
+          "Reinforced Shear Wall Node High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2775",
+          "Reinforced Shear Wall Node Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2776",
+          "Fire Stair Landing Guardrail Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2777",
+          "Fire Stair Landing Guardrail Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2778",
+          "Fire Stair Landing Guardrail Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2779",
+          "Fire Stair Landing Guardrail High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2780",
+          "Fire Stair Landing Guardrail Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2781",
+          "Low-Voltage Riser Raceway Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2782",
+          "Low-Voltage Riser Raceway Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2783",
+          "Low-Voltage Riser Raceway Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2784",
+          "Low-Voltage Riser Raceway High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2785",
+          "Low-Voltage Riser Raceway Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2786",
+          "Sump Access Floor Hatch Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2787",
+          "Sump Access Floor Hatch Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2788",
+          "Sump Access Floor Hatch Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2789",
+          "Sump Access Floor Hatch High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2790",
+          "Sump Access Floor Hatch Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2791",
+          "Rooftop Plant Screen Louver Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2792",
+          "Rooftop Plant Screen Louver Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2793",
+          "Rooftop Plant Screen Louver Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2794",
+          "Rooftop Plant Screen Louver High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2795",
+          "Rooftop Plant Screen Louver Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2796",
+          "Expansion Joint Cover Assembly Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2797",
+          "Expansion Joint Cover Assembly Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2798",
+          "Expansion Joint Cover Assembly Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2799",
+          "Expansion Joint Cover Assembly High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2800",
+          "Expansion Joint Cover Assembly Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

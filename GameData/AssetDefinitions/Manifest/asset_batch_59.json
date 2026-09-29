@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 59,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2901",
+          "Laundry Textile Sorter Cart Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2902",
+          "Laundry Textile Sorter Cart Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2903",
+          "Laundry Textile Sorter Cart Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2904",
+          "Laundry Textile Sorter Cart High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2905",
+          "Laundry Textile Sorter Cart Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2906",
+          "Linen Supply Cage Cart Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2907",
+          "Linen Supply Cage Cart Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2908",
+          "Linen Supply Cage Cart Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2909",
+          "Linen Supply Cage Cart High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2910",
+          "Linen Supply Cage Cart Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2911",
+          "Room-Service Valet Cart Compact",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2912",
+          "Room-Service Valet Cart Standard",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2913",
+          "Room-Service Valet Cart Extended",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2914",
+          "Room-Service Valet Cart High Capacity",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2915",
+          "Room-Service Valet Cart Grand",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2916",
+          "Lost Property Intake Cabinet Compact",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2917",
+          "Lost Property Intake Cabinet Standard",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2918",
+          "Lost Property Intake Cabinet Extended",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2919",
+          "Lost Property Intake Cabinet High Capacity",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2920",
+          "Lost Property Intake Cabinet Grand",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2921",
+          "Housekeeping Vacuum Dock Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2922",
+          "Housekeeping Vacuum Dock Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2923",
+          "Housekeeping Vacuum Dock Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2924",
+          "Housekeeping Vacuum Dock High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2925",
+          "Housekeeping Vacuum Dock Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2926",
+          "Chemical Dilution Station Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2927",
+          "Chemical Dilution Station Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2928",
+          "Chemical Dilution Station Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2929",
+          "Chemical Dilution Station High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2930",
+          "Chemical Dilution Station Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2931",
+          "Mop and Broom Wall Rack Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2932",
+          "Mop and Broom Wall Rack Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2933",
+          "Mop and Broom Wall Rack Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2934",
+          "Mop and Broom Wall Rack High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2935",
+          "Mop and Broom Wall Rack Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2936",
+          "Clean Linen Delivery Trolley Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2937",
+          "Clean Linen Delivery Trolley Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2938",
+          "Clean Linen Delivery Trolley Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2939",
+          "Clean Linen Delivery Trolley High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2940",
+          "Clean Linen Delivery Trolley Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2941",
+          "Room Turnover Supply Chest Compact",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2942",
+          "Room Turnover Supply Chest Standard",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2943",
+          "Room Turnover Supply Chest Extended",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2944",
+          "Room Turnover Supply Chest High Capacity",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2945",
+          "Room Turnover Supply Chest Grand",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2946",
+          "Compact Floor Scrubber Compact",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2947",
+          "Compact Floor Scrubber Standard",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2948",
+          "Compact Floor Scrubber Extended",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2949",
+          "Compact Floor Scrubber High Capacity",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2950",
+          "Compact Floor Scrubber Grand",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

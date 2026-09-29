@@ -3,6 +3,7 @@
 from architecture_factory import build_asset as build_architecture
 from architectural_modules_factory import build_asset as build_architectural_modules
 from catalog_expansion_factory import build_asset as build_catalog_expansion
+from core_hotel_expansion_factory import build_asset as build_core_hotel_expansion
 from curated_hotel_factory import build_asset as build_curated_hotel
 from destination_expansion_factory import build_asset as build_destination_expansion
 from extended_hotel_factory import build_asset as build_extended_hotel
@@ -32,4 +33,5 @@ GENERATOR_FAMILIES = {
     'service_expansion': FamilyGenerator(build_service_expansion),
     'experience_expansion': FamilyGenerator(build_experience_expansion),
     'destination_expansion': FamilyGenerator(build_destination_expansion),
+    'core_hotel_expansion': FamilyGenerator(build_core_hotel_expansion),
 }
