@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 42,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2051",
+          "Ingredient Prep Table Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2052",
+          "Ingredient Prep Table Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2053",
+          "Ingredient Prep Table Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2054",
+          "Ingredient Prep Table High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2055",
+          "Ingredient Prep Table Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2056",
+          "Sheet Pan Rack Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2057",
+          "Sheet Pan Rack Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2058",
+          "Sheet Pan Rack Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2059",
+          "Sheet Pan Rack High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2060",
+          "Sheet Pan Rack Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2061",
+          "Hanging Stock Pot Rack Compact",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2062",
+          "Hanging Stock Pot Rack Standard",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2063",
+          "Hanging Stock Pot Rack Extended",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2064",
+          "Hanging Stock Pot Rack High Capacity",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2065",
+          "Hanging Stock Pot Rack Grand",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2066",
+          "Plate Dispenser Tower Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2067",
+          "Plate Dispenser Tower Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2068",
+          "Plate Dispenser Tower Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2069",
+          "Plate Dispenser Tower High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2070",
+          "Plate Dispenser Tower Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2071",
+          "Heated Plate Cabinet Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2072",
+          "Heated Plate Cabinet Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2073",
+          "Heated Plate Cabinet Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2074",
+          "Heated Plate Cabinet High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2075",
+          "Heated Plate Cabinet Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2076",
+          "Glass Drying Rack Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2077",
+          "Glass Drying Rack Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2078",
+          "Glass Drying Rack Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2079",
+          "Glass Drying Rack High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2080",
+          "Glass Drying Rack Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2081",
+          "Cutlery Sanitizer Station Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2082",
+          "Cutlery Sanitizer Station Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2083",
+          "Cutlery Sanitizer Station Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2084",
+          "Cutlery Sanitizer Station High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2085",
+          "Cutlery Sanitizer Station Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2086",
+          "Mobile Ingredient Hopper Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2087",
+          "Mobile Ingredient Hopper Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2088",
+          "Mobile Ingredient Hopper Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2089",
+          "Mobile Ingredient Hopper High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2090",
+          "Mobile Ingredient Hopper Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2091",
+          "Knife Sterilizer Cabinet Compact",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2092",
+          "Knife Sterilizer Cabinet Standard",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2093",
+          "Knife Sterilizer Cabinet Extended",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2094",
+          "Knife Sterilizer Cabinet High Capacity",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2095",
+          "Knife Sterilizer Cabinet Grand",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2096",
+          "Countertop Spice Rail Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2097",
+          "Countertop Spice Rail Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2098",
+          "Countertop Spice Rail Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2099",
+          "Countertop Spice Rail High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2100",
+          "Countertop Spice Rail Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

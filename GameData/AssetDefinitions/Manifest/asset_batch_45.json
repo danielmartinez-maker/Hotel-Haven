@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 45,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2201",
+          "Electrical Switchboard Cabinet Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2202",
+          "Electrical Switchboard Cabinet Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2203",
+          "Electrical Switchboard Cabinet Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2204",
+          "Electrical Switchboard Cabinet High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2205",
+          "Electrical Switchboard Cabinet Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2206",
+          "Sprinkler Control Valve Station Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2207",
+          "Sprinkler Control Valve Station Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2208",
+          "Sprinkler Control Valve Station Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2209",
+          "Sprinkler Control Valve Station High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2210",
+          "Sprinkler Control Valve Station Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2211",
+          "Fire Hose Cabinet Assembly Compact",
+          "architecture",
+          "MAT_SIGNAGE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2212",
+          "Fire Hose Cabinet Assembly Standard",
+          "architecture",
+          "MAT_SIGNAGE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2213",
+          "Fire Hose Cabinet Assembly Extended",
+          "architecture",
+          "MAT_SIGNAGE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2214",
+          "Fire Hose Cabinet Assembly High Capacity",
+          "architecture",
+          "MAT_SIGNAGE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2215",
+          "Fire Hose Cabinet Assembly Grand",
+          "architecture",
+          "MAT_SIGNAGE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2216",
+          "Hot Water Heater Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2217",
+          "Hot Water Heater Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2218",
+          "Hot Water Heater Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2219",
+          "Hot Water Heater High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2220",
+          "Hot Water Heater Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2221",
+          "Hydronic Circulation Pump Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2222",
+          "Hydronic Circulation Pump Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2223",
+          "Hydronic Circulation Pump Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2224",
+          "Hydronic Circulation Pump High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2225",
+          "Hydronic Circulation Pump Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2226",
+          "Water Filter Vessel Bank Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2227",
+          "Water Filter Vessel Bank Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2228",
+          "Water Filter Vessel Bank Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2229",
+          "Water Filter Vessel Bank High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2230",
+          "Water Filter Vessel Bank Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2231",
+          "Water Pressure Booster Manifold Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2232",
+          "Water Pressure Booster Manifold Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2233",
+          "Water Pressure Booster Manifold Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2234",
+          "Water Pressure Booster Manifold High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2235",
+          "Water Pressure Booster Manifold Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2236",
+          "Caged Service Ladder Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2237",
+          "Caged Service Ladder Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2238",
+          "Caged Service Ladder Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2239",
+          "Caged Service Ladder High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2240",
+          "Caged Service Ladder Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2241",
+          "Emergency Generator Enclosure Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2242",
+          "Emergency Generator Enclosure Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2243",
+          "Emergency Generator Enclosure Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2244",
+          "Emergency Generator Enclosure High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2245",
+          "Emergency Generator Enclosure Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A2246",
+          "Rooftop Exhaust Fan Module Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2247",
+          "Rooftop Exhaust Fan Module Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2248",
+          "Rooftop Exhaust Fan Module Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2249",
+          "Rooftop Exhaust Fan Module High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2250",
+          "Rooftop Exhaust Fan Module Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

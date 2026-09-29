@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 44,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2151",
+          "Hydraulic Pallet Jack Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2152",
+          "Hydraulic Pallet Jack Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2153",
+          "Hydraulic Pallet Jack Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2154",
+          "Hydraulic Pallet Jack High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2155",
+          "Hydraulic Pallet Jack Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2156",
+          "Dock Leveler Platform Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2157",
+          "Dock Leveler Platform Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2158",
+          "Dock Leveler Platform Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2159",
+          "Dock Leveler Platform High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2160",
+          "Dock Leveler Platform Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2161",
+          "Loading Dock Shelter Compact",
+          "housekeeping",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2162",
+          "Loading Dock Shelter Standard",
+          "housekeeping",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2163",
+          "Loading Dock Shelter Extended",
+          "housekeeping",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2164",
+          "Loading Dock Shelter High Capacity",
+          "housekeeping",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2165",
+          "Loading Dock Shelter Grand",
+          "housekeeping",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2166",
+          "Electric Walkie Stacker Compact",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2167",
+          "Electric Walkie Stacker Standard",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2168",
+          "Electric Walkie Stacker Extended",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2169",
+          "Electric Walkie Stacker High Capacity",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2170",
+          "Electric Walkie Stacker Grand",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2171",
+          "Wire Roll Container Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2172",
+          "Wire Roll Container Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2173",
+          "Wire Roll Container Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2174",
+          "Wire Roll Container High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2175",
+          "Wire Roll Container Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2176",
+          "Parcel Weighing Scale Compact",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2177",
+          "Parcel Weighing Scale Standard",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2178",
+          "Parcel Weighing Scale Extended",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2179",
+          "Parcel Weighing Scale High Capacity",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2180",
+          "Parcel Weighing Scale Grand",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2181",
+          "Mobile Receiving Security Cage Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2182",
+          "Mobile Receiving Security Cage Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2183",
+          "Mobile Receiving Security Cage Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2184",
+          "Mobile Receiving Security Cage High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2185",
+          "Mobile Receiving Security Cage Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2186",
+          "Drum Dolly Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2187",
+          "Drum Dolly Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2188",
+          "Drum Dolly Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2189",
+          "Drum Dolly High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2190",
+          "Drum Dolly Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2191",
+          "Freight Cargo Hoist Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2192",
+          "Freight Cargo Hoist Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2193",
+          "Freight Cargo Hoist Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2194",
+          "Freight Cargo Hoist High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2195",
+          "Freight Cargo Hoist Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2196",
+          "Mobile Loading Ramp Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2197",
+          "Mobile Loading Ramp Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2198",
+          "Mobile Loading Ramp Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2199",
+          "Mobile Loading Ramp High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2200",
+          "Mobile Loading Ramp Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

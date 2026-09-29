@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 43,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2101",
+          "Commercial Laundry Washer Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2102",
+          "Commercial Laundry Washer Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2103",
+          "Commercial Laundry Washer Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2104",
+          "Commercial Laundry Washer High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2105",
+          "Commercial Laundry Washer Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2106",
+          "Commercial Tumble Dryer Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2107",
+          "Commercial Tumble Dryer Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2108",
+          "Commercial Tumble Dryer Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2109",
+          "Commercial Tumble Dryer High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2110",
+          "Commercial Tumble Dryer Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2111",
+          "Industrial Roller Ironer Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2112",
+          "Industrial Roller Ironer Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2113",
+          "Industrial Roller Ironer Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2114",
+          "Industrial Roller Ironer High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2115",
+          "Industrial Roller Ironer Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2116",
+          "Linen Folding Table Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2117",
+          "Linen Folding Table Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2118",
+          "Linen Folding Table Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2119",
+          "Linen Folding Table High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2120",
+          "Linen Folding Table Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2121",
+          "Steam Garment Finisher Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2122",
+          "Steam Garment Finisher Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2123",
+          "Steam Garment Finisher Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2124",
+          "Steam Garment Finisher High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2125",
+          "Steam Garment Finisher Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2126",
+          "Boot Drying Station Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2127",
+          "Boot Drying Station Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2128",
+          "Boot Drying Station Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2129",
+          "Boot Drying Station High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2130",
+          "Boot Drying Station Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2131",
+          "Staff Garment Rack Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2132",
+          "Staff Garment Rack Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2133",
+          "Staff Garment Rack Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2134",
+          "Staff Garment Rack High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2135",
+          "Staff Garment Rack Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2136",
+          "Linen Weighing Scale Compact",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2137",
+          "Linen Weighing Scale Standard",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2138",
+          "Linen Weighing Scale Extended",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2139",
+          "Linen Weighing Scale High Capacity",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2140",
+          "Linen Weighing Scale Grand",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2141",
+          "Uniform Issue Locker Bank Compact",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2142",
+          "Uniform Issue Locker Bank Standard",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2143",
+          "Uniform Issue Locker Bank Extended",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2144",
+          "Uniform Issue Locker Bank High Capacity",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2145",
+          "Uniform Issue Locker Bank Grand",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A2146",
+          "Laundry Chute Intake Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2147",
+          "Laundry Chute Intake Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2148",
+          "Laundry Chute Intake Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2149",
+          "Laundry Chute Intake High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2150",
+          "Laundry Chute Intake Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
