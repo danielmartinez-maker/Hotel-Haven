@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 37,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1801",
+          "Queue Stanchion Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1802",
+          "Queue Stanchion Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1803",
+          "Queue Stanchion Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1804",
+          "Queue Stanchion High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1805",
+          "Queue Stanchion Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1806",
+          "Valet Luggage Cart Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1807",
+          "Valet Luggage Cart Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1808",
+          "Valet Luggage Cart Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1809",
+          "Valet Luggage Cart High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1810",
+          "Valet Luggage Cart Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1811",
+          "Writing Lectern Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1812",
+          "Writing Lectern Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1813",
+          "Writing Lectern Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1814",
+          "Writing Lectern High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1815",
+          "Writing Lectern Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1816",
+          "Public Hydration Station Compact",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1817",
+          "Public Hydration Station Standard",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1818",
+          "Public Hydration Station Extended",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1819",
+          "Public Hydration Station High Capacity",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1820",
+          "Public Hydration Station Grand",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1821",
+          "Coat Check Rack Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1822",
+          "Coat Check Rack Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1823",
+          "Coat Check Rack Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1824",
+          "Coat Check Rack High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1825",
+          "Coat Check Rack Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1826",
+          "Guest Charging Tower Compact",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1827",
+          "Guest Charging Tower Standard",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1828",
+          "Guest Charging Tower Extended",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1829",
+          "Guest Charging Tower High Capacity",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1830",
+          "Guest Charging Tower Grand",
+          "public",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1831",
+          "Foyer Bench Compact",
+          "public",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1832",
+          "Foyer Bench Standard",
+          "public",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1833",
+          "Foyer Bench Extended",
+          "public",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1834",
+          "Foyer Bench High Capacity",
+          "public",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1835",
+          "Foyer Bench Grand",
+          "public",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1836",
+          "Parcel Locker Bank Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1837",
+          "Parcel Locker Bank Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1838",
+          "Parcel Locker Bank Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1839",
+          "Parcel Locker Bank High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1840",
+          "Parcel Locker Bank Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1841",
+          "Bell Service Stand Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1842",
+          "Bell Service Stand Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1843",
+          "Bell Service Stand Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1844",
+          "Bell Service Stand High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1845",
+          "Bell Service Stand Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1846",
+          "Magazine Display Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1847",
+          "Magazine Display Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1848",
+          "Magazine Display Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1849",
+          "Magazine Display High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1850",
+          "Magazine Display Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

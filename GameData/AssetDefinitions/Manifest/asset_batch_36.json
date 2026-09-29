@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 36,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1751",
+          "Fire Rated Door Assembly Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1752",
+          "Fire Rated Door Assembly Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1753",
+          "Fire Rated Door Assembly Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1754",
+          "Fire Rated Door Assembly High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1755",
+          "Fire Rated Door Assembly Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1756",
+          "Louvered Service Door Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1757",
+          "Louvered Service Door Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1758",
+          "Louvered Service Door Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1759",
+          "Louvered Service Door High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1760",
+          "Louvered Service Door Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1761",
+          "Glazed Transom Door Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1762",
+          "Glazed Transom Door Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1763",
+          "Glazed Transom Door Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1764",
+          "Glazed Transom Door High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1765",
+          "Glazed Transom Door Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1766",
+          "Ceiling Access Hatch Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1767",
+          "Ceiling Access Hatch Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1768",
+          "Ceiling Access Hatch Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1769",
+          "Ceiling Access Hatch High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1770",
+          "Ceiling Access Hatch Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1771",
+          "HVAC Return Grille Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1772",
+          "HVAC Return Grille Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1773",
+          "HVAC Return Grille Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1774",
+          "HVAC Return Grille High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1775",
+          "HVAC Return Grille Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1776",
+          "Wall Bumper Rail Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1777",
+          "Wall Bumper Rail Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1778",
+          "Wall Bumper Rail Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1779",
+          "Wall Bumper Rail High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1780",
+          "Wall Bumper Rail Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1781",
+          "Stone Door Threshold Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1782",
+          "Stone Door Threshold Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1783",
+          "Stone Door Threshold Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1784",
+          "Stone Door Threshold High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1785",
+          "Stone Door Threshold Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1786",
+          "Elevator Reveal Portal Compact",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1787",
+          "Elevator Reveal Portal Standard",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1788",
+          "Elevator Reveal Portal Extended",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1789",
+          "Elevator Reveal Portal High Capacity",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1790",
+          "Elevator Reveal Portal Grand",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1791",
+          "Corner Guard Assembly Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1792",
+          "Corner Guard Assembly Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1793",
+          "Corner Guard Assembly Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1794",
+          "Corner Guard Assembly High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1795",
+          "Corner Guard Assembly Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1796",
+          "Suspended Acoustic Cloud Compact",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1797",
+          "Suspended Acoustic Cloud Standard",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1798",
+          "Suspended Acoustic Cloud Extended",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1799",
+          "Suspended Acoustic Cloud High Capacity",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1800",
+          "Suspended Acoustic Cloud Grand",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

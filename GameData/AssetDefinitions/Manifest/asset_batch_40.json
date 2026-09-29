@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 40,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1951",
+          "Modular Stage Riser Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1952",
+          "Modular Stage Riser Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1953",
+          "Modular Stage Riser Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1954",
+          "Modular Stage Riser High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1955",
+          "Modular Stage Riser Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1956",
+          "Portable Event Lectern Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1957",
+          "Portable Event Lectern Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1958",
+          "Portable Event Lectern Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1959",
+          "Portable Event Lectern High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1960",
+          "Portable Event Lectern Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1961",
+          "Portable Projection Screen Compact",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1962",
+          "Portable Projection Screen Standard",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1963",
+          "Portable Projection Screen Extended",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1964",
+          "Portable Projection Screen High Capacity",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1965",
+          "Portable Projection Screen Grand",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1966",
+          "Event Divider Panel Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1967",
+          "Event Divider Panel Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1968",
+          "Event Divider Panel Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1969",
+          "Event Divider Panel High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1970",
+          "Event Divider Panel Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1971",
+          "Folding Event Chair Compact",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1972",
+          "Folding Event Chair Standard",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1973",
+          "Folding Event Chair Extended",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1974",
+          "Folding Event Chair High Capacity",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1975",
+          "Folding Event Chair Grand",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1976",
+          "Power Conference Table Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1977",
+          "Power Conference Table Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1978",
+          "Power Conference Table Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1979",
+          "Power Conference Table High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1980",
+          "Power Conference Table Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1981",
+          "Portable Speaker Tower Compact",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1982",
+          "Portable Speaker Tower Standard",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1983",
+          "Portable Speaker Tower Extended",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1984",
+          "Portable Speaker Tower High Capacity",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1985",
+          "Portable Speaker Tower Grand",
+          "amenities",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1986",
+          "Fitness Step Platform Compact",
+          "amenities",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1987",
+          "Fitness Step Platform Standard",
+          "amenities",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1988",
+          "Fitness Step Platform Extended",
+          "amenities",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1989",
+          "Fitness Step Platform High Capacity",
+          "amenities",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1990",
+          "Fitness Step Platform Grand",
+          "amenities",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1991",
+          "Yoga Bolster Rack Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1992",
+          "Yoga Bolster Rack Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1993",
+          "Yoga Bolster Rack Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1994",
+          "Yoga Bolster Rack High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1995",
+          "Yoga Bolster Rack Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1996",
+          "Event Hydration Station Compact",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1997",
+          "Event Hydration Station Standard",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1998",
+          "Event Hydration Station Extended",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1999",
+          "Event Hydration Station High Capacity",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2000",
+          "Event Hydration Station Grand",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

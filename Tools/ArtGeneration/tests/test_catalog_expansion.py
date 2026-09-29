@@ -22,17 +22,17 @@ def shape_signature(scene):
 
 def test_catalog_expansion_manifest_balances_all_five_hotel_families():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 1750
-    assert active.batch_numbers == tuple(range(1, 36))
+    assert active.asset_count == 2000
+    assert active.batch_numbers == tuple(range(1, 41))
     counts = Counter(family for family, _path, _row in active.iter_rows())
     assert counts == {
-        'architecture_construction': 220,
+        'architecture_construction': 270,
         'finish_systems': 90,
         'guest_room_furniture_fixtures': 245,
-        'front_of_house_public': 210,
-        'restaurant_bar_food_service': 195,
-        'housekeeping_maintenance_logistics': 205,
-        'amenities_events': 152,
+        'front_of_house_public': 260,
+        'restaurant_bar_food_service': 245,
+        'housekeeping_maintenance_logistics': 255,
+        'amenities_events': 202,
         'decor_clutter_signage': 95,
         'exterior_landscaping': 138,
         'guests_staff': 200,

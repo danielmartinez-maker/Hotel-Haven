@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 38,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1851",
+          "Chafing Dish Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1852",
+          "Chafing Dish Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1853",
+          "Chafing Dish Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1854",
+          "Chafing Dish High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1855",
+          "Chafing Dish Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1856",
+          "Salad Bar Sneeze Guard Compact",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1857",
+          "Salad Bar Sneeze Guard Standard",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1858",
+          "Salad Bar Sneeze Guard Extended",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1859",
+          "Salad Bar Sneeze Guard High Capacity",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1860",
+          "Salad Bar Sneeze Guard Grand",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1861",
+          "Carving Station Compact",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1862",
+          "Carving Station Standard",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1863",
+          "Carving Station Extended",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1864",
+          "Carving Station High Capacity",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1865",
+          "Carving Station Grand",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1866",
+          "Beverage Service Urn Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1867",
+          "Beverage Service Urn Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1868",
+          "Beverage Service Urn Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1869",
+          "Beverage Service Urn High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1870",
+          "Beverage Service Urn Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1871",
+          "Condiment Caddy Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1872",
+          "Condiment Caddy Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1873",
+          "Condiment Caddy Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1874",
+          "Condiment Caddy High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1875",
+          "Condiment Caddy Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1876",
+          "Restaurant Service Trolley Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1877",
+          "Restaurant Service Trolley Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1878",
+          "Restaurant Service Trolley Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1879",
+          "Restaurant Service Trolley High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1880",
+          "Restaurant Service Trolley Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1881",
+          "Wine Service Stand Compact",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1882",
+          "Wine Service Stand Standard",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1883",
+          "Wine Service Stand Extended",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1884",
+          "Wine Service Stand High Capacity",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1885",
+          "Wine Service Stand Grand",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1886",
+          "Undercounter Cooler Compact",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1887",
+          "Undercounter Cooler Standard",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1888",
+          "Undercounter Cooler Extended",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1889",
+          "Undercounter Cooler High Capacity",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1890",
+          "Undercounter Cooler Grand",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1891",
+          "Restaurant Host Podium Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1892",
+          "Restaurant Host Podium Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1893",
+          "Restaurant Host Podium Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1894",
+          "Restaurant Host Podium High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1895",
+          "Restaurant Host Podium Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A1896",
+          "Restaurant Banquette Compact",
+          "restaurant",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1897",
+          "Restaurant Banquette Standard",
+          "restaurant",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1898",
+          "Restaurant Banquette Extended",
+          "restaurant",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1899",
+          "Restaurant Banquette High Capacity",
+          "restaurant",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1900",
+          "Restaurant Banquette Grand",
+          "restaurant",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

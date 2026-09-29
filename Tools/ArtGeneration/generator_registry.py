@@ -5,6 +5,7 @@ from architectural_modules_factory import build_asset as build_architectural_mod
 from catalog_expansion_factory import build_asset as build_catalog_expansion
 from curated_hotel_factory import build_asset as build_curated_hotel
 from extended_hotel_factory import build_asset as build_extended_hotel
+from operations_expansion_factory import build_asset as build_operations_expansion
 from property_expansion_factory import build_asset as build_property_expansion
 from v2_asset_common import generate_manifest_batch
 
@@ -24,4 +25,5 @@ GENERATOR_FAMILIES = {
     'extended_hotel': FamilyGenerator(build_extended_hotel),
     'catalog_expansion': FamilyGenerator(build_catalog_expansion),
     'property_expansion': FamilyGenerator(build_property_expansion),
+    'operations_expansion': FamilyGenerator(build_operations_expansion),
 }

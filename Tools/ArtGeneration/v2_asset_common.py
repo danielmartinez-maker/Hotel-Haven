@@ -23,6 +23,7 @@ PALETTE = {
     'MAT_CHARACTER_COMPOSITE': ((0.24, 0.26, 0.30, 1.0), 0.0, 0.68),
     'MAT_EMISSIVE_WARM': ((0.92, 0.64, 0.30, 1.0), 0.0, 0.34),
     'MAT_VEGETATION': ((0.18, 0.32, 0.16, 1.0), 0.0, 0.80),
+    'MAT_PLASTIC_RUBBER': ((0.18, 0.18, 0.18, 1.0), 0.0, 0.64),
 }
 
 PROFILE_ASSET_TYPES = {

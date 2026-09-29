@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 39,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1901",
+          "Housekeeping Linen Cart Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1902",
+          "Housekeeping Linen Cart Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1903",
+          "Housekeeping Linen Cart Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1904",
+          "Housekeeping Linen Cart High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1905",
+          "Housekeeping Linen Cart Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1906",
+          "Housekeeping Supply Trolley Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1907",
+          "Housekeeping Supply Trolley Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1908",
+          "Housekeeping Supply Trolley Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1909",
+          "Housekeeping Supply Trolley High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1910",
+          "Housekeeping Supply Trolley Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1911",
+          "Three Bag Laundry Sorter Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1912",
+          "Three Bag Laundry Sorter Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1913",
+          "Three Bag Laundry Sorter Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1914",
+          "Three Bag Laundry Sorter High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1915",
+          "Three Bag Laundry Sorter Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1916",
+          "Commercial Vacuum Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1917",
+          "Commercial Vacuum Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1918",
+          "Commercial Vacuum Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1919",
+          "Commercial Vacuum High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1920",
+          "Commercial Vacuum Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1921",
+          "Guest Laundry Ironing Station Compact",
+          "housekeeping",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1922",
+          "Guest Laundry Ironing Station Standard",
+          "housekeeping",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1923",
+          "Guest Laundry Ironing Station Extended",
+          "housekeeping",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1924",
+          "Guest Laundry Ironing Station High Capacity",
+          "housekeeping",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1925",
+          "Guest Laundry Ironing Station Grand",
+          "housekeeping",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1926",
+          "Room Service Tray Stand Compact",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1927",
+          "Room Service Tray Stand Standard",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1928",
+          "Room Service Tray Stand Extended",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1929",
+          "Room Service Tray Stand High Capacity",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1930",
+          "Room Service Tray Stand Grand",
+          "housekeeping",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1931",
+          "Waste Sorting Station Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1932",
+          "Waste Sorting Station Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1933",
+          "Waste Sorting Station Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1934",
+          "Waste Sorting Station High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1935",
+          "Waste Sorting Station Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1936",
+          "Mop Bucket Wringer Compact",
+          "housekeeping",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1937",
+          "Mop Bucket Wringer Standard",
+          "housekeeping",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1938",
+          "Mop Bucket Wringer Extended",
+          "housekeeping",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1939",
+          "Mop Bucket Wringer High Capacity",
+          "housekeeping",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1940",
+          "Mop Bucket Wringer Grand",
+          "housekeeping",
+          "MAT_PLASTIC_RUBBER",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1941",
+          "Housekeeping Supply Shelf Compact",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1942",
+          "Housekeeping Supply Shelf Standard",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1943",
+          "Housekeeping Supply Shelf Extended",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1944",
+          "Housekeeping Supply Shelf High Capacity",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1945",
+          "Housekeeping Supply Shelf Grand",
+          "housekeeping",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A1946",
+          "Maintenance Tripod Worklight Compact",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1947",
+          "Maintenance Tripod Worklight Standard",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1948",
+          "Maintenance Tripod Worklight Extended",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1949",
+          "Maintenance Tripod Worklight High Capacity",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1950",
+          "Maintenance Tripod Worklight Grand",
+          "housekeeping",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
