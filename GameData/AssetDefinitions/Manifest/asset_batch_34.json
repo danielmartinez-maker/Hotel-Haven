@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 34,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1651",
+          "Yoga Mat Rack Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1652",
+          "Yoga Mat Rack Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1653",
+          "Yoga Mat Rack Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1654",
+          "Yoga Mat Rack High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1655",
+          "Yoga Mat Rack Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1656",
+          "Spa Reception Station Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1657",
+          "Spa Reception Station Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1658",
+          "Spa Reception Station Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1659",
+          "Spa Reception Station High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1660",
+          "Spa Reception Station Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1661",
+          "Adjustable Massage Chair Compact",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1662",
+          "Adjustable Massage Chair Standard",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1663",
+          "Adjustable Massage Chair Extended",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1664",
+          "Adjustable Massage Chair High Capacity",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1665",
+          "Adjustable Massage Chair Grand",
+          "amenities",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1666",
+          "Treatment Supply Trolley Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1667",
+          "Treatment Supply Trolley Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1668",
+          "Treatment Supply Trolley Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1669",
+          "Treatment Supply Trolley High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1670",
+          "Treatment Supply Trolley Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1671",
+          "Pool Safety Ladder Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1672",
+          "Pool Safety Ladder Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1673",
+          "Pool Safety Ladder Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1674",
+          "Pool Safety Ladder High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1675",
+          "Pool Safety Ladder Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1676",
+          "Elevated Lifeguard Chair Compact",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1677",
+          "Elevated Lifeguard Chair Standard",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1678",
+          "Elevated Lifeguard Chair Extended",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1679",
+          "Elevated Lifeguard Chair High Capacity",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1680",
+          "Elevated Lifeguard Chair Grand",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1681",
+          "Pool Diving Board Tower Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1682",
+          "Pool Diving Board Tower Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1683",
+          "Pool Diving Board Tower Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1684",
+          "Pool Diving Board Tower High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1685",
+          "Pool Diving Board Tower Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1686",
+          "Pool Towel Service Station Compact",
+          "amenities",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1687",
+          "Pool Towel Service Station Standard",
+          "amenities",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1688",
+          "Pool Towel Service Station Extended",
+          "amenities",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1689",
+          "Pool Towel Service Station High Capacity",
+          "amenities",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1690",
+          "Pool Towel Service Station Grand",
+          "amenities",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1691",
+          "Conference Refreshment Credenza Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1692",
+          "Conference Refreshment Credenza Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1693",
+          "Conference Refreshment Credenza Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1694",
+          "Conference Refreshment Credenza High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1695",
+          "Conference Refreshment Credenza Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1696",
+          "Mobile Conference Projector Cart Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1697",
+          "Mobile Conference Projector Cart Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1698",
+          "Mobile Conference Projector Cart Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1699",
+          "Mobile Conference Projector Cart High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1700",
+          "Mobile Conference Projector Cart Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

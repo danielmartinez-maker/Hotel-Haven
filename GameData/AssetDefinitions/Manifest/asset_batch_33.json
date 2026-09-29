@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 33,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1601",
+          "Ceramic Floor Tile Module Compact",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1602",
+          "Ceramic Floor Tile Module Standard",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1603",
+          "Ceramic Floor Tile Module Extended",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1604",
+          "Ceramic Floor Tile Module High Capacity",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1605",
+          "Ceramic Floor Tile Module Grand",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1606",
+          "Carpet Texture Tile Module Compact",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1607",
+          "Carpet Texture Tile Module Standard",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1608",
+          "Carpet Texture Tile Module Extended",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1609",
+          "Carpet Texture Tile Module High Capacity",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1610",
+          "Carpet Texture Tile Module Grand",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1611",
+          "Hardwood Plank Floor Panel Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1612",
+          "Hardwood Plank Floor Panel Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1613",
+          "Hardwood Plank Floor Panel Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1614",
+          "Hardwood Plank Floor Panel High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1615",
+          "Hardwood Plank Floor Panel Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1616",
+          "Chevron Parquet Floor Module Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1617",
+          "Chevron Parquet Floor Module Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1618",
+          "Chevron Parquet Floor Module Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1619",
+          "Chevron Parquet Floor Module High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1620",
+          "Chevron Parquet Floor Module Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1621",
+          "Marble Wall Cladding Panel Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1622",
+          "Marble Wall Cladding Panel Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1623",
+          "Marble Wall Cladding Panel Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1624",
+          "Marble Wall Cladding Panel High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1625",
+          "Marble Wall Cladding Panel Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1626",
+          "Acoustic Wall Panel Grid Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1627",
+          "Acoustic Wall Panel Grid Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1628",
+          "Acoustic Wall Panel Grid Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1629",
+          "Acoustic Wall Panel Grid High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1630",
+          "Acoustic Wall Panel Grid Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1631",
+          "Upholstered Wall Panel Module Compact",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1632",
+          "Upholstered Wall Panel Module Standard",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1633",
+          "Upholstered Wall Panel Module Extended",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1634",
+          "Upholstered Wall Panel Module High Capacity",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1635",
+          "Upholstered Wall Panel Module Grand",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1636",
+          "Paint Finish Sample Board Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1637",
+          "Paint Finish Sample Board Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1638",
+          "Paint Finish Sample Board Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1639",
+          "Paint Finish Sample Board High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1640",
+          "Paint Finish Sample Board Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1641",
+          "Coffered Ceiling Panel Module Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1642",
+          "Coffered Ceiling Panel Module Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1643",
+          "Coffered Ceiling Panel Module Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1644",
+          "Coffered Ceiling Panel Module High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1645",
+          "Coffered Ceiling Panel Module Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A1646",
+          "Metal Trim Profile Strip Compact",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1647",
+          "Metal Trim Profile Strip Standard",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1648",
+          "Metal Trim Profile Strip Extended",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1649",
+          "Metal Trim Profile Strip High Capacity",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1650",
+          "Metal Trim Profile Strip Grand",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

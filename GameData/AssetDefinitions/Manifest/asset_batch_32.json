@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 32,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1551",
+          "Lobby Lounge Armchair Compact",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1552",
+          "Lobby Lounge Armchair Standard",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1553",
+          "Lobby Lounge Armchair Extended",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1554",
+          "Lobby Lounge Armchair High Capacity",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1555",
+          "Lobby Lounge Armchair Grand",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1556",
+          "Lobby Console Table Compact",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1557",
+          "Lobby Console Table Standard",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1558",
+          "Lobby Console Table Extended",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1559",
+          "Lobby Console Table High Capacity",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1560",
+          "Lobby Console Table Grand",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1561",
+          "Guest Coat Check Rack Compact",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1562",
+          "Guest Coat Check Rack Standard",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1563",
+          "Guest Coat Check Rack Extended",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1564",
+          "Guest Coat Check Rack High Capacity",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1565",
+          "Guest Coat Check Rack Grand",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1566",
+          "Luggage Weighing Scale Compact",
+          "lobby",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1567",
+          "Luggage Weighing Scale Standard",
+          "lobby",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1568",
+          "Luggage Weighing Scale Extended",
+          "lobby",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1569",
+          "Luggage Weighing Scale High Capacity",
+          "lobby",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1570",
+          "Luggage Weighing Scale Grand",
+          "lobby",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1571",
+          "Lobby Umbrella Stand Compact",
+          "lobby",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1572",
+          "Lobby Umbrella Stand Standard",
+          "lobby",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1573",
+          "Lobby Umbrella Stand Extended",
+          "lobby",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1574",
+          "Lobby Umbrella Stand High Capacity",
+          "lobby",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1575",
+          "Lobby Umbrella Stand Grand",
+          "lobby",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1576",
+          "Lobby Magazine Display Rack Compact",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1577",
+          "Lobby Magazine Display Rack Standard",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1578",
+          "Lobby Magazine Display Rack Extended",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1579",
+          "Lobby Magazine Display Rack High Capacity",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1580",
+          "Lobby Magazine Display Rack Grand",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1581",
+          "Lobby Fireplace Surround Compact",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1582",
+          "Lobby Fireplace Surround Standard",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1583",
+          "Lobby Fireplace Surround Extended",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1584",
+          "Lobby Fireplace Surround High Capacity",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1585",
+          "Lobby Fireplace Surround Grand",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1586",
+          "Lobby Cafe Table Compact",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1587",
+          "Lobby Cafe Table Standard",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1588",
+          "Lobby Cafe Table Extended",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1589",
+          "Lobby Cafe Table High Capacity",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1590",
+          "Lobby Cafe Table Grand",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1591",
+          "Guest Parcel Shelving Unit Compact",
+          "lobby",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1592",
+          "Guest Parcel Shelving Unit Standard",
+          "lobby",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1593",
+          "Guest Parcel Shelving Unit Extended",
+          "lobby",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1594",
+          "Guest Parcel Shelving Unit High Capacity",
+          "lobby",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1595",
+          "Guest Parcel Shelving Unit Grand",
+          "lobby",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1596",
+          "Hotel Retail Kiosk Compact",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1597",
+          "Hotel Retail Kiosk Standard",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1598",
+          "Hotel Retail Kiosk Extended",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1599",
+          "Hotel Retail Kiosk High Capacity",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1600",
+          "Hotel Retail Kiosk Grand",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

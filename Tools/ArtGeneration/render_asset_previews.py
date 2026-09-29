@@ -65,7 +65,7 @@ def render_asset(path: Path, size: int = 150):
         shade = .58 + .42 * np.clip(normal @ LIGHT, 0, 1)
         base = material_rgb(geom)
         for tri, sh in zip(face_verts, shade):
-            triangles.append((float(tri[:, 1].mean()), tri, np.clip(base * sh, 25, 245)))
+            triangles.append((tri, np.clip(base * sh, 25, 245)))
 
     if not points:
         return Image.new('RGB', (size, size), BG)
@@ -81,13 +81,53 @@ def render_asset(path: Path, size: int = 150):
         q = (q - center) * scale
         q[:, 0] += size / 2
         q[:, 1] = size / 2 - q[:, 1]
-        return [tuple(x) for x in q]
+        return q
 
-    image = Image.new('RGB', (size, size), BG)
-    draw = ImageDraw.Draw(image)
-    for _, tri, color in sorted(triangles, key=lambda item: item[0]):
-        draw.polygon(project(tri), fill=tuple(color.astype(int)))
-    return image
+    # Average-depth painter sorting hides slanted details behind their base
+    # faces. Rasterize with a per-pixel depth buffer so overlapping geometry
+    # follows the camera projection instead of one depth value per triangle.
+    canvas = np.empty((size, size, 3), dtype=np.uint8)
+    canvas[:] = BG
+    depth_buffer = np.full((size, size), -np.inf, dtype=np.float32)
+    for tri, color in triangles:
+        points_2d = project(tri)
+        x0 = max(0, int(math.floor(float(points_2d[:, 0].min()))))
+        x1 = min(size - 1, int(math.ceil(float(points_2d[:, 0].max()))))
+        y0 = max(0, int(math.floor(float(points_2d[:, 1].min()))))
+        y1 = min(size - 1, int(math.ceil(float(points_2d[:, 1].max()))))
+        if x1 < x0 or y1 < y0:
+            continue
+
+        p0, p1, p2 = points_2d
+        denominator = (
+            (p1[1] - p2[1]) * (p0[0] - p2[0])
+            + (p2[0] - p1[0]) * (p0[1] - p2[1])
+        )
+        if abs(float(denominator)) < 1e-8:
+            continue
+
+        xs = np.arange(x0, x1 + 1, dtype=np.float32) + .5
+        ys = np.arange(y0, y1 + 1, dtype=np.float32) + .5
+        grid_x, grid_y = np.meshgrid(xs, ys)
+        w0 = ((p1[1] - p2[1]) * (grid_x - p2[0])
+              + (p2[0] - p1[0]) * (grid_y - p2[1])) / denominator
+        w1 = ((p2[1] - p0[1]) * (grid_x - p2[0])
+              + (p0[0] - p2[0]) * (grid_y - p2[1])) / denominator
+        w2 = 1.0 - w0 - w1
+        inside = (w0 >= -1e-6) & (w1 >= -1e-6) & (w2 >= -1e-6)
+
+        # The camera looks toward decreasing transformed Y, so larger
+        # negated-Y values are nearer and win the depth test.
+        depth = w0 * -tri[0, 1] + w1 * -tri[1, 1] + w2 * -tri[2, 1]
+        depth_region = depth_buffer[y0:y1 + 1, x0:x1 + 1]
+        update = inside & (depth > depth_region)
+        if not np.any(update):
+            continue
+        depth_region[update] = depth[update]
+        color_region = canvas[y0:y1 + 1, x0:x1 + 1]
+        color_region[update] = np.asarray(color, dtype=np.uint8)
+
+    return Image.fromarray(canvas, mode='RGB')
 
 
 def image_content_ratio(image: Image.Image) -> float:

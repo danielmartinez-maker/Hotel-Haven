@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 35,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1701",
+          "Courtyard Garden Fountain Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1702",
+          "Courtyard Garden Fountain Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1703",
+          "Courtyard Garden Fountain Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1704",
+          "Courtyard Garden Fountain High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1705",
+          "Courtyard Garden Fountain Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1706",
+          "Outdoor Cafe Dining Table Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1707",
+          "Outdoor Cafe Dining Table Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1708",
+          "Outdoor Cafe Dining Table Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1709",
+          "Outdoor Cafe Dining Table High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1710",
+          "Outdoor Cafe Dining Table Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1711",
+          "Outdoor Garden Chair Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1712",
+          "Outdoor Garden Chair Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1713",
+          "Outdoor Garden Chair Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1714",
+          "Outdoor Garden Chair High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1715",
+          "Outdoor Garden Chair Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1716",
+          "Pathway Bollard Light Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1717",
+          "Pathway Bollard Light Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1718",
+          "Pathway Bollard Light Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1719",
+          "Pathway Bollard Light High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1720",
+          "Pathway Bollard Light Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1721",
+          "Garden Access Gate Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1722",
+          "Garden Access Gate Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1723",
+          "Garden Access Gate Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1724",
+          "Garden Access Gate High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1725",
+          "Garden Access Gate Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1726",
+          "Climbing Garden Trellis Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1727",
+          "Climbing Garden Trellis Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1728",
+          "Climbing Garden Trellis Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1729",
+          "Climbing Garden Trellis High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1730",
+          "Climbing Garden Trellis Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1731",
+          "Outdoor Rinse Shower Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1732",
+          "Outdoor Rinse Shower Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1733",
+          "Outdoor Rinse Shower Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1734",
+          "Outdoor Rinse Shower High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1735",
+          "Outdoor Rinse Shower Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1736",
+          "Raised Flower Bed Module Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1737",
+          "Raised Flower Bed Module Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1738",
+          "Raised Flower Bed Module Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1739",
+          "Raised Flower Bed Module High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1740",
+          "Raised Flower Bed Module Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1741",
+          "Slatted Garden Bench Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1742",
+          "Slatted Garden Bench Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1743",
+          "Slatted Garden Bench Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1744",
+          "Slatted Garden Bench High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1745",
+          "Slatted Garden Bench Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A1746",
+          "Landscape Walkway Arch Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1747",
+          "Landscape Walkway Arch Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1748",
+          "Landscape Walkway Arch Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1749",
+          "Landscape Walkway Arch High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1750",
+          "Landscape Walkway Arch Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

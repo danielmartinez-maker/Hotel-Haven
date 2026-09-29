@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 31,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1501",
+          "Hotel Lobby Pilaster Bay Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1502",
+          "Hotel Lobby Pilaster Bay Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1503",
+          "Hotel Lobby Pilaster Bay Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1504",
+          "Hotel Lobby Pilaster Bay High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1505",
+          "Hotel Lobby Pilaster Bay Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1506",
+          "Balustrade Railing Section Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1507",
+          "Balustrade Railing Section Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1508",
+          "Balustrade Railing Section Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1509",
+          "Balustrade Railing Section High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1510",
+          "Balustrade Railing Section Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1511",
+          "Arched Guestroom Door Surround Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1512",
+          "Arched Guestroom Door Surround Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1513",
+          "Arched Guestroom Door Surround Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1514",
+          "Arched Guestroom Door Surround High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1515",
+          "Arched Guestroom Door Surround Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1516",
+          "Picture Window Bay Module Compact",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1517",
+          "Picture Window Bay Module Standard",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1518",
+          "Picture Window Bay Module Extended",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1519",
+          "Picture Window Bay Module High Capacity",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1520",
+          "Picture Window Bay Module Grand",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1521",
+          "Wainscot Wall Panel Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1522",
+          "Wainscot Wall Panel Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1523",
+          "Wainscot Wall Panel Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1524",
+          "Wainscot Wall Panel High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1525",
+          "Wainscot Wall Panel Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1526",
+          "Ceiling Cornice Module Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1527",
+          "Ceiling Cornice Module Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1528",
+          "Ceiling Cornice Module Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1529",
+          "Ceiling Cornice Module High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1530",
+          "Ceiling Cornice Module Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1531",
+          "Stone Stair Landing Module Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1532",
+          "Stone Stair Landing Module Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1533",
+          "Stone Stair Landing Module Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1534",
+          "Stone Stair Landing Module High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1535",
+          "Stone Stair Landing Module Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1536",
+          "Column Capital Module Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1537",
+          "Column Capital Module Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1538",
+          "Column Capital Module Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1539",
+          "Column Capital Module High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1540",
+          "Column Capital Module Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1541",
+          "Decorative Wall Niche Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1542",
+          "Decorative Wall Niche Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1543",
+          "Decorative Wall Niche Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1544",
+          "Decorative Wall Niche High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1545",
+          "Decorative Wall Niche Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A1546",
+          "Elevator Lobby Portal Frame Compact",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1547",
+          "Elevator Lobby Portal Frame Standard",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1548",
+          "Elevator Lobby Portal Frame Extended",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1549",
+          "Elevator Lobby Portal Frame High Capacity",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1550",
+          "Elevator Lobby Portal Frame Grand",
+          "architecture",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
