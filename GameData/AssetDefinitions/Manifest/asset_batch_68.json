@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 68,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3351",
+          "Coat Check Counter Token Rail Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3352",
+          "Coat Check Counter Token Rail Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3353",
+          "Coat Check Counter Token Rail Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3354",
+          "Coat Check Counter Token Rail High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3355",
+          "Coat Check Counter Token Rail Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3356",
+          "Lobby Piano Bench Music Cabinet Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3357",
+          "Lobby Piano Bench Music Cabinet Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3358",
+          "Lobby Piano Bench Music Cabinet Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3359",
+          "Lobby Piano Bench Music Cabinet High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3360",
+          "Lobby Piano Bench Music Cabinet Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3361",
+          "Public Charging Table Island Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3362",
+          "Public Charging Table Island Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3363",
+          "Public Charging Table Island Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3364",
+          "Public Charging Table Island High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3365",
+          "Public Charging Table Island Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3366",
+          "Valet Arrival Stand Console Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3367",
+          "Valet Arrival Stand Console Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3368",
+          "Valet Arrival Stand Console Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3369",
+          "Valet Arrival Stand Console High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3370",
+          "Valet Arrival Stand Console Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3371",
+          "Lobby Seating Alcove Bench Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3372",
+          "Lobby Seating Alcove Bench Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3373",
+          "Lobby Seating Alcove Bench Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3374",
+          "Lobby Seating Alcove Bench High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3375",
+          "Lobby Seating Alcove Bench Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3376",
+          "Library Book Return Shelving Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3377",
+          "Library Book Return Shelving Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3378",
+          "Library Book Return Shelving Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3379",
+          "Library Book Return Shelving High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3380",
+          "Library Book Return Shelving Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3381",
+          "Public Restroom Vanity Partition Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3382",
+          "Public Restroom Vanity Partition Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3383",
+          "Public Restroom Vanity Partition Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3384",
+          "Public Restroom Vanity Partition High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3385",
+          "Public Restroom Vanity Partition Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3386",
+          "Banquet Registration Counter Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3387",
+          "Banquet Registration Counter Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3388",
+          "Banquet Registration Counter Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3389",
+          "Banquet Registration Counter High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3390",
+          "Banquet Registration Counter Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3391",
+          "Guest Services Map Display Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3392",
+          "Guest Services Map Display Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3393",
+          "Guest Services Map Display Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3394",
+          "Guest Services Map Display High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3395",
+          "Guest Services Map Display Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3396",
+          "Luggage Claim Ticket Kiosk Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3397",
+          "Luggage Claim Ticket Kiosk Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3398",
+          "Luggage Claim Ticket Kiosk Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3399",
+          "Luggage Claim Ticket Kiosk High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3400",
+          "Luggage Claim Ticket Kiosk Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

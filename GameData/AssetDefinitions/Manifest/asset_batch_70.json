@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 70,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3451",
+          "Heritage Corridor Art Triptych Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3452",
+          "Heritage Corridor Art Triptych Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3453",
+          "Heritage Corridor Art Triptych Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3454",
+          "Heritage Corridor Art Triptych High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3455",
+          "Heritage Corridor Art Triptych Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3456",
+          "Lobby Sculptural Vessel Plinth Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3457",
+          "Lobby Sculptural Vessel Plinth Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3458",
+          "Lobby Sculptural Vessel Plinth Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3459",
+          "Lobby Sculptural Vessel Plinth High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3460",
+          "Lobby Sculptural Vessel Plinth Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3461",
+          "Grandfather Lobby Clock Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3462",
+          "Grandfather Lobby Clock Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3463",
+          "Grandfather Lobby Clock Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3464",
+          "Grandfather Lobby Clock High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3465",
+          "Grandfather Lobby Clock Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3466",
+          "Corridor Lantern Sconce Pair Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3467",
+          "Corridor Lantern Sconce Pair Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3468",
+          "Corridor Lantern Sconce Pair Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3469",
+          "Corridor Lantern Sconce Pair High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3470",
+          "Corridor Lantern Sconce Pair Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3471",
+          "Room Wayfinding Plaque Set Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3472",
+          "Room Wayfinding Plaque Set Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3473",
+          "Room Wayfinding Plaque Set Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3474",
+          "Room Wayfinding Plaque Set High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3475",
+          "Room Wayfinding Plaque Set Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3476",
+          "Event Table Floral Centerpiece Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3477",
+          "Event Table Floral Centerpiece Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3478",
+          "Event Table Floral Centerpiece Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3479",
+          "Event Table Floral Centerpiece High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3480",
+          "Event Table Floral Centerpiece Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3481",
+          "Guestroom Welcome Tray Arrangement Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3482",
+          "Guestroom Welcome Tray Arrangement Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3483",
+          "Guestroom Welcome Tray Arrangement Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3484",
+          "Guestroom Welcome Tray Arrangement High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3485",
+          "Guestroom Welcome Tray Arrangement Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3486",
+          "Ceramic Planter Column Set Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3487",
+          "Ceramic Planter Column Set Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3488",
+          "Ceramic Planter Column Set Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3489",
+          "Ceramic Planter Column Set High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3490",
+          "Ceramic Planter Column Set Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3491",
+          "Retail Display Bust Pedestal Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3492",
+          "Retail Display Bust Pedestal Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3493",
+          "Retail Display Bust Pedestal Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3494",
+          "Retail Display Bust Pedestal High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3495",
+          "Retail Display Bust Pedestal Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3496",
+          "Brass Bookend Shelf Accent Set Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3497",
+          "Brass Bookend Shelf Accent Set Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3498",
+          "Brass Bookend Shelf Accent Set Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3499",
+          "Brass Bookend Shelf Accent Set High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3500",
+          "Brass Bookend Shelf Accent Set Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

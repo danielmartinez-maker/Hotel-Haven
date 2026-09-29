@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 67,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3301",
+          "Guestroom Entry Bench Shoe Drawer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3302",
+          "Guestroom Entry Bench Shoe Drawer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3303",
+          "Guestroom Entry Bench Shoe Drawer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3304",
+          "Guestroom Entry Bench Shoe Drawer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3305",
+          "Guestroom Entry Bench Shoe Drawer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3306",
+          "Window Reading Chaise Lounge Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3307",
+          "Window Reading Chaise Lounge Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3308",
+          "Window Reading Chaise Lounge Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3309",
+          "Window Reading Chaise Lounge High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3310",
+          "Window Reading Chaise Lounge Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3311",
+          "Workdesk Foldout Privacy Wing Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3312",
+          "Workdesk Foldout Privacy Wing Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3313",
+          "Workdesk Foldout Privacy Wing Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3314",
+          "Workdesk Foldout Privacy Wing High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3315",
+          "Workdesk Foldout Privacy Wing Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3316",
+          "Bedside Charging Bridge Rail Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3317",
+          "Bedside Charging Bridge Rail Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3318",
+          "Bedside Charging Bridge Rail Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3319",
+          "Bedside Charging Bridge Rail High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3320",
+          "Bedside Charging Bridge Rail Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3321",
+          "Guestroom Wardrobe Hamper Tower Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3322",
+          "Guestroom Wardrobe Hamper Tower Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3323",
+          "Guestroom Wardrobe Hamper Tower Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3324",
+          "Guestroom Wardrobe Hamper Tower High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3325",
+          "Guestroom Wardrobe Hamper Tower Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3326",
+          "Dressing Mirror Vanity Console Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3327",
+          "Dressing Mirror Vanity Console Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3328",
+          "Dressing Mirror Vanity Console Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3329",
+          "Dressing Mirror Vanity Console High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3330",
+          "Dressing Mirror Vanity Console Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3331",
+          "In Room Dining Stowaway Credenza Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3332",
+          "In Room Dining Stowaway Credenza Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3333",
+          "In Room Dining Stowaway Credenza Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3334",
+          "In Room Dining Stowaway Credenza High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3335",
+          "In Room Dining Stowaway Credenza Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3336",
+          "Robe and Garment Valet Stand Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3337",
+          "Robe and Garment Valet Stand Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3338",
+          "Robe and Garment Valet Stand Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3339",
+          "Robe and Garment Valet Stand High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3340",
+          "Robe and Garment Valet Stand Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3341",
+          "Overbed Writing Table Console Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3342",
+          "Overbed Writing Table Console Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3343",
+          "Overbed Writing Table Console Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3344",
+          "Overbed Writing Table Console High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3345",
+          "Overbed Writing Table Console Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3346",
+          "Accessible Bed Transfer Assist Rail Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3347",
+          "Accessible Bed Transfer Assist Rail Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3348",
+          "Accessible Bed Transfer Assist Rail Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3349",
+          "Accessible Bed Transfer Assist Rail High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3350",
+          "Accessible Bed Transfer Assist Rail Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

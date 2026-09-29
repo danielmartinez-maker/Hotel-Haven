@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 66,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3251",
+          "Hotel Mechanical Screen Roof Bay Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3252",
+          "Hotel Mechanical Screen Roof Bay Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3253",
+          "Hotel Mechanical Screen Roof Bay Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3254",
+          "Hotel Mechanical Screen Roof Bay High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3255",
+          "Hotel Mechanical Screen Roof Bay Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3256",
+          "Atrium Acoustic Ceiling Cassette Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3257",
+          "Atrium Acoustic Ceiling Cassette Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3258",
+          "Atrium Acoustic Ceiling Cassette Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3259",
+          "Atrium Acoustic Ceiling Cassette High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3260",
+          "Atrium Acoustic Ceiling Cassette Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3261",
+          "Stone Lobby Portal Reveal Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3262",
+          "Stone Lobby Portal Reveal Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3263",
+          "Stone Lobby Portal Reveal Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3264",
+          "Stone Lobby Portal Reveal High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3265",
+          "Stone Lobby Portal Reveal Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3266",
+          "Seismic Beam Collector Node Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3267",
+          "Seismic Beam Collector Node Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3268",
+          "Seismic Beam Collector Node Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3269",
+          "Seismic Beam Collector Node High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3270",
+          "Seismic Beam Collector Node Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3271",
+          "Smoke Control Louver Wall Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3272",
+          "Smoke Control Louver Wall Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3273",
+          "Smoke Control Louver Wall Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3274",
+          "Smoke Control Louver Wall High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3275",
+          "Smoke Control Louver Wall Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3276",
+          "Service Corridor Bulkhead Return Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3277",
+          "Service Corridor Bulkhead Return Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3278",
+          "Service Corridor Bulkhead Return Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3279",
+          "Service Corridor Bulkhead Return High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3280",
+          "Service Corridor Bulkhead Return Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3281",
+          "Glazed Vestibule Windbreak Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3282",
+          "Glazed Vestibule Windbreak Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3283",
+          "Glazed Vestibule Windbreak Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3284",
+          "Glazed Vestibule Windbreak High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3285",
+          "Glazed Vestibule Windbreak Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3286",
+          "Courtyard Drainage Channel Module Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3287",
+          "Courtyard Drainage Channel Module Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3288",
+          "Courtyard Drainage Channel Module Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3289",
+          "Courtyard Drainage Channel Module High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3290",
+          "Courtyard Drainage Channel Module Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3291",
+          "Mezzanine Balustrade Return Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3292",
+          "Mezzanine Balustrade Return Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3293",
+          "Mezzanine Balustrade Return Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3294",
+          "Mezzanine Balustrade Return High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3295",
+          "Mezzanine Balustrade Return Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3296",
+          "Rated Stair Landing Guard Module Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3297",
+          "Rated Stair Landing Guard Module Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3298",
+          "Rated Stair Landing Guard Module Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3299",
+          "Rated Stair Landing Guard Module High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3300",
+          "Rated Stair Landing Guard Module Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

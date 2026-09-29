@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 69,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3401",
+          "Spa Heated Towel Cabinet Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3402",
+          "Spa Heated Towel Cabinet Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3403",
+          "Spa Heated Towel Cabinet Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3404",
+          "Spa Heated Towel Cabinet High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3405",
+          "Spa Heated Towel Cabinet Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3406",
+          "Sauna Tier Bench Assembly Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3407",
+          "Sauna Tier Bench Assembly Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3408",
+          "Sauna Tier Bench Assembly Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3409",
+          "Sauna Tier Bench Assembly High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3410",
+          "Sauna Tier Bench Assembly Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3411",
+          "Relaxation Chaise Footrest Set Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3412",
+          "Relaxation Chaise Footrest Set Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3413",
+          "Relaxation Chaise Footrest Set Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3414",
+          "Relaxation Chaise Footrest Set High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3415",
+          "Relaxation Chaise Footrest Set Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3416",
+          "Yoga Bolster Storage Rack Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3417",
+          "Yoga Bolster Storage Rack Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3418",
+          "Yoga Bolster Storage Rack Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3419",
+          "Yoga Bolster Storage Rack High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3420",
+          "Yoga Bolster Storage Rack Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3421",
+          "Pool Towel Exchange Hamper Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3422",
+          "Pool Towel Exchange Hamper Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3423",
+          "Pool Towel Exchange Hamper Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3424",
+          "Pool Towel Exchange Hamper High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3425",
+          "Pool Towel Exchange Hamper Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3426",
+          "Kids Activity Table Set Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3427",
+          "Kids Activity Table Set Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3428",
+          "Kids Activity Table Set Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3429",
+          "Kids Activity Table Set High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3430",
+          "Kids Activity Table Set Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3431",
+          "Outdoor Recreation Equipment Rack Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3432",
+          "Outdoor Recreation Equipment Rack Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3433",
+          "Outdoor Recreation Equipment Rack Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3434",
+          "Outdoor Recreation Equipment Rack High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3435",
+          "Outdoor Recreation Equipment Rack Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3436",
+          "Spa Tea Service Island Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3437",
+          "Spa Tea Service Island Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3438",
+          "Spa Tea Service Island Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3439",
+          "Spa Tea Service Island High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3440",
+          "Spa Tea Service Island Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3441",
+          "Hydrotherapy Shower Column Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3442",
+          "Hydrotherapy Shower Column Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3443",
+          "Hydrotherapy Shower Column Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3444",
+          "Hydrotherapy Shower Column High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3445",
+          "Hydrotherapy Shower Column Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3446",
+          "Event Lounge Divider Planter Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3447",
+          "Event Lounge Divider Planter Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3448",
+          "Event Lounge Divider Planter Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3449",
+          "Event Lounge Divider Planter High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3450",
+          "Event Lounge Divider Planter Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

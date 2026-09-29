@@ -4,7 +4,7 @@
   "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
   "quality_contract": "GameData/AssetDefinitions/asset_quality_contract_v2.json",
   "previous_manifest": "GameData/AssetDefinitions/hotel_haven_asset_manifest_v1.json",
-  "asset_count": 3250,
+  "asset_count": 3500,
   "storage": "sharded_by_production_batch",
   "entry_columns": [
     "asset_id",
@@ -106,14 +106,14 @@
     }
   },
   "family_targets": {
-    "architecture_construction": 420,
+    "architecture_construction": 470,
     "finish_systems": 195,
-    "guest_room_furniture_fixtures": 395,
-    "front_of_house_public": 360,
+    "guest_room_furniture_fixtures": 445,
+    "front_of_house_public": 410,
     "restaurant_bar_food_service": 495,
     "housekeeping_maintenance_logistics": 450,
-    "amenities_events": 302,
-    "decor_clutter_signage": 195,
+    "amenities_events": 352,
+    "decor_clutter_signage": 245,
     "exterior_landscaping": 238,
     "guests_staff": 200
   },
@@ -182,7 +182,12 @@
     {"batch": 62, "path": "GameData/AssetDefinitions/Manifest/asset_batch_62.json", "asset_count": 50, "generator_family": "hotel_continuation"},
     {"batch": 63, "path": "GameData/AssetDefinitions/Manifest/asset_batch_63.json", "asset_count": 50, "generator_family": "hotel_continuation"},
     {"batch": 64, "path": "GameData/AssetDefinitions/Manifest/asset_batch_64.json", "asset_count": 50, "generator_family": "hotel_continuation"},
-    {"batch": 65, "path": "GameData/AssetDefinitions/Manifest/asset_batch_65.json", "asset_count": 50, "generator_family": "hotel_continuation"}
+    {"batch": 65, "path": "GameData/AssetDefinitions/Manifest/asset_batch_65.json", "asset_count": 50, "generator_family": "hotel_continuation"},
+    {"batch": 66, "path": "GameData/AssetDefinitions/Manifest/asset_batch_66.json", "asset_count": 50, "generator_family": "design_completion"},
+    {"batch": 67, "path": "GameData/AssetDefinitions/Manifest/asset_batch_67.json", "asset_count": 50, "generator_family": "design_completion"},
+    {"batch": 68, "path": "GameData/AssetDefinitions/Manifest/asset_batch_68.json", "asset_count": 50, "generator_family": "design_completion"},
+    {"batch": 69, "path": "GameData/AssetDefinitions/Manifest/asset_batch_69.json", "asset_count": 50, "generator_family": "design_completion"},
+    {"batch": 70, "path": "GameData/AssetDefinitions/Manifest/asset_batch_70.json", "asset_count": 50, "generator_family": "design_completion"}
   ],
   "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, reachability, task, and interaction authority remain in their owning game-data systems.",
   "runtime_contract": "Shipping executables consume deterministic cooked .hasset assets only; authoring generators and optional DCC/AI tooling are offline-only."

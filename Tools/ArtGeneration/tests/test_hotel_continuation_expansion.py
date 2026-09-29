@@ -20,20 +20,20 @@ def shape_signature(scene):
     ))
 
 
-def test_hotel_continuation_declares_3250_assets_and_spec_aligned_family_targets():
+def test_active_manifest_counts_and_spec_aligned_family_targets():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 3250
-    assert active.batch_numbers == tuple(range(1, 66))
+    assert active.asset_count == 3500
+    assert active.batch_numbers == tuple(range(1, 71))
     counts = Counter(family for family, _path, _row in active.iter_rows())
     assert counts == {
-        'architecture_construction': 420,
+        'architecture_construction': 470,
         'finish_systems': 195,
-        'guest_room_furniture_fixtures': 395,
-        'front_of_house_public': 360,
+        'guest_room_furniture_fixtures': 445,
+        'front_of_house_public': 410,
         'restaurant_bar_food_service': 495,
         'housekeeping_maintenance_logistics': 450,
-        'amenities_events': 302,
-        'decor_clutter_signage': 195,
+        'amenities_events': 352,
+        'decor_clutter_signage': 245,
         'exterior_landscaping': 238,
         'guests_staff': 200,
     }
