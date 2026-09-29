@@ -2,7 +2,7 @@
 
 **Document ID:** HMG-010 implementation design
 **Version:** 0.1
-**Status:** Design approved in conversation; written-spec review pending
+**Status:** Approved after conversation review
 **Target:** Windows 11 x64 native client; portable deterministic simulation
 **Language:** C++20
 
@@ -171,4 +171,5 @@ The milestone is ready when:
 - [`HMG-040 Staff and Task Scheduling`](../../specifications/HMG_040_STAFF_AND_TASK_SCHEDULING_V0_1.md)
 - [`HMG-050 Service and Logistics Simulation`](../../specifications/HMG_050_SERVICE_AND_LOGISTICS_SIMULATION_V0_1.md)
 - [`Implementation status`](../../IMPLEMENTATION_STATUS.md)
+
 
