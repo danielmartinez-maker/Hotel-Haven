@@ -9,7 +9,7 @@ import generate_all_assets as g
 def test_batch_registry_is_complete():
     from asset_manifest import load_active_manifest
     batches = load_active_manifest(ROOT.parent.parent).batch_numbers
-    assert batches == tuple(range(1, 71))
+    assert batches == tuple(range(1, 75))
     assert [g.generator_source(i) for i in batches] == [f'Tools/ArtGeneration/batch{i:02d}_generate.py' for i in batches]
 
 def test_sidecar_normalization_matches_exact_export_filename(tmp_path):

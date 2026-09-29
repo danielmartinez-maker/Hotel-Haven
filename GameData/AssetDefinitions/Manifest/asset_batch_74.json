@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 74,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3651",
+          "Pool Towel Return Carousel Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3652",
+          "Pool Towel Return Carousel Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3653",
+          "Pool Towel Return Carousel Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3654",
+          "Pool Towel Return Carousel High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3655",
+          "Pool Towel Return Carousel Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3656",
+          "Spa Herbal Tea Trolley Compact",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3657",
+          "Spa Herbal Tea Trolley Standard",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3658",
+          "Spa Herbal Tea Trolley Extended",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3659",
+          "Spa Herbal Tea Trolley High Capacity",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3660",
+          "Spa Herbal Tea Trolley Grand",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3661",
+          "Fitness Hydration Island Compact",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3662",
+          "Fitness Hydration Island Standard",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3663",
+          "Fitness Hydration Island Extended",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3664",
+          "Fitness Hydration Island High Capacity",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3665",
+          "Fitness Hydration Island Grand",
+          "amenity",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3666",
+          "Children Reading Nook Compact",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3667",
+          "Children Reading Nook Standard",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3668",
+          "Children Reading Nook Extended",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3669",
+          "Children Reading Nook High Capacity",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3670",
+          "Children Reading Nook Grand",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3671",
+          "Rooftop Viewing Binocular Stand Compact",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3672",
+          "Rooftop Viewing Binocular Stand Standard",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3673",
+          "Rooftop Viewing Binocular Stand Extended",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3674",
+          "Rooftop Viewing Binocular Stand High Capacity",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3675",
+          "Rooftop Viewing Binocular Stand Grand",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3676",
+          "Event Presenter AV Lectern Compact",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3677",
+          "Event Presenter AV Lectern Standard",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3678",
+          "Event Presenter AV Lectern Extended",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3679",
+          "Event Presenter AV Lectern High Capacity",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3680",
+          "Event Presenter AV Lectern Grand",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3681",
+          "Board Game Lounge Table Set Compact",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3682",
+          "Board Game Lounge Table Set Standard",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3683",
+          "Board Game Lounge Table Set Extended",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3684",
+          "Board Game Lounge Table Set High Capacity",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3685",
+          "Board Game Lounge Table Set Grand",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3686",
+          "Sauna Aromatherapy Stone Basin Compact",
+          "amenity",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3687",
+          "Sauna Aromatherapy Stone Basin Standard",
+          "amenity",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3688",
+          "Sauna Aromatherapy Stone Basin Extended",
+          "amenity",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3689",
+          "Sauna Aromatherapy Stone Basin High Capacity",
+          "amenity",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3690",
+          "Sauna Aromatherapy Stone Basin Grand",
+          "amenity",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A3691",
+          "Pet Welcome Care Station Compact",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3692",
+          "Pet Welcome Care Station Standard",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3693",
+          "Pet Welcome Care Station Extended",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3694",
+          "Pet Welcome Care Station High Capacity",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3695",
+          "Pet Welcome Care Station Grand",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A3696",
+          "Heritage Textile Wall Hanging Compact",
+          "decor",
+          "MAT_LINEN",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3697",
+          "Heritage Textile Wall Hanging Standard",
+          "decor",
+          "MAT_LINEN",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3698",
+          "Heritage Textile Wall Hanging Extended",
+          "decor",
+          "MAT_LINEN",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3699",
+          "Heritage Textile Wall Hanging High Capacity",
+          "decor",
+          "MAT_LINEN",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A3700",
+          "Heritage Textile Wall Hanging Grand",
+          "decor",
+          "MAT_LINEN",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

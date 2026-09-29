@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'Tools' / 'ArtGeneration'))
 
 from asset_manifest import load_active_manifest
-from design_completion_factory import build_asset
+from hotel_finalization_factory import build_asset
 
 
 def shape_signature(scene):
@@ -20,7 +20,7 @@ def shape_signature(scene):
     ))
 
 
-def test_asset_catalog_declares_3700_assets_and_balanced_family_targets():
+def test_finalization_catalog_declares_3700_assets_and_balanced_family_targets():
     active = load_active_manifest(ROOT)
     assert active.asset_count == 3700
     assert active.batch_numbers == tuple(range(1, 75))
@@ -39,25 +39,25 @@ def test_asset_catalog_declares_3700_assets_and_balanced_family_targets():
     }
 
 
-def test_design_completion_batches_define_ten_five_variant_products_per_domain():
+def test_finalization_batches_are_contiguous_and_follow_the_planned_family_mix():
     active = load_active_manifest(ROOT)
     expected = {
-        66: 'architecture_construction',
-        67: 'guest_room_furniture_fixtures',
-        68: 'front_of_house_public',
-        69: 'amenities_events',
-        70: 'decor_clutter_signage',
+        71: {'architecture_construction': 50},
+        72: {'guest_room_furniture_fixtures': 50},
+        73: {'front_of_house_public': 50},
+        74: {'amenities_events': 45, 'decor_clutter_signage': 5},
     }
     rows = []
-    for batch, family in expected.items():
+    for batch, families in expected.items():
         entry = active.batch_entries[batch - 1]
-        assert entry.generator_family == 'design_completion'
-        batch_rows = [(row_family, row) for row_family, path, row in active.iter_rows()
+        assert entry.generator_family == 'hotel_finalization'
+        batch_rows = [(family, row) for family, path, row in active.iter_rows()
                       if Path(path).stem == f'asset_batch_{batch:02d}']
         assert len(batch_rows) == 50
-        assert Counter(row_family for row_family, _row in batch_rows) == {family: 50}
+        assert Counter(family for family, _row in batch_rows) == families
         rows.extend(batch_rows)
-    for start in range(3251, 3501, 5):
+    assert {row[0] for _family, row in rows} == {f'HH_A{i:04d}' for i in range(3501, 3701)}
+    for start in list(range(3501, 3701, 5)):
         variants = [row for _family, row in rows
                     if start <= int(row[0].removeprefix('HH_A')) < start + 5]
         assert len(variants) == 5
@@ -66,11 +66,11 @@ def test_design_completion_batches_define_ten_five_variant_products_per_domain()
         assert len(product_names) == 1
 
 
-def test_each_design_completion_product_has_five_distinct_valid_variants():
+def test_every_finalization_product_has_five_distinct_valid_variants():
     active = load_active_manifest(ROOT)
     rows = {row[0]: row for _family, path, row in active.iter_rows()
-            if 66 <= int(Path(path).stem.rsplit('_', 1)[1]) <= 70}
-    for start in range(3251, 3501, 5):
+            if 71 <= int(Path(path).stem.rsplit('_', 1)[1]) <= 74}
+    for start in range(3501, 3701, 5):
         signatures = []
         for number in range(start, start + 5):
             row = rows[f'HH_A{number:04d}']
@@ -85,28 +85,38 @@ def test_each_design_completion_product_has_five_distinct_valid_variants():
         assert len(set(signatures)) == 5, f'product group starting at A{start}'
 
 
-def test_design_completion_variant_contract_tracks_all_new_products():
+def test_finalization_variant_contract_tracks_all_new_products():
     contract = json.loads((ROOT / 'GameData/AssetDefinitions/asset_quality_contract_v2.json').read_text())
     declared = {asset_id for ids in contract['variant_groups'].values() for asset_id in ids}
-    for number in range(3251, 3501):
+    for number in range(3501, 3701):
         assert f'HH_A{number:04d}' in declared
 
 
-def test_design_completion_semantic_variant_groups_match_asset_contract():
+def test_finalization_semantic_variant_groups_match_the_asset_contract():
     from semantic_asset_quality import DISTINCT_VARIANT_GROUPS
 
     contract = json.loads((ROOT / 'GameData/AssetDefinitions/asset_quality_contract_v2.json').read_text())
-    expected = {f'completion_{domain}_{group}'
-                for domain in ('architecture', 'guestroom', 'public', 'amenity', 'decor')
-                for group in range(10)}
+    expected = {f'finalization_{domain}_{group}'
+                for domain, count in (('architecture', 10), ('guestroom', 10), ('public', 10),
+                                      ('amenity', 9), ('decor', 1))
+                for group in range(count)}
     assert expected <= DISTINCT_VARIANT_GROUPS.keys()
     assert expected <= contract['variant_groups'].keys()
     for group_name in expected:
         assert DISTINCT_VARIANT_GROUPS[group_name] == tuple(contract['variant_groups'][group_name])
 
 
-def test_design_completion_factory_rejects_ids_outside_its_owned_range():
+def test_finalization_factory_rejects_ids_outside_its_owned_range():
     with pytest.raises(ValueError, match='outside'):
-        build_asset('Unowned', 'none', 'MAT_WOOD_WARM', 'HH_A3250', 'P_FURNITURE_STATIC')
+        build_asset('Unowned', 'none', 'MAT_WOOD_WARM', 'HH_A3500', 'P_FURNITURE_STATIC')
     with pytest.raises(ValueError, match='outside'):
-        build_asset('Unowned', 'none', 'MAT_WOOD_WARM', 'HH_A3501', 'P_FURNITURE_STATIC')
+        build_asset('Unowned', 'none', 'MAT_WOOD_WARM', 'HH_A3701', 'P_FURNITURE_STATIC')
+
+
+def test_minibar_front_details_are_not_buried_inside_the_cabinet_shell():
+    scene = build_asset('Guestroom Minibar Credenza Compact', 'guestroom', 'MAT_WOOD_WARM',
+                        'HH_A3556', 'P_FURNITURE_STATIC')
+    cabinet_front = float(scene.geometry['MinibarCase'].bounds[0][1])
+    for node in ('ChillerDoor', 'ChillerWindow', 'MinibarHandle'):
+        detail_back = float(scene.geometry[node].bounds[1][1])
+        assert detail_back < cabinet_front, f'{node} is hidden behind the minibar case face'

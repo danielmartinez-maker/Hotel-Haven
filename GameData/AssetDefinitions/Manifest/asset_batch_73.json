@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 73,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3601",
+          "Lobby Courier Locker Bank Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3602",
+          "Lobby Courier Locker Bank Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3603",
+          "Lobby Courier Locker Bank Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3604",
+          "Lobby Courier Locker Bank High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3605",
+          "Lobby Courier Locker Bank Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3606",
+          "Concierge Queue Podium Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3607",
+          "Concierge Queue Podium Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3608",
+          "Concierge Queue Podium Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3609",
+          "Concierge Queue Podium High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3610",
+          "Concierge Queue Podium Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3611",
+          "Ballroom Coat Check Desk Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3612",
+          "Ballroom Coat Check Desk Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3613",
+          "Ballroom Coat Check Desk Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3614",
+          "Ballroom Coat Check Desk High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3615",
+          "Ballroom Coat Check Desk Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3616",
+          "Umbrella Drying Station Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3617",
+          "Umbrella Drying Station Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3618",
+          "Umbrella Drying Station Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3619",
+          "Umbrella Drying Station High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3620",
+          "Umbrella Drying Station Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3621",
+          "Family Care Public Washroom Station Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3622",
+          "Family Care Public Washroom Station Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3623",
+          "Family Care Public Washroom Station Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3624",
+          "Family Care Public Washroom Station High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3625",
+          "Family Care Public Washroom Station Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3626",
+          "Business Center Print Counter Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3627",
+          "Business Center Print Counter Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3628",
+          "Business Center Print Counter Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3629",
+          "Business Center Print Counter High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3630",
+          "Business Center Print Counter Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3631",
+          "Luggage Wrapping Console Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3632",
+          "Luggage Wrapping Console Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3633",
+          "Luggage Wrapping Console Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3634",
+          "Luggage Wrapping Console High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3635",
+          "Luggage Wrapping Console Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3636",
+          "Lobby Device Charging Bar Compact",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3637",
+          "Lobby Device Charging Bar Standard",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3638",
+          "Lobby Device Charging Bar Extended",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3639",
+          "Lobby Device Charging Bar High Capacity",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3640",
+          "Lobby Device Charging Bar Grand",
+          "public",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3641",
+          "Event Directory Check In Stand Compact",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3642",
+          "Event Directory Check In Stand Standard",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3643",
+          "Event Directory Check In Stand Extended",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3644",
+          "Event Directory Check In Stand High Capacity",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3645",
+          "Event Directory Check In Stand Grand",
+          "public",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3646",
+          "Shuttle Arrival Luggage Rack Compact",
+          "public",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3647",
+          "Shuttle Arrival Luggage Rack Standard",
+          "public",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3648",
+          "Shuttle Arrival Luggage Rack Extended",
+          "public",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3649",
+          "Shuttle Arrival Luggage Rack High Capacity",
+          "public",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3650",
+          "Shuttle Arrival Luggage Rack Grand",
+          "public",
+          "MAT_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
