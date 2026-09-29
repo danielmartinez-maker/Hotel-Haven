@@ -58,8 +58,8 @@ static void profiles_vary_without_shared_rng_state() {
   require(first == afterOtherGuest,
           "another guest's profile draw changed a guest-local result");
   require(first.archetype != other.archetype ||
-              first.priceSensitivity != other.priceSensitivity ||
-              first.noiseSensitivity != other.noiseSensitivity ||
+              first.sensitivities.price != other.sensitivities.price ||
+              first.sensitivities.noise != other.sensitivities.noise ||
               first.patience != other.patience || first.traits != other.traits,
           "different guest ids produced indistinguishable profiles");
 }

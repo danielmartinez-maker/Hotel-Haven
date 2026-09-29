@@ -11,6 +11,7 @@ add_library(hh_game
   src/Workforce.cpp
   src/Departments.cpp
   src/StaffOptimization.cpp
+  src/GuestModel.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
