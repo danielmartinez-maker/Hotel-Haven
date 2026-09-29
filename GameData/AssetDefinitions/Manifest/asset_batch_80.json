@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 80,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3951",
+          "Ballroom Partition Stack Pocket Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3952",
+          "Ballroom Partition Stack Pocket Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3953",
+          "Ballroom Partition Stack Pocket Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3954",
+          "Ballroom Partition Stack Pocket High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3955",
+          "Ballroom Partition Stack Pocket Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3956",
+          "Acoustic Ceiling Raft Service Bay Compact",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3957",
+          "Acoustic Ceiling Raft Service Bay Standard",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3958",
+          "Acoustic Ceiling Raft Service Bay Extended",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3959",
+          "Acoustic Ceiling Raft Service Bay High Capacity",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3960",
+          "Acoustic Ceiling Raft Service Bay Grand",
+          "architecture",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3961",
+          "Accessible Ramp Landing Guardrail Compact",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3962",
+          "Accessible Ramp Landing Guardrail Standard",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3963",
+          "Accessible Ramp Landing Guardrail Extended",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3964",
+          "Accessible Ramp Landing Guardrail High Capacity",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3965",
+          "Accessible Ramp Landing Guardrail Grand",
+          "architecture",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3966",
+          "Roof Parapet Access Ladder Bay Compact",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3967",
+          "Roof Parapet Access Ladder Bay Standard",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3968",
+          "Roof Parapet Access Ladder Bay Extended",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3969",
+          "Roof Parapet Access Ladder Bay High Capacity",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3970",
+          "Roof Parapet Access Ladder Bay Grand",
+          "architecture",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3971",
+          "Breezeway Glazed Windbreak Compact",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3972",
+          "Breezeway Glazed Windbreak Standard",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3973",
+          "Breezeway Glazed Windbreak Extended",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3974",
+          "Breezeway Glazed Windbreak High Capacity",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3975",
+          "Breezeway Glazed Windbreak Grand",
+          "architecture",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3976",
+          "Service Chase Access Hatch Compact",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3977",
+          "Service Chase Access Hatch Standard",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3978",
+          "Service Chase Access Hatch Extended",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3979",
+          "Service Chase Access Hatch High Capacity",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3980",
+          "Service Chase Access Hatch Grand",
+          "architecture",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3981",
+          "Guest Bath Linen Hamper Bench Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3982",
+          "Guest Bath Linen Hamper Bench Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3983",
+          "Guest Bath Linen Hamper Bench Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3984",
+          "Guest Bath Linen Hamper Bench High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3985",
+          "Guest Bath Linen Hamper Bench Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3986",
+          "Long Stay Kitchenette Pantry Tower Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3987",
+          "Long Stay Kitchenette Pantry Tower Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3988",
+          "Long Stay Kitchenette Pantry Tower Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3989",
+          "Long Stay Kitchenette Pantry Tower High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3990",
+          "Long Stay Kitchenette Pantry Tower Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3991",
+          "Suitcase Valet Foldout Shelf Compact",
+          "guestroom",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3992",
+          "Suitcase Valet Foldout Shelf Standard",
+          "guestroom",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3993",
+          "Suitcase Valet Foldout Shelf Extended",
+          "guestroom",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3994",
+          "Suitcase Valet Foldout Shelf High Capacity",
+          "guestroom",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3995",
+          "Suitcase Valet Foldout Shelf Grand",
+          "guestroom",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3996",
+          "Bedside Reading Trough and Light Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3997",
+          "Bedside Reading Trough and Light Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3998",
+          "Bedside Reading Trough and Light Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A3999",
+          "Bedside Reading Trough and Light High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4000",
+          "Bedside Reading Trough and Light Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

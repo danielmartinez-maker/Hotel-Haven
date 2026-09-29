@@ -1,0 +1,512 @@
+{
+  "schema": 1,
+  "batch": 82,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4051",
+          "Coastal Glass Orb Cluster Compact",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4052",
+          "Coastal Glass Orb Cluster Standard",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4053",
+          "Coastal Glass Orb Cluster Extended",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4054",
+          "Coastal Glass Orb Cluster High Capacity",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4055",
+          "Coastal Glass Orb Cluster Grand",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4056",
+          "Ballroom Table Number Easel Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4057",
+          "Ballroom Table Number Easel Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4058",
+          "Ballroom Table Number Easel Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4059",
+          "Ballroom Table Number Easel High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4060",
+          "Ballroom Table Number Easel Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4061",
+          "Curator Artifact Display Dome Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4062",
+          "Curator Artifact Display Dome Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4063",
+          "Curator Artifact Display Dome Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4064",
+          "Curator Artifact Display Dome High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4065",
+          "Curator Artifact Display Dome Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4066",
+          "Ceramic Desk Fountain Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4067",
+          "Ceramic Desk Fountain Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4068",
+          "Ceramic Desk Fountain Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4069",
+          "Ceramic Desk Fountain High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4070",
+          "Ceramic Desk Fountain Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4071",
+          "Miniature Grand Stair Model Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4072",
+          "Miniature Grand Stair Model Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4073",
+          "Miniature Grand Stair Model Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4074",
+          "Miniature Grand Stair Model High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4075",
+          "Miniature Grand Stair Model Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4076",
+          "Banquet Candle Cluster Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4077",
+          "Banquet Candle Cluster Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4078",
+          "Banquet Candle Cluster Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4079",
+          "Banquet Candle Cluster High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4080",
+          "Banquet Candle Cluster Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4081",
+          "Pressed Botanical Frame Set Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4082",
+          "Pressed Botanical Frame Set Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4083",
+          "Pressed Botanical Frame Set Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4084",
+          "Pressed Botanical Frame Set High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4085",
+          "Pressed Botanical Frame Set Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A4086",
+          "Ballroom Carpet Threshold Inlay Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4087",
+          "Ballroom Carpet Threshold Inlay Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4088",
+          "Ballroom Carpet Threshold Inlay Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4089",
+          "Ballroom Carpet Threshold Inlay High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4090",
+          "Ballroom Carpet Threshold Inlay Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A4091",
+          "Breakfast Jam and Butter Caddy Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4092",
+          "Breakfast Jam and Butter Caddy Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4093",
+          "Breakfast Jam and Butter Caddy Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4094",
+          "Breakfast Jam and Butter Caddy High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4095",
+          "Breakfast Jam and Butter Caddy Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A4096",
+          "Spa Towel Warming Basket",
+          "amenity",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4097",
+          "Pool Sunscreen Dispenser Column",
+          "amenity",
+          "MAT_STAINLESS",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4098",
+          "Portable Event Coat Stand",
+          "amenity",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A4099",
+          "Courtyard Bollard Light",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4100",
+          "Garden Path Wayfinding Marker",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

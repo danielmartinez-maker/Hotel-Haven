@@ -157,6 +157,10 @@ def validate_generated_tree(root: Path, exports: Path) -> dict:
     paired = 0
     sources = 0
     for sidecar in sorted(exports.rglob('*.asset.json')):
+        if '.rsync-tmp' in sidecar.parts:
+            # Workspace syncers may briefly stage an incomplete sidecar here.
+            # It is not an exported asset and must not race the release audit.
+            continue
         data = json.loads(sidecar.read_text())
         asset_id = data['asset_id']
         if asset_id in records:

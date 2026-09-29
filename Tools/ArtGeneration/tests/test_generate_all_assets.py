@@ -9,7 +9,7 @@ import generate_all_assets as g
 def test_batch_registry_is_complete():
     from asset_manifest import load_active_manifest
     batches = load_active_manifest(ROOT.parent.parent).batch_numbers
-    assert batches == tuple(range(1, 79))
+    assert batches == tuple(range(1, 83))
     assert [g.generator_source(i) for i in batches] == [f'Tools/ArtGeneration/batch{i:02d}_generate.py' for i in batches]
 
 def test_sidecar_normalization_matches_exact_export_filename(tmp_path):
@@ -60,3 +60,19 @@ def test_gameplay_sidecar_normalization_uses_authoritative_profile_asset_type():
     assert normalized['cutaway_policy'] == 'normal'
     assert normalized['interaction_anchors'] == ['INT_USE_01']
     assert 'interaction_anchor:INT_USE_01' in normalized['tags']
+
+
+def test_generated_tree_validation_ignores_transient_rsync_sidecars(tmp_path):
+    exports = tmp_path / 'Art' / 'Exports'
+    transient = exports / 'Batch01' / '.rsync-tmp' / 'HH_A001.asset.json'
+    transient.parent.mkdir(parents=True)
+    transient.write_text('{"asset_id":"HH_A001"}')
+
+    summary = g.validate_generated_tree(tmp_path, exports)
+
+    assert summary == {
+        'generated_asset_records': 0,
+        'paired_exports': 0,
+        'resolved_sources': 0,
+        'resolved_dependencies': 0,
+    }

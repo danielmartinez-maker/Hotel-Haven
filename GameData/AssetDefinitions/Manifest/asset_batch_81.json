@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 81,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4001",
+          "Child Travel Crib Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4002",
+          "Child Travel Crib Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4003",
+          "Child Travel Crib Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4004",
+          "Child Travel Crib High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4005",
+          "Child Travel Crib Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4006",
+          "Accessible Bath Stool and Grab Support Compact",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4007",
+          "Accessible Bath Stool and Grab Support Standard",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4008",
+          "Accessible Bath Stool and Grab Support Extended",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4009",
+          "Accessible Bath Stool and Grab Support High Capacity",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4010",
+          "Accessible Bath Stool and Grab Support Grand",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4011",
+          "Guestroom Reading Chair Compact",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4012",
+          "Guestroom Reading Chair Standard",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4013",
+          "Guestroom Reading Chair Extended",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4014",
+          "Guestroom Reading Chair High Capacity",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4015",
+          "Guestroom Reading Chair Grand",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4016",
+          "Suite Storage Ottoman Lift Tray Compact",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4017",
+          "Suite Storage Ottoman Lift Tray Standard",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4018",
+          "Suite Storage Ottoman Lift Tray Extended",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4019",
+          "Suite Storage Ottoman Lift Tray High Capacity",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4020",
+          "Suite Storage Ottoman Lift Tray Grand",
+          "guestroom",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4021",
+          "Heated Bath Towel Rail Compact",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4022",
+          "Heated Bath Towel Rail Standard",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4023",
+          "Heated Bath Towel Rail Extended",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4024",
+          "Heated Bath Towel Rail High Capacity",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4025",
+          "Heated Bath Towel Rail Grand",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4026",
+          "Room Service Tray Return Cart Compact",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4027",
+          "Room Service Tray Return Cart Standard",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4028",
+          "Room Service Tray Return Cart Extended",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4029",
+          "Room Service Tray Return Cart High Capacity",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4030",
+          "Room Service Tray Return Cart Grand",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4031",
+          "Underbed Shoe Drawer Organizer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4032",
+          "Underbed Shoe Drawer Organizer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4033",
+          "Underbed Shoe Drawer Organizer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4034",
+          "Underbed Shoe Drawer Organizer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4035",
+          "Underbed Shoe Drawer Organizer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4036",
+          "Carved Stone Storybook Sculpture Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4037",
+          "Carved Stone Storybook Sculpture Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4038",
+          "Carved Stone Storybook Sculpture Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4039",
+          "Carved Stone Storybook Sculpture High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4040",
+          "Carved Stone Storybook Sculpture Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4041",
+          "Lobby Anniversary Recognition Tower Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4042",
+          "Lobby Anniversary Recognition Tower Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4043",
+          "Lobby Anniversary Recognition Tower Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4044",
+          "Lobby Anniversary Recognition Tower High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4045",
+          "Lobby Anniversary Recognition Tower Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A4046",
+          "Heritage Room Key Display Case Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4047",
+          "Heritage Room Key Display Case Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4048",
+          "Heritage Room Key Display Case Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4049",
+          "Heritage Room Key Display Case High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A4050",
+          "Heritage Room Key Display Case Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

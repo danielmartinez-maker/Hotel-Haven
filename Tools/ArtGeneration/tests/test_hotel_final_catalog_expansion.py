@@ -1,0 +1,114 @@
+import json
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'Tools' / 'ArtGeneration'))
+
+from asset_manifest import load_active_manifest
+from hotel_final_catalog_factory import build_asset
+
+
+def shape_signature(scene):
+    return tuple(sorted(
+        (str(name), tuple(round(float(value), 4) for value in geometry.extents))
+        for name, geometry in scene.geometry.items()
+    ))
+
+
+def test_final_catalog_manifest_reaches_4100_with_spec_family_targets():
+    active = load_active_manifest(ROOT)
+    assert active.asset_count == 4100
+    assert active.batch_numbers == tuple(range(1, 83))
+    counts = Counter(family for family, _path, _row in active.iter_rows())
+    assert counts == {
+        'architecture_construction': 650,
+        'finish_systems': 200,
+        'guest_room_furniture_fixtures': 600,
+        'front_of_house_public': 500,
+        'restaurant_bar_food_service': 500,
+        'housekeeping_maintenance_logistics': 450,
+        'amenities_events': 400,
+        'decor_clutter_signage': 350,
+        'exterior_landscaping': 250,
+        'guests_staff': 200,
+    }
+
+
+def test_final_catalog_batches_79_to_82_match_the_planned_mixed_family_ranges():
+    active = load_active_manifest(ROOT)
+    expected = {
+        79: {'architecture_construction': 50},
+        80: {'architecture_construction': 30, 'guest_room_furniture_fixtures': 20},
+        81: {'guest_room_furniture_fixtures': 35, 'decor_clutter_signage': 15},
+        82: {'decor_clutter_signage': 35, 'finish_systems': 5,
+             'restaurant_bar_food_service': 5, 'amenities_events': 3,
+             'exterior_landscaping': 2},
+    }
+    seen = []
+    for batch, families in expected.items():
+        entry = active.batch_entries[batch - 1]
+        assert entry.generator_family == 'hotel_final_catalog'
+        rows = [(family, row) for family, path, row in active.iter_rows()
+                if Path(path).stem == f'asset_batch_{batch:02d}']
+        assert len(rows) == 50
+        assert Counter(family for family, _row in rows) == families
+        seen.extend(row for _family, row in rows)
+    assert {row[0] for row in seen} == {f'HH_A{i:04d}' for i in range(3901, 4101)}
+
+
+def test_final_catalog_five_variant_groups_are_distinct_and_within_geometry_budgets():
+    active = load_active_manifest(ROOT)
+    rows = {row[0]: row for _family, path, row in active.iter_rows()
+            if 79 <= int(Path(path).stem.rsplit('_', 1)[1]) <= 82}
+    variant_ranges = [(3901, 16), (3981, 11), (4036, 10), (4086, 1), (4091, 1)]
+    for first, group_count in variant_ranges:
+        for group in range(group_count):
+            start = first + group * 5
+            signatures = []
+            base_names = set()
+            for number in range(start, start + 5):
+                row = rows[f'HH_A{number:04d}']
+                base_names.add(re.sub(r'\s+(Compact|Standard|Extended|High Capacity|Grand)$', '', row[1]))
+                scene = build_asset(row[1], row[2], row[3], row[0], row[4])
+                assert len(scene.geometry) >= 4
+                assert sum(len(geometry.faces) for geometry in scene.geometry.values()) <= 5000
+                assert float(scene.bounds[0][2]) >= -0.02
+                assert float(scene.bounds[1][2]) <= 3.5
+                if row[4] == 'P_FURNITURE_STATIC':
+                    assert float(scene.bounds[0][2]) <= 0.12
+                signatures.append(shape_signature(scene))
+            assert len(base_names) == 1
+            assert len(set(signatures)) == 5, f'variant group starting A{start}'
+
+
+def test_singleton_amenity_and_exterior_catalog_assets_are_individual_products():
+    active = load_active_manifest(ROOT)
+    rows = {row[0]: row for _family, path, row in active.iter_rows()
+            if Path(path).stem in {'asset_batch_82'}}
+    singleton_ids = [f'HH_A{i:04d}' for i in range(4096, 4101)]
+    names = [rows[asset_id][1] for asset_id in singleton_ids]
+    assert len(set(names)) == 5
+    assert all(not name.endswith((' Compact', ' Standard', ' Extended', ' High Capacity', ' Grand'))
+               for name in names)
+    signatures = [shape_signature(build_asset(row[1], row[2], row[3], row[0], row[4]))
+                  for asset_id in singleton_ids for row in [rows[asset_id]]]
+    assert len(set(signatures)) == 5
+
+
+def test_final_catalog_semantic_variant_groups_match_quality_contract():
+    from semantic_asset_quality import DISTINCT_VARIANT_GROUPS
+
+    contract = json.loads((ROOT / 'GameData/AssetDefinitions/asset_quality_contract_v2.json').read_text())
+    ranges = {'architecture': (3901, 16), 'guestroom': (3981, 11), 'decor': (4036, 10),
+              'finish': (4086, 1), 'restaurant': (4091, 1)}
+    for domain, (first, count) in ranges.items():
+        for group in range(count):
+            key = f'final_catalog_{domain}_{group}'
+            ids = tuple(f'HH_A{i:04d}' for i in range(first + group * 5, first + group * 5 + 5))
+            assert DISTINCT_VARIANT_GROUPS[key] == ids
+            assert tuple(contract['variant_groups'][key]) == ids
