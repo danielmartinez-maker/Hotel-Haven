@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "batch": 63,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3101",
+          "Concierge Service Lectern Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3102",
+          "Concierge Service Lectern Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3103",
+          "Concierge Service Lectern Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3104",
+          "Concierge Service Lectern High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3105",
+          "Concierge Service Lectern Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3106",
+          "Lobby Coat and Umbrella Tree Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3107",
+          "Lobby Coat and Umbrella Tree Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3108",
+          "Lobby Coat and Umbrella Tree Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3109",
+          "Lobby Coat and Umbrella Tree High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3110",
+          "Lobby Coat and Umbrella Tree Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3111",
+          "Bell Service Luggage Cart Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3112",
+          "Bell Service Luggage Cart Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3113",
+          "Bell Service Luggage Cart Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3114",
+          "Bell Service Luggage Cart High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3115",
+          "Bell Service Luggage Cart Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3116",
+          "Guest Queue Stanchion Kit Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3117",
+          "Guest Queue Stanchion Kit Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3118",
+          "Guest Queue Stanchion Kit Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3119",
+          "Guest Queue Stanchion Kit High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3120",
+          "Guest Queue Stanchion Kit Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3121",
+          "Public Washroom Vanity Console Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3122",
+          "Public Washroom Vanity Console Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3123",
+          "Public Washroom Vanity Console Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3124",
+          "Public Washroom Vanity Console High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3125",
+          "Public Washroom Vanity Console Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3126",
+          "Lobby Water Refill Station Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3127",
+          "Lobby Water Refill Station Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3128",
+          "Lobby Water Refill Station Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3129",
+          "Lobby Water Refill Station High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3130",
+          "Lobby Water Refill Station Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3131",
+          "Guest Parcel and Key Locker Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3132",
+          "Guest Parcel and Key Locker Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3133",
+          "Guest Parcel and Key Locker Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3134",
+          "Guest Parcel and Key Locker High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3135",
+          "Guest Parcel and Key Locker Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3136",
+          "Quiet Lobby Writing Table Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3137",
+          "Quiet Lobby Writing Table Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3138",
+          "Quiet Lobby Writing Table Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3139",
+          "Quiet Lobby Writing Table High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3140",
+          "Quiet Lobby Writing Table Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3141",
+          "Self Service Check In Kiosk Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3142",
+          "Self Service Check In Kiosk Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3143",
+          "Self Service Check In Kiosk Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3144",
+          "Self Service Check In Kiosk High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3145",
+          "Self Service Check In Kiosk Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A3146",
+          "Umbrella Drying Return Rack Compact",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3147",
+          "Umbrella Drying Return Rack Standard",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3148",
+          "Umbrella Drying Return Rack Extended",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3149",
+          "Umbrella Drying Return Rack High Capacity",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ],
+        [
+          "HH_A3150",
+          "Umbrella Drying Return Rack Grand",
+          "public",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_63",
+            "hotel_continuation",
+            "front_of_house_public"
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "batch": 65,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3201",
+          "Clean Linen Issue Trolley Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3202",
+          "Clean Linen Issue Trolley Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3203",
+          "Clean Linen Issue Trolley Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3204",
+          "Clean Linen Issue Trolley High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3205",
+          "Clean Linen Issue Trolley Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3206",
+          "Guest Amenity Refill Cart Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3207",
+          "Guest Amenity Refill Cart Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3208",
+          "Guest Amenity Refill Cart Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3209",
+          "Guest Amenity Refill Cart High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3210",
+          "Guest Amenity Refill Cart Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3211",
+          "Compact Carpet Extraction Machine Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3212",
+          "Compact Carpet Extraction Machine Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3213",
+          "Compact Carpet Extraction Machine Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3214",
+          "Compact Carpet Extraction Machine High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3215",
+          "Compact Carpet Extraction Machine Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3216",
+          "Janitorial Mop Wringer Cart Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3217",
+          "Janitorial Mop Wringer Cart Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3218",
+          "Janitorial Mop Wringer Cart Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3219",
+          "Janitorial Mop Wringer Cart High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3220",
+          "Janitorial Mop Wringer Cart Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3221",
+          "Clean Soiled Linen Hamper Stand Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3222",
+          "Clean Soiled Linen Hamper Stand Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3223",
+          "Clean Soiled Linen Hamper Stand Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3224",
+          "Clean Soiled Linen Hamper Stand High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3225",
+          "Clean Soiled Linen Hamper Stand Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3226",
+          "Chemical Dilution Eye Wash Station Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3227",
+          "Chemical Dilution Eye Wash Station Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3228",
+          "Chemical Dilution Eye Wash Station Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3229",
+          "Chemical Dilution Eye Wash Station High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3230",
+          "Chemical Dilution Eye Wash Station Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3231",
+          "Lost Property Sorting Cabinet Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3232",
+          "Lost Property Sorting Cabinet Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3233",
+          "Lost Property Sorting Cabinet Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3234",
+          "Lost Property Sorting Cabinet High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3235",
+          "Lost Property Sorting Cabinet Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3236",
+          "Laundry Folding Inspection Table Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3237",
+          "Laundry Folding Inspection Table Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3238",
+          "Laundry Folding Inspection Table Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3239",
+          "Laundry Folding Inspection Table High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3240",
+          "Laundry Folding Inspection Table Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "housekeeping_maintenance_logistics",
+      "assets": [
+        [
+          "HH_A3241",
+          "Window Glass Cleaning Kit Stand Compact",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3242",
+          "Window Glass Cleaning Kit Stand Standard",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3243",
+          "Window Glass Cleaning Kit Stand Extended",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3244",
+          "Window Glass Cleaning Kit Stand High Capacity",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ],
+        [
+          "HH_A3245",
+          "Window Glass Cleaning Kit Stand Grand",
+          "housekeeping",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "housekeeping_maintenance_logistics"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A3246",
+          "Stone Carpet Threshold Transition Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "finish_systems"
+          ]
+        ],
+        [
+          "HH_A3247",
+          "Stone Carpet Threshold Transition Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "finish_systems"
+          ]
+        ],
+        [
+          "HH_A3248",
+          "Stone Carpet Threshold Transition Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "finish_systems"
+          ]
+        ],
+        [
+          "HH_A3249",
+          "Stone Carpet Threshold Transition High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "finish_systems"
+          ]
+        ],
+        [
+          "HH_A3250",
+          "Stone Carpet Threshold Transition Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_65",
+            "hotel_continuation",
+            "finish_systems"
+          ]
+        ]
+      ]
+    }
+  ]
+}

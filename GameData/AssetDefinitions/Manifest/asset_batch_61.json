@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "batch": 61,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3001",
+          "Hotel Entrance Glass Canopy Bay Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3002",
+          "Hotel Entrance Glass Canopy Bay Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3003",
+          "Hotel Entrance Glass Canopy Bay Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3004",
+          "Hotel Entrance Glass Canopy Bay High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3005",
+          "Hotel Entrance Glass Canopy Bay Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3006",
+          "Acoustic Ceiling Cloud Module Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3007",
+          "Acoustic Ceiling Cloud Module Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3008",
+          "Acoustic Ceiling Cloud Module Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3009",
+          "Acoustic Ceiling Cloud Module High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3010",
+          "Acoustic Ceiling Cloud Module Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3011",
+          "Exterior Rainscreen Fin Wall Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3012",
+          "Exterior Rainscreen Fin Wall Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3013",
+          "Exterior Rainscreen Fin Wall Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3014",
+          "Exterior Rainscreen Fin Wall High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3015",
+          "Exterior Rainscreen Fin Wall Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3016",
+          "Fire Smoke Curtain Assembly Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3017",
+          "Fire Smoke Curtain Assembly Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3018",
+          "Fire Smoke Curtain Assembly Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3019",
+          "Fire Smoke Curtain Assembly High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3020",
+          "Fire Smoke Curtain Assembly Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3021",
+          "Lobby Column Capital Detail Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3022",
+          "Lobby Column Capital Detail Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3023",
+          "Lobby Column Capital Detail Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3024",
+          "Lobby Column Capital Detail High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3025",
+          "Lobby Column Capital Detail Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3026",
+          "Courtyard Pergola Bay Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3027",
+          "Courtyard Pergola Bay Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3028",
+          "Courtyard Pergola Bay Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3029",
+          "Courtyard Pergola Bay High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3030",
+          "Courtyard Pergola Bay Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3031",
+          "Service Loading Dock Portal Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3032",
+          "Service Loading Dock Portal Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3033",
+          "Service Loading Dock Portal Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3034",
+          "Service Loading Dock Portal High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3035",
+          "Service Loading Dock Portal Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3036",
+          "Roof Drain Overflow Scupper Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3037",
+          "Roof Drain Overflow Scupper Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3038",
+          "Roof Drain Overflow Scupper Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3039",
+          "Roof Drain Overflow Scupper High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3040",
+          "Roof Drain Overflow Scupper Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3041",
+          "Acoustic Timber Rib Wall Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3042",
+          "Acoustic Timber Rib Wall Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3043",
+          "Acoustic Timber Rib Wall Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3044",
+          "Acoustic Timber Rib Wall High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3045",
+          "Acoustic Timber Rib Wall Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "architecture_construction",
+      "assets": [
+        [
+          "HH_A3046",
+          "Corner Curtain Wall Glazing Compact",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3047",
+          "Corner Curtain Wall Glazing Standard",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3048",
+          "Corner Curtain Wall Glazing Extended",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3049",
+          "Corner Curtain Wall Glazing High Capacity",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ],
+        [
+          "HH_A3050",
+          "Corner Curtain Wall Glazing Grand",
+          "architecture",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          [
+            "batch_61",
+            "hotel_continuation",
+            "architecture_construction"
+          ]
+        ]
+      ]
+    }
+  ]
+}

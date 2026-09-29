@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "batch": 62,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3051",
+          "Room Entry Wardrobe and Valet Bench Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3052",
+          "Room Entry Wardrobe and Valet Bench Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3053",
+          "Room Entry Wardrobe and Valet Bench Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3054",
+          "Room Entry Wardrobe and Valet Bench High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3055",
+          "Room Entry Wardrobe and Valet Bench Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3056",
+          "Window Banquette Guestroom Suite Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3057",
+          "Window Banquette Guestroom Suite Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3058",
+          "Window Banquette Guestroom Suite Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3059",
+          "Window Banquette Guestroom Suite High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3060",
+          "Window Banquette Guestroom Suite Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3061",
+          "Media Credenza Screen Frame Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3062",
+          "Media Credenza Screen Frame Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3063",
+          "Media Credenza Screen Frame Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3064",
+          "Media Credenza Screen Frame High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3065",
+          "Media Credenza Screen Frame Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3066",
+          "Guestroom Dressing Vanity Console Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3067",
+          "Guestroom Dressing Vanity Console Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3068",
+          "Guestroom Dressing Vanity Console Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3069",
+          "Guestroom Dressing Vanity Console High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3070",
+          "Guestroom Dressing Vanity Console Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3071",
+          "Luggage Niche and Hook Tower Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3072",
+          "Luggage Niche and Hook Tower Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3073",
+          "Luggage Niche and Hook Tower Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3074",
+          "Luggage Niche and Hook Tower High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3075",
+          "Luggage Niche and Hook Tower Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3076",
+          "Upholstered Lounge Armchair Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3077",
+          "Upholstered Lounge Armchair Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3078",
+          "Upholstered Lounge Armchair Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3079",
+          "Upholstered Lounge Armchair High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3080",
+          "Upholstered Lounge Armchair Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3081",
+          "Room Service Writing Bureau Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3082",
+          "Room Service Writing Bureau Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3083",
+          "Room Service Writing Bureau Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3084",
+          "Room Service Writing Bureau High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3085",
+          "Room Service Writing Bureau Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3086",
+          "Garment Rail Luggage Bench Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3087",
+          "Garment Rail Luggage Bench Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3088",
+          "Garment Rail Luggage Bench Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3089",
+          "Garment Rail Luggage Bench High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3090",
+          "Garment Rail Luggage Bench Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3091",
+          "Minibar Beverage Credenza Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3092",
+          "Minibar Beverage Credenza Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3093",
+          "Minibar Beverage Credenza Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3094",
+          "Minibar Beverage Credenza High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3095",
+          "Minibar Beverage Credenza Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A3096",
+          "Folding Privacy Screen Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3097",
+          "Folding Privacy Screen Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3098",
+          "Folding Privacy Screen Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3099",
+          "Folding Privacy Screen High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ],
+        [
+          "HH_A3100",
+          "Folding Privacy Screen Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_62",
+            "hotel_continuation",
+            "guest_room_furniture_fixtures"
+          ]
+        ]
+      ]
+    }
+  ]
+}

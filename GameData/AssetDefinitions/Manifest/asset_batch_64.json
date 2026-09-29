@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "batch": 64,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3151",
+          "Bakery Pastry Display Counter Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3152",
+          "Bakery Pastry Display Counter Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3153",
+          "Bakery Pastry Display Counter Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3154",
+          "Bakery Pastry Display Counter High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3155",
+          "Bakery Pastry Display Counter Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3156",
+          "Restaurant Carving Heat Station Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3157",
+          "Restaurant Carving Heat Station Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3158",
+          "Restaurant Carving Heat Station Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3159",
+          "Restaurant Carving Heat Station High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3160",
+          "Restaurant Carving Heat Station Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3161",
+          "Cocktail Garnish and Ice Well Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3162",
+          "Cocktail Garnish and Ice Well Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3163",
+          "Cocktail Garnish and Ice Well Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3164",
+          "Cocktail Garnish and Ice Well High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3165",
+          "Cocktail Garnish and Ice Well Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3166",
+          "Plate Warmer Cabinet Tower Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3167",
+          "Plate Warmer Cabinet Tower Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3168",
+          "Plate Warmer Cabinet Tower Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3169",
+          "Plate Warmer Cabinet Tower High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3170",
+          "Plate Warmer Cabinet Tower Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3171",
+          "Tea Infusion Service Trolley Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3172",
+          "Tea Infusion Service Trolley Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3173",
+          "Tea Infusion Service Trolley Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3174",
+          "Tea Infusion Service Trolley High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3175",
+          "Tea Infusion Service Trolley Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3176",
+          "Chilled Oyster Presentation Case Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3177",
+          "Chilled Oyster Presentation Case Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3178",
+          "Chilled Oyster Presentation Case Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3179",
+          "Chilled Oyster Presentation Case High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3180",
+          "Chilled Oyster Presentation Case Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3181",
+          "Bread and Cutlery Stand Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3182",
+          "Bread and Cutlery Stand Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3183",
+          "Bread and Cutlery Stand Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3184",
+          "Bread and Cutlery Stand High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3185",
+          "Bread and Cutlery Stand Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3186",
+          "Beverage Carbonation Syrup Tower Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3187",
+          "Beverage Carbonation Syrup Tower Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3188",
+          "Beverage Carbonation Syrup Tower Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3189",
+          "Beverage Carbonation Syrup Tower High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3190",
+          "Beverage Carbonation Syrup Tower Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3191",
+          "Dining Tray Return Counter Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3192",
+          "Dining Tray Return Counter Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3193",
+          "Dining Tray Return Counter Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3194",
+          "Dining Tray Return Counter High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3195",
+          "Dining Tray Return Counter Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A3196",
+          "Sommelier Decanting Cart Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3197",
+          "Sommelier Decanting Cart Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3198",
+          "Sommelier Decanting Cart Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3199",
+          "Sommelier Decanting Cart High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ],
+        [
+          "HH_A3200",
+          "Sommelier Decanting Cart Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "batch_64",
+            "hotel_continuation",
+            "restaurant_bar_food_service"
+          ]
+        ]
+      ]
+    }
+  ]
+}
