@@ -50,3 +50,21 @@ def test_linking_is_idempotent(tmp_path):
     write_json(exports/'Batch01'/'HH_A001.asset.json', {'asset_id':'HH_A001','dependencies':['BASE_DEP']})
     mod.link(manifests,exports); mod.link(manifests,exports)
     assert json.loads((exports/'Batch01'/'HH_A001.asset.json').read_text())['dependencies']==['ANSET_MECH_DOOR','BASE_DEP']
+
+
+def test_linker_ignores_transient_rsync_sidecars(tmp_path):
+    manifests=declared_manifest(tmp_path); exports=tmp_path/'Exports'
+    write_json(manifests/'asset_batch_01.json', {'groups':[{'assets':[
+        ['HH_A001','Door','doors','M','P','ANSET_MECH_DOOR',[]],
+        *[[f'HH_A{i:03d}','Static','walls','M','P',None,[]] for i in range(2,51)],
+    ]}]})
+    write_json(exports/'Animations'/'ANSET_MECH_DOOR.animset.asset.json', {'asset_id':'ANSET_MECH_DOOR'})
+    write_json(exports/'Batch01'/'HH_A001.asset.json', {'asset_id':'HH_A001','dependencies':[]})
+    transient=exports/'.rsync-tmp'/'HH_A001.asset.json'
+    write_json(transient, {'asset_id':'HH_A001','dependencies':[]})
+
+    linked,deferred=mod.link(manifests,exports)
+
+    assert linked==1 and deferred==0
+    assert json.loads((exports/'Batch01'/'HH_A001.asset.json').read_text())['dependencies']==['ANSET_MECH_DOOR']
+    assert json.loads(transient.read_text())['dependencies']==[]

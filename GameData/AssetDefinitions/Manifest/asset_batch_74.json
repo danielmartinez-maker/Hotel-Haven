@@ -61,8 +61,8 @@
           "Spa Herbal Tea Trolley Compact",
           "amenity",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -70,8 +70,8 @@
           "Spa Herbal Tea Trolley Standard",
           "amenity",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -79,8 +79,8 @@
           "Spa Herbal Tea Trolley Extended",
           "amenity",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -88,8 +88,8 @@
           "Spa Herbal Tea Trolley High Capacity",
           "amenity",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -97,8 +97,8 @@
           "Spa Herbal Tea Trolley Grand",
           "amenity",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ]
       ]

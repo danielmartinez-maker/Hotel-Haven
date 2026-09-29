@@ -38,6 +38,14 @@ def repo_root_from_script(script: Path) -> Path:
     return script.resolve().parents[3]
 
 
+def batch_entry_columns(batch: dict, manifest_columns: list[str] | None) -> list[str] | None:
+    # Schema 1 shards predate the per-shard `columns` field and use the master
+    # manifest's canonical row order. Schema 2 shards must declare it explicitly.
+    if batch.get("schema") == 1 and "columns" not in batch:
+        return manifest_columns
+    return batch.get("columns")
+
+
 def validate(repo_root: Path) -> list[str]:
     errors: list[str] = []
     defs = repo_root / "GameData" / "AssetDefinitions"
@@ -62,6 +70,9 @@ def validate(repo_root: Path) -> list[str]:
         asset_count = 0
     if manifest.get("storage") != "sharded_by_production_batch":
         errors.append("master storage must be sharded_by_production_batch")
+    manifest_columns = manifest.get("entry_columns")
+    if manifest_columns != REQUIRED_ENTRY_COLUMNS:
+        errors.append("master entry_columns do not match canonical schema")
 
     profiles = manifest.get("profiles")
     if not isinstance(profiles, dict) or not profiles:
@@ -128,7 +139,7 @@ def validate(repo_root: Path) -> list[str]:
             errors.append(f"batch file {batch_path} declares batch {batch.get('batch')!r}, expected {expected_batch}")
         if batch.get("asset_count") != 50:
             errors.append(f"batch {expected_batch} asset_count must be 50")
-        if batch.get("columns") != REQUIRED_ENTRY_COLUMNS:
+        if batch_entry_columns(batch, manifest_columns) != manifest_columns:
             errors.append(f"batch {expected_batch} columns do not match canonical schema")
 
         batch_rows = 0

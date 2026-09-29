@@ -167,6 +167,8 @@ DISTINCT_VARIANT_GROUPS = {
        for group in range(16)},
     **{f'final_catalog_guestroom_{group}': tuple(f'HH_A{i:04d}' for i in range(3981 + group * 5, 3986 + group * 5))
        for group in range(11)},
+    **{f'final_catalog_guestroom_{group}': tuple(f'HH_A{i:04d}' for i in range(4101 + (group - 11) * 5, 4106 + (group - 11) * 5))
+       for group in range(11, 31)},
     **{f'final_catalog_decor_{group}': tuple(f'HH_A{i:04d}' for i in range(4036 + group * 5, 4041 + group * 5))
        for group in range(10)},
     'final_catalog_finish_0': tuple(f'HH_A{i:04d}' for i in range(4086, 4091)),

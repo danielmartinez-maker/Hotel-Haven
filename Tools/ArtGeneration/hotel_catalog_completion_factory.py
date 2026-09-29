@@ -263,7 +263,7 @@ def _guestroom(kind, variant, material):
         for i in range(3 + variant):
             x = (i - (2 + variant) / 2) * width * .70 / (2 + variant)
             _part(scene, f'TrayRackDivider_{i}', (.045, depth * .62, .34), (x, 0, .62), MAT_WOOD)
-        _casters(scene, width, depth, 'TrayCartCaster')
+        _casters(scene, width, depth, 'TrayReturnCart', animated=True)
         _part(scene, 'CartHandle', (.07, .28, .07), (0, .18, height + .08), MAT_BRASS)
         _label(scene, 'TrayReturnRoomNumber', .35 * width, -.35 * depth, .22)
     return scene

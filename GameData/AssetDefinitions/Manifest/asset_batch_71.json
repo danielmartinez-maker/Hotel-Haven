@@ -11,8 +11,8 @@
           "Ballroom Folding Partition Rail Compact",
           "architecture",
           "MAT_STONE_LIGHT",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -20,8 +20,8 @@
           "Ballroom Folding Partition Rail Standard",
           "architecture",
           "MAT_STONE_LIGHT",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -29,8 +29,8 @@
           "Ballroom Folding Partition Rail Extended",
           "architecture",
           "MAT_STONE_LIGHT",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -38,8 +38,8 @@
           "Ballroom Folding Partition Rail High Capacity",
           "architecture",
           "MAT_STONE_LIGHT",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -47,8 +47,8 @@
           "Ballroom Folding Partition Rail Grand",
           "architecture",
           "MAT_STONE_LIGHT",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ]
       ]
@@ -411,8 +411,8 @@
           "Service Elevator Landing Door Compact",
           "architecture",
           "MAT_STAINLESS",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_ELEVATOR",
           []
         ],
         [
@@ -420,8 +420,8 @@
           "Service Elevator Landing Door Standard",
           "architecture",
           "MAT_STAINLESS",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_ELEVATOR",
           []
         ],
         [
@@ -429,8 +429,8 @@
           "Service Elevator Landing Door Extended",
           "architecture",
           "MAT_STAINLESS",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_ELEVATOR",
           []
         ],
         [
@@ -438,8 +438,8 @@
           "Service Elevator Landing Door High Capacity",
           "architecture",
           "MAT_STAINLESS",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_ELEVATOR",
           []
         ],
         [
@@ -447,8 +447,8 @@
           "Service Elevator Landing Door Grand",
           "architecture",
           "MAT_STAINLESS",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_ELEVATOR",
           []
         ]
       ]

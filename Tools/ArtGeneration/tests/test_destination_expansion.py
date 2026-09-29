@@ -22,13 +22,13 @@ def shape_signature(scene):
 
 def test_destination_expansion_declares_five_batches_and_balanced_family_targets():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 4100
-    assert active.batch_numbers == tuple(range(1, 83))
+    assert active.asset_count == 4200
+    assert active.batch_numbers == tuple(range(1, 85))
     counts = Counter(family for family, _path, _row in active.iter_rows())
     assert counts == {
         'architecture_construction': 650,
         'finish_systems': 200,
-        'guest_room_furniture_fixtures': 600,
+        'guest_room_furniture_fixtures': 700,
         'front_of_house_public': 500,
         'restaurant_bar_food_service': 500,
         'housekeeping_maintenance_logistics': 450,

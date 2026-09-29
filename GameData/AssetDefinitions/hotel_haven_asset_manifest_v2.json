@@ -4,7 +4,7 @@
   "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
   "quality_contract": "GameData/AssetDefinitions/asset_quality_contract_v2.json",
   "previous_manifest": "GameData/AssetDefinitions/hotel_haven_asset_manifest_v1.json",
-  "asset_count": 4100,
+  "asset_count": 4200,
   "storage": "sharded_by_production_batch",
   "entry_columns": [
     "asset_id",
@@ -108,7 +108,7 @@
   "family_targets": {
     "architecture_construction": 650,
     "finish_systems": 200,
-    "guest_room_furniture_fixtures": 600,
+    "guest_room_furniture_fixtures": 700,
     "front_of_house_public": 500,
     "restaurant_bar_food_service": 500,
     "housekeeping_maintenance_logistics": 450,
@@ -199,7 +199,9 @@
     {"batch": 79, "path": "GameData/AssetDefinitions/Manifest/asset_batch_79.json", "asset_count": 50, "generator_family": "hotel_final_catalog"},
     {"batch": 80, "path": "GameData/AssetDefinitions/Manifest/asset_batch_80.json", "asset_count": 50, "generator_family": "hotel_final_catalog"},
     {"batch": 81, "path": "GameData/AssetDefinitions/Manifest/asset_batch_81.json", "asset_count": 50, "generator_family": "hotel_final_catalog"},
-    {"batch": 82, "path": "GameData/AssetDefinitions/Manifest/asset_batch_82.json", "asset_count": 50, "generator_family": "hotel_final_catalog"}
+    {"batch": 82, "path": "GameData/AssetDefinitions/Manifest/asset_batch_82.json", "asset_count": 50, "generator_family": "hotel_final_catalog"},
+    {"batch": 83, "path": "GameData/AssetDefinitions/Manifest/asset_batch_83.json", "asset_count": 50, "generator_family": "hotel_final_catalog"},
+    {"batch": 84, "path": "GameData/AssetDefinitions/Manifest/asset_batch_84.json", "asset_count": 50, "generator_family": "hotel_final_catalog"}
   ],
   "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, reachability, task, and interaction authority remain in their owning game-data systems.",
   "runtime_contract": "Shipping executables consume deterministic cooked .hasset assets only; authoring generators and optional DCC/AI tooling are offline-only."

@@ -21,8 +21,8 @@ def shape_signature(scene):
 
 def test_new_tranche_declares_ten_product_families_per_batch():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 4100
-    assert active.batch_numbers == tuple(range(1, 83))
+    assert active.asset_count == 4200
+    assert active.batch_numbers == tuple(range(1, 85))
     rows_by_batch = {entry.batch: [] for entry in active.batch_entries}
     for _family, path, row in active.iter_rows():
         batch = int(Path(path).stem.rsplit('_', 1)[1])

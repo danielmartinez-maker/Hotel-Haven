@@ -33,7 +33,7 @@ def _architecture(kind, variant, material):
         _part(scene, 'PartitionHeadTrack', (width, .16, .12), (0, 0, height + .12), MAT_STEEL)
         for i in range(3 + variant):
             x = (i - (2 + variant) / 2) * width * .84 / (2 + variant)
-            _part(scene, f'FoldingPartitionLeaf_{i}', (width / (3 + variant) * .86, .085, height),
+            _part(scene, f'MOV_SlidingPanel_Folding_{i}', (width / (3 + variant) * .86, .085, height),
                   (x, 0, height / 2 + .08), material)
             _part(scene, f'PartitionHingeRail_{i}', (.045, .11, height * .96),
                   (x + width / (3 + variant) * .40, -.04, height / 2 + .08), MAT_BRASS)
@@ -141,8 +141,8 @@ def _architecture(kind, variant, material):
         for i, x in enumerate((-.43 * width, .43 * width)):
             _part(scene, f'ServiceLiftJamb_{i}', (.15, .18, height), (x, 0, height / 2), MAT_STAINLESS)
         _part(scene, 'LiftHeadTrack', (width * .95, .20, .18), (0, 0, height - .09), material)
-        _part(scene, 'LiftDoorLeft', (width * .36, .07, height * .83), (-.18 * width, .06, height * .43), MAT_STEEL)
-        _part(scene, 'LiftDoorRight', (width * .36, .07, height * .83), (.18 * width, .06, height * .43), MAT_STEEL)
+        _part(scene, 'MOV_ElevatorDoor_Left', (width * .36, .07, height * .83), (-.18 * width, .06, height * .43), MAT_STEEL)
+        _part(scene, 'MOV_ElevatorDoor_Right', (width * .36, .07, height * .83), (.18 * width, .06, height * .43), MAT_STEEL)
         _part(scene, 'LiftStatusBeacon', (.14, .13, .25), (.39 * width, -.10, 2.24), MAT_ELECTRONICS)
         _part(scene, 'LiftServiceNotice', (.28, .045, .20), (-.31 * width, -.11, 1.70), MAT_LABEL)
         _label(scene, 'LiftRatedLoadPlaque', .30 * width, -.13, .34)
@@ -204,7 +204,8 @@ def _guestroom(kind, variant, material):
               (0, -.72 * depth, .46), MAT_UPHOLSTERY)
         _part(scene, 'DiningChairBack', (.42 * width, .06, .46),
               (0, -.84 * depth, .70), MAT_WOOD)
-        _floor_feet(scene, width * .36, depth * .34, .43, 'DiningChairLeg', MAT_STEEL)
+        _floor_feet(scene, width * .36, depth * .34, .43, 'DiningChairLeg', MAT_STEEL,
+                    center=(0, -.72 * depth))
         _label(scene, 'TableLeafLockLabel', .39 * width, -.35 * depth, .20)
     elif kind == 3:  # in-room wardrobe shoe and accessory tower
         height = 1.74 + .05 * variant
@@ -439,7 +440,7 @@ def _amenity(kind, variant, material):
         for i, x in enumerate((-.40 * width, .40 * width)):
             _part(scene, f'TrolleyUpright_{i}', (.07, .07, height - .12), (x, 0, height / 2 + .12), MAT_STEEL)
             _part(scene, f'TrolleyPushHandle_{i}', (.07, .32, .07), (x, .12, height + .08), MAT_BRASS)
-        _casters(scene, width, depth, 'TeaTrolleyCaster')
+        _casters(scene, width, depth, 'TeaTrolley', animated=True)
         for i in range(3 + variant):
             x = (i - (2 + variant) / 2) * width * .68 / (2 + variant)
             _part(scene, f'TeaCanister_{i}', (.12, .12, .24), (x, 0, height + .20), MAT_CERAMIC)

@@ -1,14 +1,64 @@
 {
   "schema": 1,
-  "batch": 76,
+  "batch": 83,
   "asset_count": 50,
   "groups": [
     {
       "family": "guest_room_furniture_fixtures",
       "assets": [
         [
-          "HH_A3751",
-          "Guest Bath Linen Hamper Bench Compact",
+          "HH_A4101",
+          "Pet-Friendly Bowl and Leash Station Compact",
+          "guestroom",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4102",
+          "Pet-Friendly Bowl and Leash Station Standard",
+          "guestroom",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4103",
+          "Pet-Friendly Bowl and Leash Station Extended",
+          "guestroom",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4104",
+          "Pet-Friendly Bowl and Leash Station High Capacity",
+          "guestroom",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4105",
+          "Pet-Friendly Bowl and Leash Station Grand",
+          "guestroom",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4106",
+          "Baby Changing Dresser Compact",
           "guestroom",
           "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
@@ -16,8 +66,8 @@
           []
         ],
         [
-          "HH_A3752",
-          "Guest Bath Linen Hamper Bench Standard",
+          "HH_A4107",
+          "Baby Changing Dresser Standard",
           "guestroom",
           "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
@@ -25,8 +75,8 @@
           []
         ],
         [
-          "HH_A3753",
-          "Guest Bath Linen Hamper Bench Extended",
+          "HH_A4108",
+          "Baby Changing Dresser Extended",
           "guestroom",
           "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
@@ -34,8 +84,8 @@
           []
         ],
         [
-          "HH_A3754",
-          "Guest Bath Linen Hamper Bench High Capacity",
+          "HH_A4109",
+          "Baby Changing Dresser High Capacity",
           "guestroom",
           "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
@@ -43,8 +93,8 @@
           []
         ],
         [
-          "HH_A3755",
-          "Guest Bath Linen Hamper Bench Grand",
+          "HH_A4110",
+          "Baby Changing Dresser Grand",
           "guestroom",
           "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
@@ -57,258 +107,8 @@
       "family": "guest_room_furniture_fixtures",
       "assets": [
         [
-          "HH_A3756",
-          "Long Stay Kitchenette Pantry Tower Compact",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3757",
-          "Long Stay Kitchenette Pantry Tower Standard",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3758",
-          "Long Stay Kitchenette Pantry Tower Extended",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3759",
-          "Long Stay Kitchenette Pantry Tower High Capacity",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3760",
-          "Long Stay Kitchenette Pantry Tower Grand",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ]
-      ]
-    },
-    {
-      "family": "guest_room_furniture_fixtures",
-      "assets": [
-        [
-          "HH_A3761",
-          "Suitcase Valet Foldout Shelf Compact",
-          "guestroom",
-          "MAT_BLACKENED_STEEL",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3762",
-          "Suitcase Valet Foldout Shelf Standard",
-          "guestroom",
-          "MAT_BLACKENED_STEEL",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3763",
-          "Suitcase Valet Foldout Shelf Extended",
-          "guestroom",
-          "MAT_BLACKENED_STEEL",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3764",
-          "Suitcase Valet Foldout Shelf High Capacity",
-          "guestroom",
-          "MAT_BLACKENED_STEEL",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3765",
-          "Suitcase Valet Foldout Shelf Grand",
-          "guestroom",
-          "MAT_BLACKENED_STEEL",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ]
-      ]
-    },
-    {
-      "family": "guest_room_furniture_fixtures",
-      "assets": [
-        [
-          "HH_A3766",
-          "Bedside Reading Trough Compact",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3767",
-          "Bedside Reading Trough Standard",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3768",
-          "Bedside Reading Trough Extended",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3769",
-          "Bedside Reading Trough High Capacity",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3770",
-          "Bedside Reading Trough Grand",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ]
-      ]
-    },
-    {
-      "family": "guest_room_furniture_fixtures",
-      "assets": [
-        [
-          "HH_A3771",
-          "Child Travel Crib Compact",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3772",
-          "Child Travel Crib Standard",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3773",
-          "Child Travel Crib Extended",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3774",
-          "Child Travel Crib High Capacity",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3775",
-          "Child Travel Crib Grand",
-          "guestroom",
-          "MAT_WOOD_WARM",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ]
-      ]
-    },
-    {
-      "family": "guest_room_furniture_fixtures",
-      "assets": [
-        [
-          "HH_A3776",
-          "Accessible Bath Stool Set Compact",
-          "guestroom",
-          "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3777",
-          "Accessible Bath Stool Set Standard",
-          "guestroom",
-          "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3778",
-          "Accessible Bath Stool Set Extended",
-          "guestroom",
-          "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3779",
-          "Accessible Bath Stool Set High Capacity",
-          "guestroom",
-          "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ],
-        [
-          "HH_A3780",
-          "Accessible Bath Stool Set Grand",
-          "guestroom",
-          "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
-          []
-        ]
-      ]
-    },
-    {
-      "family": "guest_room_furniture_fixtures",
-      "assets": [
-        [
-          "HH_A3781",
-          "Guestroom Lounge Reading Chair Compact",
+          "HH_A4111",
+          "Convertible Sleeper Loveseat Compact",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -316,8 +116,8 @@
           []
         ],
         [
-          "HH_A3782",
-          "Guestroom Lounge Reading Chair Standard",
+          "HH_A4112",
+          "Convertible Sleeper Loveseat Standard",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -325,8 +125,8 @@
           []
         ],
         [
-          "HH_A3783",
-          "Guestroom Lounge Reading Chair Extended",
+          "HH_A4113",
+          "Convertible Sleeper Loveseat Extended",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -334,8 +134,8 @@
           []
         ],
         [
-          "HH_A3784",
-          "Guestroom Lounge Reading Chair High Capacity",
+          "HH_A4114",
+          "Convertible Sleeper Loveseat High Capacity",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -343,8 +143,8 @@
           []
         ],
         [
-          "HH_A3785",
-          "Guestroom Lounge Reading Chair Grand",
+          "HH_A4115",
+          "Convertible Sleeper Loveseat Grand",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -357,8 +157,158 @@
       "family": "guest_room_furniture_fixtures",
       "assets": [
         [
-          "HH_A3786",
-          "Suite Storage Ottoman Compact",
+          "HH_A4116",
+          "Bath Towel Bench with Hamper Drawer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4117",
+          "Bath Towel Bench with Hamper Drawer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4118",
+          "Bath Towel Bench with Hamper Drawer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4119",
+          "Bath Towel Bench with Hamper Drawer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4120",
+          "Bath Towel Bench with Hamper Drawer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4121",
+          "Rollaway Guest Cot Compact",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4122",
+          "Rollaway Guest Cot Standard",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4123",
+          "Rollaway Guest Cot Extended",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4124",
+          "Rollaway Guest Cot High Capacity",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4125",
+          "Rollaway Guest Cot Grand",
+          "guestroom",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4126",
+          "Minibar Bottle and Glass Organizer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4127",
+          "Minibar Bottle and Glass Organizer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4128",
+          "Minibar Bottle and Glass Organizer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4129",
+          "Minibar Bottle and Glass Organizer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4130",
+          "Minibar Bottle and Glass Organizer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4131",
+          "Guest Lounge Chair and Side Table Compact",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -366,8 +316,8 @@
           []
         ],
         [
-          "HH_A3787",
-          "Suite Storage Ottoman Standard",
+          "HH_A4132",
+          "Guest Lounge Chair and Side Table Standard",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -375,8 +325,8 @@
           []
         ],
         [
-          "HH_A3788",
-          "Suite Storage Ottoman Extended",
+          "HH_A4133",
+          "Guest Lounge Chair and Side Table Extended",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -384,8 +334,8 @@
           []
         ],
         [
-          "HH_A3789",
-          "Suite Storage Ottoman High Capacity",
+          "HH_A4134",
+          "Guest Lounge Chair and Side Table High Capacity",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -393,8 +343,8 @@
           []
         ],
         [
-          "HH_A3790",
-          "Suite Storage Ottoman Grand",
+          "HH_A4135",
+          "Guest Lounge Chair and Side Table Grand",
           "guestroom",
           "MAT_UPHOLSTERY",
           "P_FURNITURE_STATIC",
@@ -407,46 +357,46 @@
       "family": "guest_room_furniture_fixtures",
       "assets": [
         [
-          "HH_A3791",
-          "Heated Bath Towel Rail Compact",
+          "HH_A4136",
+          "Foldaway Guest Writing Desk Compact",
           "guestroom",
-          "MAT_STAINLESS",
+          "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
           null,
           []
         ],
         [
-          "HH_A3792",
-          "Heated Bath Towel Rail Standard",
+          "HH_A4137",
+          "Foldaway Guest Writing Desk Standard",
           "guestroom",
-          "MAT_STAINLESS",
+          "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
           null,
           []
         ],
         [
-          "HH_A3793",
-          "Heated Bath Towel Rail Extended",
+          "HH_A4138",
+          "Foldaway Guest Writing Desk Extended",
           "guestroom",
-          "MAT_STAINLESS",
+          "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
           null,
           []
         ],
         [
-          "HH_A3794",
-          "Heated Bath Towel Rail High Capacity",
+          "HH_A4139",
+          "Foldaway Guest Writing Desk High Capacity",
           "guestroom",
-          "MAT_STAINLESS",
+          "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
           null,
           []
         ],
         [
-          "HH_A3795",
-          "Heated Bath Towel Rail Grand",
+          "HH_A4140",
+          "Foldaway Guest Writing Desk Grand",
           "guestroom",
-          "MAT_STAINLESS",
+          "MAT_WOOD_WARM",
           "P_FURNITURE_STATIC",
           null,
           []
@@ -457,48 +407,98 @@
       "family": "guest_room_furniture_fixtures",
       "assets": [
         [
-          "HH_A3796",
-          "Room Service Tray Return Cart Compact",
+          "HH_A4141",
+          "Accessible Makeup Vanity Console Compact",
           "guestroom",
-          "MAT_STAINLESS",
-          "P_SERVICE_PROP_ANIMATED",
-          "ANSET_SERVICE_CART",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
           []
         ],
         [
-          "HH_A3797",
-          "Room Service Tray Return Cart Standard",
+          "HH_A4142",
+          "Accessible Makeup Vanity Console Standard",
           "guestroom",
-          "MAT_STAINLESS",
-          "P_SERVICE_PROP_ANIMATED",
-          "ANSET_SERVICE_CART",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
           []
         ],
         [
-          "HH_A3798",
-          "Room Service Tray Return Cart Extended",
+          "HH_A4143",
+          "Accessible Makeup Vanity Console Extended",
           "guestroom",
-          "MAT_STAINLESS",
-          "P_SERVICE_PROP_ANIMATED",
-          "ANSET_SERVICE_CART",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
           []
         ],
         [
-          "HH_A3799",
-          "Room Service Tray Return Cart High Capacity",
+          "HH_A4144",
+          "Accessible Makeup Vanity Console High Capacity",
           "guestroom",
-          "MAT_STAINLESS",
-          "P_SERVICE_PROP_ANIMATED",
-          "ANSET_SERVICE_CART",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
           []
         ],
         [
-          "HH_A3800",
-          "Room Service Tray Return Cart Grand",
+          "HH_A4145",
+          "Accessible Makeup Vanity Console Grand",
           "guestroom",
-          "MAT_STAINLESS",
-          "P_SERVICE_PROP_ANIMATED",
-          "ANSET_SERVICE_CART",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guest_room_furniture_fixtures",
+      "assets": [
+        [
+          "HH_A4146",
+          "Closet Luggage Shelf and Shoe Drawer Compact",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4147",
+          "Closet Luggage Shelf and Shoe Drawer Standard",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4148",
+          "Closet Luggage Shelf and Shoe Drawer Extended",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4149",
+          "Closet Luggage Shelf and Shoe Drawer High Capacity",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A4150",
+          "Closet Luggage Shelf and Shoe Drawer Grand",
+          "guestroom",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
           []
         ]
       ]

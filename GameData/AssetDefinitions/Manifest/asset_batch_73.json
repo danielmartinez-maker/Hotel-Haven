@@ -460,7 +460,7 @@
           "HH_A3646",
           "Shuttle Arrival Luggage Rack Compact",
           "public",
-          "MAT_STEEL",
+          "MAT_STAINLESS",
           "P_FURNITURE_STATIC",
           null,
           []
@@ -469,7 +469,7 @@
           "HH_A3647",
           "Shuttle Arrival Luggage Rack Standard",
           "public",
-          "MAT_STEEL",
+          "MAT_STAINLESS",
           "P_FURNITURE_STATIC",
           null,
           []
@@ -478,7 +478,7 @@
           "HH_A3648",
           "Shuttle Arrival Luggage Rack Extended",
           "public",
-          "MAT_STEEL",
+          "MAT_STAINLESS",
           "P_FURNITURE_STATIC",
           null,
           []
@@ -487,7 +487,7 @@
           "HH_A3649",
           "Shuttle Arrival Luggage Rack High Capacity",
           "public",
-          "MAT_STEEL",
+          "MAT_STAINLESS",
           "P_FURNITURE_STATIC",
           null,
           []
@@ -496,7 +496,7 @@
           "HH_A3650",
           "Shuttle Arrival Luggage Rack Grand",
           "public",
-          "MAT_STEEL",
+          "MAT_STAINLESS",
           "P_FURNITURE_STATIC",
           null,
           []

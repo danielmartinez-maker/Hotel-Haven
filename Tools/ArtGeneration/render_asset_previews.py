@@ -16,6 +16,12 @@ VISUAL_DISTINCT_GROUPS = {
     'wall_clocks': ('HH_A392', 'HH_A393'),
     'exterior_planters': ('HH_A440', 'HH_A441'),
     'hedges': ('HH_A442', 'HH_A443'),
+    **{
+        f'guestroom_completion_{first}': tuple(
+            f'HH_A{number:04d}' for number in range(first, first + 5)
+        )
+        for first in range(4101, 4201, 5)
+    },
 }
 
 
@@ -137,8 +143,8 @@ def image_content_ratio(image: Image.Image) -> float:
     return float(changed.mean())
 
 
-def preview_fingerprint(image: Image.Image) -> tuple[int, ...]:
-    gray = np.asarray(image.convert('L').resize((16, 16)), dtype=np.float32)
+def preview_fingerprint(image: Image.Image, resolution: int = 16) -> tuple[int, ...]:
+    gray = np.asarray(image.convert('L').resize((resolution, resolution)), dtype=np.float32)
     threshold = float(gray.mean())
     return tuple((gray > threshold).astype(np.uint8).reshape(-1).tolist())
 
@@ -157,18 +163,20 @@ def preview_quality_failures(rendered: dict[str, Image.Image], expected_count: i
         if ratio < 0.002:
             failures.append(f'{asset_id}: blank preview content ratio {ratio:.5f}')
 
-    fingerprints = {asset_id: preview_fingerprint(image) for asset_id, image in rendered.items()}
+    coarse = {asset_id: preview_fingerprint(image, 16) for asset_id, image in rendered.items()}
+    fine = {asset_id: preview_fingerprint(image, 48) for asset_id, image in rendered.items()}
     for group_name, asset_ids in VISUAL_DISTINCT_GROUPS.items():
-        present = [asset_id for asset_id in asset_ids if asset_id in fingerprints]
+        present = [asset_id for asset_id in asset_ids if asset_id in coarse]
         if len(present) < 2:
             continue
         for i, left_id in enumerate(present):
             for right_id in present[i + 1:]:
-                distance = _hamming(fingerprints[left_id], fingerprints[right_id])
-                if distance <= 1:
+                coarse_distance = _hamming(coarse[left_id], coarse[right_id])
+                fine_distance = _hamming(fine[left_id], fine[right_id])
+                if coarse_distance <= 1 or fine_distance <= 1:
                     failures.append(
                         f'{group_name}: {left_id} and {right_id} have a duplicate preview signature '
-                        f'(perceptual distance {distance})'
+                        f'(coarse distance {coarse_distance}, fine distance {fine_distance})'
                     )
     return failures
 

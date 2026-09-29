@@ -3,7 +3,10 @@
 #include "hh/assets/DependencyGraph.h"
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace hh::assets;
 namespace fs = std::filesystem;
@@ -37,6 +40,74 @@ HH_TEST("catalog scans sidecars and resolves stable IDs") {
     HH_REQUIRE(catalog.by_id("asset.a").metadata.asset_id == "asset.a");
     HH_REQUIRE(catalog.by_id("asset.a").export_path.filename() == "a.glb");
     HH_REQUIRE(catalog.by_id("asset.a").source_path == root / "Art/Source/a.blend");
+}
+
+HH_TEST("catalog ignores transient rsync sidecars") {
+    const auto root = make_repo();
+    add_asset(root, "asset.a", "a");
+    const auto stable = root / "Art/Exports/a.glb.asset.json";
+    const auto transient = root / "Art/Exports/Batch01/.rsync-tmp/a.glb.asset.json";
+    fs::create_directories(transient.parent_path());
+    fs::copy_file(stable, transient);
+
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports");
+    HH_REQUIRE(catalog.size() == 1);
+    HH_REQUIRE(catalog.by_id("asset.a").sidecar_path == stable);
+}
+
+HH_TEST("catalog ignores a shadowed legacy sidecar alias") {
+    const auto root = make_repo();
+    add_asset(root, "asset.a", "a");
+    const auto stable = root / "Art/Exports/a.glb.asset.json";
+    fs::copy_file(stable, root / "Art/Exports/a.asset.json");
+
+    const auto catalog = AssetCatalog::scan(root / "Art/Exports");
+    HH_REQUIRE(catalog.size() == 1);
+    HH_REQUIRE(catalog.by_id("asset.a").sidecar_path == stable);
+}
+
+HH_TEST("catalog rejects incompatible shadowed legacy sidecar aliases") {
+    for (const auto& conflict : std::vector<std::pair<std::string, std::string>>{
+             {"asset_id", "asset.other"}, {"source", "Art/Source/other.blend"},
+             {"dependencies", "[\"asset.missing\"]"}}) {
+        const auto root = make_repo();
+        add_asset(root, "asset.a", "a");
+        const auto stable = root / "Art/Exports/a.glb.asset.json";
+        std::ifstream input(stable, std::ios::binary);
+        const std::string original{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+        std::string legacy = original;
+        if (conflict.first == "asset_id") {
+            legacy.replace(legacy.find("\"asset_id\":\"asset.a\""),
+                          std::string("\"asset_id\":\"asset.a\"").size(),
+                          "\"asset_id\":\"asset.other\"");
+        } else if (conflict.first == "source") {
+            legacy.replace(legacy.find("Art/Source/a.blend"), std::string("Art/Source/a.blend").size(), conflict.second);
+        } else {
+            legacy.replace(legacy.find("\"dependencies\":[]"), std::string("\"dependencies\":[]").size(),
+                          "\"dependencies\":" + conflict.second);
+        }
+        write_bytes(root / "Art/Exports/a.asset.json", legacy);
+
+        bool threw = false;
+        try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); }
+        catch (const std::exception&) { threw = true; }
+        HH_REQUIRE(threw);
+    }
+}
+
+HH_TEST("catalog does not treat a dotted sibling stem as a legacy alias") {
+    const auto root = make_repo();
+    add_asset(root, "asset.dotted", "cart.wheels");
+    write_bytes(root / "Art/Source/cart.blend", "source-alias");
+    write_bytes(root / "Art/Exports/cart.asset.json",
+        "{\"schema\":1,\"asset_id\":\"asset.alias\",\"asset_type\":\"StaticMeshAsset\","
+        "\"source\":\"Art/Source/cart.blend\",\"units\":\"meters\",\"lod_policy\":\"prop_standard\","
+        "\"collision_policy\":\"simple_authored\",\"material_slots\":[],\"tags\":[],\"dependencies\":[]}");
+
+    bool threw = false;
+    try { static_cast<void>(AssetCatalog::scan(root / "Art/Exports")); }
+    catch (const std::exception&) { threw = true; }
+    HH_REQUIRE(threw);
 }
 
 HH_TEST("catalog rejects duplicate logical IDs") {

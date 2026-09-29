@@ -1,4 +1,5 @@
 #include "hh/assets/Catalog.h"
+#include <algorithm>
 #include <stdexcept>
 
 namespace hh::assets {
@@ -15,6 +16,36 @@ std::filesystem::path export_from_sidecar(const std::filesystem::path& sidecar) 
     name.resize(name.size() - suffix.size());
     return sidecar.parent_path() / name;
 }
+
+bool is_shadowed_legacy_sidecar(const std::filesystem::path& sidecar) {
+    const auto export_path = export_from_sidecar(sidecar);
+    if (std::filesystem::is_regular_file(export_path)) return false;
+    auto base = export_path.filename().string();
+    const auto is_known_json_asset = [&](std::string_view suffix) {
+        return base.size() >= suffix.size() &&
+               base.compare(base.size() - suffix.size(), suffix.size(), suffix) == 0;
+    };
+    const auto extension = (is_known_json_asset(".anim") || is_known_json_asset(".animset") ||
+                            is_known_json_asset(".skeleton")) ? ".json" : ".glb";
+    const auto canonical_export = sidecar.parent_path() / (base + extension);
+    const auto canonical_sidecar = std::filesystem::path(canonical_export.string() + ".asset.json");
+    if (!std::filesystem::is_regular_file(canonical_export) ||
+        !std::filesystem::is_regular_file(canonical_sidecar)) return false;
+
+    const auto alias_metadata = load_metadata(sidecar);
+    const auto canonical_metadata = load_metadata(canonical_sidecar);
+    if (alias_metadata.asset_id != canonical_metadata.asset_id ||
+        alias_metadata.source != canonical_metadata.source ||
+        !std::all_of(alias_metadata.dependencies.begin(), alias_metadata.dependencies.end(),
+                     [&](const auto& dependency) {
+                         return std::find(canonical_metadata.dependencies.begin(),
+                                          canonical_metadata.dependencies.end(), dependency) !=
+                                canonical_metadata.dependencies.end();
+                     })) {
+        throw std::runtime_error("conflicting legacy sidecar alias: " + sidecar.string());
+    }
+    return true;
+}
 }
 
 AssetCatalog AssetCatalog::scan(const std::filesystem::path& exports_root) {
@@ -26,12 +57,21 @@ AssetCatalog AssetCatalog::scan(const std::filesystem::path& exports_root) {
     auto art_root = catalog.exports_root_.parent_path();
     catalog.repository_root_ = art_root.parent_path();
 
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(catalog.exports_root_)) {
-        if (!entry.is_regular_file() || !has_sidecar_suffix(entry.path())) continue;
+    for (auto entry = std::filesystem::recursive_directory_iterator(catalog.exports_root_);
+         entry != std::filesystem::recursive_directory_iterator(); ++entry) {
+        if (entry->is_directory() && entry->path().filename() == ".rsync-tmp") {
+            entry.disable_recursion_pending();
+            continue;
+        }
+        if (!entry->is_regular_file() || !has_sidecar_suffix(entry->path())) continue;
+        if (is_shadowed_legacy_sidecar(entry->path())) continue;
         AssetRecord record;
-        record.sidecar_path = std::filesystem::absolute(entry.path()).lexically_normal();
+        record.sidecar_path = std::filesystem::absolute(entry->path()).lexically_normal();
         record.export_path = export_from_sidecar(record.sidecar_path).lexically_normal();
         record.metadata = load_metadata(record.sidecar_path);
+        if (!std::filesystem::is_regular_file(record.export_path)) {
+            throw std::runtime_error("missing export paired with " + record.sidecar_path.string());
+        }
         const auto source = std::filesystem::path(record.metadata.source);
         record.source_path = source.is_absolute() ? source.lexically_normal() : (catalog.repository_root_ / source).lexically_normal();
         const auto [it, inserted] = catalog.records_.emplace(record.metadata.asset_id, std::move(record));

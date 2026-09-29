@@ -22,6 +22,8 @@ def manifest_animation_bindings(manifest_dir: Path) -> dict[str, str]:
 def available_animation_sets(exports_root: Path) -> set[str]:
     result = set()
     for path in exports_root.rglob('ANSET_*.animset.asset.json'):
+        if '.rsync-tmp' in path.parts:
+            continue
         result.add(json.loads(path.read_text())['asset_id'])
     return result
 
@@ -32,6 +34,8 @@ def link(manifest_dir: Path, exports_root: Path) -> tuple[int, int]:
     linked = 0
     deferred = 0
     for sidecar_path in exports_root.rglob('HH_A*.asset.json'):
+        if '.rsync-tmp' in sidecar_path.parts:
+            continue
         data = json.loads(sidecar_path.read_text())
         animation_set = bindings.get(data['asset_id'])
         if not animation_set:

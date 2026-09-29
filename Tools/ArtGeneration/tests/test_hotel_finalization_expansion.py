@@ -22,13 +22,13 @@ def shape_signature(scene):
 
 def test_finalization_catalog_declares_3900_assets_and_balanced_family_targets():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 4100
-    assert active.batch_numbers == tuple(range(1, 83))
+    assert active.asset_count == 4200
+    assert active.batch_numbers == tuple(range(1, 85))
     counts = Counter(family for family, _path, _row in active.iter_rows())
     assert counts == {
         'architecture_construction': 650,
         'finish_systems': 200,
-        'guest_room_furniture_fixtures': 600,
+        'guest_room_furniture_fixtures': 700,
         'front_of_house_public': 500,
         'restaurant_bar_food_service': 500,
         'housekeeping_maintenance_logistics': 450,
@@ -120,3 +120,20 @@ def test_minibar_front_details_are_not_buried_inside_the_cabinet_shell():
     for node in ('ChillerDoor', 'ChillerWindow', 'MinibarHandle'):
         detail_back = float(scene.geometry[node].bounds[1][1])
         assert detail_back < cabinet_front, f'{node} is hidden behind the minibar case face'
+
+
+def test_dining_chair_legs_support_the_seat_instead_of_sitting_under_the_table():
+    active = load_active_manifest(ROOT)
+    rows = {int(row[0].removeprefix('HH_A')): row
+            for _family, _path, row in active.iter_rows()}
+    for number in range(3561, 3566):
+        row = rows[number]
+        scene = build_asset(row[1], row[2], row[3], row[0], row[4])
+        seat = scene.geometry['DiningChairSeat'].bounds
+        chair_legs = [geometry.bounds for name, geometry in scene.geometry.items()
+                      if name.startswith('DiningChairLeg_')]
+        assert len(chair_legs) == 4
+        for bounds in chair_legs:
+            assert bounds[0][1] >= seat[0][1] - .02, f'{row[0]} chair leg is behind its seat footprint'
+            assert bounds[1][1] <= seat[1][1] + .02, f'{row[0]} chair leg is ahead of its seat footprint'
+            assert bounds[1][2] >= seat[0][2] - .02, f'{row[0]} chair leg does not support its seat'

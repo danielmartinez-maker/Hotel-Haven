@@ -11,8 +11,8 @@
           "Ballroom Partition Stack Pocket Compact",
           "architecture",
           "MAT_WOOD_WARM",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -20,8 +20,8 @@
           "Ballroom Partition Stack Pocket Standard",
           "architecture",
           "MAT_WOOD_WARM",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -29,8 +29,8 @@
           "Ballroom Partition Stack Pocket Extended",
           "architecture",
           "MAT_WOOD_WARM",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -38,8 +38,8 @@
           "Ballroom Partition Stack Pocket High Capacity",
           "architecture",
           "MAT_WOOD_WARM",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ],
         [
@@ -47,8 +47,8 @@
           "Ballroom Partition Stack Pocket Grand",
           "architecture",
           "MAT_WOOD_WARM",
-          "P_ARCH_STATIC",
-          null,
+          "P_ARCH_ANIMATED",
+          "ANSET_MECH_SLIDING_DOOR",
           []
         ]
       ]

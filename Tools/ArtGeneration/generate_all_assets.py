@@ -56,16 +56,16 @@ def run_batch_generator(module, batch: int, manifest: Path, out: Path, family: s
 def normalize_sidecars(exports_root: Path) -> int:
     renamed = 0
     for sidecar in sorted(exports_root.rglob('*.asset.json')):
+        if '.rsync-tmp' in sidecar.parts:
+            continue
         if not sidecar.exists():
             continue
         if sidecar.name.endswith(('.glb.asset.json', '.anim.json.asset.json', '.animset.json.asset.json', '.skeleton.json.asset.json')):
             continue
         base = sidecar.name[:-len('.asset.json')]
-        candidates = [
-            p
-            for p in sidecar.parent.iterdir()
-            if p.is_file() and p.name.startswith(base + '.') and not p.name.endswith('.asset.json')
-        ]
+        export_name = _legacy_export_name(base)
+        candidates = [sidecar.parent / export_name]
+        candidates = [path for path in candidates if path.is_file()]
         if len(candidates) != 1:
             raise RuntimeError(
                 f'expected exactly one export for sidecar {sidecar}, found {[p.name for p in candidates]}'
@@ -151,6 +151,47 @@ def expected_animation_bindings(manifest: AssetManifest) -> int:
     return sum(bool(row[5]) for _, _, row in manifest.iter_rows())
 
 
+def _legacy_export_name(base: str) -> str:
+    # These are the only historical short-sidecar forms produced by our
+    # generators. A prefix match can confuse unrelated dotted asset names.
+    if base.endswith(('.anim', '.animset', '.skeleton')):
+        return base + '.json'
+    return base + '.glb'
+
+
+def _legacy_sidecar_counterpart(sidecar: Path) -> tuple[Path, Path] | None:
+    suffix = '.asset.json'
+    if not sidecar.name.endswith(suffix):
+        return None
+    base = sidecar.name[:-len(suffix)]
+    export_name = _legacy_export_name(base)
+    export = sidecar.parent / export_name
+    canonical = sidecar.parent / (export_name + suffix)
+    if canonical == sidecar:
+        return None
+    return export, canonical
+
+
+def _validate_legacy_alias(alias: dict, canonical: dict, alias_path: Path) -> None:
+    if any(alias.get(key) != canonical.get(key) for key in ('asset_id', 'source')):
+        raise RuntimeError(f'conflicting legacy sidecar alias: {alias_path}')
+    if not set(alias.get('dependencies', [])).issubset(canonical.get('dependencies', [])):
+        raise RuntimeError(f'conflicting legacy sidecar dependencies: {alias_path}')
+
+
+def is_shadowed_legacy_sidecar(sidecar: Path) -> bool:
+    counterpart = _legacy_sidecar_counterpart(sidecar)
+    if counterpart is None:
+        return False
+    export, canonical = counterpart
+    if not export.is_file() or not canonical.is_file():
+        return False
+    alias_data = json.loads(sidecar.read_text(encoding='utf-8'))
+    canonical_data = json.loads(canonical.read_text(encoding='utf-8'))
+    _validate_legacy_alias(alias_data, canonical_data, sidecar)
+    return True
+
+
 def validate_generated_tree(root: Path, exports: Path) -> dict:
     records = {}
     dependencies = []
@@ -160,6 +201,8 @@ def validate_generated_tree(root: Path, exports: Path) -> dict:
         if '.rsync-tmp' in sidecar.parts:
             # Workspace syncers may briefly stage an incomplete sidecar here.
             # It is not an exported asset and must not race the release audit.
+            continue
+        if is_shadowed_legacy_sidecar(sidecar):
             continue
         data = json.loads(sidecar.read_text())
         asset_id = data['asset_id']

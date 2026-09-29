@@ -134,7 +134,7 @@ def _architecture(kind, variant, material):
     elif kind == 10:  # ballroom partition stack pocket
         height = 2.58 + .04 * variant
         _part(scene, 'PartitionPocketBase', (width, depth * .68, .15), (0, 0, .075), MAT_STONE)
-        _part(scene, 'PartitionStackPanel', (width * .38, .12, height),
+        _part(scene, 'MOV_PocketPanel_Stack', (width * .38, .12, height),
               (.28 * width, 0, height / 2 + .08), material)
         for i in range(3 + variant):
             x = (-.38 + i * .115) * width
@@ -205,10 +205,11 @@ def _architecture(kind, variant, material):
     return scene
 
 
-def _guestroom(kind, variant, material):
+def _guestroom(kind, variant, material, capacity_tiers=False):
     scene = trimesh.Scene()
     scale = SCALE[variant]
-    width, depth = .94 * scale, .66 * scale
+    tier_width = (.78, .90, 1.02, 1.14, 1.26)[variant] if capacity_tiers else 1.0
+    width, depth = .94 * scale * tier_width, .66 * scale
 
     if kind == 0:  # bath hamper bench
         _part(scene, 'HamperBenchPlinth', (width * .94, depth * .90, .10), (0, 0, .05), MAT_STEEL)
@@ -226,11 +227,11 @@ def _guestroom(kind, variant, material):
         for i in range(3 + variant):
             z = .34 + i * .31
             _part(scene, f'PantryDoor_{i}', (width * .72, .035, .27),
-                  (0, -.24 * depth, z), MAT_WOOD)
+                  (0, -.44 * depth, z), MAT_WOOD)
             _part(scene, f'PantryPull_{i}', (.035, .035, .13),
-                  (.27 * width, -.27 * depth, z), MAT_BRASS)
+                  (.27 * width, -.49 * depth, z), MAT_BRASS)
         _part(scene, 'PantryCounterCap', (width, depth * .86, .08), (0, 0, height + .15), MAT_STONE)
-        _label(scene, 'PantryInventoryTag', .34 * width, -.35 * depth, .26)
+        _label(scene, 'PantryInventoryTag', .34 * width, -.46 * depth, .26)
     elif kind == 2:  # suitcase valet foldout shelf
         for i, x in enumerate((-.38 * width, .38 * width)):
             _part(scene, f'ValetUpright_{i}', (.065, .075, .72), (x, 0, .37), material)
@@ -307,7 +308,7 @@ def _guestroom(kind, variant, material):
         for i, x in enumerate((-.42 * width, .42 * width)):
             _part(scene, f'TrayCartUpright_{i}', (.055, .055, .78), (x, .35 * depth, .52), MAT_STEEL)
             _part(scene, f'TrayCartHandle_{i}', (.07, .07, .22), (x, .40 * depth, .93), MAT_BRASS)
-        _casters(scene, width, depth, 'TrayCartCaster')
+        _casters(scene, width, depth, 'TrayReturnCart', animated=True)
         for i in range(3 + variant):
             x = (i - (2 + variant) / 2) * width * .70 / (2 + variant)
             _part(scene, f'TrayDrainGroove_{i}', (.035, depth * .72, .018), (x, 0, .83), MAT_STEEL)
@@ -325,6 +326,13 @@ def _guestroom(kind, variant, material):
         for i, x in enumerate((-.25 * width, .25 * width)):
             add(scene, cyl(.15 * scale, .10, (x, -.08, .20), MAT_STAINLESS, 16), f'PetWaterBowl_{i}')
             _part(scene, f'BowlRubberFoot_{i}', (.32, .32, .035), (x, -.08, .125), MAT_STEEL)
+        canister_count = variant + 1
+        for i in range(canister_count):
+            x = (i - (canister_count - 1) / 2) * width * .84 / max(canister_count - 1, 1)
+            add(scene, cyl(.082 * scale, .30, (x, .20 * depth, .285), MAT_WOOD, 12),
+                f'PetTreatCanister_{i}')
+            add(scene, cyl(.088 * scale, .035, (x, .20 * depth, .4525), MAT_BRASS, 12),
+                f'PetTreatCanisterLid_{i}')
         _post(scene, 'LeashStationPost', .39 * width, .19 * depth, .80, .025, MAT_BRASS)
         _part(scene, 'LeashHook', (.18, .045, .045), (.39 * width, .19 * depth, .74), MAT_STEEL)
         _label(scene, 'PetWelcomeRoomTag', -.30 * width, -.40 * depth, .25)
@@ -332,11 +340,12 @@ def _guestroom(kind, variant, material):
         _part(scene, 'ChangingDresserPlinth', (width * .94, depth * .88, .10), (0, 0, .05), MAT_STEEL)
         _part(scene, 'ChangingDresserCase', (width, depth * .82, .66), (0, 0, .43), material)
         _part(scene, 'ChangingPad', (width * .88, depth * .76, .11), (0, 0, .82), MAT_LINEN)
-        for i in range(3 + variant):
-            x = (i - (2 + variant) / 2) * width * .70 / (2 + variant)
-            _part(scene, f'DresserDrawerFront_{i}', (width * .16, .035, .17),
+        drawer_count = 3 + variant
+        for i in range(drawer_count):
+            x = (i - (drawer_count - 1) / 2) * width * .78 / drawer_count
+            _part(scene, f'DresserDrawerFront_{i}', (width * .72 / drawer_count, .045, .22),
                   (x, -.43 * depth, .31 + .20 * (i % 2)), MAT_WOOD)
-            _part(scene, f'DresserDrawerPull_{i}', (.08, .035, .035),
+            _part(scene, f'DresserDrawerPull_{i}', (.09, .045, .045),
                   (x, -.46 * depth, .32 + .20 * (i % 2)), MAT_BRASS)
         _part(scene, 'ChangingPadSafetyLip', (width * .86, .07, .08), (0, .37 * depth, .89), MAT_STONE)
         _label(scene, 'ChangingStationMaximumLoad', .32 * width, -.46 * depth, .24)
@@ -344,6 +353,10 @@ def _guestroom(kind, variant, material):
         _part(scene, 'SleeperLoveseatBase', (width, depth, .28), (0, 0, .24), MAT_STEEL)
         _part(scene, 'SleeperSeatCushion', (width * .90, depth * .70, .22), (0, -.02, .49), material)
         _part(scene, 'SleeperBackCushion', (width * .91, .16, .56), (0, .28 * depth, .86), MAT_UPHOLSTERY)
+        for i in range(variant + 1):
+            x = (i - variant / 2) * width * .72 / (variant + 1)
+            _part(scene, f'SleeperSeatModuleSeam_{i}', (.025, depth * .62, .018),
+                  (x, -.02, .609), MAT_LINEN)
         for i, x in enumerate((-.44 * width, .44 * width)):
             _part(scene, f'LoveseatArm_{i}', (.15, depth * .82, .49), (x, 0, .58), MAT_WOOD)
         _part(scene, 'PulloutBedFrontPanel', (width * .76, .065, .15), (0, -.44 * depth, .31), MAT_STEEL)
@@ -351,23 +364,37 @@ def _guestroom(kind, variant, material):
     elif kind == 14:  # bath towel bench with hamper drawer
         _part(scene, 'TowelBenchSeat', (width, depth, .12), (0, 0, .58), material)
         _part(scene, 'BenchHamperBody', (width * .88, depth * .82, .42), (0, 0, .31), MAT_WOOD)
+        compartment_count = variant + 1
+        for i in range(compartment_count):
+            x = (i - (compartment_count - 1) / 2) * width * .90 / compartment_count
+            _part(scene, f'HamperSortCompartment_{i}',
+                  (width * .84 / compartment_count, .075, .34),
+                  (x, -.455 * depth, .34), MAT_LINEN)
         for i, x in enumerate((-.35 * width, .35 * width)):
             _part(scene, f'HamperVentSlot_{i}', (.22, .025, .13), (x, -.42 * depth, .30), MAT_STEEL)
         _part(scene, 'BenchLaundryPull', (.20, .04, .05), (0, -.45 * depth, .46), MAT_BRASS)
         _label(scene, 'TowelBenchLinenMark', .32 * width, -.43 * depth, .24)
     elif kind == 15:  # rollaway guest cot
-        _part(scene, 'RollawayCotFrame', (width, depth, .14), (0, 0, .46), material)
-        _part(scene, 'RollawayCotMattress', (width * .94, depth * .90, .16), (0, 0, .61), MAT_LINEN)
-        for i, x in enumerate((-.40 * width, .40 * width)):
-            _part(scene, f'CotFoldLeg_{i}', (.07, depth * .74, .42), (x, 0, .22), MAT_STEEL)
-        _casters(scene, width, depth, 'CotCaster')
-        _part(scene, 'CotFoldLatch', (.14, .055, .10), (.43 * width, -.35 * depth, .44), MAT_BRASS)
-        _label(scene, 'CotLinenSizeMark', .32 * width, -.42 * depth, .28)
+        bed_width, bed_length = .84 + .21 * variant, 1.90 + .10 * variant
+        _part(scene, 'RollawayCotFrame', (bed_width, bed_length, .14), (0, 0, .46), material)
+        _part(scene, 'RollawayCotMattress', (bed_width * .94, bed_length * .96, .16), (0, 0, .61), MAT_LINEN)
+        for i in range(variant + 1):
+            y = (i - variant / 2) * bed_length * .72 / (variant + 1)
+            _part(scene, f'CotReinforcingCrossbar_{i}', (bed_width * .86, .045, .055),
+                  (0, y, .355), MAT_STAINLESS)
+        for i, x in enumerate((-.40 * bed_width, .40 * bed_width)):
+            _part(scene, f'CotFoldLeg_{i}', (.07, bed_length * .74, .42), (x, 0, .22), MAT_STEEL)
+        _casters(scene, bed_width, bed_length, 'CotCaster')
+        _part(scene, 'CotFoldLatch', (.14, .055, .10), (.43 * bed_width, -.35 * bed_length, .44), MAT_BRASS)
+        _label(scene, 'CotLinenSizeMark', .32 * bed_width, -.42 * bed_length, .28)
     elif kind == 16:  # minibar bottle and glass organizer
         _part(scene, 'MinibarOrganizerBase', (width, depth, .12), (0, 0, .06), material)
         _part(scene, 'BottleRackBack', (width * .86, .07, .52), (0, .27 * depth, .40), MAT_WOOD)
-        for i in range(3 + variant):
-            x = (i - (2 + variant) / 2) * width * .68 / (2 + variant)
+        bottle_count = 3 + variant
+        for i in range(bottle_count):
+            x = (i - (bottle_count - 1) / 2) * width * .76 / bottle_count
+            add(scene, cyl(.085, .40, (x, .20 * depth, .32), MAT_GLASS, 16),
+                f'MinibarBottle_{i}')
             _part(scene, f'BottleCradle_{i}', (.15, .34, .10), (x, .04, .21), MAT_STEEL)
             _part(scene, f'BottleNeckKeeper_{i}', (.08, .05, .13), (x, .24 * depth, .48), MAT_BRASS)
         _part(scene, 'GlasswareShelf', (width * .88, depth * .72, .065), (0, -.12, .61), MAT_STONE)
@@ -379,10 +406,20 @@ def _guestroom(kind, variant, material):
         _part(scene, 'SideTableTop', (.42 * width, .42 * depth, .07), (.43 * width, -.05, .58), MAT_WOOD)
         _part(scene, 'SideTableStem', (.07, .07, .49), (.43 * width, -.05, .30), MAT_STEEL)
         _part(scene, 'SideTableFoot', (.32, .32, .06), (.43 * width, -.05, .06), MAT_STONE)
+        cushion_count = variant + 1
+        for i in range(cushion_count):
+            x = -.17 * width + (i - (cushion_count - 1) / 2) * width * .62 / cushion_count
+            _part(scene, f'LoungeLumbarCushion_{i}',
+                  (width * .78 / cushion_count, .18, .38), (x, .18 * depth, .84), MAT_LINEN)
         _label(scene, 'LoungeSeatFabricTag', .28 * width, -.37 * depth, .25)
     elif kind == 18:  # foldaway guest writing desk
         _part(scene, 'WritingDeskTop', (width, depth * .78, .09), (0, 0, .79), material)
         _part(scene, 'DeskWallCleat', (width * .84, .08, .12), (0, .28 * depth, .65), MAT_STEEL)
+        divider_count = variant + 1
+        for i in range(divider_count):
+            x = (i - (divider_count - 1) / 2) * width * .72 / divider_count
+            _part(scene, f'DeskOrganizerDivider_{i}', (.025, .17, .20),
+                  (x, .19 * depth, .93), MAT_WOOD)
         for i, x in enumerate((-.38 * width, .38 * width)):
             _part(scene, f'FoldDeskBrace_{i}', (.07, depth * .70, .42), (x, .02, .42), MAT_STAINLESS)
             _part(scene, f'FoldDeskFoot_{i}', (.18, .30, .055), (x, -.25 * depth, .055), MAT_STEEL)
@@ -393,13 +430,18 @@ def _guestroom(kind, variant, material):
         _part(scene, 'AccessibleVanityCase', (width, depth * .72, .62), (0, 0, .41), material)
         _part(scene, 'VanityCountertop', (width * 1.05, depth * .88, .09), (0, 0, .77), MAT_STONE)
         _part(scene, 'VanityMirrorPanel', (width * .66, .055, .64), (0, .27 * depth, 1.16), MAT_GLASS)
+        light_count = variant + 1
+        for i in range(light_count):
+            x = (i - (light_count - 1) / 2) * width * .58 / light_count
+            _part(scene, f'VanityMirrorBulb_{i}', (.11, .06, .24),
+                  (x, .225 * depth, 1.45), MAT_LINEN)
         for i, x in enumerate((-.35 * width, .35 * width)):
             _part(scene, f'VanityDrawerFront_{i}', (.27 * width, .035, .16),
                   (x, -.38 * depth, .40), MAT_WOOD)
         _part(scene, 'VanityTaskLight', (.08, .07, .38), (.40 * width, .23 * depth, 1.14), MAT_ELECTRONICS)
         _label(scene, 'VanityClearKneeMark', .30 * width, -.41 * depth, .25)
     elif kind == 20:  # closet luggage shelf and shoe drawer
-        height = 1.42 + .035 * variant
+        height = 1.24 + .24 * variant
         _part(scene, 'ClosetValetBase', (width, depth, .10), (0, 0, .05), MAT_STONE)
         for i, x in enumerate((-.40 * width, .40 * width)):
             _part(scene, f'ClosetShelfPost_{i}', (.065, .075, height), (x, 0, height / 2 + .10), material)
@@ -413,8 +455,11 @@ def _guestroom(kind, variant, material):
         _part(scene, 'ValetStandBase', (.54 * width, .48 * depth, .10), (0, 0, .05), MAT_STONE)
         _post(scene, 'ValetStandColumn', 0, 0, 1.52 + .03 * variant, .035, material)
         _part(scene, 'ValetShoulderBar', (.70 * width, .07, .10), (0, 0, 1.53 + .03 * variant), MAT_WOOD)
-        for i, x in enumerate((-.27 * width, .27 * width)):
-            _part(scene, f'RobeHook_{i}', (.06, .10, .12), (x, -.03, 1.42), MAT_BRASS)
+        hook_count = variant + 1
+        for i in range(hook_count):
+            x = (i - (hook_count - 1) / 2) * width * .78 / hook_count
+            _part(scene, f'RobeHook_{i}', (.12, .12, .24),
+                  (x, -.05, 1.40 + .03 * variant), MAT_BRASS)
         _part(scene, 'SteamIronRest', (.30, .24, .07), (.32 * width, 0, .22), MAT_STEEL)
         _part(scene, 'SteamerCordGuide', (.055, .055, .64), (.32 * width, .14 * depth, .54), MAT_ELECTRONICS)
         _label(scene, 'ValetSafetyNotice', -.31 * width, -.34 * depth, .24)
@@ -425,39 +470,51 @@ def _guestroom(kind, variant, material):
             _part(scene, f'BookShelfBoard_{i}', (width, depth * .74, .06), (0, .03, z), material)
         for i in range(4 + variant):
             x = (i - (3 + variant) / 2) * width * .66 / (3 + variant)
-            _part(scene, f'BookSpine_{i}', (.11, .12, .20 + .03 * (i % 2)),
+            _part(scene, f'BookSpine_{i}', (.12, .12, .32 + .04 * (i % 2)),
                   (x, -.16 * depth, .53 + .29 * (i % 2)), MAT_LINEN)
         _post(scene, 'ReadingLampStem', .39 * width, 0, 1.42, .022, MAT_BRASS)
         _part(scene, 'ReadingLampShade', (.22, .20, .12), (.39 * width, 0, 1.45), MAT_ELECTRONICS)
         _label(scene, 'LampTouchControl', .32 * width, -.36 * depth, .25)
     elif kind == 23:  # underbed storage drawer module
         _part(scene, 'UnderbedDrawerFrame', (width, depth, .34), (0, 0, .23), material)
-        for i in range(2 + variant):
-            x = (i - (1 + variant) / 2) * width * .68 / (1 + variant)
-            _part(scene, f'UnderbedDrawerFront_{i}', (width * .25, .035, .25),
+        drawer_count = 2 + variant
+        for i in range(drawer_count):
+            x = (i - (drawer_count - 1) / 2) * width * .90 / drawer_count
+            _part(scene, f'UnderbedDrawerFront_{i}', (width * .84 / drawer_count, .045, .27),
                   (x, -.50 * depth, .24), MAT_WOOD)
-            _part(scene, f'DrawerRecessPull_{i}', (.09, .025, .055), (x, -.53 * depth, .25), MAT_BRASS)
+            _part(scene, f'DrawerRecessPull_{i}', (.10, .035, .065), (x, -.53 * depth, .25), MAT_BRASS)
         _casters(scene, width, depth, 'DrawerModuleCaster')
         _label(scene, 'UnderbedModuleRoomTag', .32 * width, -.45 * depth, .44)
     elif kind == 24:  # family room bunk set
-        _part(scene, 'BunkLowerMattress', (width, depth, .16), (0, 0, .45), MAT_UPHOLSTERY)
-        _part(scene, 'BunkUpperMattress', (width, depth, .16), (0, 0, 1.62 + .025 * variant), material)
-        for i, x in enumerate((-.44 * width, .44 * width)):
+        bed_width, bed_length = .84 + .17 * variant, 1.92 + .10 * variant
+        _part(scene, 'BunkLowerMattress', (bed_width, bed_length, .16), (0, 0, .45), MAT_UPHOLSTERY)
+        _part(scene, 'BunkUpperMattress', (bed_width, bed_length, .16), (0, 0, 1.62 + .025 * variant), material)
+        for i, (x, y) in enumerate(((-.48 * bed_width, -.48 * bed_length),
+                                    (-.48 * bed_width, .48 * bed_length),
+                                    (.48 * bed_width, -.48 * bed_length),
+                                    (.48 * bed_width, .48 * bed_length))):
             _part(scene, f'BunkBedPost_{i}', (.09, .09, 2.12 + .025 * variant),
-                  (x, .35 * depth, 1.06 + .0125 * variant), MAT_WOOD)
-            _part(scene, f'UpperBunkSafetyRail_{i}', (.07, depth * .75, .30),
+                  (x, y, 1.06 + .0125 * variant), MAT_WOOD)
+        for i, x in enumerate((-.48 * bed_width, .48 * bed_width)):
+            _part(scene, f'UpperBunkSafetyRail_{i}', (.07, bed_length * .82, .30),
                   (x, 0, 1.91 + .025 * variant), MAT_STEEL)
         for i in range(5 + variant):
             z = .50 + i * .23
-            _part(scene, f'BunkLadderRung_{i}', (.44, .06, .06), (.44 * width, -.10, z), MAT_BRASS)
+            _part(scene, f'BunkLadderRung_{i}', (.44, .06, .06), (.48 * bed_width, -.42 * bed_length, z), MAT_BRASS)
         _label(scene, 'UpperBunkCapacityMark', .28 * width, -.41 * depth, .28)
+        if variant == 4:
+            trundle_width, trundle_length = bed_width * .82, bed_length * .68
+            _part(scene, 'GrandBunkTrundleFrame', (trundle_width, trundle_length, .10),
+                  (0, 0, .18), MAT_STEEL)
+            _part(scene, 'GrandBunkTrundleMattress',
+                  (trundle_width * .94, trundle_length * .94, .12), (0, 0, .29), MAT_LINEN)
     elif kind == 25:  # suite bar cabinet and glass rail
         _part(scene, 'SuiteBarPlinth', (width, depth, .10), (0, 0, .05), MAT_STEEL)
         _part(scene, 'SuiteBarCabinet', (width, depth * .82, .68), (0, 0, .44), material)
         _part(scene, 'BarStoneTop', (width * 1.06, depth * .90, .09), (0, 0, .83), MAT_STONE)
         for i in range(3 + variant):
             x = (i - (2 + variant) / 2) * width * .72 / (2 + variant)
-            _part(scene, f'BottleDivider_{i}', (.035, depth * .48, .26),
+            _part(scene, f'BottleDivider_{i}', (.085, depth * .48, .40),
                   (x, .12, 1.00), MAT_GLASS)
         for i, x in enumerate((-.32 * width, .32 * width)):
             _part(scene, f'BarDrawerFront_{i}', (.30 * width, .035, .17),
@@ -465,6 +522,10 @@ def _guestroom(kind, variant, material):
         _label(scene, 'SuiteBarInventoryTag', .32 * width, -.45 * depth, .24)
     elif kind == 26:  # room service tray stand
         _part(scene, 'TrayStandTop', (width, depth * .84, .09), (0, 0, .78), material)
+        for i in range(variant + 1):
+            z = .18 + i * .105
+            _part(scene, f'TrayStandLowerRackShelf_{i}',
+                  (width * .72, depth * .62, .045), (0, .06, z), MAT_WOOD)
         for i, x in enumerate((-.38 * width, .38 * width)):
             _part(scene, f'TrayStandLeg_{i}', (.07, .07, .72), (x, .25 * depth, .39), MAT_STEEL)
         _part(scene, 'TrayRetainingFrontLip', (width * .90, .045, .09), (0, -.38 * depth, .86), MAT_WOOD)
@@ -474,7 +535,11 @@ def _guestroom(kind, variant, material):
         _label(scene, 'TrayStandRoomServiceMark', .30 * width, -.40 * depth, .26)
     elif kind == 27:  # window bench with side storage
         _part(scene, 'WindowBenchStorageCase', (width, depth, .43), (0, 0, .30), material)
-        _part(scene, 'WindowBenchCushion', (width * 1.06, depth * 1.03, .12), (0, 0, .58), MAT_UPHOLSTERY)
+        seat_count = variant + 1
+        for i in range(seat_count):
+            x = (i - (seat_count - 1) / 2) * width * 1.04 / seat_count
+            _part(scene, f'WindowBenchSeatCushion_{i}',
+                  (width * .98 / seat_count, depth * 1.03, .12), (x, 0, .58), MAT_UPHOLSTERY)
         for i, x in enumerate((-.28 * width, .28 * width)):
             _part(scene, f'BenchDrawerFront_{i}', (.34 * width, .035, .24),
                   (x, -.51 * depth, .31), MAT_WOOD)
@@ -485,31 +550,48 @@ def _guestroom(kind, variant, material):
         _part(scene, 'LinenChestPlinth', (width * .92, depth * .86, .10), (0, 0, .05), MAT_STEEL)
         _part(scene, 'LinenChestCase', (width, depth, .62), (0, 0, .41), material)
         _part(scene, 'ChestTopLid', (width * 1.04, depth * 1.03, .08), (0, 0, .77), MAT_WOOD)
-        for i in range(3 + variant):
-            x = (i - (2 + variant) / 2) * width * .68 / (2 + variant)
-            _part(scene, f'LinenChestFrontPanel_{i}', (width * .18, .025, .36),
+        panel_count = 3 + variant
+        for i in range(panel_count):
+            x = (i - (panel_count - 1) / 2) * width * .90 / panel_count
+            _part(scene, f'LinenChestFrontPanel_{i}', (width * .84 / panel_count, .045, .42),
                   (x, -.51 * depth, .42), MAT_LINEN)
         _part(scene, 'LinenChestLockPlate', (.12, .035, .12), (.38 * width, -.53 * depth, .55), MAT_BRASS)
         _label(scene, 'LinenChestInventoryCode', .31 * width, -.44 * depth, .25)
     elif kind == 29:  # guest ironing board cabinet
-        height = 1.54 + .03 * variant
+        # Tier this cabinet by height so the silhouette stays legible in a
+        # shared preview frame as the other completion pieces grow in width.
+        width = .94 * scale
+        height = 1.24 + .25 * variant
         _part(scene, 'IroningCabinetBase', (width * .70, depth * .74, .10), (0, 0, .05), MAT_STEEL)
         _part(scene, 'IroningCabinetBody', (width * .68, depth * .70, height),
               (0, 0, height / 2 + .10), material)
-        _part(scene, 'FoldoutIroningBoard', (width * .88, .25, .09), (0, -.36 * depth, .75), MAT_LINEN)
+        board_depth = .28 + .11 * variant
+        board_y = -.36 * depth - (board_depth - .25) / 2
+        _part(scene, 'FoldoutIroningBoard', (width * .88, board_depth, .09),
+              (0, board_y, .75), MAT_LINEN)
+        if variant == 4:
+            _part(scene, 'SleevePressingWing', (width * .28, .30, .09),
+                  (.52 * width, board_y, .80), MAT_LINEN)
         _part(scene, 'IroningBoardSupportArm', (.065, depth * .66, .34), (0, -.18, .54), MAT_STEEL)
         _part(scene, 'SteamIronRestPlate', (.30, .24, .06), (.30 * width, -.04, .86), MAT_STAINLESS)
-        for i in range(4 + variant):
-            z = .36 + i * .25
-            _part(scene, f'IroningCabinetVent_{i}', (.28 * width, .025, .035), (0, -.36 * depth, z), MAT_LABEL)
+        vent_count = 4 + variant
+        for i in range(vent_count):
+            z = .32 + i * (height - .48) / (vent_count - 1)
+            _part(scene, f'IroningCabinetVent_{i}', (.58 * width, .035, .075),
+                  (0, -.36 * depth, z), MAT_LABEL)
         _label(scene, 'IroningSafetyNotice', .30 * width, -.40 * depth, .27)
     else:  # room safe and charging drawer console
         _part(scene, 'SafeConsolePlinth', (width, depth * .86, .10), (0, 0, .05), MAT_STEEL)
         _part(scene, 'GuestSafeCase', (width * .82, depth * .72, .55), (0, 0, .38), material)
-        _part(scene, 'GuestSafeDoor', (width * .68, .05, .44), (0, -.25 * depth, .40), MAT_STAINLESS)
-        _part(scene, 'SafeKeypad', (.14, .04, .18), (.26 * width, -.29 * depth, .43), MAT_ELECTRONICS)
+        _part(scene, 'GuestSafeDoor', (width * .68, .05, .44), (0, -.45 * depth, .40), MAT_STAINLESS)
+        _part(scene, 'SafeKeypad', (.14, .04, .18), (.26 * width, -.49 * depth, .43), MAT_ELECTRONICS)
         _part(scene, 'ChargingDrawer', (width, depth * .82, .19), (0, 0, .78), MAT_WOOD)
         _part(scene, 'WirelessChargingPad', (.30, .22, .025), (-.28 * width, -.10, .89), MAT_LABEL)
+        port_count = variant + 1
+        for i in range(port_count):
+            x = (i - (port_count - 1) / 2) * width * .72 / port_count
+            _part(scene, f'GuestDeviceChargingPort_{i}', (.14, .05, .11),
+                  (x, -.49 * depth, .78), MAT_ELECTRONICS)
         _label(scene, 'SafeGuestInstructions', .31 * width, -.38 * depth, .24)
     return scene
 
@@ -721,4 +803,4 @@ def build_asset(name, subcategory, material, asset_id, profile):
     if number <= 4100:
         return _exterior_singleton(number, material)
     kind, variant = divmod(number - 4101, 5)
-    return _guestroom(11 + kind, variant, material)
+    return _guestroom(11 + kind, variant, material, capacity_tiers=True)

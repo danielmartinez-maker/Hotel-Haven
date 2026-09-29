@@ -25,19 +25,20 @@ def _part(scene, name, size, center, material):
     add(scene, box(size, center, material), name)
 
 
-def _floor_feet(scene, width, depth, height, prefix, material=MAT_STEEL):
+def _floor_feet(scene, width, depth, height, prefix, material=MAT_STEEL, center=(0.0, 0.0)):
     for index, (sx, sy) in enumerate(((-1, -1), (-1, 1), (1, -1), (1, 1))):
         _part(scene, f'{prefix}_{index}', (.055, .055, height),
-              (sx * width * .40, sy * depth * .37, height / 2), material)
+              (center[0] + sx * width * .40, center[1] + sy * depth * .37, height / 2), material)
 
 
-def _casters(scene, width, depth, prefix):
+def _casters(scene, width, depth, prefix, *, animated=False):
     for index, (sx, sy) in enumerate(((-1, -1), (-1, 1), (1, -1), (1, 1))):
         center = (sx * width * .40, sy * depth * .37, .065)
         wheel = cyl(.065, .05, center, MAT_STEEL, 12)
         wheel.apply_transform(trimesh.transformations.rotation_matrix(
             math.pi / 2, [1, 0, 0], point=center))
-        add(scene, wheel, f'{prefix}_{index}')
+        node_name = f'MOV_Wheel_{prefix}_{index}' if animated else f'{prefix}_{index}'
+        add(scene, wheel, node_name)
 
 
 def _post(scene, name, x, y, height, radius, material):

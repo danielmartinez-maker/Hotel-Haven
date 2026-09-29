@@ -261,8 +261,8 @@
           "Room Service Tray Return Cart Compact",
           "guestroom",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -270,8 +270,8 @@
           "Room Service Tray Return Cart Standard",
           "guestroom",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -279,8 +279,8 @@
           "Room Service Tray Return Cart Extended",
           "guestroom",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -288,8 +288,8 @@
           "Room Service Tray Return Cart High Capacity",
           "guestroom",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ],
         [
@@ -297,8 +297,8 @@
           "Room Service Tray Return Cart Grand",
           "guestroom",
           "MAT_STAINLESS",
-          "P_FURNITURE_STATIC",
-          null,
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
           []
         ]
       ]
