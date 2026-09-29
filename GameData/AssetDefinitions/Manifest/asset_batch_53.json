@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 53,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2601",
+          "Raised Herb Garden Bed Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2602",
+          "Raised Herb Garden Bed Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2603",
+          "Raised Herb Garden Bed Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2604",
+          "Raised Herb Garden Bed High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2605",
+          "Raised Herb Garden Bed Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2606",
+          "Terrace Pergola Bay Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2607",
+          "Terrace Pergola Bay Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2608",
+          "Terrace Pergola Bay Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2609",
+          "Terrace Pergola Bay High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2610",
+          "Terrace Pergola Bay Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2611",
+          "Low Retaining Wall Seat Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2612",
+          "Low Retaining Wall Seat Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2613",
+          "Low Retaining Wall Seat Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2614",
+          "Low Retaining Wall Seat High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2615",
+          "Low Retaining Wall Seat Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2616",
+          "Garden Trellis Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2617",
+          "Garden Trellis Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2618",
+          "Garden Trellis Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2619",
+          "Garden Trellis High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2620",
+          "Garden Trellis Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2621",
+          "Bioswale Inlet Grate Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2622",
+          "Bioswale Inlet Grate Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2623",
+          "Bioswale Inlet Grate Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2624",
+          "Bioswale Inlet Grate High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2625",
+          "Bioswale Inlet Grate Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2626",
+          "Pathway Landscape Light Bollard Compact",
+          "exterior",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2627",
+          "Pathway Landscape Light Bollard Standard",
+          "exterior",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2628",
+          "Pathway Landscape Light Bollard Extended",
+          "exterior",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2629",
+          "Pathway Landscape Light Bollard High Capacity",
+          "exterior",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2630",
+          "Pathway Landscape Light Bollard Grand",
+          "exterior",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2631",
+          "Courtyard Fountain Basin Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2632",
+          "Courtyard Fountain Basin Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2633",
+          "Courtyard Fountain Basin Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2634",
+          "Courtyard Fountain Basin High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2635",
+          "Courtyard Fountain Basin Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2636",
+          "Plaza Tree Guard Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2637",
+          "Plaza Tree Guard Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2638",
+          "Plaza Tree Guard Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2639",
+          "Plaza Tree Guard High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2640",
+          "Plaza Tree Guard Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2641",
+          "Garden Hose Reel Station Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2642",
+          "Garden Hose Reel Station Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2643",
+          "Garden Hose Reel Station Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2644",
+          "Garden Hose Reel Station High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2645",
+          "Garden Hose Reel Station Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2646",
+          "Irrigation Valve Cabinet Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2647",
+          "Irrigation Valve Cabinet Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2648",
+          "Irrigation Valve Cabinet Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2649",
+          "Irrigation Valve Cabinet High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2650",
+          "Irrigation Valve Cabinet Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

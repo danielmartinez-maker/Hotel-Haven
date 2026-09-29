@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 54,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2651",
+          "Brass Floor Border Medallion Compact",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2652",
+          "Brass Floor Border Medallion Standard",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2653",
+          "Brass Floor Border Medallion Extended",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2654",
+          "Brass Floor Border Medallion High Capacity",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2655",
+          "Brass Floor Border Medallion Grand",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2656",
+          "Microcement Wall Panel Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2657",
+          "Microcement Wall Panel Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2658",
+          "Microcement Wall Panel Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2659",
+          "Microcement Wall Panel High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2660",
+          "Microcement Wall Panel Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2661",
+          "Ribbed Plaster Wall Board Compact",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2662",
+          "Ribbed Plaster Wall Board Standard",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2663",
+          "Ribbed Plaster Wall Board Extended",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2664",
+          "Ribbed Plaster Wall Board High Capacity",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2665",
+          "Ribbed Plaster Wall Board Grand",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2666",
+          "Acoustic Fabric Ceiling Raft Compact",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2667",
+          "Acoustic Fabric Ceiling Raft Standard",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2668",
+          "Acoustic Fabric Ceiling Raft Extended",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2669",
+          "Acoustic Fabric Ceiling Raft High Capacity",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2670",
+          "Acoustic Fabric Ceiling Raft Grand",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2671",
+          "Metal Grille Vent Finish Cassette Compact",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2672",
+          "Metal Grille Vent Finish Cassette Standard",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2673",
+          "Metal Grille Vent Finish Cassette Extended",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2674",
+          "Metal Grille Vent Finish Cassette High Capacity",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2675",
+          "Metal Grille Vent Finish Cassette Grand",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2676",
+          "Glazed Tile Wainscot Panel Compact",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2677",
+          "Glazed Tile Wainscot Panel Standard",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2678",
+          "Glazed Tile Wainscot Panel Extended",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2679",
+          "Glazed Tile Wainscot Panel High Capacity",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2680",
+          "Glazed Tile Wainscot Panel Grand",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2681",
+          "Parquet Transition Threshold Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2682",
+          "Parquet Transition Threshold Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2683",
+          "Parquet Transition Threshold Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2684",
+          "Parquet Transition Threshold High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2685",
+          "Parquet Transition Threshold Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2686",
+          "Stone Corner Guard Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2687",
+          "Stone Corner Guard Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2688",
+          "Stone Corner Guard Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2689",
+          "Stone Corner Guard High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2690",
+          "Stone Corner Guard Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2691",
+          "Decorative Wall Reveal Trim Compact",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2692",
+          "Decorative Wall Reveal Trim Standard",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2693",
+          "Decorative Wall Reveal Trim Extended",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2694",
+          "Decorative Wall Reveal Trim High Capacity",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2695",
+          "Decorative Wall Reveal Trim Grand",
+          "finish",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2696",
+          "Elevator Wall Panel Cassette Compact",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2697",
+          "Elevator Wall Panel Cassette Standard",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2698",
+          "Elevator Wall Panel Cassette Extended",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2699",
+          "Elevator Wall Panel Cassette High Capacity",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2700",
+          "Elevator Wall Panel Cassette Grand",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

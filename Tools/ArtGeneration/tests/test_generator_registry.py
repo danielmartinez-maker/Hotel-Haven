@@ -81,6 +81,11 @@ class GeneratorRegistryTests(unittest.TestCase):
         generator = resolve_batch_generator(BatchEntry(46, 'unused.json', 50, 'experience_expansion'))
         self.assertTrue(callable(generator.generate_package))
 
+    def test_destination_expansion_family_resolves_shared_generator(self):
+        from asset_manifest import BatchEntry
+        generator = resolve_batch_generator(BatchEntry(51, 'unused.json', 50, 'destination_expansion'))
+        self.assertTrue(callable(generator.generate_package))
+
 
 if __name__ == '__main__':
     unittest.main()

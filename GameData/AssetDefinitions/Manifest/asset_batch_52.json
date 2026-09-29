@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 52,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2551",
+          "Hotel Lobby Floor Sculpture Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2552",
+          "Hotel Lobby Floor Sculpture Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2553",
+          "Hotel Lobby Floor Sculpture Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2554",
+          "Hotel Lobby Floor Sculpture High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2555",
+          "Hotel Lobby Floor Sculpture Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2556",
+          "Botanical Screen Divider Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2557",
+          "Botanical Screen Divider Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2558",
+          "Botanical Screen Divider Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2559",
+          "Botanical Screen Divider High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2560",
+          "Botanical Screen Divider Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2561",
+          "Beveled Lobby Mirror Panel Compact",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2562",
+          "Beveled Lobby Mirror Panel Standard",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2563",
+          "Beveled Lobby Mirror Panel Extended",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2564",
+          "Beveled Lobby Mirror Panel High Capacity",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2565",
+          "Beveled Lobby Mirror Panel Grand",
+          "decor",
+          "MAT_GLASS_CLEAR",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2566",
+          "Marble Fireplace Surround Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2567",
+          "Marble Fireplace Surround Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2568",
+          "Marble Fireplace Surround Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2569",
+          "Marble Fireplace Surround High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2570",
+          "Marble Fireplace Surround Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2571",
+          "Decorative Pendant Cluster Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2572",
+          "Decorative Pendant Cluster Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2573",
+          "Decorative Pendant Cluster Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2574",
+          "Decorative Pendant Cluster High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2575",
+          "Decorative Pendant Cluster Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2576",
+          "Artisan Relief Wall Panel Compact",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2577",
+          "Artisan Relief Wall Panel Standard",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2578",
+          "Artisan Relief Wall Panel Extended",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2579",
+          "Artisan Relief Wall Panel High Capacity",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2580",
+          "Artisan Relief Wall Panel Grand",
+          "decor",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2581",
+          "Sculptural Side Table Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2582",
+          "Sculptural Side Table Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2583",
+          "Sculptural Side Table Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2584",
+          "Sculptural Side Table High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2585",
+          "Sculptural Side Table Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2586",
+          "Decorative Folding Screen Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2587",
+          "Decorative Folding Screen Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2588",
+          "Decorative Folding Screen Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2589",
+          "Decorative Folding Screen High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2590",
+          "Decorative Folding Screen Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2591",
+          "Curated Art Console Table Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2592",
+          "Curated Art Console Table Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2593",
+          "Curated Art Console Table Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2594",
+          "Curated Art Console Table High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2595",
+          "Curated Art Console Table Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2596",
+          "Suspended Art Installation Compact",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2597",
+          "Suspended Art Installation Standard",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2598",
+          "Suspended Art Installation Extended",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2599",
+          "Suspended Art Installation High Capacity",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2600",
+          "Suspended Art Installation Grand",
+          "decor",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

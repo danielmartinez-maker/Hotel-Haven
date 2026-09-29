@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 55,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2701",
+          "Banquet Carving Station Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2702",
+          "Banquet Carving Station Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2703",
+          "Banquet Carving Station Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2704",
+          "Banquet Carving Station High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2705",
+          "Banquet Carving Station Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2706",
+          "Live Noodle Induction Unit Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2707",
+          "Live Noodle Induction Unit Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2708",
+          "Live Noodle Induction Unit Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2709",
+          "Live Noodle Induction Unit High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2710",
+          "Live Noodle Induction Unit Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2711",
+          "Chilled Oyster Display Plinth Compact",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2712",
+          "Chilled Oyster Display Plinth Standard",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2713",
+          "Chilled Oyster Display Plinth Extended",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2714",
+          "Chilled Oyster Display Plinth High Capacity",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2715",
+          "Chilled Oyster Display Plinth Grand",
+          "restaurant",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2716",
+          "Barista Espresso Service Cart Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2717",
+          "Barista Espresso Service Cart Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2718",
+          "Barista Espresso Service Cart Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2719",
+          "Barista Espresso Service Cart High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2720",
+          "Barista Espresso Service Cart Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2721",
+          "Mobile Pastry Dessert Cart Compact",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2722",
+          "Mobile Pastry Dessert Cart Standard",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2723",
+          "Mobile Pastry Dessert Cart Extended",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2724",
+          "Mobile Pastry Dessert Cart High Capacity",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2725",
+          "Mobile Pastry Dessert Cart Grand",
+          "restaurant",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2726",
+          "Wine Decanter Display Stand Compact",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2727",
+          "Wine Decanter Display Stand Standard",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2728",
+          "Wine Decanter Display Stand Extended",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2729",
+          "Wine Decanter Display Stand High Capacity",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2730",
+          "Wine Decanter Display Stand Grand",
+          "restaurant",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2731",
+          "Draft Beer Tower Counter Compact",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2732",
+          "Draft Beer Tower Counter Standard",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2733",
+          "Draft Beer Tower Counter Extended",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2734",
+          "Draft Beer Tower Counter High Capacity",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2735",
+          "Draft Beer Tower Counter Grand",
+          "restaurant",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2736",
+          "Undercounter Glass Polisher Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2737",
+          "Undercounter Glass Polisher Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2738",
+          "Undercounter Glass Polisher Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2739",
+          "Undercounter Glass Polisher High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2740",
+          "Undercounter Glass Polisher Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2741",
+          "Breakfast Cereal Dispenser Tower Compact",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2742",
+          "Breakfast Cereal Dispenser Tower Standard",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2743",
+          "Breakfast Cereal Dispenser Tower Extended",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2744",
+          "Breakfast Cereal Dispenser Tower High Capacity",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2745",
+          "Breakfast Cereal Dispenser Tower Grand",
+          "restaurant",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "restaurant_bar_food_service",
+      "assets": [
+        [
+          "HH_A2746",
+          "Refrigerated Grab-and-Go Display Compact",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2747",
+          "Refrigerated Grab-and-Go Display Standard",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2748",
+          "Refrigerated Grab-and-Go Display Extended",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2749",
+          "Refrigerated Grab-and-Go Display High Capacity",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2750",
+          "Refrigerated Grab-and-Go Display Grand",
+          "restaurant",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "batch": 51,
+  "asset_count": 50,
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2501",
+          "Modular Event Stage Riser Compact",
+          "events",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2502",
+          "Modular Event Stage Riser Standard",
+          "events",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2503",
+          "Modular Event Stage Riser Extended",
+          "events",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2504",
+          "Modular Event Stage Riser High Capacity",
+          "events",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2505",
+          "Modular Event Stage Riser Grand",
+          "events",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2506",
+          "Banquet Dance Floor Panel Compact",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2507",
+          "Banquet Dance Floor Panel Standard",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2508",
+          "Banquet Dance Floor Panel Extended",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2509",
+          "Banquet Dance Floor Panel High Capacity",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2510",
+          "Banquet Dance Floor Panel Grand",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2511",
+          "Event Lectern Station Compact",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2512",
+          "Event Lectern Station Standard",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2513",
+          "Event Lectern Station Extended",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2514",
+          "Event Lectern Station High Capacity",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2515",
+          "Event Lectern Station Grand",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2516",
+          "Motorized AV Projector Lift Compact",
+          "events",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2517",
+          "Motorized AV Projector Lift Standard",
+          "events",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2518",
+          "Motorized AV Projector Lift Extended",
+          "events",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2519",
+          "Motorized AV Projector Lift High Capacity",
+          "events",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2520",
+          "Motorized AV Projector Lift Grand",
+          "events",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2521",
+          "Recessed Stage Cable Floorbox Compact",
+          "events",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2522",
+          "Recessed Stage Cable Floorbox Standard",
+          "events",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2523",
+          "Recessed Stage Cable Floorbox Extended",
+          "events",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2524",
+          "Recessed Stage Cable Floorbox High Capacity",
+          "events",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2525",
+          "Recessed Stage Cable Floorbox Grand",
+          "events",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2526",
+          "Rolling Linen Service Console Compact",
+          "events",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2527",
+          "Rolling Linen Service Console Standard",
+          "events",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2528",
+          "Rolling Linen Service Console Extended",
+          "events",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2529",
+          "Rolling Linen Service Console High Capacity",
+          "events",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2530",
+          "Rolling Linen Service Console Grand",
+          "events",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2531",
+          "Freestanding Wedding Arch Compact",
+          "events",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2532",
+          "Freestanding Wedding Arch Standard",
+          "events",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2533",
+          "Freestanding Wedding Arch Extended",
+          "events",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2534",
+          "Freestanding Wedding Arch High Capacity",
+          "events",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2535",
+          "Freestanding Wedding Arch Grand",
+          "events",
+          "MAT_BRASS_POLISHED",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2536",
+          "Event Registration Stand Compact",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2537",
+          "Event Registration Stand Standard",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2538",
+          "Event Registration Stand Extended",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2539",
+          "Event Registration Stand High Capacity",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2540",
+          "Event Registration Stand Grand",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2541",
+          "Banquet Chair Stack Dolly Compact",
+          "events",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2542",
+          "Banquet Chair Stack Dolly Standard",
+          "events",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2543",
+          "Banquet Chair Stack Dolly Extended",
+          "events",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2544",
+          "Banquet Chair Stack Dolly High Capacity",
+          "events",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2545",
+          "Banquet Chair Stack Dolly Grand",
+          "events",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2546",
+          "Portable Partition Wall Cart Compact",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2547",
+          "Portable Partition Wall Cart Standard",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2548",
+          "Portable Partition Wall Cart Extended",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2549",
+          "Portable Partition Wall Cart High Capacity",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2550",
+          "Portable Partition Wall Cart Grand",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
