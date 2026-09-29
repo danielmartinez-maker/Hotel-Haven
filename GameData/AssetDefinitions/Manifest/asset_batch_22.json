@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 22,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1051",
+          "Guest Business Traveler Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1052",
+          "Guest Business Traveler Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1053",
+          "Guest Business Traveler Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1054",
+          "Guest Business Traveler Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1055",
+          "Guest Business Traveler Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1056",
+          "Guest City Tourist Woman Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1057",
+          "Guest City Tourist Man Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1058",
+          "Guest City Tourist Woman Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1059",
+          "Guest City Tourist Man High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1060",
+          "Guest City Tourist Woman Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1061",
+          "Guest Backpacker Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1062",
+          "Guest Backpacker Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1063",
+          "Guest Backpacker Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1064",
+          "Guest Backpacker Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1065",
+          "Guest Backpacker Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1066",
+          "Guest Family Parent Woman Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1067",
+          "Guest Family Parent Man Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1068",
+          "Guest Family Parent Woman Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1069",
+          "Guest Family Parent Man High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1070",
+          "Guest Family Parent Woman Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1071",
+          "Guest Long Stay Traveler Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_ROOM",
+          []
+        ],
+        [
+          "HH_A1072",
+          "Guest Long Stay Traveler Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_ROOM",
+          []
+        ],
+        [
+          "HH_A1073",
+          "Guest Long Stay Traveler Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_ROOM",
+          []
+        ],
+        [
+          "HH_A1074",
+          "Guest Long Stay Traveler Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_ROOM",
+          []
+        ],
+        [
+          "HH_A1075",
+          "Guest Long Stay Traveler Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_ROOM",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1076",
+          "Guest Conference Attendee Woman Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1077",
+          "Guest Conference Attendee Man Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1078",
+          "Guest Conference Attendee Woman Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1079",
+          "Guest Conference Attendee Man High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1080",
+          "Guest Conference Attendee Woman Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1081",
+          "Guest Luxury Traveler Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1082",
+          "Guest Luxury Traveler Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1083",
+          "Guest Luxury Traveler Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1084",
+          "Guest Luxury Traveler Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1085",
+          "Guest Luxury Traveler Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1086",
+          "Guest Social Creator Influencer Woman Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1087",
+          "Guest Social Creator Influencer Man Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1088",
+          "Guest Social Creator Influencer Woman Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1089",
+          "Guest Social Creator Influencer Man High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1090",
+          "Guest Social Creator Influencer Woman Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1091",
+          "Guest Elderly Traveler Man Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1092",
+          "Guest Elderly Traveler Woman Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1093",
+          "Guest Elderly Traveler Man Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1094",
+          "Guest Elderly Traveler Woman High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ],
+        [
+          "HH_A1095",
+          "Guest Elderly Traveler Man Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_GUEST_LOCOMOTION",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1096",
+          "Guest Child Traveler Boy Compact",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_CHILD_GUEST",
+          []
+        ],
+        [
+          "HH_A1097",
+          "Guest Child Traveler Girl Standard",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_CHILD_GUEST",
+          []
+        ],
+        [
+          "HH_A1098",
+          "Guest Child Traveler Boy Extended",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_CHILD_GUEST",
+          []
+        ],
+        [
+          "HH_A1099",
+          "Guest Child Traveler Girl High Capacity",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_CHILD_GUEST",
+          []
+        ],
+        [
+          "HH_A1100",
+          "Guest Child Traveler Boy Grand",
+          "guest",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_CHILD_GUEST",
+          []
+        ]
+      ]
+    }
+  ]
+}

@@ -47,6 +47,12 @@ SEMANTIC_NODE_REQUIREMENTS = {
 }
 
 DISTINCT_VARIANT_GROUPS = {
+    **{f'character_expansion_{group}': tuple(f'HH_A{i:03d}' for i in range(1051 + group * 5, 1056 + group * 5))
+       for group in range(20)},
+    **{f'amenity_expansion_{group}': tuple(f'HH_A{i:03d}' for i in range(1151 + group * 5, 1156 + group * 5))
+       for group in range(10)},
+    **{f'public_expansion_{group}': tuple(f'HH_A{i:03d}' for i in range(1201 + group * 5, 1206 + group * 5))
+       for group in range(10)},
     **{f'curated_hotel_{group}': tuple(f'HH_A{i:03d}' for i in range(851 + group * 5, 856 + group * 5))
        for group in range(40)},
     **{f'corridor_module_{family}': tuple(f'HH_A{i:03d}' for i in range(801 + family * 5, 806 + family * 5))

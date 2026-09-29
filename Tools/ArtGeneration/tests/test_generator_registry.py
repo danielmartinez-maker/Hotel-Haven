@@ -51,6 +51,11 @@ class GeneratorRegistryTests(unittest.TestCase):
         self.assertEqual(generator_source(17, 'architecture'),
                          'Tools/ArtGeneration/generator_registry.py')
 
+    def test_extended_hotel_family_resolves_shared_generator(self):
+        from asset_manifest import BatchEntry
+        generator = resolve_batch_generator(BatchEntry(22, 'unused.json', 50, 'extended_hotel'))
+        self.assertTrue(callable(generator.generate_package))
+
 
 if __name__ == '__main__':
     unittest.main()

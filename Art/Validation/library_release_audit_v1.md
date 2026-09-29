@@ -2,11 +2,11 @@
 
 ## Release gate
 
-- Gameplay-facing assets: **1050 / 1050**
-- Generated asset records (gameplay + animation support): **1147**
-- Animation dependencies linked: **133 / 133**
+- Gameplay-facing assets: **1250 / 1250**
+- Generated asset records (gameplay + animation support): **1347**
+- Animation dependencies linked: **238 / 238**
 - Deferred animation dependencies: **0**
-- Interaction anchors normalized: **304 / 304**
+- Interaction anchors normalized: **354 / 354**
 - Profile contract conformance: **PASS** with **0** failures
 - Placement/pivot QC: **PASS** with **0** failures
 - Semantic identity QC: **PASS** with **0** failures
@@ -57,6 +57,10 @@
 | Batch 19 | PRODUCTION_GENERATOR_VALIDATED |
 | Batch 20 | PRODUCTION_GENERATOR_VALIDATED |
 | Batch 21 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 22 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 23 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 24 | PRODUCTION_GENERATOR_VALIDATED |
+| Batch 25 | PRODUCTION_GENERATOR_VALIDATED |
 
 ## Operational note
 

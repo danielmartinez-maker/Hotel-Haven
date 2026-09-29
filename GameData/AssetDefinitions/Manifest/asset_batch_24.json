@@ -1,0 +1,566 @@
+{
+  "schema": 2,
+  "batch": 24,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1151",
+          "Spa Treatment Bed Compact",
+          "spa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1152",
+          "Spa Treatment Bed Standard",
+          "spa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1153",
+          "Spa Treatment Bed Extended",
+          "spa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1154",
+          "Spa Treatment Bed High Capacity",
+          "spa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1155",
+          "Spa Treatment Bed Grand",
+          "spa",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1156",
+          "Sauna Bench Compact",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1157",
+          "Sauna Bench Standard",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1158",
+          "Sauna Bench Extended",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1159",
+          "Sauna Bench High Capacity",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1160",
+          "Sauna Bench Grand",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1161",
+          "Spa Towel Warmer Compact",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1162",
+          "Spa Towel Warmer Standard",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1163",
+          "Spa Towel Warmer Extended",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1164",
+          "Spa Towel Warmer High Capacity",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1165",
+          "Spa Towel Warmer Grand",
+          "spa",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1166",
+          "Gym Treadmill Compact",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1167",
+          "Gym Treadmill Standard",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1168",
+          "Gym Treadmill Extended",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1169",
+          "Gym Treadmill High Capacity",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1170",
+          "Gym Treadmill Grand",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1171",
+          "Gym Cycle Trainer Compact",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1172",
+          "Gym Cycle Trainer Standard",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1173",
+          "Gym Cycle Trainer Extended",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1174",
+          "Gym Cycle Trainer High Capacity",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1175",
+          "Gym Cycle Trainer Grand",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1176",
+          "Strength Cable Station Compact",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1177",
+          "Strength Cable Station Standard",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1178",
+          "Strength Cable Station Extended",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1179",
+          "Strength Cable Station High Capacity",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1180",
+          "Strength Cable Station Grand",
+          "gym",
+          "MAT_BLACKENED_STEEL",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1181",
+          "Pool Lounger Compact",
+          "pool",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1182",
+          "Pool Lounger Standard",
+          "pool",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1183",
+          "Pool Lounger Extended",
+          "pool",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1184",
+          "Pool Lounger High Capacity",
+          "pool",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1185",
+          "Pool Lounger Grand",
+          "pool",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1186",
+          "Pool Umbrella Compact",
+          "pool",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1187",
+          "Pool Umbrella Standard",
+          "pool",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1188",
+          "Pool Umbrella Extended",
+          "pool",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1189",
+          "Pool Umbrella High Capacity",
+          "pool",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1190",
+          "Pool Umbrella Grand",
+          "pool",
+          "MAT_LINEN",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1191",
+          "Conference Lectern Compact",
+          "conference",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1192",
+          "Conference Lectern Standard",
+          "conference",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1193",
+          "Conference Lectern Extended",
+          "conference",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1194",
+          "Conference Lectern High Capacity",
+          "conference",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1195",
+          "Conference Lectern Grand",
+          "conference",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A1196",
+          "Event Stage Module Compact",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1197",
+          "Event Stage Module Standard",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1198",
+          "Event Stage Module Extended",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1199",
+          "Event Stage Module High Capacity",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1200",
+          "Event Stage Module Grand",
+          "events",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

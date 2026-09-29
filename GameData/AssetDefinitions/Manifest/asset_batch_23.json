@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 23,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1101",
+          "Front Desk Receptionist Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1102",
+          "Front Desk Receptionist Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1103",
+          "Front Desk Receptionist Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1104",
+          "Front Desk Receptionist Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1105",
+          "Front Desk Receptionist Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1106",
+          "Hotel Concierge Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1107",
+          "Hotel Concierge Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1108",
+          "Hotel Concierge Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1109",
+          "Hotel Concierge Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ],
+        [
+          "HH_A1110",
+          "Hotel Concierge Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_FRONT_DESK",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1111",
+          "Bellhop Attendant Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1112",
+          "Bellhop Attendant Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1113",
+          "Bellhop Attendant Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1114",
+          "Bellhop Attendant Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ],
+        [
+          "HH_A1115",
+          "Bellhop Attendant Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_BELL_SERVICE",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1116",
+          "Housekeeper Attendant Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1117",
+          "Housekeeper Attendant Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1118",
+          "Housekeeper Attendant Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1119",
+          "Housekeeper Attendant Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ],
+        [
+          "HH_A1120",
+          "Housekeeper Attendant Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_HOUSEKEEPING",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1121",
+          "Executive Chef Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_KITCHEN",
+          []
+        ],
+        [
+          "HH_A1122",
+          "Executive Chef Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_KITCHEN",
+          []
+        ],
+        [
+          "HH_A1123",
+          "Executive Chef Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_KITCHEN",
+          []
+        ],
+        [
+          "HH_A1124",
+          "Executive Chef Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_KITCHEN",
+          []
+        ],
+        [
+          "HH_A1125",
+          "Executive Chef Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_KITCHEN",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1126",
+          "Restaurant Waiter Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1127",
+          "Restaurant Waiter Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1128",
+          "Restaurant Waiter Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1129",
+          "Restaurant Waiter Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1130",
+          "Restaurant Waiter Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1131",
+          "Hotel Bartender Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1132",
+          "Hotel Bartender Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1133",
+          "Hotel Bartender Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1134",
+          "Hotel Bartender Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ],
+        [
+          "HH_A1135",
+          "Hotel Bartender Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_RESTAURANT_SERVICE",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1136",
+          "Maintenance Technician Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MAINTENANCE",
+          []
+        ],
+        [
+          "HH_A1137",
+          "Maintenance Technician Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MAINTENANCE",
+          []
+        ],
+        [
+          "HH_A1138",
+          "Maintenance Technician Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MAINTENANCE",
+          []
+        ],
+        [
+          "HH_A1139",
+          "Maintenance Technician Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MAINTENANCE",
+          []
+        ],
+        [
+          "HH_A1140",
+          "Maintenance Technician Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MAINTENANCE",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1141",
+          "Hotel Security Officer Man Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1142",
+          "Hotel Security Officer Woman Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1143",
+          "Hotel Security Officer Man Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1144",
+          "Hotel Security Officer Woman High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ],
+        [
+          "HH_A1145",
+          "Hotel Security Officer Man Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_SECURITY",
+          []
+        ]
+      ]
+    },
+    {
+      "family": "guests_staff",
+      "assets": [
+        [
+          "HH_A1146",
+          "Hotel Operations Manager Woman Compact",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1147",
+          "Hotel Operations Manager Man Standard",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1148",
+          "Hotel Operations Manager Woman Extended",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1149",
+          "Hotel Operations Manager Man High Capacity",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ],
+        [
+          "HH_A1150",
+          "Hotel Operations Manager Woman Grand",
+          "staff",
+          "MAT_CHARACTER_COMPOSITE",
+          "P_CHARACTER",
+          "ANSET_MANAGER",
+          []
+        ]
+      ]
+    }
+  ]
+}

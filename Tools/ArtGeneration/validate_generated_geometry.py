@@ -139,6 +139,20 @@ def profile_contract_failures(asset_id: str, meta: dict, sidecar: dict, contract
     return failures
 
 
+def character_height_failures(asset_id: str, bounds_min, bounds_max, contract: dict) -> list[str]:
+    height_contract = contract.get('height_m')
+    if not height_contract:
+        return []
+    height = float(np.asarray(bounds_max, dtype=float)[2] - np.asarray(bounds_min, dtype=float)[2])
+    minimum = float(height_contract['min'])
+    maximum = float(height_contract['max'])
+    if height < minimum:
+        return [f'{asset_id}: character height {height:.3f}m is below minimum {minimum:.3f}m']
+    if height > maximum:
+        return [f'{asset_id}: character height {height:.3f}m is above maximum {maximum:.3f}m']
+    return []
+
+
 def placement_failures(asset_id: str, pivot_profile: str, bounds_min, bounds_max) -> list[str]:
     if asset_id in CONTEXTUAL_PLACEMENT_OVERRIDES:
         return []
@@ -319,6 +333,10 @@ def validate(repo_root: Path) -> dict:
         bounds_min, bounds_max = bounds
         extents = bounds_max - bounds_min
         diagonal = float(np.linalg.norm(extents))
+
+        height_failures = character_height_failures(asset_id, bounds_min, bounds_max, contract)
+        contract_failure_details.extend(height_failures)
+        failures.extend(height_failures)
 
         asset_placement_failures = placement_failures(
             asset_id,

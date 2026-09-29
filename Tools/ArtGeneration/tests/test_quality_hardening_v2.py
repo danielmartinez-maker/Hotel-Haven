@@ -128,6 +128,18 @@ def test_floor_contact_placement_gate_catches_floating_sunk_and_off_center_asset
     ) == []
 
 
+def test_character_height_contract_gate_rejects_models_outside_declared_range():
+    check = getattr(qc, 'character_height_failures', None)
+    assert callable(check)
+    contract = {'height_m': {'min': 1.25, 'max': 2.05}}
+
+    assert check('HH_A1096', [0, 0, 0], [0.6, 0.5, 1.275], contract) == []
+    assert any('below minimum' in failure for failure in
+               check('HH_A1097', [0, 0, 0], [0.6, 0.5, 1.20], contract))
+    assert any('above maximum' in failure for failure in
+               check('HH_A1098', [0, 0, 0], [0.6, 0.5, 2.10], contract))
+
+
 def test_release_audit_reports_profile_anchor_and_placement_gates():
     build = getattr(qc, 'release_audit_markdown', None)
     assert callable(build)

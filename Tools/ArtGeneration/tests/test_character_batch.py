@@ -30,6 +30,12 @@ def test_guest_silhouettes_are_not_all_identical():
   signatures.append(tuple(ext.tolist()))
  assert len(set(signatures))>=4,signatures
 
+def test_child_character_heights_respect_quality_contract():
+ for index in range(50):
+  scene=build_character('Guest Child Traveler Boy',index)
+  height=float(scene.bounds[1][2]-scene.bounds[0][2])
+  assert 1.25<=height<=2.05,(index,height)
+
 def test_humanoid_animation_generation(tmp_path):
  cfg={'skeletons':[{'skeleton_id':'SK_HumanoidAdult','forward_axis':'+Y','up_axis':'+Z'},{'skeleton_id':'SK_HumanoidSmall','forward_axis':'+Y','up_axis':'+Z'}],'sets':[{'animation_set_id':'ANSET_GUEST_LOCOMOTION','skeleton_id':'SK_HumanoidAdult','clips':['AN_IDLE','AN_WALK']},{'animation_set_id':'ANSET_CHILD_GUEST','skeleton_id':'SK_HumanoidSmall','clips':['AN_IDLE','AN_CHILD_PLAY']}],'clip_semantics':{'looping_clips':['AN_IDLE','AN_WALK','AN_CHILD_PLAY']}}
  cp=tmp_path/'cfg.json';cp.write_text(json.dumps(cfg));sk,clips,sets=generate(cp,tmp_path/'a');assert (sk,clips,sets)==(2,4,2)

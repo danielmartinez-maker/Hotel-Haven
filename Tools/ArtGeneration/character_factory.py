@@ -38,7 +38,7 @@ def role_palette(name,idx):
 
 def body_profile(name,index):
  child='Child' in name;elderly='Elderly' in name
- if child:height=1.20+.05*(index%4)
+ if child:height=1.30+.04*(index%4)
  elif elderly:height=1.58+.035*(index%4)
  else:height=1.64+.035*(index%7)
  width=(.88,.96,1.04,1.12,1.00)[index%5];depth=(.92,1.00,1.08,.96)[index%4]

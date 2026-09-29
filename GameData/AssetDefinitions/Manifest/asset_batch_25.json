@@ -1,0 +1,566 @@
+{
+  "schema": 2,
+  "batch": 25,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1201",
+          "Lobby Settee Compact",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1202",
+          "Lobby Settee Standard",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1203",
+          "Lobby Settee Extended",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1204",
+          "Lobby Settee High Capacity",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1205",
+          "Lobby Settee Grand",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1206",
+          "Lobby Center Sofa Compact",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1207",
+          "Lobby Center Sofa Standard",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1208",
+          "Lobby Center Sofa Extended",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1209",
+          "Lobby Center Sofa High Capacity",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ],
+        [
+          "HH_A1210",
+          "Lobby Center Sofa Grand",
+          "lobby",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          [
+            "INT_SIT_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1211",
+          "Lobby Queue Stanchion Compact",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1212",
+          "Lobby Queue Stanchion Standard",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1213",
+          "Lobby Queue Stanchion Extended",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1214",
+          "Lobby Queue Stanchion High Capacity",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1215",
+          "Lobby Queue Stanchion Grand",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1216",
+          "Lobby Directory Kiosk Compact",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1217",
+          "Lobby Directory Kiosk Standard",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1218",
+          "Lobby Directory Kiosk Extended",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1219",
+          "Lobby Directory Kiosk High Capacity",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1220",
+          "Lobby Directory Kiosk Grand",
+          "lobby",
+          "MAT_ELECTRONICS",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1221",
+          "Concierge Work Desk Compact",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1222",
+          "Concierge Work Desk Standard",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1223",
+          "Concierge Work Desk Extended",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1224",
+          "Concierge Work Desk High Capacity",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ],
+        [
+          "HH_A1225",
+          "Concierge Work Desk Grand",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_INTERACTIVE_PREFAB",
+          null,
+          [
+            "INT_USE_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1226",
+          "Bell Service Cart Compact",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
+          [
+            "INT_PUSH_01"
+          ]
+        ],
+        [
+          "HH_A1227",
+          "Bell Service Cart Standard",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
+          [
+            "INT_PUSH_01"
+          ]
+        ],
+        [
+          "HH_A1228",
+          "Bell Service Cart Extended",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
+          [
+            "INT_PUSH_01"
+          ]
+        ],
+        [
+          "HH_A1229",
+          "Bell Service Cart High Capacity",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
+          [
+            "INT_PUSH_01"
+          ]
+        ],
+        [
+          "HH_A1230",
+          "Bell Service Cart Grand",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SERVICE_PROP_ANIMATED",
+          "ANSET_SERVICE_CART",
+          [
+            "INT_PUSH_01"
+          ]
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1231",
+          "Lobby Floral Planter Compact",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1232",
+          "Lobby Floral Planter Standard",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1233",
+          "Lobby Floral Planter Extended",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1234",
+          "Lobby Floral Planter High Capacity",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1235",
+          "Lobby Floral Planter Grand",
+          "lobby",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1236",
+          "Lobby Statement Sculpture Compact",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A1237",
+          "Lobby Statement Sculpture Standard",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A1238",
+          "Lobby Statement Sculpture Extended",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A1239",
+          "Lobby Statement Sculpture High Capacity",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ],
+        [
+          "HH_A1240",
+          "Lobby Statement Sculpture Grand",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_SMALL_PROP",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1241",
+          "Hotel Shop Display Shelf Compact",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1242",
+          "Hotel Shop Display Shelf Standard",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1243",
+          "Hotel Shop Display Shelf Extended",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1244",
+          "Hotel Shop Display Shelf High Capacity",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1245",
+          "Hotel Shop Display Shelf Grand",
+          "lobby",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "front_of_house_public",
+      "assets": [
+        [
+          "HH_A1246",
+          "Lobby Floor Lamp Compact",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1247",
+          "Lobby Floor Lamp Standard",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1248",
+          "Lobby Floor Lamp Extended",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1249",
+          "Lobby Floor Lamp High Capacity",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A1250",
+          "Lobby Floor Lamp Grand",
+          "lobby",
+          "MAT_BRASS_POLISHED",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}
