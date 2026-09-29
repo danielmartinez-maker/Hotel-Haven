@@ -43,6 +43,7 @@ class AssetManifest:
             raise ValueError(f'batches must be contiguous from 1 in {self.path}')
         if sum(entry.asset_count for entry in self._batches) != self.asset_count:
             raise ValueError(f'batch counts do not match asset_count in {self.path}')
+        all_ids = []
         for entry in self._batches:
             if entry.asset_count != 50 or not (self.repo_root / entry.path).is_file():
                 raise ValueError(f'batch {entry.batch} must declare 50 assets in an existing shard')
@@ -50,6 +51,9 @@ class AssetManifest:
             rows = [row for group in shard['groups'] for row in group['assets']]
             if len(rows) != entry.asset_count:
                 raise ValueError(f'batch {entry.batch} declares {len(rows)} rows, expected {entry.asset_count}')
+            all_ids.extend(row[0] for row in rows)
+        if sorted(all_ids) != [f'HH_A{i:03d}' for i in range(1, self.asset_count + 1)]:
+            raise ValueError('canonical IDs must be contiguous and unique across declared shards')
 
     @property
     def asset_count(self) -> int:

@@ -22,6 +22,18 @@ class GeneratorRegistryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, '49 rows'):
                 AssetManifest(root, root / 'manifest.json')
 
+    def test_wrong_or_duplicate_canonical_id_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            rows = [[f'HH_A{i:03d}'] for i in range(1, 51)]
+            rows[24] = ['HH_A001']
+            (root / 'batch.json').write_text(json.dumps({'batch': 1, 'groups': [
+                {'family': 'architecture_construction', 'assets': rows}]}))
+            (root / 'manifest.json').write_text(json.dumps({'asset_count': 50,
+                'batches': [{'batch': 1, 'path': 'batch.json', 'asset_count': 50}]}))
+            with self.assertRaisesRegex(ValueError, 'canonical IDs'):
+                AssetManifest(root, root / 'manifest.json')
+
     def test_existing_batches_preserve_legacy_generators(self):
         active = load_active_manifest(ROOT)
         for entry in active.batch_entries:
