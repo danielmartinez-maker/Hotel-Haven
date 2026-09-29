@@ -13,12 +13,12 @@ from batch16_generate import build_asset as build_batch16
 
 
 class ActiveManifestTests(unittest.TestCase):
-    def test_2250_canonical_ids_and_declared_batches(self):
+    def test_2500_canonical_ids_and_declared_batches(self):
         active = load_active_manifest(ROOT)
-        self.assertEqual(active.asset_count, 2250)
-        self.assertEqual(active.batch_numbers, tuple(range(1, 46)))
+        self.assertEqual(active.asset_count, 2500)
+        self.assertEqual(active.batch_numbers, tuple(range(1, 51)))
         ids = [row[0] for _, _, row in active.iter_rows()]
-        self.assertEqual(set(ids), {f'HH_A{i:03d}' for i in range(1, 2251)})
+        self.assertEqual(set(ids), {f'HH_A{i:03d}' for i in range(1, 2501)})
         self.assertEqual(active.batch_entries[16].generator_family, 'architectural_modules')
         self.assertTrue(all(entry.generator_family == 'curated_hotel'
                             for entry in active.batch_entries[17:21]))
@@ -31,7 +31,9 @@ class ActiveManifestTests(unittest.TestCase):
         self.assertTrue(all(entry.generator_family == 'operations_expansion'
                             for entry in active.batch_entries[35:40]))
         self.assertTrue(all(entry.generator_family == 'service_expansion'
-                            for entry in active.batch_entries[40:]))
+                            for entry in active.batch_entries[40:45]))
+        self.assertTrue(all(entry.generator_family == 'experience_expansion'
+                            for entry in active.batch_entries[45:]))
         metadata, _ = gameplay_manifest_metadata(ROOT)
         self.assertEqual(set(metadata), set(ids))
         self.assertEqual(len(manifest_animation_bindings(ROOT / 'GameData/AssetDefinitions/Manifest')),

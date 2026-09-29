@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 49,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2401",
+          "Hot Stone Therapy Warmer Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2402",
+          "Hot Stone Therapy Warmer Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2403",
+          "Hot Stone Therapy Warmer Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2404",
+          "Hot Stone Therapy Warmer High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2405",
+          "Hot Stone Therapy Warmer Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2406",
+          "Aromatherapy Display Cabinet Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2407",
+          "Aromatherapy Display Cabinet Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2408",
+          "Aromatherapy Display Cabinet Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2409",
+          "Aromatherapy Display Cabinet High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2410",
+          "Aromatherapy Display Cabinet Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2411",
+          "Treatment Oil Warmer Compact",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2412",
+          "Treatment Oil Warmer Standard",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2413",
+          "Treatment Oil Warmer Extended",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2414",
+          "Treatment Oil Warmer High Capacity",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2415",
+          "Treatment Oil Warmer Grand",
+          "amenities",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2416",
+          "Hydrotherapy Soaking Basin Compact",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2417",
+          "Hydrotherapy Soaking Basin Standard",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2418",
+          "Hydrotherapy Soaking Basin Extended",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2419",
+          "Hydrotherapy Soaking Basin High Capacity",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2420",
+          "Hydrotherapy Soaking Basin Grand",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2421",
+          "Infrared Sauna Cabin Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2422",
+          "Infrared Sauna Cabin Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2423",
+          "Infrared Sauna Cabin Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2424",
+          "Infrared Sauna Cabin High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2425",
+          "Infrared Sauna Cabin Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2426",
+          "Sensory Float Therapy Pod Compact",
+          "amenities",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2427",
+          "Sensory Float Therapy Pod Standard",
+          "amenities",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2428",
+          "Sensory Float Therapy Pod Extended",
+          "amenities",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2429",
+          "Sensory Float Therapy Pod High Capacity",
+          "amenities",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2430",
+          "Sensory Float Therapy Pod Grand",
+          "amenities",
+          "MAT_GLASS_CLEAR",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2431",
+          "Salt Therapy Wall Panel Compact",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2432",
+          "Salt Therapy Wall Panel Standard",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2433",
+          "Salt Therapy Wall Panel Extended",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2434",
+          "Salt Therapy Wall Panel High Capacity",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2435",
+          "Salt Therapy Wall Panel Grand",
+          "amenities",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2436",
+          "Wellness Tea Service Stand Compact",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2437",
+          "Wellness Tea Service Stand Standard",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2438",
+          "Wellness Tea Service Stand Extended",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2439",
+          "Wellness Tea Service Stand High Capacity",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2440",
+          "Wellness Tea Service Stand Grand",
+          "amenities",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2441",
+          "Meditation Cushion Rack Compact",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2442",
+          "Meditation Cushion Rack Standard",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2443",
+          "Meditation Cushion Rack Extended",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2444",
+          "Meditation Cushion Rack High Capacity",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2445",
+          "Meditation Cushion Rack Grand",
+          "amenities",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "amenities_events",
+      "assets": [
+        [
+          "HH_A2446",
+          "Spa Foot Bath Station Compact",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2447",
+          "Spa Foot Bath Station Standard",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2448",
+          "Spa Foot Bath Station Extended",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2449",
+          "Spa Foot Bath Station High Capacity",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2450",
+          "Spa Foot Bath Station Grand",
+          "amenities",
+          "MAT_CERAMIC_FIXTURE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

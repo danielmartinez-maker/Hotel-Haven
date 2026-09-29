@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 50,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2451",
+          "Terrazzo Aggregate Floor Module Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2452",
+          "Terrazzo Aggregate Floor Module Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2453",
+          "Terrazzo Aggregate Floor Module Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2454",
+          "Terrazzo Aggregate Floor Module High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2455",
+          "Terrazzo Aggregate Floor Module Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2456",
+          "Mosaic Border Inlay Module Compact",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2457",
+          "Mosaic Border Inlay Module Standard",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2458",
+          "Mosaic Border Inlay Module Extended",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2459",
+          "Mosaic Border Inlay Module High Capacity",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2460",
+          "Mosaic Border Inlay Module Grand",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2461",
+          "Elevator Cab Ceiling Cassette Compact",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2462",
+          "Elevator Cab Ceiling Cassette Standard",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2463",
+          "Elevator Cab Ceiling Cassette Extended",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2464",
+          "Elevator Cab Ceiling Cassette High Capacity",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2465",
+          "Elevator Cab Ceiling Cassette Grand",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2466",
+          "Acoustic Ceiling Grid Module Compact",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2467",
+          "Acoustic Ceiling Grid Module Standard",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2468",
+          "Acoustic Ceiling Grid Module Extended",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2469",
+          "Acoustic Ceiling Grid Module High Capacity",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2470",
+          "Acoustic Ceiling Grid Module Grand",
+          "finish",
+          "MAT_LINEN",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2471",
+          "Stone Window Sill Return Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2472",
+          "Stone Window Sill Return Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2473",
+          "Stone Window Sill Return Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2474",
+          "Stone Window Sill Return High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2475",
+          "Stone Window Sill Return Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2476",
+          "Metal Floor Expansion Joint Compact",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2477",
+          "Metal Floor Expansion Joint Standard",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2478",
+          "Metal Floor Expansion Joint Extended",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2479",
+          "Metal Floor Expansion Joint High Capacity",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2480",
+          "Metal Floor Expansion Joint Grand",
+          "finish",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2481",
+          "Timber Slat Ceiling Module Compact",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2482",
+          "Timber Slat Ceiling Module Standard",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2483",
+          "Timber Slat Ceiling Module Extended",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2484",
+          "Timber Slat Ceiling Module High Capacity",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2485",
+          "Timber Slat Ceiling Module Grand",
+          "finish",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2486",
+          "Feature Mosaic Wall Panel Compact",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2487",
+          "Feature Mosaic Wall Panel Standard",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2488",
+          "Feature Mosaic Wall Panel Extended",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2489",
+          "Feature Mosaic Wall Panel High Capacity",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2490",
+          "Feature Mosaic Wall Panel Grand",
+          "finish",
+          "MAT_CERAMIC_FIXTURE",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2491",
+          "Cove Base Trim Module Compact",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2492",
+          "Cove Base Trim Module Standard",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2493",
+          "Cove Base Trim Module Extended",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2494",
+          "Cove Base Trim Module High Capacity",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2495",
+          "Cove Base Trim Module Grand",
+          "finish",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "finish_systems",
+      "assets": [
+        [
+          "HH_A2496",
+          "Carpeted Stair Nosing Module Compact",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2497",
+          "Carpeted Stair Nosing Module Standard",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2498",
+          "Carpeted Stair Nosing Module Extended",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2499",
+          "Carpeted Stair Nosing Module High Capacity",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2500",
+          "Carpeted Stair Nosing Module Grand",
+          "finish",
+          "MAT_UPHOLSTERY",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

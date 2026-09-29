@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 48,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2351",
+          "Parking Gate Barrier Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2352",
+          "Parking Gate Barrier Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2353",
+          "Parking Gate Barrier Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2354",
+          "Parking Gate Barrier High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2355",
+          "Parking Gate Barrier Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2356",
+          "Electric Vehicle Charger Pedestal Compact",
+          "exterior",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2357",
+          "Electric Vehicle Charger Pedestal Standard",
+          "exterior",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2358",
+          "Electric Vehicle Charger Pedestal Extended",
+          "exterior",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2359",
+          "Electric Vehicle Charger Pedestal High Capacity",
+          "exterior",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2360",
+          "Electric Vehicle Charger Pedestal Grand",
+          "exterior",
+          "MAT_ELECTRONICS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2361",
+          "Accessible Parking Totem Compact",
+          "exterior",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2362",
+          "Accessible Parking Totem Standard",
+          "exterior",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2363",
+          "Accessible Parking Totem Extended",
+          "exterior",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2364",
+          "Accessible Parking Totem High Capacity",
+          "exterior",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2365",
+          "Accessible Parking Totem Grand",
+          "exterior",
+          "MAT_SIGNAGE",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2366",
+          "Pedestrian Safety Bollard Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2367",
+          "Pedestrian Safety Bollard Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2368",
+          "Pedestrian Safety Bollard Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2369",
+          "Pedestrian Safety Bollard High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2370",
+          "Pedestrian Safety Bollard Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2371",
+          "Bicycle Shelter Rack Compact",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2372",
+          "Bicycle Shelter Rack Standard",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2373",
+          "Bicycle Shelter Rack Extended",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2374",
+          "Bicycle Shelter Rack High Capacity",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2375",
+          "Bicycle Shelter Rack Grand",
+          "exterior",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2376",
+          "Exterior Parcel Drop Box Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2377",
+          "Exterior Parcel Drop Box Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2378",
+          "Exterior Parcel Drop Box Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2379",
+          "Exterior Parcel Drop Box High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2380",
+          "Exterior Parcel Drop Box Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2381",
+          "Valet Key Issue Kiosk Compact",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2382",
+          "Valet Key Issue Kiosk Standard",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2383",
+          "Valet Key Issue Kiosk Extended",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2384",
+          "Valet Key Issue Kiosk High Capacity",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2385",
+          "Valet Key Issue Kiosk Grand",
+          "exterior",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2386",
+          "EV Cable Guard Bridge Compact",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2387",
+          "EV Cable Guard Bridge Standard",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2388",
+          "EV Cable Guard Bridge Extended",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2389",
+          "EV Cable Guard Bridge High Capacity",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2390",
+          "EV Cable Guard Bridge Grand",
+          "exterior",
+          "MAT_BLACKENED_STEEL",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2391",
+          "Vehicle Clearance Portal Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2392",
+          "Vehicle Clearance Portal Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2393",
+          "Vehicle Clearance Portal Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2394",
+          "Vehicle Clearance Portal High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2395",
+          "Vehicle Clearance Portal Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "exterior_landscaping",
+      "assets": [
+        [
+          "HH_A2396",
+          "Courtyard Drinking Fountain Compact",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2397",
+          "Courtyard Drinking Fountain Standard",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2398",
+          "Courtyard Drinking Fountain Extended",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2399",
+          "Courtyard Drinking Fountain High Capacity",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2400",
+          "Courtyard Drinking Fountain Grand",
+          "exterior",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

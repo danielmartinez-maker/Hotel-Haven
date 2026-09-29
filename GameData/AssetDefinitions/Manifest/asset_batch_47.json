@@ -1,0 +1,516 @@
+{
+  "schema": 2,
+  "batch": 47,
+  "asset_count": 50,
+  "columns": [
+    "asset_id",
+    "display_name",
+    "subcategory",
+    "material_family",
+    "profile",
+    "animation_set",
+    "interaction_anchors"
+  ],
+  "groups": [
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2301",
+          "Heritage Display Vitrine Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2302",
+          "Heritage Display Vitrine Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2303",
+          "Heritage Display Vitrine Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2304",
+          "Heritage Display Vitrine High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2305",
+          "Heritage Display Vitrine Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2306",
+          "Artifact Plinth Glass Case Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2307",
+          "Artifact Plinth Glass Case Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2308",
+          "Artifact Plinth Glass Case Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2309",
+          "Artifact Plinth Glass Case High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2310",
+          "Artifact Plinth Glass Case Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2311",
+          "Hotel History Timeline Panel Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2312",
+          "Hotel History Timeline Panel Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2313",
+          "Hotel History Timeline Panel Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2314",
+          "Hotel History Timeline Panel High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2315",
+          "Hotel History Timeline Panel Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2316",
+          "Regional Textile Display Frame Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2317",
+          "Regional Textile Display Frame Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2318",
+          "Regional Textile Display Frame Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2319",
+          "Regional Textile Display Frame High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2320",
+          "Regional Textile Display Frame Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2321",
+          "Rotating Curio Cabinet Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2322",
+          "Rotating Curio Cabinet Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2323",
+          "Rotating Curio Cabinet Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2324",
+          "Rotating Curio Cabinet High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2325",
+          "Rotating Curio Cabinet Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2326",
+          "Heritage Map Stand Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2327",
+          "Heritage Map Stand Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2328",
+          "Heritage Map Stand Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2329",
+          "Heritage Map Stand High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2330",
+          "Heritage Map Stand Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2331",
+          "Decorative Heritage Wall Medallion Compact",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2332",
+          "Decorative Heritage Wall Medallion Standard",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2333",
+          "Decorative Heritage Wall Medallion Extended",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2334",
+          "Decorative Heritage Wall Medallion High Capacity",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2335",
+          "Decorative Heritage Wall Medallion Grand",
+          "decor",
+          "MAT_STONE_LIGHT",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2336",
+          "Acoustic Art Screen Compact",
+          "decor",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2337",
+          "Acoustic Art Screen Standard",
+          "decor",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2338",
+          "Acoustic Art Screen Extended",
+          "decor",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2339",
+          "Acoustic Art Screen High Capacity",
+          "decor",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2340",
+          "Acoustic Art Screen Grand",
+          "decor",
+          "MAT_UPHOLSTERY",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2341",
+          "Donor Recognition Wall Panel Compact",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2342",
+          "Donor Recognition Wall Panel Standard",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2343",
+          "Donor Recognition Wall Panel Extended",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2344",
+          "Donor Recognition Wall Panel High Capacity",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2345",
+          "Donor Recognition Wall Panel Grand",
+          "decor",
+          "MAT_WOOD_WARM",
+          "P_ARCH_STATIC",
+          null,
+          []
+        ]
+      ]
+    },
+    {
+      "family": "decor_clutter_signage",
+      "assets": [
+        [
+          "HH_A2346",
+          "Gallery Label Stand Compact",
+          "decor",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2347",
+          "Gallery Label Stand Standard",
+          "decor",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2348",
+          "Gallery Label Stand Extended",
+          "decor",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2349",
+          "Gallery Label Stand High Capacity",
+          "decor",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ],
+        [
+          "HH_A2350",
+          "Gallery Label Stand Grand",
+          "decor",
+          "MAT_STAINLESS",
+          "P_FURNITURE_STATIC",
+          null,
+          []
+        ]
+      ]
+    }
+  ]
+}

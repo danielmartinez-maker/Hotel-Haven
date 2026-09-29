@@ -21,19 +21,19 @@ def shape_signature(scene):
 
 def test_property_expansion_manifest_balances_all_five_asset_families():
     active = load_active_manifest(ROOT)
-    assert active.asset_count == 2250
-    assert active.batch_numbers == tuple(range(1, 46))
+    assert active.asset_count == 2500
+    assert active.batch_numbers == tuple(range(1, 51))
     counts = Counter(family for family, _path, _row in active.iter_rows())
     assert counts == {
         'architecture_construction': 320,
-        'finish_systems': 90,
-        'guest_room_furniture_fixtures': 245,
+        'finish_systems': 140,
+        'guest_room_furniture_fixtures': 295,
         'front_of_house_public': 260,
         'restaurant_bar_food_service': 345,
         'housekeeping_maintenance_logistics': 355,
-        'amenities_events': 202,
-        'decor_clutter_signage': 95,
-        'exterior_landscaping': 138,
+        'amenities_events': 252,
+        'decor_clutter_signage': 145,
+        'exterior_landscaping': 188,
         'guests_staff': 200,
     }
 

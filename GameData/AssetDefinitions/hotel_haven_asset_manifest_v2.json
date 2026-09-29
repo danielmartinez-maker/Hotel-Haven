@@ -4,7 +4,7 @@
   "style_contract": "HH_STYLE_ARCHITECTURAL_DIORAMA_REALISM_V1",
   "quality_contract": "GameData/AssetDefinitions/asset_quality_contract_v2.json",
   "previous_manifest": "GameData/AssetDefinitions/hotel_haven_asset_manifest_v1.json",
-  "asset_count": 2250,
+  "asset_count": 2500,
   "storage": "sharded_by_production_batch",
   "entry_columns": [
     "asset_id",
@@ -107,14 +107,14 @@
   },
   "family_targets": {
     "architecture_construction": 320,
-    "finish_systems": 90,
-    "guest_room_furniture_fixtures": 245,
+    "finish_systems": 140,
+    "guest_room_furniture_fixtures": 295,
     "front_of_house_public": 260,
     "restaurant_bar_food_service": 345,
     "housekeeping_maintenance_logistics": 355,
-    "amenities_events": 202,
-    "decor_clutter_signage": 95,
-    "exterior_landscaping": 138,
+    "amenities_events": 252,
+    "decor_clutter_signage": 145,
+    "exterior_landscaping": 188,
     "guests_staff": 200
   },
   "batches": [
@@ -162,7 +162,12 @@
     {"batch": 42, "path": "GameData/AssetDefinitions/Manifest/asset_batch_42.json", "asset_count": 50, "generator_family": "service_expansion"},
     {"batch": 43, "path": "GameData/AssetDefinitions/Manifest/asset_batch_43.json", "asset_count": 50, "generator_family": "service_expansion"},
     {"batch": 44, "path": "GameData/AssetDefinitions/Manifest/asset_batch_44.json", "asset_count": 50, "generator_family": "service_expansion"},
-    {"batch": 45, "path": "GameData/AssetDefinitions/Manifest/asset_batch_45.json", "asset_count": 50, "generator_family": "service_expansion"}
+    {"batch": 45, "path": "GameData/AssetDefinitions/Manifest/asset_batch_45.json", "asset_count": 50, "generator_family": "service_expansion"},
+    {"batch": 46, "path": "GameData/AssetDefinitions/Manifest/asset_batch_46.json", "asset_count": 50, "generator_family": "experience_expansion"},
+    {"batch": 47, "path": "GameData/AssetDefinitions/Manifest/asset_batch_47.json", "asset_count": 50, "generator_family": "experience_expansion"},
+    {"batch": 48, "path": "GameData/AssetDefinitions/Manifest/asset_batch_48.json", "asset_count": 50, "generator_family": "experience_expansion"},
+    {"batch": 49, "path": "GameData/AssetDefinitions/Manifest/asset_batch_49.json", "asset_count": 50, "generator_family": "experience_expansion"},
+    {"batch": 50, "path": "GameData/AssetDefinitions/Manifest/asset_batch_50.json", "asset_count": 50, "generator_family": "experience_expansion"}
   ],
   "gameplay_authority_note": "This is art/content-production metadata. Simulation, room, economy, placement, reachability, task, and interaction authority remain in their owning game-data systems.",
   "runtime_contract": "Shipping executables consume deterministic cooked .hasset assets only; authoring generators and optional DCC/AI tooling are offline-only."

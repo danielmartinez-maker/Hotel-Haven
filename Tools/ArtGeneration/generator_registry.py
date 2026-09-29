@@ -5,6 +5,7 @@ from architectural_modules_factory import build_asset as build_architectural_mod
 from catalog_expansion_factory import build_asset as build_catalog_expansion
 from curated_hotel_factory import build_asset as build_curated_hotel
 from extended_hotel_factory import build_asset as build_extended_hotel
+from experience_expansion_factory import build_asset as build_experience_expansion
 from operations_expansion_factory import build_asset as build_operations_expansion
 from property_expansion_factory import build_asset as build_property_expansion
 from service_expansion_factory import build_asset as build_service_expansion
@@ -28,4 +29,5 @@ GENERATOR_FAMILIES = {
     'property_expansion': FamilyGenerator(build_property_expansion),
     'operations_expansion': FamilyGenerator(build_operations_expansion),
     'service_expansion': FamilyGenerator(build_service_expansion),
+    'experience_expansion': FamilyGenerator(build_experience_expansion),
 }
