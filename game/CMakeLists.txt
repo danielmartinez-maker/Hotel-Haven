@@ -57,6 +57,10 @@ if(HH_GAME_BUILD_TESTS)
   add_executable(hh_simulation_save_migration_tests tests/SimulationSaveMigrationTests.cpp)
   target_link_libraries(hh_simulation_save_migration_tests PRIVATE hh_game)
   add_test(NAME GuestSaveMigration COMMAND hh_simulation_save_migration_tests)
+
+  add_executable(hh_guest_scale_tests tests/GuestScaleTests.cpp)
+  target_link_libraries(hh_guest_scale_tests PRIVATE hh_game)
+  add_test(NAME GuestScale COMMAND hh_guest_scale_tests)
 endif()
 
 
