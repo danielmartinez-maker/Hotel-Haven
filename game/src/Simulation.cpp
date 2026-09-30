@@ -74,9 +74,6 @@ struct Room : RoomView {};
 struct Person : PersonView {
   EntityId reservation{};
   EntityId task{};
-  GuestGoal guestGoal{GuestGoal::Count};
-  EntityId guestTarget{};
-  double guestGoalUtility{};
   std::int64_t accruedWageUnits{};
   int shiftWorkedSeconds{};
   std::int64_t shiftInstanceKey{std::numeric_limits<std::int64_t>::min()};
@@ -423,7 +420,6 @@ struct Simulation::Impl {
           p.rest = 90;
           p.patience = 100;
           p.goal = "Reach front desk";
-          p.guestGoal = GuestGoal::ReachHotel;
           p.reservation = z.id;
           people.push_back(p);
         }
@@ -459,8 +455,6 @@ struct Simulation::Impl {
             p.destination = frontDesk();
             p.state = PersonState::Traveling;
             p.goal = "Reach front desk for checkout";
-            p.guestGoal = GuestGoal::Checkout;
-            p.guestTarget = 0;
           }
       }
   }
@@ -486,8 +480,6 @@ struct Simulation::Impl {
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
-    guest.guestGoal = GuestGoal::LeaveHotel;
-    guest.guestTarget = 0;
     for (auto &member : z->guests) {
       transitionGuest(member, GuestLifecycleState::Departing);
       member.currentGoal = GuestGoal::LeaveHotel;
@@ -498,8 +490,6 @@ struct Simulation::Impl {
         person.destination = entrance();
         person.state = PersonState::Traveling;
         person.goal = "Leave hotel";
-        person.guestGoal = GuestGoal::LeaveHotel;
-        person.guestTarget = 0;
       }
   }
   bool shiftActive(const Person &p, int hour) const {
@@ -866,10 +856,9 @@ struct Simulation::Impl {
                   person.destination = room->door;
                   person.state = PersonState::Traveling;
                   person.goal = "Reach assigned room";
-                  person.guestGoal = GuestGoal::ReachRoom;
-                  person.guestTarget = room->id;
                 }
             }
+          }
         }
       }
       if (task.kind == TaskKind::CheckOut)
@@ -972,14 +961,15 @@ struct Simulation::Impl {
         if (p.state == PersonState::Sleeping && hour >= 7 && hour < 22) {
           p.state = PersonState::Idle;
           p.goal = "Relax in room";
-          p.guestGoal = GuestGoal::Relax;
         } else if (p.state == PersonState::Idle && (hour >= 22 || hour < 7)) {
           p.state = PersonState::Sleeping;
           p.goal = "Sleep in room";
-          p.guestGoal = GuestGoal::Sleep;
         }
         if (member && member->lifecycle == GuestLifecycleState::InStay)
-          setGuestGoal(*reservation, p.id, p.guestGoal, reservation->roomId);
+          setGuestGoal(*reservation, p.id,
+                       p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                        : GuestGoal::Relax,
+                       reservation->roomId);
         if (p.state == PersonState::Sleeping)
           p.rest = std::min(100.0, p.rest + 22.0 / 3600.0);
         else {
@@ -1001,7 +991,6 @@ struct Simulation::Impl {
             if (p.goal == "Reach front desk") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for check-in";
-              p.guestGoal = GuestGoal::CheckIn;
               if (reservation && member) {
                 if (member->lifecycle == GuestLifecycleState::TravelingToHotel)
                   transitionGuest(*member, GuestLifecycleState::Arriving);
@@ -1014,7 +1003,6 @@ struct Simulation::Impl {
             } else if (p.goal == "Reach front desk for checkout") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for checkout";
-              p.guestGoal = GuestGoal::Checkout;
               if (reservation && member) {
                 transitionGuest(*member, GuestLifecycleState::AwaitingCheckout);
                 setGuestGoal(*reservation, p.id, GuestGoal::Checkout);
@@ -1034,11 +1022,11 @@ struct Simulation::Impl {
                                                : PersonState::Sleeping;
               p.goal = p.state == PersonState::Sleeping ? "Sleep in room"
                                                         : "Relax in room";
-              p.guestGoal = p.state == PersonState::Sleeping ? GuestGoal::Sleep
-                                                              : GuestGoal::Relax;
               if (reservation && member) {
                 transitionGuest(*member, GuestLifecycleState::InStay);
-                setGuestGoal(*reservation, p.id, p.guestGoal,
+                setGuestGoal(*reservation, p.id,
+                             p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                              : GuestGoal::Relax,
                              reservation->roomId);
               }
             }
