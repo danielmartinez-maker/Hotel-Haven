@@ -106,8 +106,9 @@ std::string asLegacyV9(std::string data) {
     std::string reviewText;
     reviewLine >> reservationId >> day >> score >> rating >> satisfaction >>
         std::quoted(reviewText);
-    require(static_cast<bool>(reviewLine),
-            "v10 review row could not be downgraded");
+    if (!reviewLine)
+      throw std::runtime_error("v10 review row could not be downgraded: " +
+                               lines[lineIndex + 1 + index]);
     std::ostringstream oldReview;
     oldReview << reservationId << ' ' << day << ' ' << score << ' '
               << std::quoted(reviewText);
