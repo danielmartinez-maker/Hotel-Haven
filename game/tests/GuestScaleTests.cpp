@@ -106,6 +106,12 @@ static void memories_and_complaints_remain_within_save_limits() {
   auto view = simulation.view();
   require(!view.guests.empty(), "guest-scale save fixture has no guest");
   const auto guestId = view.guests.front().profile.id;
+  const auto initialGuest = std::find_if(
+      view.guests.begin(), view.guests.end(), [guestId](const auto &guest) {
+        return guest.profile.id == guestId;
+      });
+  const auto initialMemoryCount = initialGuest->experience.memories.size();
+  const auto initialComplaintCount = initialGuest->experience.complaints.size();
   for (std::size_t index = 0; index < GuestCount; ++index) {
     GuestExperienceEvent event;
     event.guestId = guestId;
@@ -133,8 +139,10 @@ static void memories_and_complaints_remain_within_save_limits() {
       });
   require(guest != roundTrip.guests.end(),
           "guest-scale save lost its selected guest");
-  reportedMemoryCount = guest->experience.memories.size();
-  reportedComplaintCount = guest->experience.complaints.size();
+  reportedMemoryCount =
+      guest->experience.memories.size() - initialMemoryCount;
+  reportedComplaintCount =
+      guest->experience.complaints.size() - initialComplaintCount;
   reportedSaveBytes = saved.size();
   require(reportedMemoryCount == GuestCount,
           "v10 save lost guest memories in the 1,000-event fixture");

@@ -38,7 +38,7 @@ Standard room placement uses a 6×6 footprint. Its door is the third tile of the
 
 Room-status colors: green ready, blue occupied, purple reserved, amber cleaning, orange dirty, red unavailable. Cleanliness and condition overlays run from red (0) to green (100); the Rooms inspector gives exact values.
 
-Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The current v7 writer uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and migrates saves from formats v2 through v6.
+Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The HHGS 10 writer uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and loads saves from formats v2 through v10. HMG-010 guest profiles, lifecycle, groups, needs, goals, memories, complaint recovery, reviews, and the Windows guest inspector are implemented. Its 1,000-profile decision soak reports candidate visits, utility evaluations, and v10 save size; it does not represent 1,000 simultaneously active hotel guests.
 
 ## Portable simulation and automated campaigns
 

@@ -779,7 +779,10 @@ bool groupAcceptsGoal(double proposedUtility,
 std::optional<GuestGoalSelection>
 selectGuestGoal(const GuestProfile &profile, const GuestNeedState &needs,
                 std::span<const GuestGoalCandidate> candidates,
-                std::optional<GuestGoal> mandatoryGoal) {
+                std::optional<GuestGoal> mandatoryGoal,
+                GuestGoalEvaluationMetrics *metrics) {
+  if (metrics)
+    *metrics = {};
   if (mandatoryGoal) {
     if (!validEnum(*mandatoryGoal) ||
         !guestCanPerformGoalIndependently(profile, *mandatoryGoal))
@@ -797,6 +800,8 @@ selectGuestGoal(const GuestProfile &profile, const GuestNeedState &needs,
   };
   std::optional<GuestGoalSelection> best;
   for (const auto &candidate : candidates) {
+    if (metrics)
+      ++metrics->candidatesVisited;
     if (!validEnum(candidate.goal) || !validEnum(candidate.requiredNeed) ||
         !guestCanPerformGoalIndependently(profile, candidate.goal) ||
         !candidate.available || !candidate.reachable ||
@@ -816,6 +821,8 @@ selectGuestGoal(const GuestProfile &profile, const GuestNeedState &needs,
         candidate.expectedWaitMinutes > candidate.queueToleranceMinutes)
       continue;
 
+    if (metrics)
+      ++metrics->utilityEvaluations;
     const auto needIndex = static_cast<std::size_t>(candidate.requiredNeed);
     const double pressure = guestNeedPressure(needs.values[needIndex]);
     const double utility = pressure * candidate.preference *

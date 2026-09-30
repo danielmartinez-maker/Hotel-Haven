@@ -369,6 +369,11 @@ struct GuestGoalSelection {
   bool mandatory{};
 };
 
+struct GuestGoalEvaluationMetrics {
+  std::size_t candidatesVisited{};
+  std::size_t utilityEvaluations{};
+};
+
 GuestModelDefinitions defaultGuestModelDefinitions();
 bool validateGuestModelDefinitions(const GuestModelDefinitions &definitions,
                                    std::string *error = nullptr);
@@ -393,7 +398,8 @@ bool groupAcceptsGoal(double proposedUtility,
 std::optional<GuestGoalSelection>
 selectGuestGoal(const GuestProfile &profile, const GuestNeedState &needs,
                 std::span<const GuestGoalCandidate> candidates,
-                std::optional<GuestGoal> mandatoryGoal);
+                std::optional<GuestGoal> mandatoryGoal,
+                GuestGoalEvaluationMetrics *metrics = nullptr);
 double guestQueueToleranceMinutes(double baseToleranceMinutes,
                                   const GuestProfile &profile,
                                   double segmentModifier,

@@ -199,9 +199,9 @@
 - Consumes: complete guest model, experience, simulation, save, and UI interfaces from Tasks 1–7.
 - Produces: a bounded, repeatable 1,000-guest decision soak that reports goal-evaluation work and v10 save size without a guessed timing threshold.
 
-- [ ] **Step 1: Write failing scale assertions** named `one_thousand_guest_decisions_use_filtered_candidates`, `memories_and_complaints_remain_within_save_limits`, and `guest_model_soak_is_repeatable_for_fixed_seed`.
-- [ ] **Step 2: Run `cmake --build build --config Release --target hh_guest_scale_tests --parallel 4` and `ctest --test-dir build -C Release -R '^GuestScale$' --output-on-failure`.** Expected: scale target is not yet registered and the checks fail.
-- [ ] **Step 3: Add the deterministic 1,000-guest decision soak and report decision evaluations plus serialized save bytes for that fixture; update `README.md` and `docs/IMPLEMENTATION_STATUS.md`** to state the verified HHGS 10 writer, v2–v10 loader, HMG-010 coverage, remaining HMG workstreams, and unclaimed full-scale targets.
+- [x] **Step 1: Write failing scale assertions** named `one_thousand_guest_decisions_use_filtered_candidates`, `memories_and_complaints_remain_within_save_limits`, and `guest_model_soak_is_repeatable_for_fixed_seed`.
+- [x] **Step 2: Build the new `GuestScale` target as the red checkpoint.** Integrated Game run `36673167891` confirmed the expected failure on Ubuntu and Windows: the new tests reached compilation, where `GuestGoalEvaluationMetrics` was not implemented yet, so CTest was skipped.
+- [x] **Step 3: Add the deterministic 1,000-guest decision soak and report decision evaluations plus serialized save bytes for that fixture; update `README.md` and `docs/IMPLEMENTATION_STATUS.md`** to state the verified HHGS 10 writer, v2–v10 loader, HMG-010 coverage, remaining HMG workstreams, and unclaimed full-scale targets.
 - [ ] **Step 4: Run `cmake --build build --config Release --parallel 4` and `ctest --test-dir build -C Release --output-on-failure`; confirm the existing 14-day campaign and all guest tests pass.** Expected: all CTest tests pass; no 500-room or 1,300-moving-character claim is added without measurement.
 - [ ] **Step 5: Commit** `test: verify guest decision scale and document coverage`.
 
