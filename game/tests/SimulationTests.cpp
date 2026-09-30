@@ -656,7 +656,7 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 9 16 32 20 3");
+  auto pos = saved.find("HHGS 10 16 32 20 3");
   require(pos == 0, "unexpected save header");
   saved.replace(10, 2, "99");
   bool rejected = false;
@@ -1118,3 +1118,4 @@ int main() {
   }
   std::cout << "All simulation behavior tests passed\n";
 }
+

@@ -218,7 +218,7 @@ void corrupt_guest_references_are_rejected() {
           "v10 guest section was not emitted");
   const auto payloadStart = data.find('\n', payload) + 1;
   const auto countEnd = data.find('\n', payloadStart) + 1;
-  const auto firstGuest = data.find('\n', countEnd) + 1;
+  const auto firstGuest = countEnd;
   const auto firstSpace = data.find(' ', firstGuest);
   require(firstSpace != std::string::npos,
           "v10 guest record metadata is missing");
