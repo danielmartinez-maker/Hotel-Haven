@@ -67,11 +67,11 @@
 - Produces: `bool validateGuestModelDefinitions(const GuestModelDefinitions &definitions, std::string *error = nullptr)` so profile ranges, archetype weights, trait effects, and category weights can be rejected before definitions are applied.
 - `GuestProfile` contains archetype, age band, travel purpose, wealth/budget, normalized sensitivities, activity and room preferences, expectation profile, and 0–3 traits.
 
-- [ ] **Step 1: Register the new CTest target and write failing profile tests** named `profile_generation_is_repeatable_for_seed_and_guest_id`, `profiles_vary_without_shared_rng_state`, `profile_sampling_covers_all_13_archetypes`, `trait_count_is_zero_to_three_and_every_trait_has_a_numeric_effect`, and `profile_definitions_reject_invalid_ranges`.
-- [ ] **Step 2: Run the new test target** with `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release` and `cmake --build build --config Release --target hh_guest_model_tests --parallel 4`. Expected: failure because the guest-model API is not implemented.
-- [ ] **Step 3: Implement profile enums, typed definitions, defaults, and `generateGuestProfile`; add `GuestModel.cpp` to `hh_game` in CMake**. Derive a guest-local stream from the simulation seed and guest ID with a fixed integer mixer; sample numeric variation from that stream and apply every selected trait’s configured modifiers.
-- [ ] **Step 4: Run `ctest --test-dir build -C Release -R '^GuestModel$' --output-on-failure`.** Expected: PASS, including all 13 archetypes across a fixed-seed sample and stable repeated profiles.
-- [ ] **Step 5: Commit** `feat: add deterministic guest profiles`.
+- [x] **Step 1: Register the new CTest target and write failing profile tests** named `profile_generation_is_repeatable_for_seed_and_guest_id`, `profiles_vary_without_shared_rng_state`, `profile_sampling_covers_all_13_archetypes`, `trait_count_is_zero_to_three_and_every_trait_has_a_numeric_effect`, and `profile_definitions_reject_invalid_ranges`.
+- [x] **Step 2: Run the new test target** with `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release` and `cmake --build build --config Release --target hh_guest_model_tests --parallel 4`. Expected: failure because the guest-model API is not implemented.
+- [x] **Step 3: Implement profile enums, typed definitions, defaults, and `generateGuestProfile`; add `GuestModel.cpp` to `hh_game` in CMake**. Derive a guest-local stream from the simulation seed and guest ID with a fixed integer mixer; sample numeric variation from that stream and apply every selected trait’s configured modifiers.
+- [x] **Step 4: Run `ctest --test-dir build -C Release -R '^GuestModel$' --output-on-failure`.** Expected: PASS, including all 13 archetypes across a fixed-seed sample and stable repeated profiles.
+- [x] **Step 5: Commit** `feat: add deterministic guest profiles`.
 
 ## Task 2: Lifecycle, needs, groups, queues, and goal selection
 
