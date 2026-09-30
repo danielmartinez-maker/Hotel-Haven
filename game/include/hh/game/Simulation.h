@@ -133,6 +133,8 @@ struct GuestView {
   GuestProfile profile;
   GuestNeedState needs;
   GuestExperienceState experience;
+  std::optional<GuestGoalSelection> goalSelection;
+  std::vector<GuestMemory> activeMemories;
   EntityId reservationId{};
   EntityId groupId{};
   GuestId leaderGuestId{};
@@ -141,6 +143,12 @@ struct GuestView {
   GuestGoal currentGoal{GuestGoal::Count};
   EntityId currentTargetId{};
   double currentGoalUtility{};
+  double queueToleranceMinutes{60.0};
+  double reviewRatingMinimum{1.0};
+  double reviewRatingMaximum{10.0};
+  double reviewScoreNoiseRange{};
+  std::optional<std::int64_t> marketReferenceNightlyRateCents;
+  std::optional<double> measuredRoomNoise;
 };
 struct TaskView {
   EntityId id{};

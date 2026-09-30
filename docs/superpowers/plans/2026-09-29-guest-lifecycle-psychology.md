@@ -182,8 +182,8 @@
 - `ReviewView` exposes a 1.0–10.0 rating and 0–100 overall satisfaction; legacy v2–v9 ratings migrate from their prior 0–100 score.
 
 - [x] **Step 1: Add failing snapshot tests** named `guest_snapshot_contains_required_diagnostics`, `guest_snapshot_orders_members_and_memories_stably`, `guest_recovery_command_changes_only_the_selected_complaint`, and `review_view_exposes_rating_and_overall_satisfaction_separately`.
-- [ ] **Step 2: Run `cmake --build build --config Release --target hh_game_tests --parallel 4` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: guest inspection fields and HMG review ratings are not present.
-- [ ] **Step 3: Populate `GuestView` in `Simulation::view`, add selected-guest state and an inspector on the existing Guests page, display missing external inputs as unavailable, add complaint recovery buttons, and render reviews on the HMG-010 1–10 scale** in the listed files. Extend the Windows smoke path to select the Guests page and capture `smoke-guests.bmp` with at least one active guest.
+- [x] **Step 2: Run `cmake --build build --config Release --target hh_game_tests --parallel 4` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Integrated Game run `36669992733` confirmed the red checkpoint: the build failed because the new snapshot fields were not implemented yet, so CTest was skipped.
+- [x] **Step 3: Populate `GuestView` in `Simulation::view`, add selected-guest state and an inspector on the existing Guests page, display missing external inputs as unavailable, add complaint recovery buttons, and render reviews on the HMG-010 1–10 scale** in the listed files. Extend the Windows smoke path to select the Guests page and capture `smoke-guests.bmp` with at least one active guest.
 - [ ] **Step 4: Run `cmake --build build --config Release --parallel 4` and `ctest --test-dir build -C Release --output-on-failure`; run the Windows client smoke test and verify `smoke-guests.bmp` is captured.** Expected: all portable tests pass and the Windows smoke process exits 0.
 - [ ] **Step 5: Commit** `feat: inspect guest psychology in the client`.
 

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 namespace hh::client {
 using namespace hh::game;
 namespace {
@@ -51,6 +52,88 @@ std::wstring taskName(TaskKind k) {
     return L"Maintenance";
   }
   return L"Task";
+}
+std::wstring guestArchetypeName(GuestArchetype archetype) {
+  switch (archetype) {
+  case GuestArchetype::BudgetLeisure: return L"Budget leisure";
+  case GuestArchetype::Backpacker: return L"Backpacker";
+  case GuestArchetype::BusinessTraveler: return L"Business traveler";
+  case GuestArchetype::ExecutiveBusiness: return L"Executive business";
+  case GuestArchetype::CoupleLeisure: return L"Couple leisure";
+  case GuestArchetype::FamilyLeisure: return L"Family leisure";
+  case GuestArchetype::LuxuryLeisure: return L"Luxury leisure";
+  case GuestArchetype::ConferenceDelegate: return L"Conference delegate";
+  case GuestArchetype::GroupTourTraveler: return L"Group tour";
+  case GuestArchetype::AirportTransitTraveler: return L"Airport transit";
+  case GuestArchetype::WellnessTraveler: return L"Wellness traveler";
+  case GuestArchetype::VipCelebrity: return L"VIP";
+  case GuestArchetype::CriticReviewer: return L"Critic reviewer";
+  case GuestArchetype::Count: break;
+  }
+  return L"Guest";
+}
+std::wstring guestLifecycleName(GuestLifecycleState state) {
+  switch (state) {
+  case GuestLifecycleState::Prospective: return L"Prospective";
+  case GuestLifecycleState::Reserved: return L"Reserved";
+  case GuestLifecycleState::TravelingToHotel: return L"Traveling to hotel";
+  case GuestLifecycleState::Arriving: return L"Arriving";
+  case GuestLifecycleState::AwaitingCheckIn: return L"Waiting for check-in";
+  case GuestLifecycleState::CheckedIn: return L"Checked in";
+  case GuestLifecycleState::InStay: return L"In stay";
+  case GuestLifecycleState::PreparingCheckout: return L"Preparing checkout";
+  case GuestLifecycleState::AwaitingCheckout: return L"Waiting for checkout";
+  case GuestLifecycleState::Departing: return L"Departing";
+  case GuestLifecycleState::CompletedStay: return L"Completed stay";
+  case GuestLifecycleState::Cancelled: return L"Cancelled";
+  case GuestLifecycleState::NoShow: return L"No show";
+  case GuestLifecycleState::WalkedRelocated: return L"Relocated";
+  case GuestLifecycleState::Count: break;
+  }
+  return L"Unknown";
+}
+std::wstring guestGoalName(GuestGoal goal) {
+  switch (goal) {
+  case GuestGoal::ReachHotel: return L"Reach hotel";
+  case GuestGoal::CheckIn: return L"Check in";
+  case GuestGoal::ReachRoom: return L"Reach room";
+  case GuestGoal::Sleep: return L"Sleep";
+  case GuestGoal::Eat: return L"Eat";
+  case GuestGoal::Drink: return L"Drink";
+  case GuestGoal::Bathe: return L"Bathe";
+  case GuestGoal::Work: return L"Work";
+  case GuestGoal::Exercise: return L"Exercise";
+  case GuestGoal::Swim: return L"Swim";
+  case GuestGoal::Socialize: return L"Socialize";
+  case GuestGoal::Relax: return L"Relax";
+  case GuestGoal::AttendEvent: return L"Attend event";
+  case GuestGoal::RequestService: return L"Request service";
+  case GuestGoal::ResolveComplaint: return L"Resolve complaint";
+  case GuestGoal::Checkout: return L"Check out";
+  case GuestGoal::LeaveHotel: return L"Leave hotel";
+  case GuestGoal::Count: break;
+  }
+  return L"No current goal";
+}
+std::wstring guestCategoryName(GuestCategory category) {
+  switch (category) {
+  case GuestCategory::Room: return L"Room";
+  case GuestCategory::Cleanliness: return L"Cleanliness";
+  case GuestCategory::Service: return L"Service";
+  case GuestCategory::Food: return L"Food";
+  case GuestCategory::Amenities: return L"Amenities";
+  case GuestCategory::Quiet: return L"Quiet";
+  case GuestCategory::Convenience: return L"Convenience";
+  case GuestCategory::Value: return L"Value";
+  case GuestCategory::ArrivalDeparture: return L"Arrival / departure";
+  case GuestCategory::Count: break;
+  }
+  return L"Category";
+}
+std::wstring decimal(double value) {
+  std::wostringstream out;
+  out << std::fixed << std::setprecision(1) << value;
+  return out.str();
 }
 } // namespace
 std::wstring wide(const std::string &s) {
@@ -315,32 +398,234 @@ void Client::paint(HDC output) {
       separator();
     }
   } else if (page == Page::Guests) {
-    heading(L"Guest experience");
-    label(L"Completed stays", std::to_wstring(snapshot.economy.completedStays));
-    std::vector<PersonView> guests;
-    for (const auto &p : snapshot.people)
-      if (p.kind == PersonKind::Guest && p.state != PersonState::CheckedOut)
-        guests.push_back(p);
-    label(L"Guests on property", std::to_wstring(guests.size()));
-    separator();
-    for (std::size_t i = static_cast<std::size_t>(tabScroll);
-         i < guests.size() && y + 150 < bottom; ++i) {
-      const auto &p = guests[i];
-      paragraph(wide(p.name) + L" · " + personState(p.state), 26);
-      label(L"Satisfaction", pct(p.satisfaction));
-      label(L"Food need / energy", pct(p.hunger) + L" / " + pct(p.rest));
-      paragraph(wide(p.goal) + L" · traveled " +
-                    std::to_wstring(p.travelSeconds / 60) + L" min · waited " +
-                    std::to_wstring(p.queueWaitSeconds / 60) + L" min",
-                42);
-      separator();
-    }
+    heading(L"Guest inspector");
+    const auto isTerminal = [](GuestLifecycleState state) {
+      return state == GuestLifecycleState::CompletedStay ||
+             state == GuestLifecycleState::Cancelled ||
+             state == GuestLifecycleState::NoShow ||
+             state == GuestLifecycleState::WalkedRelocated;
+    };
+    std::vector<const GuestView *> guests;
+    for (const auto &guest : snapshot.guests)
+      guests.push_back(&guest);
+    const auto activeCount = std::count_if(
+        guests.begin(), guests.end(), [&](const auto *guest) {
+          return !isTerminal(guest->lifecycle);
+        });
     if (guests.empty())
       paragraph(
           L"Reservations are generated hourly from price and reputation. The "
           L"15:00 arrivals need a ready room, accessible reception, and a "
           L"receptionist on duty.",
           84);
+    else {
+      auto selectedIt = std::find_if(guests.begin(), guests.end(),
+                                     [&](const auto *guest) {
+                                       return guest->profile.id == selectedGuest;
+                                     });
+      if (selectedIt == guests.end()) {
+        selectedIt = std::find_if(guests.begin(), guests.end(),
+                                  [&](const auto *guest) {
+                                    return !isTerminal(guest->lifecycle);
+                                  });
+        if (selectedIt == guests.end())
+          selectedIt = guests.begin();
+        selectedGuest = (*selectedIt)->profile.id;
+      }
+      const auto selectedIndex =
+          static_cast<std::size_t>(std::distance(guests.begin(), selectedIt));
+      label(L"Guests on property", std::to_wstring(activeCount) + L" · " +
+                                        std::to_wstring(selectedIndex + 1) +
+                                        L" of " +
+                                        std::to_wstring(guests.size()));
+      button(left, y, 151, 30, L"Previous guest", [this, selectedIndex] {
+        if (snapshot.guests.empty())
+          return;
+        const auto next = selectedIndex == 0 ? snapshot.guests.size() - 1
+                                             : selectedIndex - 1;
+        selectedGuest = snapshot.guests[next].profile.id;
+        guestInspectorTab = GuestInspectorTab::Overview;
+      });
+      button(left + 163, y, 151, 30, L"Next guest", [this, selectedIndex] {
+        if (snapshot.guests.empty())
+          return;
+        selectedGuest = snapshot.guests[(selectedIndex + 1) %
+                                        snapshot.guests.size()]
+                            .profile.id;
+        guestInspectorTab = GuestInspectorTab::Overview;
+      });
+      y += 35;
+      button(left, y, 100, 30, L"Overview",
+             [this] { guestInspectorTab = GuestInspectorTab::Overview; },
+             guestInspectorTab == GuestInspectorTab::Overview);
+      button(left + 104, y, 100, 30, L"Memories",
+             [this] { guestInspectorTab = GuestInspectorTab::Memories; },
+             guestInspectorTab == GuestInspectorTab::Memories);
+      button(left + 208, y, 108, 30, L"Reviews",
+             [this] { guestInspectorTab = GuestInspectorTab::Reviews; },
+             guestInspectorTab == GuestInspectorTab::Reviews);
+      y += 38;
+      const auto &guest = **selectedIt;
+      paragraph(L"Guest #" + std::to_wstring(guest.profile.id) + L" · " +
+                    guestArchetypeName(guest.profile.archetype) + L" · " +
+                    money(guest.profile.budgetPerNightCents) + L" / night",
+                36);
+      if (guestInspectorTab == GuestInspectorTab::Overview) {
+        label(L"Stay / group",
+              guestLifecycleName(guest.lifecycle) + L" · " +
+                  L"group #" + std::to_wstring(guest.groupId) + L" · " +
+                  std::to_wstring(guest.memberIds.size()) + L" guests · lead #" +
+                  std::to_wstring(guest.leaderGuestId) + L" · " +
+                  (guest.experience.isGroupLeader ? L"leader" : L"member"));
+        if (guest.goalSelection) {
+          label(L"Current goal", guestGoalName(guest.goalSelection->goal));
+          if (guest.goalSelection->mandatory)
+            paragraph(L"Priority action · discretionary factors not scored", 28);
+          else {
+            label(L"Goal utility", decimal(guest.goalSelection->utility));
+            paragraph(L"Need " + pct(guest.goalSelection->needPressure * 100) +
+                          L" · preference " +
+                          pct(guest.goalSelection->preference * 100) +
+                          L" · access " +
+                          pct(guest.goalSelection->availabilityFactor * 100) +
+                          L" · time " +
+                          pct(guest.goalSelection->timeCompatibility * 100),
+                      34);
+            paragraph(L"Budget " +
+                          pct(guest.goalSelection->budgetCompatibility * 100) +
+                          L" · group " +
+                          pct(guest.goalSelection->groupCompatibility * 100) +
+                          L" · distance " +
+                          pct(guest.goalSelection->distanceUtility * 100) +
+                          L" · mood " +
+                          pct(guest.goalSelection->moodModifier * 100),
+                      34);
+          }
+        } else {
+          label(L"Current goal", guestGoalName(guest.currentGoal));
+          label(L"Goal utility", decimal(guest.currentGoalUtility));
+        }
+        label(L"Queue tolerance",
+              decimal(guest.queueToleranceMinutes) + L" min");
+        label(L"Energy / hunger",
+              pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Energy)]) +
+                  L" / " +
+                  pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Hunger)]));
+        label(L"Hygiene / comfort",
+              pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Hygiene)]) +
+                  L" / " +
+                  pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Comfort)]));
+        label(L"Entertainment / social",
+              pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Entertainment)]) +
+                  L" / " +
+                  pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Social)]));
+        label(L"Privacy / safety",
+              pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Privacy)]) +
+                  L" / " +
+                  pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Safety)]));
+        label(L"Service / cleanliness",
+              pct(guest.needs.perceptions.serviceConfidence) + L" / " +
+                  pct(guest.needs.perceptions.cleanlinessConfidence));
+        label(L"Comfort / value",
+              pct(guest.needs.perceptions.environmentComfort) + L" / " +
+                  pct(guest.needs.perceptions.valuePerception));
+        paragraph(L"Expectation / satisfaction", 25);
+        constexpr std::array<const wchar_t *, GuestCategoryCount> shortNames = {
+            L"Room", L"Clean", L"Service", L"Food", L"Amenity", L"Quiet",
+            L"Convenience", L"Value", L"Arrival"};
+        for (std::size_t row = 0; row < 3; ++row) {
+          std::wstring line;
+          for (std::size_t column = 0; column < 3; ++column) {
+            const auto index = row * 3 + column;
+            if (column)
+              line += L" · ";
+            line += shortNames[index];
+            line += L" ";
+            line += decimal(guest.profile.expectations[index]);
+            line += L"/";
+            line += decimal(guest.experience.categorySatisfaction[index]);
+          }
+          paragraph(line, 30);
+        }
+        const auto market = guest.marketReferenceNightlyRateCents
+                                ? money(*guest.marketReferenceNightlyRateCents)
+                                : L"unavailable";
+        const auto noise = guest.measuredRoomNoise
+                               ? decimal(*guest.measuredRoomNoise)
+                               : L"unavailable";
+        paragraph(L"Market rate " + market + L" · room noise " + noise, 30);
+      } else if (guestInspectorTab == GuestInspectorTab::Memories) {
+        paragraph(L"Active memories · " +
+                      std::to_wstring(guest.activeMemories.size()),
+                  28);
+        for (std::size_t offset = 0;
+             offset < guest.activeMemories.size() && offset < 7 && y + 50 < bottom;
+             ++offset) {
+          const auto &memory = guest.activeMemories[
+              guest.activeMemories.size() - 1 - offset];
+          const auto statement =
+              memory.reviewStatement.empty()
+                  ? guestCategoryName(memory.category) +
+                        (memory.valence < 0.0 ? L" · negative" : L" · positive")
+                  : wide(memory.reviewStatement);
+          const auto source = memory.sourceEntityId
+                                  ? L"source #" +
+                                        std::to_wstring(*memory.sourceEntityId)
+                                  : L"system event";
+          paragraph(L"Day " +
+                        std::to_wstring(memory.timestampSeconds / 86400 + 1) +
+                        L" · location #" + std::to_wstring(memory.locationId) +
+                        L" · " + source + L" · " + statement,
+                    44);
+        }
+        std::size_t openComplaintCount{};
+        const GuestComplaint *openComplaint{};
+        for (const auto &complaint : guest.experience.complaints)
+          if (complaint.open) {
+            ++openComplaintCount;
+            if (!openComplaint)
+              openComplaint = &complaint;
+          }
+        paragraph(L"Open complaints · " +
+                      std::to_wstring(openComplaintCount),
+                  28);
+        if (openComplaint && y + 76 < bottom) {
+          const std::array<std::pair<std::wstring, GuestRecoveryOption>, 3>
+              recoveryOptions = {{{L"Apologize", GuestRecoveryOption::ApologyOnly},
+                                  {L"Upgrade", GuestRecoveryOption::RoomUpgrade},
+                                  {L"Refund", GuestRecoveryOption::FullNightRefund}}};
+          for (std::size_t i = 0; i < recoveryOptions.size(); ++i)
+            button(left + static_cast<int>(i) * 104, y, 100, 30,
+                   recoveryOptions[i].first,
+                   [this, guestId = guest.profile.id,
+                    complaintId = openComplaint->id,
+                    option = recoveryOptions[i].second] {
+                     result(simulation.resolveGuestComplaint(guestId,
+                                                             complaintId,
+                                                             option));
+                   });
+          y += 39;
+        }
+      } else {
+        label(L"Rating scale", decimal(guest.reviewRatingMinimum) + L"–" +
+                                  decimal(guest.reviewRatingMaximum) + L" / 10");
+        label(L"Review score variation",
+              L"±" + decimal(guest.reviewScoreNoiseRange));
+        const ReviewView *latestReview{};
+        for (const auto &review : snapshot.reviews)
+          if (review.reservationId == guest.reservationId)
+            latestReview = &review;
+        if (latestReview) {
+          label(L"Guest rating", decimal(latestReview->rating) + L" / 10");
+          label(L"Overall satisfaction",
+                pct(latestReview->overallSatisfaction));
+          paragraph(wide(latestReview->text), 76);
+        } else {
+          paragraph(L"No completed-stay review is available for this guest yet.",
+                    52);
+        }
+      }
+    }
   } else if (page == Page::Supplies) {
     heading(L"Supplies & tasks");
     label(L"Clean linen", std::to_wstring(snapshot.inventory.linen));
@@ -509,3 +794,4 @@ void Client::paint(HDC output) {
   DeleteDC(dc);
 }
 } // namespace hh::client
+

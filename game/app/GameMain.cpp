@@ -382,6 +382,8 @@ void Client::load() {
     pendingSimulationSeconds = 0;
     speed = 0;
     selected = 0;
+    selectedGuest = 0;
+    guestInspectorTab = GuestInspectorTab::Overview;
     tabScroll = 0;
     refresh();
     changeFloor(std::min(floor, snapshot.floors - 1));
@@ -410,6 +412,8 @@ void Client::newCampaign() {
   simulation = std::move(campaign);
   pendingSimulationSeconds = 0;
   selected = 0;
+  selectedGuest = 0;
+  guestInspectorTab = GuestInspectorTab::Overview;
   speed = 0;
   floor = 0;
   page = Page::Guide;
@@ -565,6 +569,29 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
         auto restored = hh::game::Simulation::load(state);
         if (restored.save() != state)
           throw std::runtime_error("Client save roundtrip mismatch");
+        c.simulation.step(4 * 86400.0);
+        c.page = Page::Guests;
+        c.snapshot = c.simulation.view();
+        const auto activeGuest = std::find_if(
+            c.snapshot.guests.begin(), c.snapshot.guests.end(),
+            [](const auto &guest) {
+              return guest.lifecycle != GuestLifecycleState::CompletedStay &&
+                     guest.lifecycle != GuestLifecycleState::Cancelled &&
+                     guest.lifecycle != GuestLifecycleState::NoShow &&
+                     guest.lifecycle != GuestLifecycleState::WalkedRelocated;
+            });
+        if (activeGuest == c.snapshot.guests.end())
+          throw std::runtime_error(
+              "Guest inspector smoke fixture has no active guest");
+        c.selectedGuest = activeGuest->profile.id;
+        c.refresh();
+        UpdateWindow(c.window);
+        const auto guestScreenshot = c.directory / L"smoke-guests.bmp";
+        captureClient(c.window, guestScreenshot);
+        if (!std::filesystem::exists(guestScreenshot) ||
+            std::filesystem::file_size(guestScreenshot) < 54)
+          throw std::runtime_error(
+              "Guest inspector smoke screenshot was not captured");
         c.running = false;
       }
     }
@@ -580,3 +607,4 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
     return 1;
   }
 }
+
