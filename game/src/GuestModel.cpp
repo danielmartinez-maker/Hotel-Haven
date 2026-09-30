@@ -1,1 +1,690 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×M¹á:-jZ.¶›­–)Ş³R6–æ6ÇVFR&†‚övÖRôwVW7DÖöFVÂæ‚  ¢6–æ6ÇVFRÆÆv÷&—F†Óà¢6–æ6ÇVFRÆ6ÖFƒà¢6–æ6ÇVFRÆÆ–Ö—G3à¢6–æ6ÇVFRÆçVÖW&–3à¢6–æ6ÇVFRÇ7FFW†6WCà ¦æÖW76R†ƒ£¦vÖR°¦æÖW76R° ¦6öç7FW‡"F÷V&ÆRµVæ—CS2Òãò“s““#SCsC““"ã°¦6öç7FW‡"7FC£§V–çCcE÷Bµ&æFöÔ–æ7&VÖVçBÒƒ–S3ss–#“vcFv3UTÄÃ° §7FC£§V–çCcE÷BÖ—ƒcB‡7FC£§V–çCcE÷BfÇVR’æöW†6WB°¢fÇVRÒ‡fÇVRâ‡fÇVRãâ3’’¢†&cSƒCsfC6SFSV#•TÄÃ°¢fÇVRÒ‡fÇVRâ‡fÇVRãâ#r’’¢ƒ“FCC–&#33V%TÄÃ°¢&WGW&âfÇVRâ‡fÇVRãâ3“°§Ğ ¦F÷V&ÆRVæ—E&æFöÒ‡7FC£§V–çCcE÷Bg7FFR’æöW†6WB°¢&WGW&â7FF–5ö67CÆF÷V&ÆSâ†G&twVW7E&æFöÒ‡7FFR’ãâ’¢µVæ—CS3°§Ğ ¦F÷V&ÆR&WGvVVâ‡7FC£§V–çCcE÷Bg7FFRÂF÷V&ÆRÆ÷rÂF÷V&ÆR†–v‚’æöW†6WB°¢&WGW&âÆ÷r²††–v‚ÒÆ÷r’¢Væ—E&æFöÒ‡7FFR“°§Ğ §7FC£§V–çCcE÷B&÷VæFVB‡7FC£§V–çCcE÷Bg7FFRÂ7FC£§V–çCcE÷B&÷VæB’æöW†6WB°¢–b†&÷VæBÃÒ¢&WGW&â°¢6öç7BWFòF‡&W6†öÆBÒ7FF–5ö67CÇ7FC£§V–çCcE÷Câ‚Ö&÷VæB’R&÷VæC°¢v†–ÆR‡G'VR’°¢6öç7BWFòfÇVRÒG&twVW7E&æFöÒ‡7FFR“°¢–b‡fÇVRãÒF‡&W6†öÆB¢&WGW&âfÇVRR&÷VæC°¢Ğ§Ğ ¦&ööÂfÆ–EVæ—B†F÷V&ÆRfÇVR’æöW†6WB°¢&WGW&â7FC£¦—6f–æ—FR‡fÇVR’bbfÇVRãÒãbbfÇVRÃÒã°§Ğ ¦&ööÂfÆ–DVçVÒ„wVW7EG&fVÅW'÷6RfÇVR’æöW†6WB°¢&WGW&â7FF–5ö67CÇ7FC£§6—¦U÷Câ‡fÇVR’À¢7FF–5ö67CÇ7FC£§6—¦U÷Câ„wVW7EG&fVÅW'÷6S£¤6÷VçB“°§Ğ ¦&ööÂfÆ–DVçVÒ„wVW7EvVÇF„&æBfÇVR’æöW†6WB°¢&WGW&â7FF–5ö67CÇ7FC£§6—¦U÷Câ‡fÇVR’À¢7FF–5ö67CÇ7FC£§6—¦U÷Câ„wVW7EvVÇF„&æC£¤6÷VçB“°§Ğ ¦&ööÂG&—D†4çVÖW&–4VffV7B†6öç7BwVW7EG&—DVffV7G2fVffV7G2’æöW†6WB°¢6öç7BWFòæöç¦W&òÒµÒ†F÷V&ÆRfÇVR’²&WGW&âfÇVRÒã²Ó°¢6öç7BWFòæöææWWG&ÂÒµÒ†F÷V&ÆRfÇVR’²&WGW&âfÇVRÒã²Ó°¢–b†æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFç&–6R’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFç6W'f–6R’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFæ6ÆVæÆ–æW72’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFææö—6R’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFç&—f7’’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFç6fWG’’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFæ6öÖf÷'B’ÇÀ¢æöç¦W&ò†VffV7G2ç6Vç6—F—f—G”FVÇFæfööB’ÇÂæöç¦W&ò†VffV7G2çF–Væ6TFVÇF’ÇÀ¢æöç¦W&ò†VffV7G2ç6ö6–Å&VfW&Væ6TFVÇF’ÇÀ¢æöææWWG&Â†VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"’ÇÀ¢æöææWWG&Â†VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"’ÇÀ¢æöææWWG&Â†VffV7G2æÆ–v‡E6ÆVWÖöF–f–W"’ÇÀ¢æöææWWG&Â†VffV7G2æ‡–v–VæTFV6”×VÇF—Æ–W"’ÇÀ¢æöç¦W&ò†VffV7G2æ6ö×Æ–çEF‡&W6†öÆDFVÇF’ÇÀ¢æöç¦W&ò†VffV7G2æÖ÷&æ–æu&VfW&Væ6TFVÇF’ÇÀ¢æöç¦W&ò†VffV7G2æWfVæ–æu&VfW&Væ6TFVÇF’¢&WGW&âG'VS°¢f÷"†6öç7BWFòfÇVR¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF¢–b†æöç¦W&ò‡fÇVR’¢&WGW&âG'VS°¢f÷"†6öç7BWFòfÇVR¢VffV7G2ç&ööÕ&VfW&Væ6TFVÇF¢–b†æöç¦W&ò‡fÇVR’¢&WGW&âG'VS°¢f÷"†6öç7BWFòfÇVR¢VffV7G2æW‡V7FF–öäFVÇF¢–b†æöç¦W&ò‡fÇVR’¢&WGW&âG'VS°¢&WGW&âfÇ6S°§Ğ ¦&ööÂf–æ—FU6Vç6—F—f—G’†6öç7BwVW7E6Vç6—F—f—G•&öf–ÆRgfÇVW2’æöW†6WB°¢&WGW&âfÆ–EVæ—B‡fÇVW2ç&–6R’bbfÆ–EVæ—B‡fÇVW2ç6W'f–6R’b`¢fÆ–EVæ—B‡fÇVW2æ6ÆVæÆ–æW72’bbfÆ–EVæ—B‡fÇVW2ææö—6R’b`¢fÆ–EVæ—B‡fÇVW2ç&—f7’’bbfÆ–EVæ—B‡fÇVW2ç6fWG’’b`¢fÆ–EVæ—B‡fÇVW2æ6öÖf÷'B’bbfÆ–EVæ—B‡fÇVW2æfööB“°§Ğ ¤wVW7E6Vç6—F—f—G•&öf–ÆR6Vç6—F—f—G”FVÇF†F÷V&ÆR&–6RÒãÀ¢F÷V&ÆR6W'f–6RÒãÀ¢F÷V&ÆR6ÆVæÆ–æW72ÒãÀ¢F÷V&ÆRæö—6RÒãÀ¢F÷V&ÆR&—f7’ÒãÀ¢F÷V&ÆR6fWG’ÒãÀ¢F÷V&ÆR6öÖf÷'BÒãÀ¢F÷V&ÆRfööBÒã’°¢&WGW&â·&–6RÂ6W'f–6RÂ6ÆVæÆ–æW72Âæö—6RÂ&—f7’Â6fWG’Â6öÖf÷'BÂfööGÓ°§Ğ ¤wVW7EG&—DVffV7G2G&—DVffV7B‚’²&WGW&â·Ó²Ğ §FV×ÆFRÇ7FC£§6—¦U÷Bãà§fö–BFDæD6Æ×‡7FC£¦'&“ÆF÷V&ÆRÂãâgfÇVW2À¢6öç7B7FC£¦'&“ÆF÷V&ÆRÂãâfFVÇFÂF÷V&ÆRÆ÷rÂF÷V&ÆR†–v‚’°¢f÷"‡7FC£§6—¦U÷B’Ò²’Âã²²¶’¢fÇVW5¶•ÒÒ7FC£¦6Æ×‡fÇVW5¶•Ò²FVÇF¶•ÒÂÆ÷rÂ†–v‚“°§Ğ §fö–BFDæD6Æ×„wVW7E6Vç6—F—f—G•&öf–ÆRgfÇVW2À¢6öç7BwVW7E6Vç6—F—f—G•&öf–ÆRfFVÇF’°¢fÇVW2ç&–6RÒ7FC£¦6Æ×‡fÇVW2ç&–6R²FVÇFç&–6RÂãÂã“°¢fÇVW2ç6W'f–6RÒ7FC£¦6Æ×‡fÇVW2ç6W'f–6R²FVÇFç6W'f–6RÂãÂã“°¢fÇVW2æ6ÆVæÆ–æW72Ğ¢7FC£¦6Æ×‡fÇVW2æ6ÆVæÆ–æW72²FVÇFæ6ÆVæÆ–æW72ÂãÂã“°¢fÇVW2ææö—6RÒ7FC£¦6Æ×‡fÇVW2ææö—6R²FVÇFææö—6RÂãÂã“°¢fÇVW2ç&—f7’Ò7FC£¦6Æ×‡fÇVW2ç&—f7’²FVÇFç&—f7’ÂãÂã“°¢fÇVW2ç6fWG’Ò7FC£¦6Æ×‡fÇVW2ç6fWG’²FVÇFç6fWG’ÂãÂã“°¢fÇVW2æ6öÖf÷'BÒ7FC£¦6Æ×‡fÇVW2æ6öÖf÷'B²FVÇFæ6öÖf÷'BÂãÂã“°¢fÇVW2æfööBÒ7FC£¦6Æ×‡fÇVW2æfööB²FVÇFæfööBÂãÂã“°§Ğ §fö–B6WD7F—f—G’„wVW7D&6†WG—TFVf–æ—F–öâfFVf–æ—F–öâÀ¢wVW7D7F—f—G•&VfW&Væ6R&VfW&Væ6RÂF÷V&ÆRfÇVR’°¢FVf–æ—F–öâæ7F—f—G•&VfW&Væ6TÖVå·7FF–5ö67CÇ7FC£§6—¦U÷Câ‡&VfW&Væ6R•ÒÒfÇVS°§Ğ §fö–B6WE&ööÒ„wVW7D&6†WG—TFVf–æ—F–öâfFVf–æ—F–öâÀ¢wVW7E&ööÕ&VfW&Væ6R&VfW&Væ6RÂF÷V&ÆRfÇVR’°¢FVf–æ—F–öâç&ööÕ&VfW&Væ6TÖVå·7FF–5ö67CÇ7FC£§6—¦U÷Câ‡&VfW&Væ6R•ÒÒfÇVS°§Ğ §fö–B6WDW‡V7FF–öâ„wVW7D&6†WG—TFVf–æ—F–öâfFVf–æ—F–öâÂwVW7D6FVv÷'’6FVv÷'’À¢F÷V&ÆRfÇVR’°¢FVf–æ—F–öâæW‡V7FF–öäÖVå·7FF–5ö67CÇ7FC£§6—¦U÷Câ†6FVv÷'’•ÒÒfÇVS°§Ğ §ÒòòæÖW76P §7FC£§V–çCcE÷BFW&—fTwVW7E&æFöÕ7FFR‡7FC£§V–çCcE÷B6–×VÆF–öå6VVBÀ¢wVW7D–BwVW7D–B’æöW†6WB°¢6öç7BWFòwVW7D&—G2ÒÖ—ƒcB†wVW7D–Bâ†C#SF3&C“&VC5TÄÂ“°¢WFò7FFRÒÖ—ƒcB‡6–×VÆF–öå6VVBâwVW7D&—G2â†scCcCs†&CcC&eTÄÂ“°¢&WGW&â7FFRÓÒòµ&æFöÔ–æ7&VÖVçB¢7FFS°§Ğ §7FC£§V–çCcE÷BG&twVW7E&æFöÒ‡7FC£§V–çCcE÷Bg7FFR’æöW†6WB°¢7FFR³Òµ&æFöÔ–æ7&VÖVçC°¢&WGW&âÖ—ƒcB‡7FFR“°§Ğ ¤wVW7DÖöFVÄFVf–æ—F–öç2FVfVÇDwVW7DÖöFVÄFVf–æ—F–öç2‚’°¢wVW7DÖöFVÄFVf–æ—F–öç2FVf–æ—F–öç3°¢6öç7BWFò6WBÒ²eÒ„wVW7D&6†WG—R&6†WG—RÂwVW7EG&fVÅW'÷6RW'÷6RÀ¢wVW7EvVÇF„&æBvVÇF‚Â7FC£¦–çCcE÷B'VFvWBÀ¢wVW7E6Vç6—F—f—G•&öf–ÆR6Vç6—F—f—F–W2ÂF÷V&ÆRF–Væ6RÀ¢F÷V&ÆR6ö6–ÂÂF÷V&ÆR6†–ÆE&ö&&–Æ—G’À¢F÷V&ÆRFVVå&ö&&–Æ—G’ÂF÷V&ÆR6Væ–÷%&ö&&–Æ—G’’°¢WFòfVçG'’ÒFVf–æ—F–öç2æ&6†WG—W5·7FF–5ö67CÇ7FC£§6—¦U÷Câ†&6†WG—R•Ó°¢VçG'’æ&6†WG—RÒ&6†WG—S°¢VçG'’çvV–v‡BÒã°¢VçG'’çG&fVÅW'÷6RÒW'÷6S°¢VçG'’çvVÇF„&æBÒvVÇFƒ°¢VçG'’æ'VFvWEW$æ–v‡D6VçG2Ò'VFvWC°¢VçG'’æ'VFvWE7&VBÒã#°¢VçG'’æ6†–ÆE&ö&&–Æ—G’Ò6†–ÆE&ö&&–Æ—G“°¢VçG'’çFVVå&ö&&–Æ—G’ÒFVVå&ö&&–Æ—G“°¢VçG'’ç6Væ–÷%&ö&&–Æ—G’Ò6Væ–÷%&ö&&–Æ—G“°¢VçG'’æÖVå6Vç6—F—f—F–W2Ò6Vç6—F—f—F–W3°¢VçG'’æÖVåF–Væ6RÒF–Væ6S°¢VçG'’æÖVå6ö6–Å&VfW&Væ6RÒ6ö6–Ã°¢VçG'’æ7F—f—G•&VfW&Væ6TÖVâæf–ÆÂƒã3“°¢VçG'’ç&ööÕ&VfW&Væ6TÖVâæf–ÆÂƒã3R“°¢VçG'’æW‡V7FF–öäÖVâæf–ÆÂƒsã“°¢Ó° ¢6WB„wVW7D&6†WG—S£¤'VFvWDÆV—7W&RÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¤'VFvWBÂsÀ¢6Vç6—F—f—G”FVÇFƒãƒ"ÂãC‚Âãc"ÂãC"Âã#‚ÂãCbÂãCRÂãC’À¢ãSRÂãC"ÂãÂãBÂã‚“°¢6WB„wVW7D&6†WG—S£¤&6·6¶W"ÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¤'VFvWBÂCÀ¢6Vç6—F—f—G”FVÇFƒã“Âã3bÂãCBÂã3RÂã#"Âã3‚Âã3RÂã3B’À¢ãc"Âãs"ÂãÂã‚Âã"“°¢6WB„wVW7D&6†WG—S£¤'W6–æW75G&fVÆW"ÂwVW7EG&fVÅW'÷6S£¤'W6–æW72À¢wVW7EvVÇF„&æC£¥7FæF&BÂSÀ¢6Vç6—F—f—G”FVÇFƒãCRÂãsRÂãƒÂãƒRÂãC‚ÂãcÂãcbÂãSR’À¢ãCRÂã3‚ÂãÂãÂã"“°¢6WB„wVW7D&6†WG—S£¤W†V7WF—fT'W6–æW72ÂwVW7EG&fVÅW'÷6S£¤'W6–æW72À¢wVW7EvVÇF„&æC£¤ffÇVVçBÂ3À¢6Vç6—F—f—G”FVÇFƒã#bÂã“Âã“Âã“ÂãsBÂãs’ÂãƒbÂãs"’À¢ãSÂã3RÂãÂãÂãb“°¢6WB„wVW7D&6†WG—S£¤6÷WÆTÆV—7W&RÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¥7FæF&BÂ#À¢6Vç6—F—f—G”FVÇFƒãC‚ÂãcÂãcbÂãs"ÂãCbÂãSRÂãsBÂãc’À¢ãS‚ÂãS‚ÂãÂãÂã‚“°¢6WB„wVW7D&6†WG—S£¤fÖ–Ç”ÆV—7W&RÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¥7FæF&BÂcÀ¢6Vç6—F—f—G”FVÇFƒãcÂãc"ÂãsBÂãS"Âã3‚Âãs"ÂãcbÂãc‚’À¢ãc‚Âãc"Âã#‚Âã‚ÂãB“°¢6WB„wVW7D&6†WG—S£¤ÇW‡W'”ÆV—7W&RÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¤ÇW‡W'’ÂCSÀ¢6Vç6—F—f—G”FVÇFƒã‚Âã“Âãƒ‚ÂãƒBÂãc"Âãc‚Âã“"Âãs"’À¢ãC‚ÂãCBÂãÂãÂã“°¢6WB„wVW7D&6†WG—S£¤6öæfW&Væ6TFVÆVvFRÂwVW7EG&fVÅW'÷6S£¤6öæfW&Væ6RÀ¢wVW7EvVÇF„&æC£¥7FæF&BÂ3À¢6Vç6—F—f—G”FVÇFƒãS"Âãs"Âãs"Âãs"ÂãCBÂãSbÂãS‚ÂãC‚’À¢ãC"ÂãSbÂãÂãÂã‚“°¢6WB„wVW7D&6†WG—S£¤w&÷WF÷W%G&fVÆW"ÂwVW7EG&fVÅW'÷6S£¤w&÷WÀ¢wVW7EvVÇF„&æC£¤'VFvWBÂƒÀ¢6Vç6—F—f—G”FVÇFƒãsÂãS"ÂãSbÂãC"Âã#‚ÂãSBÂãSÂãC‚’À¢ãs"Âãs‚Âã‚ÂãbÂãb“°¢6WB„wVW7D&6†WG—S£¤—'÷'EG&ç6—EG&fVÆW"ÂwVW7EG&fVÅW'÷6S£¥G&ç6—BÀ¢wVW7EvVÇF„&æC£¥7FæF&BÂsÀ¢6Vç6—F—f—G”FVÇFƒãcbÂãc‚ÂãcBÂãsbÂãC"ÂãSbÂãSBÂãCB’À¢ã3bÂã3ÂãÂãÂãR“°¢6WB„wVW7D&6†WG—S£¥vVÆÆæW75G&fVÆW"ÂwVW7EG&fVÅW'÷6S£¥vVÆÆæW72À¢wVW7EvVÇF„&æC£¤ffÇVVçBÂ#À¢6Vç6—F—f—G”FVÇFƒã3BÂãsÂãƒ"Âã“ÂãcÂãcRÂã“"Âãcb’À¢ãc"ÂãCbÂãÂãÂã‚“°¢6WB„wVW7D&6†WG—S£¥f—6VÆV'&—G’ÂwVW7EG&fVÅW'÷6S£¤ÆV—7W&RÀ¢wVW7EvVÇF„&æC£¤ÇW‡W'’ÂƒÀ¢6Vç6—F—f—G”FVÇFƒã"Âã“bÂã“ÂãƒbÂã“‚Âã“bÂã“Âãc‚’À¢ãC"Âã#‚ÂãÂãÂã‚“°¢6WB„wVW7D&6†WG—S£¤7&—F–5&Wf–WvW"ÂwVW7EG&fVÅW'÷6S£¥&Wf–WrÀ¢wVW7EvVÇF„&æC£¤ffÇVVçBÂ#À¢6Vç6—F—f—G”FVÇFƒã3bÂã“BÂã“bÂã“ÂãS‚ÂãsBÂãs‚ÂãƒB’À¢ãCÂãC"ÂãÂãÂã“° ¢WFòf'VFvWBÒFVf–æ—F–öç2æ&6†WG—W5³Ó°¢6WD7F—f—G’†'VFvWBÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãc"“°¢6WE&ööÒ†'VFvWBÂwVW7E&ööÕ&VfW&Væ6S£¥6–ævÆRÂãcb“°¢6WDW‡V7FF–öâ†'VFvWBÂwVW7D6FVv÷'“£¥fÇVRÂs‚ã“°¢6WDW‡V7FF–öâ†'VFvWBÂwVW7D6FVv÷'“£¥&ööÒÂc"ã“° ¢WFòf&6·6¶W"ÒFVf–æ—F–öç2æ&6†WG—W5³Ó°¢6WD7F—f—G’†&6·6¶W"ÂwVW7D7F—f—G•&VfW&Væ6S£¥6ö6–ÂÂãƒ"“°¢6WE&ööÒ†&6·6¶W"ÂwVW7E&ööÕ&VfW&Væ6S£¥6–ævÆRÂãs‚“°¢6WDW‡V7FF–öâ†&6·6¶W"ÂwVW7D6FVv÷'“£¥fÇVRÂƒã“°¢6WDW‡V7FF–öâ†&6·6¶W"ÂwVW7D6FVv÷'“£¥&ööÒÂcã“° ¢WFòf'W6–æW72ÒFVf–æ—F–öç2æ&6†WG—W5³%Ó°¢6WD7F—f—G’†'W6–æW72ÂwVW7D7F—f—G•&VfW&Væ6S£¥v–f’Âã“R“°¢6WD7F—f—G’†'W6–æW72ÂwVW7D7F—f—G•&VfW&Væ6S£¤FW6²Âãƒ“°¢6WD7F—f—G’†'W6–æW72ÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãs“°¢6WD7F—f—G’†'W6–æW72ÂwVW7D7F—f—G•&VfW&Væ6S£¥7Âã“°¢6WD7F—f—G’†'W6–æW72ÂwVW7D7F—f—G•&VfW&Væ6S£¥ööÂÂãR“°¢6WDW‡V7FF–öâ†'W6–æW72ÂwVW7D6FVv÷'“£¥6W'f–6RÂsrã“°¢6WDW‡V7FF–öâ†'W6–æW72ÂwVW7D6FVv÷'“£¥V–WBÂƒ"ã“° ¢WFòfW†V7WF—fRÒFVf–æ—F–öç2æ&6†WG—W5³5Ó°¢6WD7F—f—G’†W†V7WF—fRÂwVW7D7F—f—G•&VfW&Væ6S£¥v–f’Âã“‚“°¢6WD7F—f—G’†W†V7WF—fRÂwVW7D7F—f—G•&VfW&Væ6S£¤FW6²Âã“"“°¢6WD7F—f—G’†W†V7WF—fRÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãs‚“°¢6WE&ööÒ†W†V7WF—fRÂwVW7E&ööÕ&VfW&Væ6S£¥7V—FRÂãs"“°¢6WDW‡V7FF–öâ†W†V7WF—fRÂwVW7D6FVv÷'“£¥&ööÒÂƒBã“°¢6WDW‡V7FF–öâ†W†V7WF—fRÂwVW7D6FVv÷'“£¥6W'f–6RÂƒ‚ã“°¢6WDW‡V7FF–öâ†W†V7WF—fRÂwVW7D6FVv÷'“£¥fÇVRÂsBã“° ¢WFòf6÷WÆRÒFVf–æ—F–öç2æ&6†WG—W5³EÓ°¢6WD7F—f—G’†6÷WÆRÂwVW7D7F—f—G•&VfW&Væ6S£¥7Âãs“°¢6WD7F—f—G’†6÷WÆRÂwVW7D7F—f—G•&VfW&Væ6S£¥6ö6–ÂÂãcB“°¢6WD7F—f—G’†6÷WÆRÂwVW7D7F—f—G•&VfW&Væ6S£¤WfVçBÂãS‚“°¢6WE&ööÒ†6÷WÆRÂwVW7E&ööÕ&VfW&Væ6S£¤F÷V&ÆRÂãƒB“°¢6WE&ööÒ†6÷WÆRÂwVW7E&ööÕ&VfW&Væ6S£¥V–WBÂãc"“°¢6WDW‡V7FF–öâ†6÷WÆRÂwVW7D6FVv÷'“£¤ÖVæ—F–W2Âs‚ã“° ¢WFòffÖ–Ç’ÒFVf–æ—F–öç2æ&6†WG—W5³UÓ°¢6WD7F—f—G’†fÖ–Ç’ÂwVW7D7F—f—G•&VfW&Væ6S£¥ööÂÂãƒB“°¢6WD7F—f—G’†fÖ–Ç’ÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãs‚“°¢6WD7F—f—G’†fÖ–Ç’ÂwVW7D7F—f—G•&VfW&Væ6S£¤WfVçBÂãc‚“°¢6WE&ööÒ†fÖ–Ç’ÂwVW7E&ööÕ&VfW&Væ6S£¤F÷V&ÆRÂã““°¢6WE&ööÒ†fÖ–Ç’ÂwVW7E&ööÕ&VfW&Væ6S£¤66W76–&ÆRÂãC“°¢6WDW‡V7FF–öâ†fÖ–Ç’ÂwVW7D6FVv÷'“£¥6fWG’Âƒ"ã“°¢6WDW‡V7FF–öâ†fÖ–Ç’ÂwVW7D6FVv÷'“£¤ÖVæ—F–W2Âsbã“° ¢WFòfÇW‡W'’ÒFVf–æ—F–öç2æ&6†WG—W5³eÓ°¢6WD7F—f—G’†ÇW‡W'’ÂwVW7D7F—f—G•&VfW&Væ6S£¥7Âãƒb“°¢6WD7F—f—G’†ÇW‡W'’ÂwVW7D7F—f—G•&VfW&Væ6S£¥ööÂÂãc"“°¢6WD7F—f—G’†ÇW‡W'’ÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãs"“°¢6WE&ööÒ†ÇW‡W'’ÂwVW7E&ööÕ&VfW&Væ6S£¥7V—FRÂã““°¢6WE&ööÒ†ÇW‡W'’ÂwVW7E&ööÕ&VfW&Væ6S£¤†–v„fÆö÷"ÂãcB“°¢6WDW‡V7FF–öâ†ÇW‡W'’ÂwVW7D6FVv÷'“£¥&ööÒÂ“ã“°¢6WDW‡V7FF–öâ†ÇW‡W'’ÂwVW7D6FVv÷'“£¥6W'f–6RÂƒ‚ã“°¢6WDW‡V7FF–öâ†ÇW‡W'’ÂwVW7D6FVv÷'“£¥fÇVRÂc‚ã“° ¢WFòf6öæfW&Væ6RÒFVf–æ—F–öç2æ&6†WG—W5³uÓ°¢6WD7F—f—G’†6öæfW&Væ6RÂwVW7D7F—f—G•&VfW&Væ6S£¥v–f’Âã““°¢6WD7F—f—G’†6öæfW&Væ6RÂwVW7D7F—f—G•&VfW&Væ6S£¥v÷&²Âãsb“°¢6WD7F—f—G’†6öæfW&Væ6RÂwVW7D7F—f—G•&VfW&Væ6S£¤WfVçBÂãs‚“°¢6WE&ööÒ†6öæfW&Væ6RÂwVW7E&ööÕ&VfW&Væ6S£¥6–ævÆRÂãcB“°¢6WDW‡V7FF–öâ†6öæfW&Væ6RÂwVW7D6FVv÷'“£¤6öçfVæ–Væ6RÂƒ"ã“° ¢WFòfw&÷WÒFVf–æ—F–öç2æ&6†WG—W5³…Ó°¢6WD7F—f—G’†w&÷WÂwVW7D7F—f—G•&VfW&Væ6S£¥6ö6–ÂÂãƒ‚“°¢6WD7F—f—G’†w&÷WÂwVW7D7F—f—G•&VfW&Væ6S£¤WfVçBÂãs‚“°¢6WE&ööÒ†w&÷WÂwVW7E&ööÕ&VfW&Væ6S£¤F÷V&ÆRÂãc‚“°¢6WDW‡V7FF–öâ†w&÷WÂwVW7D6FVv÷'“£¤6öçfVæ–Væ6RÂsbã“° ¢WFògG&ç6—BÒFVf–æ—F–öç2æ&6†WG—W5³•Ó°¢6WD7F—f—G’‡G&ç6—BÂwVW7D7F—f—G•&VfW&Væ6S£¥v–f’Âãs"“°¢6WE&ööÒ‡G&ç6—BÂwVW7E&ööÕ&VfW&Væ6S£¥V–WBÂãs‚“°¢6WDW‡V7FF–öâ‡G&ç6—BÂwVW7D6FVv÷'“£¤6öçfVæ–Væ6RÂƒBã“°¢6WDW‡V7FF–öâ‡G&ç6—BÂwVW7D6FVv÷'“£¤'&—fÄFW'GW&RÂƒBã“° ¢WFògvVÆÆæW72ÒFVf–æ—F–öç2æ&6†WG—W5³Ó°¢6WD7F—f—G’‡vVÆÆæW72ÂwVW7D7F—f—G•&VfW&Væ6S£¥7Âã“B“°¢6WD7F—f—G’‡vVÆÆæW72ÂwVW7D7F—f—G•&VfW&Væ6S£¤f—FæW72Âãƒ‚“°¢6WD7F—f—G’‡vVÆÆæW72ÂwVW7D7F—f—G•&VfW&Væ6S£¥ööÂÂãs"“°¢6WE&ööÒ‡vVÆÆæW72ÂwVW7E&ööÕ&VfW&Væ6S£¥V–WBÂãƒ‚“°¢6WDW‡V7FF–öâ‡vVÆÆæW72ÂwVW7D6FVv÷'“£¤6ÆVæÆ–æW72Âƒbã“°¢6WDW‡V7FF–öâ‡vVÆÆæW72ÂwVW7D6FVv÷'“£¥V–WBÂƒ‚ã“° ¢WFògf—ÒFVf–æ—F–öç2æ&6†WG—W5³Ó°¢6WD7F—f—G’‡f—ÂwVW7D7F—f—G•&VfW&Væ6S£¥7Âãƒ“°¢6WE&ööÒ‡f—ÂwVW7E&ööÕ&VfW&Væ6S£¥7V—FRÂã“b“°¢6WE&ööÒ‡f—ÂwVW7E&ööÕ&VfW&Væ6S£¥V–WBÂã“"“°¢6WE&ööÒ‡f—ÂwVW7E&ööÕ&VfW&Væ6S£¤†–v„fÆö÷"Âãs"“°¢6WDW‡V7FF–öâ‡f—ÂwVW7D6FVv÷'“£¥6W'f–6RÂ“Bã“°¢6WDW‡V7FF–öâ‡f—ÂwVW7D6FVv÷'“£¥V–WBÂƒ‚ã“°¢6WDW‡V7FF–öâ‡f—ÂwVW7D6FVv÷'“£¥6fWG’Â“"ã“° ¢WFòf7&—F–2ÒFVf–æ—F–öç2æ&6†WG—W5³%Ó°¢6WD7F—f—G’†7&—F–2ÂwVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7BÂãs‚“°¢6WD7F—f—G’†7&—F–2ÂwVW7D7F—f—G•&VfW&Væ6S£¥v–f’Âãs"“°¢6WDW‡V7FF–öâ†7&—F–2ÂwVW7D6FVv÷'“£¥&ööÒÂƒ"ã“°¢6WDW‡V7FF–öâ†7&—F–2ÂwVW7D6FVv÷'“£¤6ÆVæÆ–æW72Â“ã“°¢6WDW‡V7FF–öâ†7&—F–2ÂwVW7D6FVv÷'“£¥6W'f–6RÂƒ‚ã“° ¢WFò6WEG&—BÒ²eÒ„wVW7EG&—BG&—BÂwVW7EG&—DVffV7G2VffV7G2’°¢FVf–æ—F–öç2çG&—G5·7FF–5ö67CÇ7FC£§6—¦U÷Câ‡G&—B•ÒÒ·G&—BÂVffV7G7Ó°¢Ó°¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2çF–Væ6TFVÇFÒãƒ°¢VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"ÒãC°¢6WEG&—B„wVW7EG&—C£¥F–VçBÂVffV7G2“°¢Ğ­¹âÚ$z{-®éÜj×"ÒãS°¢VffV7G2ç6Vç6—F—f—G”FVÇFææö—6RÒÓã°¢6WEG&—B„wVW7EG&—C£¤†Vg•6ÆVWW"ÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2ç6Vç6—F—f—G”FVÇFæfööBÒãS°¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ€¢wVW7D7F—f—G•&VfW&Væ6S£¤'&V¶f7B•ÒÒãS°¢6WEG&—B„wVW7EG&—C£¤fööF–RÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ€¢wVW7D7F—f—G•&VfW&Væ6S£¥v÷&²•ÒÒã#°¢6WEG&—B„wVW7EG&—C£¥v÷&¶†öÆ–2ÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2ç6ö6–Å&VfW&Væ6TFVÇFÒãƒ°¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ€¢wVW7D7F—f—G•&VfW&Væ6S£¥6ö6–Â•ÒÒã#°¢6WEG&—B„wVW7EG&—C£¥6ö6–ÂÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2ç6ö6–Å&VfW&Væ6TFVÇFÒÓãc°¢VffV7G2ç6Vç6—F—f—G”FVÇFç&—f7’ÒãS°¢6WEG&—B„wVW7EG&—C£¥&—fFRÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2ç6Vç6—F—f—G”FVÇFç&–6RÒãƒ°¢VffV7G2æW‡V7FF–öäFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ„wVW7D6FVv÷'“£¥fÇVR•ÒĞ¢bã°¢6WEG&—B„wVW7EG&—C£¤g'VvÂÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æW‡V7FF–öäFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ„wVW7D6FVv÷'“£¥&ööÒ•ÒĞ¢rã°¢VffV7G2æW‡V7FF–öäFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ„wVW7D6FVv÷'“£¥6W'f–6R•ÒĞ¢bã°¢VffV7G2ç&ööÕ&VfW&Væ6TFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ€¢wVW7E&ööÕ&VfW&Væ6S£¥7V—FR•ÒÒã#°¢6WEG&—B„wVW7EG&—C£¥7FGW46öç66–÷W2ÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF·7FF–5ö67CÇ7FC£§6—¦U÷Câ€¢wVW7D7F—f—G•&VfW&Væ6S£¤f—FæW72•ÒÒã#S°¢6WEG&—B„wVW7EG&—C£¤f—FæW74fö7W6VBÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æÖ÷&æ–æu&VfW&Væ6TFVÇFÒã#S°¢6WEG&—B„wVW7EG&—C£¤V&Ç•&—6W"ÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æWfVæ–æu&VfW&Væ6TFVÇFÒã#S°¢6WEG&—B„wVW7EG&—C£¤æ–v‡D÷vÂÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2æ6ö×Æ–çEF‡&W6†öÆDFVÇFÒÓã°¢6WEG&—B„wVW7EG&—C£¤6ö×Æ–çE&öæRÂVffV7G2“°¢Ğ¢°¢WFòVffV7G2ÒG&—DVffV7B‚“°¢VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"Òãƒ°¢6WEG&—B„wVW7EG&—C£¤f÷&v—f–ærÂVffV7G2“°¢Ğ ¢FVf–æ—F–öç2æ6FVv÷'•vV–v‡G2Ò³ã#‚ÂãbÂã#BÂãÂã‚À¢ã‚ÂãbÂãRÂã7Ó°¢&WGW&âFVf–æ—F–öç3°§Ğ ¦&ööÂfÆ–FFTwVW7DÖöFVÄFVf–æ—F–öç2†6öç7BwVW7DÖöFVÄFVf–æ—F–öç2fFVf–æ—F–öç2À¢7FC£§7G&–ær¦W'&÷"’°¢–b†W'&÷"¢W'&÷"Óæ6ÆV"‚“°¢6öç7BWFòf–ÂÒ²eÒ†6öç7B6†"¦ÖW76vR’°¢–b†W'&÷"¢¦W'&÷"ÒÖW76vS°¢&WGW&âfÇ6S°¢Ó° ¢7FC£¦'&“Æ&ööÂÂwVW7D&6†WG—T6÷VçCâ&6†WG—U6VVç·Ó°¢F÷V&ÆRF÷FÅvV–v‡BÒã°¢f÷"†6öç7BWFòfVçG'’¢FVf–æ—F–öç2æ&6†WG—W2’°¢6öç7BWFò–æFW‚Ò7FF–5ö67CÇ7FC£§6—¦U÷Câ†VçG'’æ&6†WG—R“°¢–b†–æFW‚ãÒwVW7D&6†WG—T6÷VçBÇÂ&6†WG—U6VVå¶–æFW…Ò¢&WGW&âf–Â‚&wVW7B&6†WG—RFVf–æ—F–öç2&RÖ—76–ær÷"GWÆ–6FVB"“°¢&6†WG—U6VVå¶–æFW…ÒÒG'VS°¢–b‚7FC£¦—6f–æ—FR†VçG'’çvV–v‡B’ÇÂVçG'’çvV–v‡BÂã¢&WGW&âf–Â‚&wVW7B&6†WG—RvV–v‡B×W7B&Rf–æ—FRæBæöææVvF—fR"“°¢F÷FÅvV–v‡B³ÒVçG'’çvV–v‡C°¢–b‚fÆ–DVçVÒ†VçG'’çG&fVÅW'÷6R’ÇÂfÆ–DVçVÒ†VçG'’çvVÇF„&æB’¢&WGW&âf–Â‚&wVW7B&6†WG—R6öçF–ç2âVæ¶æ÷vâW'÷6R÷"vVÇF‚&æB"“°¢–b†VçG'’æ'VFvWEW$æ–v‡D6VçG2ÃÒÇÀ¢VçG'’æ'VFvWEW$æ–v‡D6VçG2à¢7FC£¦çVÖW&–5öÆ–Ö—G3Ç7FC£¦–çCcE÷Cã£¦Ö‚‚’ò"ÇÀ¢7FC£¦—6f–æ—FR†VçG'’æ'VFvWE7&VB’ÇÂVçG'’æ'VFvWE7&VBÂãÇÀ¢VçG'’æ'VFvWE7&VBâãsR¢&WGW&âf–Â‚&wVW7B&6†WG—R'VFvWB÷"7&VB—2÷WBöb&ævR"“°¢–b‚fÆ–EVæ—B†VçG'’æ6†–ÆE&ö&&–Æ—G’’ÇÂfÆ–EVæ—B†VçG'’çFVVå&ö&&–Æ—G’’ÇÀ¢fÆ–EVæ—B†VçG'’ç6Væ–÷%&ö&&–Æ—G’’ÇÀ¢VçG'’æ6†–ÆE&ö&&–Æ—G’²VçG'’çFVVå&ö&&–Æ—G’°¢VçG'’ç6Væ–÷%&ö&&–Æ—G’à¢ã¢&WGW&âf–Â‚&wVW7B&6†WG—RvR&ö&&–Æ—F–W2&R–çfÆ–B"“°¢–b‚f–æ—FU6Vç6—F—f—G’†VçG'’æÖVå6Vç6—F—f—F–W2’ÇÀ¢fÆ–EVæ—B†VçG'’æÖVåF–Væ6R’ÇÀ¢fÆ–EVæ—B†VçG'’æÖVå6ö6–Å&VfW&Væ6R’¢&WGW&âf–Â‚&wVW7B&6†WG—R6Vç6—F—f—F–W2÷"6ö6–Â&öf–ÆR&R–çfÆ–B"“°¢f÷"†6öç7BWFòfÇVR¢VçG'’æ7F—f—G•&VfW&Væ6TÖVâ¢–b‚fÆ–EVæ—B‡fÇVR’¢&WGW&âf–Â‚&wVW7B7F—f—G’&VfW&Væ6R—2÷WG6–FRâã"“°¢f÷"†6öç7BWFòfÇVR¢VçG'’ç&ööÕ&VfW&Væ6TÖVâ¢–b‚fÆ–EVæ—B‡fÇVR’¢&WGW&âf–Â‚&wVW7B&ööÒ&VfW&Væ6R—2÷WG6–FRâã"“°¢f÷"†6öç7BWFòfÇVR¢VçG'’æW‡V7FF–öäÖVâ¢–b‚7FC£¦—6f–æ—FR‡fÇVR’ÇÂfÇVRÂãÇÂfÇVRâã¢&WGW&âf–Â‚&wVW7BW‡V7FF–öâ—2÷WG6–FRâã"“°¢Ğ¢f÷"†6öç7B&ööÂ&W6VçB¢&6†WG—U6VVâ¢–b‚&W6VçB¢&WGW&âf–Â‚&wVW7B&6†WG—RFVf–æ—F–öç2&R–æ6ö×ÆWFR"“°¢–b‚7FC£¦—6f–æ—FR‡F÷FÅvV–v‡B’ÇÂF÷FÅvV–v‡BÃÒã¢&WGW&âf–Â‚&wVW7B&6†WG—RvV–v‡G2×W7B†fR÷6—F—fRf–æ—FR7VÒ"“° ¢7FC£¦'&“Æ&ööÂÂwVW7EG&—D6÷VçCâG&—E6VVç·Ó°¢f÷"‡7FC£§6—¦U÷BG&—D–æFW‚Ò²G&—D–æFW‚ÂFVf–æ—F–öç2çG&—G2ç6—¦R‚“°¢²·G&—D–æFW‚’°¢6öç7BWFòfFVf–æ—F–öâÒFVf–æ—F–öç2çG&—G5·G&—D–æFW…Ó°¢6öç7BWFò–æFW‚Ò7FF–5ö67CÇ7FC£§6—¦U÷Câ†FVf–æ—F–öâçG&—B“°¢–b†–æFW‚ãÒwVW7EG&—D6÷VçBÇÂ–æFW‚ÒG&—D–æFW‚ÇÂG&—E6VVå¶–æFW…Ò¢&WGW&âf–Â‚&wVW7BG&—BFVf–æ—F–öç2&RÖ—76–ær÷"GWÆ–6FVB"“°¢G&—E6VVå¶–æFW…ÒÒG'VS°¢6öç7BWFòfVffV7G2ÒFVf–æ—F–öâæVffV7G3°¢–b‚7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFç&–6R’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFç6W'f–6R’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFæ6ÆVæÆ–æW72’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFææö—6R’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFç&—f7’’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFç6fWG’’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFæ6öÖf÷'B’ÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6Vç6—F—f—G”FVÇFæfööB’ÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFç&–6R’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFç6W'f–6R’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFæ6ÆVæÆ–æW72’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFææö—6R’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFç&—f7’’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFç6fWG’’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFæ6öÖf÷'B’âãÇÀ¢7FC£¦'2†VffV7G2ç6Vç6—F—f—G”FVÇFæfööB’âãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2çF–Væ6TFVÇF’ÇÀ¢7FC£¦'2†VffV7G2çF–Væ6TFVÇF’âãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ç6ö6–Å&VfW&Væ6TFVÇF’ÇÀ¢7FC£¦'2†VffV7G2ç6ö6–Å&VfW&Væ6TFVÇF’âãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"’ÇÀ¢VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"ÂãÇÀ¢VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"âBãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"’ÇÀ¢VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"ÂãÇÀ¢VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"âBãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2æÆ–v‡E6ÆVWÖöF–f–W"’ÇÀ¢VffV7G2æÆ–v‡E6ÆVWÖöF–f–W"ÂãÇÂVffV7G2æÆ–v‡E6ÆVWÖöF–f–W"âBãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2æ‡–v–VæTFV6”×VÇF—Æ–W"’ÇÀ¢VffV7G2æ‡–v–VæTFV6”×VÇF—Æ–W"ÂãÇÀ¢VffV7G2æ‡–v–VæTFV6”×VÇF—Æ–W"âBãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2æ6ö×Æ–çEF‡&W6†öÆDFVÇF’ÇÀ¢7FC£¦'2†VffV7G2æ6ö×Æ–çEF‡&W6†öÆDFVÇF’âãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2æÖ÷&æ–æu&VfW&Væ6TFVÇF’ÇÀ¢7FC£¦'2†VffV7G2æÖ÷&æ–æu&VfW&Væ6TFVÇF’âãÇÀ¢7FC£¦—6f–æ—FR†VffV7G2æWfVæ–æu&VfW&Væ6TFVÇF’ÇÀ¢7FC£¦'2†VffV7G2æWfVæ–æu&VfW&Væ6TFVÇF’âã¢&WGW&âf–Â‚&wVW7BG&—B6öçF–ç2â–çfÆ–BçVÖW&–2ÖöF–f–W""“°¢f÷"†6öç7BWFòfÇVR¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇF¢–b‚7FC£¦—6f–æ—FR‡fÇVR’ÇÂ7FC£¦'2‡fÇVR’âã¢&WGW&âf–Â‚&wVW7BG&—B7F—f—G’ÖöF–f–W"—2÷WBöb&ævR"“°¢f÷"†6öç7BWFòfÇVR¢VffV7G2ç&ööÕ&VfW&Væ6TFVÇF¢–b‚7FC£¦—6f–æ—FR‡fÇVR’ÇÂ7FC£¦'2‡fÇVR’âã¢&WGW&âf–Â‚&wVW7BG&—B&ööÒÖöF–f–W"—2÷WBöb&ævR"“°¢f÷"†6öç7BWFòfÇVR¢VffV7G2æW‡V7FF–öäFVÇF¢–b‚7FC£¦—6f–æ—FR‡fÇVR’ÇÂ7FC£¦'2‡fÇVR’âã¢&WGW&âf–Â‚&wVW7BG&—BW‡V7FF–öâÖöF–f–W"—2÷WBöb&ævR"“°¢–b‚G&—D†4çVÖW&–4VffV7B†VffV7G2’¢&WGW&âf–Â‚&WfW'’wVW7BG&—B×W7B†fRçVÖW&–2VffV7B"“°¢Ğ¢f÷"†6öç7B&ööÂ&W6VçB¢G&—E6VVâ¢–b‚&W6VçB¢&WGW&âf–Â‚&wVW7BG&—BFVf–æ—F–öç2&R–æ6ö×ÆWFR"“° ¢&ööÂ†5÷6—F—fT6FVv÷'•vV–v‡BÒfÇ6S°¢f÷"†6öç7BWFòvV–v‡B¢FVf–æ—F–öç2æ6FVv÷'•vV–v‡G2’°¢–b‚7FC£¦—6f–æ—FR‡vV–v‡B’ÇÂvV–v‡BÂã¢&WGW&âf–Â‚&wVW7B6FVv÷'’vV–v‡B×W7B&Rf–æ—FRæBæöææVvF—fR"“°¢†5÷6—F—fT6FVv÷'•vV–v‡BÃÒvV–v‡Bâã°¢Ğ¢–b‚†5÷6—F—fT6FVv÷'•vV–v‡B¢&WGW&âf–Â‚&wVW7B6FVv÷'’vV–v‡G2×W7B–æ6ÇVFR÷6—F—fRvV–v‡B"“°¢&WGW&âG'VS°§Ğ ¤wVW7E&öf–ÆRvVæW&FTwVW7E&öf–ÆR‡7FC£§V–çCcE÷B6–×VÆF–öå6VVBÂwVW7D–BwVW7D–BÀ¢6öç7BwVW7DÖöFVÄFVf–æ—F–öç2fFVf–æ—F–öç2’°¢7FC£§7G&–ærW'&÷#°¢–b‚fÆ–FFTwVW7DÖöFVÄFVf–æ—F–öç2†FVf–æ—F–öç2ÂfW'&÷"’¢F‡&÷r7FC£¦–çfÆ–Eö&wVÖVçB†W'&÷"“°¢–b†wVW7D–BÓÒ¢F‡&÷r7FC£¦–çfÆ–Eö&wVÖVçB‚&wVW7B–B×W7B&Ræöç¦W&ò"“° ¢wVW7E&öf–ÆR&öf–ÆS°¢&öf–ÆRæ–BÒwVW7D–C°¢WFò7FFRÒFW&—fTwVW7E&æFöÕ7FFR‡6–×VÆF–öå6VVBÂwVW7D–B“° ¢F÷V&ÆRF÷FÅvV–v‡BÒã°¢f÷"†6öç7BWFòfVçG'’¢FVf–æ—F–öç2æ&6†WG—W2¢F÷FÅvV–v‡B³ÒVçG'’çvV–v‡C°¢6öç7BF÷V&ÆR&6†WG—U&öÆÂÒVæ—E&æFöÒ‡7FFR’¢F÷FÅvV–v‡C°¢F÷V&ÆR7V×VÆF—fUvV–v‡BÒã°¢6öç7BwVW7D&6†WG—TFVf–æ—F–öâ§6VÆV7FVBÒçVÆÇG#°¢f÷"†6öç7BWFòfVçG'’¢FVf–æ—F–öç2æ&6†WG—W2’°¢7V×VÆF—fUvV–v‡B³ÒVçG'’çvV–v‡C°¢–b†VçG'’çvV–v‡Bâãbb&6†WG—U&öÆÂÂ7V×VÆF—fUvV–v‡B’°¢6VÆV7FVBÒfVçG'“°¢'&V³°¢Ğ¢Ğ¢–b‚6VÆV7FVB’°¢f÷"†WFò—BÒFVf–æ—F–öç2æ&6†WG—W2ç&&Vv–â‚“°¢—BÒFVf–æ—F–öç2æ&6†WG—W2ç&VæB‚“²²¶—B’°¢–b†—BÓçvV–v‡Bâã’°¢6VÆV7FVBÒb¦—C°¢'&V³°¢Ğ¢Ğ¢Ğ¢–b‚6VÆV7FVB¢F‡&÷r7FC£¦Æöv–5öW'&÷"‚'fÆ–FFVBwVW7B&6†WG—RF—7G&–'WF–öâ—2V×G’"“° ¢&öf–ÆRæ&6†WG—RÒ6VÆV7FVBÓæ&6†WG—S°¢&öf–ÆRçG&fVÅW'÷6RÒ6VÆV7FVBÓçG&fVÅW'÷6S°¢&öf–ÆRçvVÇF„&æBÒ6VÆV7FVBÓçvVÇF„&æC°¢6öç7BF÷V&ÆR'VFvWDf7F÷"Ğ¢ã²&WGvVVâ‡7FFRÂ×6VÆV7FVBÓæ'VFvWE7&VBÂ6VÆV7FVBÓæ'VFvWE7&VB“°¢6öç7BÆöærF÷V&ÆR'VFvWBĞ¢7FF–5ö67CÆÆöærF÷V&ÆSâ‡6VÆV7FVBÓæ'VFvWEW$æ–v‡D6VçG2’¢'VFvWDf7F÷#°¢&öf–ÆRæ'VFvWEW$æ–v‡D6VçG2Ò7FF–5ö67CÇ7FC£¦–çCcE÷Câ‡7FC£¦6Æ×€¢7FC£§&÷VæB†'VFvWB’ÂãÂÀ¢7FF–5ö67CÆÆöærF÷V&ÆSâ‡7FC£¦çVÖW&–5öÆ–Ö—G3Ç7FC£¦–çCcE÷Cã£¦Ö‚‚’’’“° ¢6öç7BF÷V&ÆRvU&öÆÂÒVæ—E&æFöÒ‡7FFR“°¢–b†vU&öÆÂÂ6VÆV7FVBÓæ6†–ÆE&ö&&–Æ—G’¢&öf–ÆRævT&æBÒwVW7DvT&æC£¤6†–ÆC°¢VÇ6R–b†vU&öÆÂÂ6VÆV7FVBÓæ6†–ÆE&ö&&–Æ—G’²6VÆV7FVBÓçFVVå&ö&&–Æ—G’¢&öf–ÆRævT&æBÒwVW7DvT&æC£¥FVVã°¢VÇ6R–b†vU&öÆÂÂ6VÆV7FVBÓæ6†–ÆE&ö&&–Æ—G’²6VÆV7FVBÓçFVVå&ö&&–Æ—G’°¢6VÆV7FVBÓç6Væ–÷%&ö&&–Æ—G’¢&öf–ÆRævT&æBÒwVW7DvT&æC£¥6Væ–÷#°¢VÇ6P¢&öf–ÆRævT&æBÒwVW7DvT&æC£¤GVÇC° ¢6öç7BWFòf'•Væ—BÒ²eÒ†F÷V&ÆRÖVâÂF÷V&ÆR&F—W2’°¢&WGW&â7FC£¦6Æ×†&WGvVVâ‡7FFRÂÖVâÒ&F—W2ÂÖVâ²&F—W2’ÂãÂã“°¢Ó°¢&öf–ÆRç6Vç6—F—f—F–W2Ò°¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2ç&–6RÂã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2ç6W'f–6RÂã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2æ6ÆVæÆ–æW72Âã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2ææö—6RÂã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2ç&—f7’Âã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2ç6fWG’Âã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2æ6öÖf÷'BÂã‚’À¢f'•Væ—B‡6VÆV7FVBÓæÖVå6Vç6—F—f—F–W2æfööBÂã‚—Ó°¢&öf–ÆRçF–Væ6RÒf'•Væ—B‡6VÆV7FVBÓæÖVåF–Væ6RÂã“°¢&öf–ÆRç6ö6–Å&VfW&Væ6RÒf'•Væ—B‡6VÆV7FVBÓæÖVå6ö6–Å&VfW&Væ6RÂã“°¢f÷"‡7FC£§6—¦U÷B’Ò²’ÂwVW7D7F—f—G•&VfW&Væ6T6÷VçC²²¶’¢&öf–ÆRæ7F—f—G•&VfW&Væ6W5¶•ÒĞ¢f'•Væ—B‡6VÆV7FVBÓæ7F—f—G•&VfW&Væ6TÖVå¶•ÒÂã"“°¢f÷"‡7FC£§6—¦U÷B’Ò²’ÂwVW7E&ööÕ&VfW&Væ6T6÷VçC²²¶’¢&öf–ÆRç&ööÕ&VfW&Væ6W5¶•ÒĞ¢f'•Væ—B‡6VÆV7FVBÓç&ööÕ&VfW&Væ6TÖVå¶•ÒÂã"“°¢f÷"‡7FC£§6—¦U÷B’Ò²’ÂwVW7D6FVv÷'”6÷VçC²²¶’¢&öf–ÆRæW‡V7FF–öç5¶•ÒÒ7FC£¦6Æ×€¢&WGvVVâ‡7FFRÂ6VÆV7FVBÓæW‡V7FF–öäÖVå¶•ÒÒ2ãÀ¢6VÆV7FVBÓæW‡V7FF–öäÖVå¶•Ò²2ã’À¢ãÂã“° ¢7FC£¦'&“Ç7FC£§6—¦U÷BÂwVW7EG&—D6÷VçCâG&—D÷&FW'·Ó°¢7FC£¦–÷F‡G&—D÷&FW"æ&Vv–â‚’ÂG&—D÷&FW"æVæB‚’Â“°¢–b‡&öf–ÆRævT&æBÓÒwVW7DvT&æC£¤GVÇBÇÀ¢&öf–ÆRævT&æBÓÒwVW7DvT&æC£¥6Væ–÷"’°¢6öç7BWFòG&—D6÷VçBÒ7FF–5ö67CÇ7FC£§6—¦U÷Câ†&÷VæFVB‡7FFRÂB’“°¢&öf–ÆRçG&—G2ç&W6W'fR‡G&—D6÷VçB“°¢f÷"‡7FC£§6—¦U÷B’Ò²’ÂG&—D6÷VçC²²¶’’°¢6öç7BWFò&VÖ–æ–ærÒwVW7EG&—D6÷VçBÒ“°¢6öç7BWFò6VÆV7FVD–æFW‚Ğ¢’²7FF–5ö67CÇ7FC£§6—¦U÷Câ†&÷VæFVB‡7FFRÂ&VÖ–æ–ær’“°¢7FC£§7v‡G&—D÷&FW%¶•ÒÂG&—D÷&FW%·6VÆV7FVD–æFW…Ò“°¢6öç7BWFòG&—BÒ7FF–5ö67CÄwVW7EG&—Câ‡G&—D÷&FW%¶•Ò“°¢&öf–ÆRçG&—G2çW6…ö&6²‡G&—B“°¢6öç7BWFòfVffV7G2ÒFVf–æ—F–öç2çG&—G5·G&—D÷&FW%¶•ÕÒæVffV7G3°¢FDæD6Æ×‡&öf–ÆRç6Vç6—F—f—F–W2ÂVffV7G2ç6Vç6—F—f—G”FVÇF“°¢&öf–ÆRçF–Væ6RĞ¢7FC£¦6Æ×‡&öf–ÆRçF–Væ6R²VffV7G2çF–Væ6TFVÇFÂãÂã“°¢&öf–ÆRç6ö6–Å&VfW&Væ6RÒ7FC£¦6Æ×€¢&öf–ÆRç6ö6–Å&VfW&Væ6R²VffV7G2ç6ö6–Å&VfW&Væ6TFVÇFÂãÂã“°¢FDæD6Æ×‡&öf–ÆRæ7F—f—G•&VfW&Væ6W2À¢VffV7G2æ7F—f—G•&VfW&Væ6TFVÇFÂãÂã“°¢FDæD6Æ×‡&öf–ÆRç&ööÕ&VfW&Væ6W2ÂVffV7G2ç&ööÕ&VfW&Væ6TFVÇFÂãÀ¢ã“°¢FDæD6Æ×‡&öf–ÆRæW‡V7FF–öç2ÂVffV7G2æW‡V7FF–öäFVÇFÂãÂã“°¢&öf–ÆRçVWVUFöÆW&æ6T×VÇF—Æ–W"Ò7FC£¦6Æ×€¢&öf–ÆRçVWVUFöÆW&æ6T×VÇF—Æ–W"¢VffV7G2çVWVUFöÆW&æ6T×VÇF—Æ–W"À¢ãÂbã“°¢&öf–ÆRææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"Ò7FC£¦6Æ×€¢&öf–ÆRææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W" ¢VffV7G2ææVvF—fTÖVÖ÷'•&Wf–WuvV–v‡D×VÇF—Æ–W"À¢ãÂbã“°¢&öf–ÆRæÆ–v‡E6ÆVWÖöF–f–W"Ò7FC£¦6Æ×€¢&öf–ÆRæÆ–v‡E6ÆVWÖöF–f–W"¢VffV7G2æÆ–v‡E6ÆVWÖöF–f–W"ÂãÂbã“°¢&öf–ÆRæ‡–v–VæTFV6”×VÇF—Æ–W"Ò7FC£¦6Æ×€¢&öf–ÆRæ‡–v–VæTFV6”×VÇF—Æ–W"¢VffV7G2æ‡–v–VæTFV6”×VÇF—Æ–W"ÂãÀ¢bã“°¢&öf–ÆRæ6ö×Æ–çEF‡&W6†öÆDFVÇFÒ7FC£¦6Æ×€¢&öf–ÆRæ6ö×Æ–çEF‡&W6†öÆDFVÇF²VffV7G2æ6ö×Æ–çEF‡&W6†öÆDFVÇFÀ¢ÓãÂã“°¢&öf–ÆRæÖ÷&æ–æu&VfW&Væ6RÒ7FC£¦6Æ×€¢&öf–ÆRæÖ÷&æ–æu&VfW&Væ6R²VffV7G2æÖ÷&æ–æu&VfW&Væ6TFVÇFÂÓãÂã“°¢&öf–ÆRæWfVæ–æu&VfW&Væ6RÒ7FC£¦6Æ×€¢&öf–ÆRæWfVæ–æu&VfW&Væ6R²VffV7G2æWfVæ–æu&VfW&Væ6TFVÇFÂÓãÂã“°¢Ğ¢Ğ ¢&öf–ÆRç&æFöÕ7FFRÒ7FFS°¢&WGW&â&öf–ÆS°§Ğ §ÒòòæÖW76R†ƒ£¦vÖP
+#include "hh/game/GuestModel.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <numeric>
+#include <stdexcept>
+
+namespace hh::game {
+namespace {
+
+constexpr double kUnitScale = 1.0 / 9007199254740992.0;
+constexpr std::uint64_t kIncrement = 0x9e3779b97f4a7c15ULL;
+
+std::uint64_t mix(std::uint64_t value) noexcept {
+  value = (value ^ (value >> 30)) * 0xbf58476d1ce4e5b9ULL;
+  value = (value ^ (value >> 27)) * 0x94d049bb133111ebULL;
+  return value ^ (value >> 31);
+}
+
+double unitDraw(std::uint64_t &state) noexcept {
+  return static_cast<double>(drawGuestRandom(state) >> 11) * kUnitScale;
+}
+
+double drawBetween(std::uint64_t &state, double low, double high) noexcept {
+  return low + (high - low) * unitDraw(state);
+}
+
+std::uint64_t drawBounded(std::uint64_t &state,
+                          std::uint64_t bound) noexcept {
+  if (bound <= 1)
+    return 0;
+  const auto threshold = static_cast<std::uint64_t>(-bound) % bound;
+  for (;;) {
+    const auto value = drawGuestRandom(state);
+    if (value >= threshold)
+      return value % bound;
+  }
+}
+
+bool isUnit(double value) noexcept {
+  return std::isfinite(value) && value >= 0.0 && value <= 1.0;
+}
+
+bool validPurpose(GuestTravelPurpose value) noexcept {
+  return static_cast<std::size_t>(value) <
+         static_cast<std::size_t>(GuestTravelPurpose::Count);
+}
+
+bool validWealth(GuestWealthBand value) noexcept {
+  return static_cast<std::size_t>(value) <
+         static_cast<std::size_t>(GuestWealthBand::Count);
+}
+
+GuestSensitivityProfile sensitivities(double price, double service,
+                                      double cleanliness, double noise,
+                                      double privacy, double safety,
+                                      double comfort, double food) {
+  return {price, service, cleanliness, noise, privacy, safety, comfort, food};
+}
+
+bool finiteSensitivity(const GuestSensitivityProfile &s) noexcept {
+  return isUnit(s.price) && isUnit(s.service) && isUnit(s.cleanliness) &&
+         isUnit(s.noise) && isUnit(s.privacy) && isUnit(s.safety) &&
+         isUnit(s.comfort) && isUnit(s.food);
+}
+
+bool traitHasEffect(const GuestTraitEffects &e) noexcept {
+  const auto nonzero = [](double value) { return value != 0.0; };
+  if (nonzero(e.sensitivityDelta.price) ||
+      nonzero(e.sensitivityDelta.service) ||
+      nonzero(e.sensitivityDelta.cleanliness) ||
+      nonzero(e.sensitivityDelta.noise) ||
+      nonzero(e.sensitivityDelta.privacy) ||
+      nonzero(e.sensitivityDelta.safety) ||
+      nonzero(e.sensitivityDelta.comfort) ||
+      nonzero(e.sensitivityDelta.food) || nonzero(e.patienceDelta) ||
+      nonzero(e.socialPreferenceDelta) || e.queueToleranceMultiplier != 1.0 ||
+      e.negativeMemoryReviewWeightMultiplier != 1.0 ||
+      e.lightSleepModifier != 1.0 || e.hygieneDecayMultiplier != 1.0 ||
+      nonzero(e.complaintThresholdDelta) ||
+      nonzero(e.morningPreferenceDelta) ||
+      nonzero(e.eveningPreferenceDelta))
+    return true;
+  for (const auto value : e.activityPreferenceDelta)
+    if (nonzero(value))
+      return true;
+  for (const auto value : e.roomPreferenceDelta)
+    if (nonzero(value))
+      return true;
+  for (const auto value : e.expectationDelta)
+    if (nonzero(value))
+      return true;
+  return false;
+}
+
+template <std::size_t N>
+void addAndClamp(std::array<double, N> &values,
+                 const std::array<double, N> &delta, double low, double high) {
+  for (std::size_t i = 0; i < N; ++i)
+    values[i] = std::clamp(values[i] + delta[i], low, high);
+}
+
+void addAndClamp(GuestSensitivityProfile &value,
+                 const GuestSensitivityProfile &delta) {
+  value.price = std::clamp(value.price + delta.price, 0.0, 1.0);
+  value.service = std::clamp(value.service + delta.service, 0.0, 1.0);
+  value.cleanliness =
+      std::clamp(value.cleanliness + delta.cleanliness, 0.0, 1.0);
+  value.noise = std::clamp(value.noise + delta.noise, 0.0, 1.0);
+  value.privacy = std::clamp(value.privacy + delta.privacy, 0.0, 1.0);
+  value.safety = std::clamp(value.safety + delta.safety, 0.0, 1.0);
+  value.comfort = std::clamp(value.comfort + delta.comfort, 0.0, 1.0);
+  value.food = std::clamp(value.food + delta.food, 0.0, 1.0);
+}
+
+void setActivity(GuestArchetypeDefinition &definition,
+                 GuestActivityPreference preference, double value) {
+  definition.activityPreferenceMean[static_cast<std::size_t>(preference)] =
+      value;
+}
+
+void setRoom(GuestArchetypeDefinition &definition,
+             GuestRoomPreference preference, double value) {
+  definition.roomPreferenceMean[static_cast<std::size_t>(preference)] = value;
+}
+
+void setExpectation(GuestArchetypeDefinition &definition,
+                    GuestCategory category, double value) {
+  definition.expectationMean[static_cast<std::size_t>(category)] = value;
+}
+
+} // namespace
+
+std::uint64_t deriveGuestRandomState(std::uint64_t simulationSeed,
+                                     GuestId guestId) noexcept {
+  auto state = mix(simulationSeed ^ mix(guestId ^ 0xd1b54a32d192ed03ULL) ^
+                   0xa0761d6478bd642fULL);
+  return state == 0 ? kIncrement : state;
+}
+
+std::uint64_t drawGuestRandom(std::uint64_t &state) noexcept {
+  state += kIncrement;
+  return mix(state);
+}
+
+GuestModelDefinitions defaultGuestModelDefinitions() {
+  GuestModelDefinitions definitions;
+  const auto define = [&](GuestArchetype archetype, GuestTravelPurpose purpose,
+                          GuestWealthBand wealth, std::int64_t budget,
+                          GuestSensitivityProfile sensitivity,
+                          double patience, double social, double childChance,
+                          double teenChance, double seniorChance) {
+    auto &entry =
+        definitions.archetypes[static_cast<std::size_t>(archetype)];
+    entry.archetype = archetype;
+    entry.weight = 1.0;
+    entry.travelPurpose = purpose;
+    entry.wealthBand = wealth;
+    entry.budgetPerNightCents = budget;
+    entry.budgetSpread = 0.20;
+    entry.childProbability = childChance;
+    entry.teenProbability = teenChance;
+    entry.seniorProbability = seniorChance;
+    entry.meanSensitivities = sensitivity;
+    entry.meanPatience = patience;
+    entry.meanSocialPreference = social;
+    entry.activityPreferenceMean.fill(0.30);
+    entry.roomPreferenceMean.fill(0.35);
+    entry.expectationMean.fill(70.0);
+  };
+
+  define(GuestArchetype::BudgetLeisure, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Budget, 7000,
+         sensitivities(0.82, 0.48, 0.62, 0.42, 0.28, 0.46, 0.45, 0.40),
+         0.55, 0.42, 0.0, 0.04, 0.08);
+  define(GuestArchetype::Backpacker, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Budget, 4000,
+         sensitivities(0.90, 0.36, 0.44, 0.35, 0.22, 0.38, 0.35, 0.34),
+         0.62, 0.72, 0.0, 0.08, 0.02);
+  define(GuestArchetype::BusinessTraveler, GuestTravelPurpose::Business,
+         GuestWealthBand::Standard, 15000,
+         sensitivities(0.45, 0.75, 0.80, 0.85, 0.48, 0.60, 0.66, 0.55),
+         0.45, 0.38, 0.0, 0.01, 0.12);
+  define(GuestArchetype::ExecutiveBusiness, GuestTravelPurpose::Business,
+         GuestWealthBand::Affluent, 30000,
+         sensitivities(0.26, 0.91, 0.90, 0.90, 0.74, 0.79, 0.86, 0.72),
+         0.50, 0.35, 0.0, 0.0, 0.16);
+  define(GuestArchetype::CoupleLeisure, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Standard, 12000,
+         sensitivities(0.48, 0.60, 0.66, 0.72, 0.46, 0.55, 0.74, 0.60),
+         0.58, 0.58, 0.0, 0.0, 0.08);
+  define(GuestArchetype::FamilyLeisure, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Standard, 16000,
+         sensitivities(0.60, 0.62, 0.74, 0.52, 0.38, 0.72, 0.66, 0.68),
+         0.68, 0.62, 0.28, 0.08, 0.04);
+  define(GuestArchetype::LuxuryLeisure, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Luxury, 45000,
+         sensitivities(0.18, 0.90, 0.88, 0.84, 0.62, 0.68, 0.92, 0.72),
+         0.48, 0.44, 0.0, 0.0, 0.10);
+  define(GuestArchetype::ConferenceDelegate, GuestTravelPurpose::Conference,
+         GuestWealthBand::Standard, 13000,
+         sensitivities(0.52, 0.72, 0.72, 0.72, 0.44, 0.56, 0.58, 0.48),
+         0.42, 0.56, 0.0, 0.0, 0.08);
+  define(GuestArchetype::GroupTourTraveler, GuestTravelPurpose::Group,
+         GuestWealthBand::Budget, 8000,
+         sensitivities(0.70, 0.52, 0.56, 0.42, 0.28, 0.54, 0.50, 0.48),
+         0.72, 0.78, 0.08, 0.06, 0.06);
+  define(GuestArchetype::AirportTransitTraveler, GuestTravelPurpose::Transit,
+         GuestWealthBand::Standard, 7000,
+         sensitivities(0.66, 0.68, 0.64, 0.76, 0.42, 0.56, 0.54, 0.44),
+         0.36, 0.30, 0.0, 0.0, 0.05);
+  define(GuestArchetype::WellnessTraveler, GuestTravelPurpose::Wellness,
+         GuestWealthBand::Affluent, 20000,
+         sensitivities(0.34, 0.70, 0.82, 0.90, 0.60, 0.65, 0.92, 0.66),
+         0.62, 0.46, 0.0, 0.0, 0.18);
+  define(GuestArchetype::VipCelebrity, GuestTravelPurpose::Leisure,
+         GuestWealthBand::Luxury, 80000,
+         sensitivities(0.12, 0.96, 0.91, 0.86, 0.98, 0.96, 0.90, 0.68),
+         0.42, 0.28, 0.0, 0.0, 0.08);
+  define(GuestArchetype::CriticReviewer, GuestTravelPurpose::Review,
+         GuestWealthBand::Affluent, 12000,
+         sensitivities(0.36, 0.94, 0.96, 0.91, 0.58, 0.74, 0.78, 0.84),
+         0.40, 0.42, 0.0, 0.0, 0.10);
+
+  auto &budget = definitions.archetypes[0];
+  setActivity(budget, GuestActivityPreference::Breakfast, 0.62);
+  setRoom(budget, GuestRoomPreference::Single, 0.66);
+  setExpectation(budget, GuestCategory::Value, 78.0);
+  setExpectation(budget, GuestCategory::Room, 62.0);
+
+  auto &backpacker = definitions.archetypes[1];
+  setActivity(backpacker, GuestActivityPreference::Social, 0.82);
+  setRoom(backpacker, GuestRoomPreference::Single, 0.78);
+  setExpectation(backpacker, GuestCategory::Value, 80.0);
+  setExpectation(backpacker, GuestCategory::Room, 60.0);
+
+  auto &business = definitions.archetypes[2];
+  setActivity(business, GuestActivityPreference::Wifi, 0.95);
+  setActivity(business, GuestActivityPreference::Desk, 0.80);
+  setActivity(business, GuestActivityPreference::Breakfast, 0.70);
+  setActivity(business, GuestActivityPreference::Spa, 0.10);
+  setActivity(business, GuestActivityPreference::Pool, 0.15);
+  setExpectation(business, GuestCategory::Service, 77.0);
+  setExpectation(business, GuestCategory::Quiet, 82.0);
+
+  auto &executive = definitions.archetypes[3];
+  setActivity(executive, GuestActivityPreference::Wifi, 0.98);
+  setActivity(executive, GuestActivityPreference::Desk, 0.92);
+  setActivity(executive, GuestActivityPreference::Breakfast, 0.78);
+  setRoom(executive, GuestRoomPreference::Suite, 0.72);
+  setExpectation(executive, GuestCategory::Room, 84.0);
+  setExpectation(executive, GuestCategory::Service, 88.0);
+  setExpectation(executive, GuestCategory::Value, 74.0);
+
+  auto &couple = definitions.archetypes[4];
+  setActivity(couple, GuestActivityPreference::Spa, 0.70);
+  setActivity(couple, GuestActivityPreference::Social, 0.64);
+  setActivity(couple, GuestActivityPreference::Event, 0.58);
+  setRoom(couple, GuestRoomPreference::Double, 0.84);
+  setRoom(couple, GuestRoomPreference::Quiet, 0.62);
+  setExpectation(couple, GuestCategory::Amenities, 78.0);
+
+  auto &family = definitions.archetypes[5];
+  setActivity(family, GuestActivityPreference::Pool, 0.84);
+  setActivity(family, GuestActivityPreference::Breakfast, 0.78);
+  setActivity(family, GuestActivityPreference::Event, 0.68);
+  setRoom(family, GuestRoomPreference::Double, 0.90);
+  setRoom(family, GuestRoomPreference::Accessible, 0.40);
+  setExpectation(family, GuestCategory::Safety, 82.0);
+  setExpectation(family, GuestCategory::Amenities, 76.0);
+
+  auto &luxury = definitions.archetypes[6];
+  setActivity(luxury, GuestActivityPreference::Spa, 0.86);
+  setActivity(luxury, GuestActivityPreference::Pool, 0.62);
+  setActivity(luxury, GuestActivityPreference::Breakfast, 0.72);
+  setRoom(luxury, GuestRoomPreference::Suite, 0.90);
+  setRoom(luxury, GuestRoomPreference::HighFloor, 0.64);
+  setExpectation(luxury, GuestCategory::Room, 90.0);
+  setExpectation(luxury, GuestCategory::Service, 88.0);
+  setExpectation(luxury, GuestCategory::Value, 68.0);
+
+  auto &conference = definitions.archetypes[7];
+  setActivity(conference, GuestActivityPreference::Wifi, 0.90);
+  setActivity(conference, GuestActivityPreference::Work, 0.76);
+  setActivity(conference, GuestActivityPreference::Event, 0.78);
+  setRoom(conference, GuestRoomPreference::Single, 0.64);
+  setExpectation(conference, GuestCategory::Convenience, 82.0);
+
+  auto &group = definitions.archetypes[8];
+  setActivity(group, GuestActivityPreference::Social, 0.88);
+  setActivity(group, GuestActivityPreference::Event, 0.78);
+  setRoom(group, GuestRoomPreference::Double, 0.68);
+  setExpectation(group, GuestCategory::Convenience, 76.0);
+
+  auto &transit = definitions.archetypes[9];
+  setActivity(transit, GuestActivityPreference::Wifi, 0.72);
+  setRoom(transit, GuestRoomPreference::Quiet, 0.78);
+  setExpectation(transit, GuestCategory::Convenience, 84.0);
+  setExpectation(transit, GuestCategory::ArrivalDeparture, 84.0);
+
+  auto &wellness = definitions.archetypes[10];
+  setActivity(wellness, GuestActivityPreference::Spa, 0.94);
+  setActivity(wellness, GuestActivityPreference::Fitness, 0.88);
+  setActivity(wellness, GuestActivityPreference::Pool, 0.72);
+  setRoom(wellness, GuestRoomPreference::Quiet, 0.88);
+  setExpectation(wellness, GuestCategory::Cleanliness, 86.0);
+  setExpectation(wellness, GuestCategory::Quiet, 88.0);
+
+  auto &vip = definitions.archetypes[11];
+  setActivity(vip, GuestActivityPreference::Spa, 0.80);
+  setRoom(vip, GuestRoomPreference::Suite, 0.96);
+  setRoom(vip, GuestRoomPreference::Quiet, 0.92);
+  setRoom(vip, GuestRoomPreference::HighFloor, 0.72);
+  setExpectation(vip, GuestCategory::Service, 94.0);
+  setExpectation(vip, GuestCategory::Quiet, 88.0);
+  setExpectation(vip, GuestCategory::Safety, 92.0);
+
+  auto &critic = definitions.archetypes[12];
+  setActivity(critic, GuestActivityPreference::Breakfast, 0.78);
+  setActivity(critic, GuestActivityPreference::Wifi, 0.72);
+  setExpectation(critic, GuestCategory::Room, 82.0);
+  setExpectation(critic, GuestCategory::Cleanliness, 90.0);
+  setExpectation(critic, GuestCategory::Service, 88.0);
+
+  const auto setTrait = [&](GuestTrait trait, GuestTraitEffects effects) {
+    definitions.traits[static_cast<std::size_t>(trait)] = {trait, effects};
+  };
+  {
+    GuestTraitEffects e;
+    e.patienceDelta = 0.18;
+    e.queueToleranceMultiplier = 1.40;
+    setTrait(GuestTrait::Patient, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.patienceDelta = -0.18;
+    e.queueToleranceMultiplier = 0.65;
+    setTrait(GuestTrait::Impatient, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.sensitivityDelta.cleanliness = 0.10;
+    e.hygieneDecayMultiplier = 0.85;
+    setTrait(GuestTrait::Neat, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.sensitivityDelta.cleanliness = -0.10;
+    e.hygieneDecayMultiplier = 1.20;
+    setTrait(GuestTrait::Messy, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.lightSleepModifier = 1.50;
+    e.sensitivityDelta.noise = 0.10;
+    setTrait(GuestTrait::LightSleeper, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.lightSleepModifier = 0.50;
+    e.sensitivityDelta.noise = -0.10;
+    setTrait(GuestTrait::HeavySleeper, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.sensitivityDelta.food = 0.15;
+    e.activityPreferenceDelta[static_cast<std::size_t>(
+        GuestActivityPreference::Breakfast)] = 0.15;
+    setTrait(GuestTrait::Foodie, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.activityPreferenceDelta[static_cast<std::size_t>(
+        GuestActivityPreference::Work)] = 0.20;
+    setTrait(GuestTrait::Workaholic, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.socialPreferenceDelta = 0.18;
+    e.activityPreferenceDelta[static_cast<std::size_t>(
+        GuestActivityPreference::Social)] = 0.20;
+    setTrait(GuestTrait::Social, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.socialPreferenceDelta = -0.16;
+    e.sensitivityDelta.privacy = 0.15;
+    setTrait(GuestTrait::Private, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.sensitivityDelta.price = 0.18;
+    e.expectationDelta[static_cast<std::size_t>(GuestCategory::Value)] = 6.0;
+    setTrait(GuestTrait::Frugal, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.expectationDelta[static_cast<std::size_t>(GuestCategory::Room)] = 7.0;
+    e.expectationDelta[static_cast<std::size_t>(GuestCategory::Service)] = 6.0;
+    e.roomPreferenceDelta[static_cast<std::size_t>(
+        GuestRoomPreference::Suite)] = 0.20;
+    setTrait(GuestTrait::StatusConscious, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.activityPreferenceDelta[static_cast<std::size_t>(
+        GuestActivityPreference::Fitness)] = 0.25;
+    setTrait(GuestTrait::FitnessFocused, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.morningPreferenceDelta = 0.25;
+    setTrait(GuestTrait::EarlyRiser, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.eveningPreferenceDelta = 0.25;
+    setTrait(GuestTrait::NightOwl, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.complaintThresholdDelta = -10.0;
+    setTrait(GuestTrait::ComplaintProne, e);
+  }
+  {
+    GuestTraitEffects e;
+    e.negativeMemoryReviewWeightMultiplier = 0.80;
+    setTrait(GuestTrait::Forgiving, e);
+  }
+
+  definitions.categoryWeights = {0.28, 0.16, 0.24, 0.10, 0.08,
+                                 0.08, 0.06, 0.05, 0.03};
+  return definitions;
+}
+
+bool validateGuestModelDefinitions(const GuestModelDefinitions &definitions,
+                                   std::string *error) {
+  if (error)
+    error->clear();
+  const auto fail = [&](const char *message) {
+    if (error)
+      *error = message;
+    return false;
+  };
+
+  std::array<bool, GuestArchetypeCount> archetypesSeen{};
+  double totalArchetypeWeight = 0.0;
+  for (const auto &entry : definitions.archetypes) {
+    const auto index = static_cast<std::size_t>(entry.archetype);
+    if (index >= GuestArchetypeCount || archetypesSeen[index])
+      return fail("guest archetype definitions are missing or duplicated");
+    archetypesSeen[index] = true;
+    if (!std::isfinite(entry.weight) || entry.weight < 0.0)
+      return fail("guest archetype weight must be finite and nonnegative");
+    totalArchetypeWeight += entry.weight;
+    if (!validPurpose(entry.travelPurpose) || !validWealth(entry.wealthBand))
+      return fail("guest archetype purpose or wealth band is unknown");
+    if (entry.budgetPerNightCents <= 0 ||
+        entry.budgetPerNightCents >
+            std::numeric_limits<std::int64_t>::max() / 2 ||
+        !std::isfinite(entry.budgetSpread) || entry.budgetSpread < 0.0 ||
+        entry.budgetSpread > 0.75)
+      return fail("guest archetype budget or spread is out of range");
+    if (!isUnit(entry.childProbability) || !isUnit(entry.teenProbability) ||
+        !isUnit(entry.seniorProbability) ||
+        entry.childProbability + entry.teenProbability +
+                entry.seniorProbability >
+            1.0)
+      return fail("guest archetype age probabilities are invalid");
+    if (!finiteSensitivity(entry.meanSensitivities) ||
+        !isUnit(entry.meanPatience) || !isUnit(entry.meanSocialPreference))
+      return fail("guest archetype profile means are invalid");
+    for (const auto value : entry.activityPreferenceMean)
+      if (!isUnit(value))
+        return fail("guest activity preference is outside 0..1");
+    for (const auto value : entry.roomPreferenceMean)
+      if (!isUnit(value))
+        return fail("guest room preference is outside 0..1");
+    for (const auto value : entry.expectationMean)
+      if (!std::isfinite(value) || value < 0.0 || value > 100.0)
+        return fail("guest expectation is outside 0..100");
+  }
+  for (const bool seen : archetypesSeen)
+    if (!seen)
+      return fail("guest archetype definitions are incomplete");
+  if (!std::isfinite(totalArchetypeWeight) || totalArchetypeWeight <= 0.0)
+    return fail("guest archetype weights must have a positive finite sum");
+
+  std::array<bool, GuestTraitCount> traitsSeen{};
+  for (std::size_t i = 0; i < definitions.traits.size(); ++i) {
+    const auto &definition = definitions.traits[i];
+    const auto index = static_cast<std::size_t>(definition.trait);
+    if (index >= GuestTraitCount || index != i || traitsSeen[index])
+      return fail("guest trait definitions are missing or duplicated");
+    traitsSeen[index] = true;
+    const auto &e = definition.effects;
+    const auto finiteBounded = [](double value, double bound) {
+      return std::isfinite(value) && std::abs(value) <= bound;
+    };
+    if (!finiteBounded(e.sensitivityDelta.price, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.service, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.cleanliness, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.noise, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.privacy, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.safety, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.comfort, 1.0) ||
+        !finiteBounded(e.sensitivityDelta.food, 1.0) ||
+        !finiteBounded(e.patienceDelta, 1.0) ||
+        !finiteBounded(e.socialPreferenceDelta, 1.0) ||
+        !std::isfinite(e.queueToleranceMultiplier) ||
+        e.queueToleranceMultiplier < 0.0 ||
+        e.queueToleranceMultiplier > 4.0 ||
+        !std::isfinite(e.negativeMemoryReviewWeightMultiplier) ||
+        e.negativeMemoryReviewWeightMultiplier < 0.0 ||
+        e.negativeMemoryReviewWeightMultiplier > 4.0 ||
+        !std::isfinite(e.lightSleepModifier) || e.lightSleepModifier < 0.0 ||
+        e.lightSleepModifier > 4.0 ||
+        !std::isfinite(e.hygieneDecayMultiplier) ||
+        e.hygieneDecayMultiplier < 0.0 || e.hygieneDecayMultiplier > 4.0 ||
+        !finiteBounded(e.complaintThresholdDelta, 100.0) ||
+        !finiteBounded(e.morningPreferenceDelta, 1.0) ||
+        !finiteBounded(e.eveningPreferenceDelta, 1.0))
+      return fail("guest trait contains an invalid numeric modifier");
+    for (const auto value : e.activityPreferenceDelta)
+      if (!finiteBounded(value, 1.0))
+        return fail("guest trait activity modifier is out of range");
+    for (const auto value : e.roomPreferenceDelta)
+      if (!finiteBounded(value, 1.0))
+        return fail("guest trait room modifier is out of range");
+    for (const auto value : e.expectationDelta)
+      if (!finiteBounded(value, 100.0))
+        return fail("guest trait expectation modifier is out of range");
+    if (!traitHasEffect(e))
+      return fail("every guest trait must have a numeric effect");
+  }
+  for (const bool seen : traitsSeen)
+    if (!seen)
+      return fail("guest trait definitions are incomplete");
+
+  bool hasPositiveCategoryWeight = false;
+  for (const auto weight : definitions.categoryWeights) {
+    if (!std::isfinite(weight) || weight < 0.0)
+      return fail("guest category weight must be finite and nonnegative");
+    hasPositiveCategoryWeight |= weight > 0.0;
+  }
+  if (!hasPositiveCategoryWeight)
+    return fail("guest category weights must include a positive weight");
+  return true;
+}
+
+GuestProfile generateGuestProfile(std::uint64_t simulationSeed, GuestId guestId,
+                                  const GuestModelDefinitions &definitions) {
+  std::string error;
+  if (!validateGuestModelDefinitions(definitions, &error))
+    throw std::invalid_argument(error);
+  if (guestId == 0)
+    throw std::invalid_argument("guest id must be nonzero");
+
+  GuestProfile profile;
+  profile.id = guestId;
+  auto state = deriveGuestRandomState(simulationSeed, guestId);
+
+  double totalWeight = 0.0;
+  for (const auto &entry : definitions.archetypes)
+    totalWeight += entry.weight;
+  const double roll = unitDraw(state) * totalWeight;
+  double cumulative = 0.0;
+  const GuestArchetypeDefinition *selected = nullptr;
+  for (const auto &entry : definitions.archetypes) {
+    cumulative += entry.weight;
+    if (entry.weight > 0.0 && roll < cumulative) {
+      selected = &entry;
+      break;
+    }
+  }
+  if (!selected) {
+    for (auto it = definitions.archetypes.rbegin();
+         it != definitions.archetypes.rend(); ++it) {
+      if (it->weight > 0.0) {
+        selected = &*it;
+        break;
+      }
+    }
+  }
+  if (!selected)
+    throw std::logic_error("validated guest archetype distribution is empty");
+
+  profile.archetype = selected->archetype;
+  profile.travelPurpose = selected->travelPurpose;
+  profile.wealthBand = selected->wealthBand;
+  const long double budget =
+      static_cast<long double>(selected->budgetPerNightCents) *
+      (1.0 + drawBetween(state, -selected->budgetSpread,
+                         selected->budgetSpread));
+  profile.budgetPerNightCents = static_cast<std::int64_t>(std::clamp(
+      std::round(budget), 1.0L,
+      static_cast<long double>(std::numeric_limits<std::int64_t>::max())));
+
+  const double ageRoll = unitDraw(state);
+  if (ageRoll < selected->childProbability)
+    profile.ageBand = GuestAgeBand::Child;
+  else if (ageRoll < selected->childProbability + selected->teenProbability)
+    profile.ageBand = GuestAgeBand::Teen;
+  else if (ageRoll < selected->childProbability + selected->teenProbability +
+                         selected->seniorProbability)
+    profile.ageBand = GuestAgeBand::Senior;
+  else
+    profile.ageBand = GuestAgeBand::Adult;
+
+  const auto varyUnit = [&](double mean, double radius) {
+    return std::clamp(drawBetween(state, mean - radius, mean + radius), 0.0,
+                      1.0);
+  };
+  profile.sensitivities = {
+      varyUnit(selected->meanSensitivities.price, 0.08),
+      varyUnit(selected->meanSensitivities.service, 0.08),
+      varyUnit(selected->meanSensitivities.cleanliness, 0.08),
+      varyUnit(selected->meanSensitivities.noise, 0.08),
+      varyUnit(selected->meanSensitivities.privacy, 0.08),
+      varyUnit(selected->meanSensitivities.safety, 0.08),
+      varyUnit(selected->meanSensitivities.comfort, 0.08),
+      varyUnit(selected->meanSensitivities.food, 0.08)};
+  profile.patience = varyUnit(selected->meanPatience, 0.10);
+  profile.socialPreference = varyUnit(selected->meanSocialPreference, 0.10);
+  for (std::size_t i = 0; i < GuestActivityPreferenceCount; ++i)
+    profile.activityPreferences[i] =
+        varyUnit(selected->activityPreferenceMean[i], 0.12);
+  for (std::size_t i = 0; i < GuestRoomPreferenceCount; ++i)
+    profile.roomPreferences[i] =
+        varyUnit(selected->roomPreferenceMean[i], 0.12);
+  for (std::size_t i = 0; i < GuestCategoryCount; ++i)
+    profile.expectations[i] = std::clamp(
+        drawBetween(state, selected->expectationMean[i] - 3.0,
+                    selected->expectationMean[i] + 3.0),
+        0.0, 100.0);
+
+  std::array<std::size_t, GuestTraitCount> traitOrder{};
+  std::iota(traitOrder.begin(), traitOrder.end(), 0);
+  if (profile.ageBand == GuestAgeBand::Adult ||
+      profile.ageBand == GuestAgeBand::Senior) {
+    const auto traitCount = static_cast<std::size_t>(drawBounded(state, 4));
+    profile.traits.reserve(traitCount);
+    for (std::size_t i = 0; i < traitCount; ++i) {
+      const auto index = i + static_cast<std::size_t>(
+                                  drawBounded(state, GuestTraitCount - i));
+      std::swap(traitOrder[i], traitOrder[index]);
+      const auto traitIndex = traitOrder[i];
+      profile.traits.push_back(static_cast<GuestTrait>(traitIndex));
+      const auto &e = definitions.traits[traitIndex].effects;
+      addAndClamp(profile.sensitivities, e.sensitivityDelta);
+      profile.patience =
+          std::clamp(profile.patience + e.patienceDelta, 0.0, 1.0);
+      profile.socialPreference =
+          std::clamp(profile.socialPreference + e.socialPreferenceDelta, 0.0,
+                     1.0);
+      addAndClamp(profile.activityPreferences, e.activityPreferenceDelta, 0.0,
+                  1.0);
+      addAndClamp(profile.roomPreferences, e.roomPreferenceDelta, 0.0, 1.0);
+      addAndClamp(profile.expectations, e.expectationDelta, 0.0, 100.0);
+      profile.queueToleranceMultiplier = std::clamp(
+          profile.queueToleranceMultiplier * e.queueToleranceMultiplier, 0.0,
+          16.0);
+      profile.negativeMemoryReviewWeightMultiplier = std::clamp(
+          profile.negativeMemoryReviewWeightMultiplier *
+              e.negativeMemoryReviewWeightMultiplier,
+          0.0, 16.0);
+      profile.lightSleepModifier =
+          std::clamp(profile.lightSleepModifier * e.lightSleepModifier, 0.0,
+                     16.0);
+      profile.hygieneDecayMultiplier =
+          std::clamp(profile.hygieneDecayMultiplier * e.hygieneDecayMultiplier,
+                     0.0, 16.0);
+      profile.complaintThresholdDelta =
+          std::clamp(profile.complaintThresholdDelta + e.complaintThresholdDelta,
+                     -100.0, 100.0);
+      profile.morningPreference =
+          std::clamp(profile.morningPreference + e.morningPreferenceDelta, -1.0,
+                     1.0);
+      profile.eveningPreference =
+          std::clamp(profile.eveningPreference + e.eveningPreferenceDelta, -1.0,
+                     1.0);
+    }
+  }
+
+  profile.randomState = state;
+  return profile;
+}
+
+} // namespace hh::game
