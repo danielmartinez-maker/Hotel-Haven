@@ -98,25 +98,39 @@ std::string asLegacyV9(std::string data) {
   require(lineIndex < lines.size(), "legacy review section is missing");
   const auto reviewCount =
       static_cast<std::size_t>(std::stoull(lines[lineIndex]));
+  std::size_t reviewDataOffset{};
+  for (std::size_t index = 0; index <= lineIndex; ++index)
+    reviewDataOffset += lines[index].size() + 1;
+  std::istringstream reviewInput(base.substr(reviewDataOffset));
+  std::vector<std::string> oldReviews;
+  oldReviews.reserve(reviewCount);
   for (std::size_t index = 0; index < reviewCount; ++index) {
-    std::istringstream reviewLine(lines[lineIndex + 1 + index]);
     EntityId reservationId{};
     int day{}, score{};
     double rating{}, satisfaction{};
     std::string reviewText;
-    reviewLine >> reservationId >> day >> score >> rating >> satisfaction >>
+    reviewInput >> reservationId >> day >> score >> rating >> satisfaction >>
         std::quoted(reviewText);
-    if (!reviewLine)
-      throw std::runtime_error("v10 review row could not be downgraded: " +
-                               lines[lineIndex + 1 + index]);
+    if (!reviewInput)
+      throw std::runtime_error("v10 review row could not be downgraded");
     std::ostringstream oldReview;
     oldReview << reservationId << ' ' << day << ' ' << score << ' '
               << std::quoted(reviewText);
-    lines[lineIndex + 1 + index] = oldReview.str();
+    oldReviews.push_back(oldReview.str());
   }
+  reviewInput >> std::ws;
+  const auto remainingOffset = reviewInput.tellg();
+  const auto remainder = remainingOffset < 0
+                             ? std::string{}
+                             : base.substr(reviewDataOffset +
+                                           static_cast<std::size_t>(remainingOffset));
   std::ostringstream oldBase;
-  for (const auto &line : lines)
-    oldBase << line << '\n';
+  for (std::size_t index = 0; index < lineIndex; ++index)
+    oldBase << lines[index] << '\n';
+  oldBase << reviewCount << '\n';
+  for (const auto &review : oldReviews)
+    oldBase << review << '\n';
+  oldBase << remainder;
   oldBase << data.substr(serviceStart, extensionStart - serviceStart);
   return oldBase.str();
 }
