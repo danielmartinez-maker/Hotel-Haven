@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -54,11 +57,84 @@ std::string legacyFixture(int version) {
       data.resize(finalSection);
     }
   } else {
-    const auto guestSection = data.find("GUEST9 ");
+    const auto guestSection = data.find("GUEST10 ");
     if (guestSection != std::string::npos)
       data.resize(guestSection);
   }
   return data;
+}
+
+std::string asLegacyV9(std::string data) {
+  const auto headerEnd = data.find('\n');
+  auto header = data.substr(0, headerEnd);
+  const auto versionStart = header.find(' ') + 1;
+  const auto versionEnd = header.find(' ', versionStart);
+  header.replace(versionStart, versionEnd - versionStart, "9");
+  data.replace(0, headerEnd, header);
+
+  const auto serviceStart = data.find("FINAL04 ");
+  require(serviceStart != std::string::npos,
+          "v10 save has no service section for legacy review fixture");
+  const auto extensionStart = data.find("GUEST10 ", serviceStart);
+  require(extensionStart != std::string::npos,
+          "v10 save has no guest section for legacy review fixture");
+  auto base = data.substr(0, serviceStart);
+  std::vector<std::string> lines;
+  std::istringstream lineInput(base);
+  for (std::string line; std::getline(lineInput, line);)
+    lines.push_back(std::move(line));
+  std::size_t lineIndex = 5;
+  const auto skipSection = [&](std::size_t &index) {
+    require(index < lines.size(), "legacy review fixture ended early");
+    const auto count = static_cast<std::size_t>(std::stoull(lines[index]));
+    require(count <= lines.size() - index - 1,
+            "legacy review fixture section is truncated");
+    index += count + 1;
+  };
+  skipSection(lineIndex); // Rooms.
+  skipSection(lineIndex); // People.
+  skipSection(lineIndex); // Reservations.
+  skipSection(lineIndex); // Tasks.
+  require(lineIndex < lines.size(), "legacy review section is missing");
+  const auto reviewCount =
+      static_cast<std::size_t>(std::stoull(lines[lineIndex]));
+  for (std::size_t index = 0; index < reviewCount; ++index) {
+    std::istringstream reviewLine(lines[lineIndex + 1 + index]);
+    EntityId reservationId{};
+    int day{}, score{};
+    double rating{}, satisfaction{};
+    std::string reviewText;
+    reviewLine >> reservationId >> day >> score >> rating >> satisfaction >>
+        std::quoted(reviewText);
+    require(static_cast<bool>(reviewLine),
+            "v10 review row could not be downgraded");
+    std::ostringstream oldReview;
+    oldReview << reservationId << ' ' << day << ' ' << score << ' '
+              << std::quoted(reviewText);
+    lines[lineIndex + 1 + index] = oldReview.str();
+  }
+  std::ostringstream oldBase;
+  for (const auto &line : lines)
+    oldBase << line << '\n';
+  oldBase << data.substr(serviceStart, extensionStart - serviceStart);
+  return oldBase.str();
+}
+
+void adjustGuestPayloadLength(std::string &data, std::ptrdiff_t delta) {
+  const auto marker = data.find("GUEST10 ");
+  require(marker != std::string::npos, "v10 guest section was not emitted");
+  const auto lineEnd = data.find('\n', marker);
+  std::istringstream sectionHeader(data.substr(marker, lineEnd - marker));
+  std::string tag;
+  int version{};
+  std::size_t size{};
+  sectionHeader >> tag >> version >> size;
+  require(static_cast<bool>(sectionHeader) && tag == "GUEST10" && version == 1,
+          "v10 guest section header is invalid");
+  const auto replacement = std::string("GUEST10 1 ") +
+                           std::to_string(static_cast<std::size_t>(
+                               static_cast<std::ptrdiff_t>(size) + delta));
+  data.replace(marker, lineEnd - marker, replacement);
 }
 
 Simulation groupHotel(std::uint64_t seed) {
@@ -146,7 +222,12 @@ void corrupt_guest_references_are_rejected() {
   const auto firstSpace = data.find(' ', firstGuest);
   require(firstSpace != std::string::npos,
           "v10 guest record metadata is missing");
-  data.replace(firstGuest, firstSpace - firstGuest, "18446744073709551614");
+  const auto previousId = data.substr(firstGuest, firstSpace - firstGuest);
+  const std::string unknownId = "1";
+  data.replace(firstGuest, firstSpace - firstGuest, unknownId);
+  adjustGuestPayloadLength(data,
+                           static_cast<std::ptrdiff_t>(unknownId.size()) -
+                               static_cast<std::ptrdiff_t>(previousId.size()));
   bool rejected = false;
   try {
     (void)Simulation::load(data);
@@ -163,7 +244,11 @@ void guest_collection_limits_are_enforced() {
           "v10 guest section was not emitted");
   const auto payloadStart = data.find('\n', payload) + 1;
   const auto countEnd = data.find('\n', payloadStart);
+  const auto previousCount = data.substr(payloadStart, countEnd - payloadStart);
   data.replace(payloadStart, countEnd - payloadStart, "100001");
+  adjustGuestPayloadLength(
+      data, static_cast<std::ptrdiff_t>(std::string("100001").size()) -
+                static_cast<std::ptrdiff_t>(previousCount.size()));
   bool rejected = false;
   try {
     (void)Simulation::load(data);
@@ -181,11 +266,7 @@ void legacy_review_scores_migrate_to_hmg_rating() {
     auto view = simulation.view();
     if (view.reviews.empty())
       continue;
-    auto legacy = simulation.save();
-    const auto guestSection = legacy.find("GUEST10 ");
-    require(guestSection != std::string::npos,
-            "v10 save has no length-bounded guest section");
-    legacy.resize(guestSection);
+    auto legacy = asLegacyV9(simulation.save());
     const auto loaded = Simulation::load(legacy);
     const auto migrated = loaded.view();
     require(!migrated.reviews.empty(), "legacy review was lost");
