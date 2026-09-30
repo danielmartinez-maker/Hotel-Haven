@@ -69,8 +69,7 @@ jobs:
           ctest --test-dir build -C Release --output-on-failure 2>&1 | Tee-Object -FilePath build/test-output.log
           $testExit = $LASTEXITCODE
           if ($testExit -ne 0) {
-            $diagnostics = @(Select-String -Path build/test-output.log -Pattern 'Failed|failure|Error|error|The following tests FAILED' | Select-Object -Last 30)
-            if ($diagnostics.Count -eq 0) { $diagnostics = @(Get-Content build/test-output.log | Select-Object -Last 60) }
+            $diagnostics = @(Get-Content build/test-output.log | Select-Object -Last 25)
             foreach ($diagnostic in $diagnostics) { Write-Output "::error::$diagnostic" }
             exit $testExit
           }
