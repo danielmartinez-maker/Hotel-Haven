@@ -80,12 +80,29 @@ jobs:
           $p = Start-Process build/Release/hotel_haven.exe -ArgumentList '--smoke-test' -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "Client smoke test failed: $($p.ExitCode)" }
 
+      - name: Verify Windows smoke screenshots
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $required = @('smoke-guide.bmp', 'smoke-hotel.bmp', 'smoke-build.bmp', 'smoke-rooms.bmp', 'smoke-guests.bmp')
+          $missing = @($required | Where-Object { -not (Test-Path "build/Release/$_") })
+          if ($missing.Count -gt 0) { throw "Missing Windows smoke screenshots: $($missing -join ', ')" }
+          foreach ($name in $required) {
+            $screenshot = Get-Item "build/Release/$name"
+            if ($screenshot.Length -lt 54) { throw "Windows smoke screenshot is empty or truncated: $name" }
+          }
+
       - uses: actions/upload-artifact@v4
         if: always() && runner.os == 'Windows'
         with:
           name: Hotel-Haven-Visual-QA
-          path: build/Release/smoke-*.bmp
-          if-no-files-found: ignore
+          path: |
+            build/Release/smoke-guide.bmp
+            build/Release/smoke-hotel.bmp
+            build/Release/smoke-build.bmp
+            build/Release/smoke-rooms.bmp
+            build/Release/smoke-guests.bmp
+          if-no-files-found: error
 
       - name: Package
         if: runner.os == 'Windows'

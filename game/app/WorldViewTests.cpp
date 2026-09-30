@@ -1,5 +1,6 @@
 #include "WorldView.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -23,9 +24,147 @@ bool containsHandle(const RenderScene &scene, std::uint32_t handle) {
                        return item.asset == AssetHandle{handle};
                      });
 }
+
+bool close(float lhs, float rhs) { return std::abs(lhs - rhs) < 1e-4f; }
+
+void construction_edges_render_from_snapshot_coordinates() {
+  hh::game::SimulationView snapshot;
+  snapshot.width = 8;
+  snapshot.height = 8;
+  snapshot.floors = 1;
+  snapshot.constructionWalls.push_back(
+      {0, 2, 3, hh::game::EdgeAxis::Vertical});
+  snapshot.constructionDoors.push_back(
+      {0, 4, 5, hh::game::EdgeAxis::Horizontal});
+  const auto scene = worldScene(snapshot, {});
+  const auto wall = std::find_if(scene.items.begin(), scene.items.end(),
+                                 [](const auto &item) {
+                                   return item.category == RenderCategory::Wall &&
+                                          close(item.center.x, 2) &&
+                                          close(item.center.z, 3.5f);
+                                 });
+  require(wall != scene.items.end(),
+          "vertical construction wall did not render at its edge coordinate");
+  require(close(wall->size.x, .12f) && close(wall->size.z, .98f),
+          "vertical wall transform does not follow its edge axis");
+  const auto doorHeader = std::find_if(
+      scene.items.begin(), scene.items.end(), [](const auto &item) {
+        return item.category == RenderCategory::Wall &&
+               close(item.center.x, 4.5f) && close(item.center.z, 5) &&
+               close(item.size.x, .84f);
+      });
+  require(doorHeader != scene.items.end(),
+          "horizontal construction door did not render at its edge coordinate");
+
+  WorldViewOptions preview;
+  preview.hoverX = 3;
+  preview.hoverY = 2;
+  preview.showPreview = true;
+  preview.previewValid = true;
+  preview.previewKind = ConstructionPreviewKind::Wall;
+  preview.previewEdgeSide = hh::game::GridSide::East;
+  const auto previewScene = worldScene(snapshot, preview);
+  const auto edgeGhost = std::find_if(
+      previewScene.items.begin(), previewScene.items.end(), [](const auto &item) {
+        return item.category == RenderCategory::Selection &&
+               close(item.center.x, 4) && close(item.center.z, 2.5f);
+      });
+  require(edgeGhost != previewScene.items.end(),
+          "wall preview did not follow the selected edge side");
+}
+
+void furnishing_placements_render_from_object_views() {
+  hh::game::SimulationView snapshot;
+  snapshot.width = 8;
+  snapshot.height = 8;
+  snapshot.floors = 1;
+  snapshot.constructionObjects.push_back(
+      {88, hh::game::ConstructionObjectKind::Chair, {0, 3, 4}, 0,
+       {{0, 3, 4}}});
+  const auto scene = worldScene(snapshot, {});
+  const auto chair = std::find_if(scene.items.begin(), scene.items.end(),
+                                  [](const auto &item) {
+                                    return item.category == RenderCategory::Object &&
+                                           close(item.center.x, 3.5f) &&
+                                           close(item.center.z, 4.5f) &&
+                                           close(item.size.x, .62f);
+                                  });
+  require(chair != scene.items.end(),
+          "placed chair was not rendered from its object snapshot");
+
+  const auto game = hh::game::Simulation::tutorial(19);
+  const auto published = game.view();
+  require(!published.constructionWalls.empty() &&
+              !published.constructionDoors.empty() &&
+              !published.constructionObjects.empty(),
+          "simulation view omitted its canonical construction collections");
+  require(std::is_sorted(published.constructionWalls.begin(),
+                         published.constructionWalls.end()) &&
+              std::is_sorted(published.constructionDoors.begin(),
+                             published.constructionDoors.end()),
+          "simulation construction edge snapshots are not sorted");
+  require(std::is_sorted(published.constructionObjects.begin(),
+                         published.constructionObjects.end(),
+                         [](const auto &lhs, const auto &rhs) {
+                           return lhs.id < rhs.id;
+                         }),
+          "simulation construction object snapshots are not ID sorted");
+  require(std::all_of(published.constructionObjects.begin(),
+                      published.constructionObjects.end(),
+                      [](const auto &object) {
+                        return !object.footprint.empty();
+                      }),
+          "physical construction object view omitted its footprint");
+}
+
+void room_bounds_are_derived_from_topology_tiles() {
+  using namespace hh::game;
+  Simulation simulation(66, 8, 8, 1);
+  const std::vector<Position> floorTiles{{0, 2, 2}, {0, 3, 2}, {0, 2, 3}};
+  for (const Position tile : floorTiles)
+    require(simulation.buildTile(tile, TileKind::Floor).ok,
+            "could not build irregular room floor");
+  const std::array<GridSide, 4> sides{GridSide::North, GridSide::East,
+                                      GridSide::South, GridSide::West};
+  for (const Position tile : floorTiles)
+    for (const GridSide side : sides) {
+      Position neighbor = tile;
+      switch (side) {
+      case GridSide::North: --neighbor.y; break;
+      case GridSide::East: ++neighbor.x; break;
+      case GridSide::South: ++neighbor.y; break;
+      case GridSide::West: --neighbor.x; break;
+      }
+      if (std::find(floorTiles.begin(), floorTiles.end(), neighbor) ==
+          floorTiles.end())
+        require(simulation.setConstructionWall(edgeForSide(tile, side), true).ok,
+                "could not close irregular room boundary");
+    }
+  const auto door = edgeForSide({0, 2, 2}, GridSide::North);
+  require(simulation.setConstructionDoor(door, true).ok,
+          "could not place irregular room door");
+  const auto snapshot = simulation.view();
+  require(snapshot.rooms.size() == 1,
+          "irregular enclosed topology did not produce one room");
+  const auto &room = snapshot.rooms.front();
+  require(room.area == 3 && room.tiles == floorTiles,
+          "room snapshot omitted its sorted topology tile set");
+  require(room.x == 2 && room.y == 2 && room.width == 2 && room.height == 2,
+          "room compatibility bounds do not cover its topology tiles");
+  require(room.primaryDoorEdge == door,
+          "room snapshot did not expose its primary door edge");
+  require(room.capacity == room.beds && room.diagnostics.size() >= 5,
+          "room snapshot omitted capacity or requirement diagnostics");
+  require(std::find(room.tiles.begin(), room.tiles.end(), Position{0, 3, 3}) ==
+              room.tiles.end(),
+          "void cell inside the room bounds was included in its topology");
+}
 } // namespace
 int main() {
   try {
+    construction_edges_render_from_snapshot_coordinates();
+    furnishing_placements_render_from_object_views();
+    room_bounds_are_derived_from_topology_tiles();
     const std::map<std::string, std::uint32_t> expectedIds{
         {"HH_A030", 30},  {"HH_A113", 113}, {"HH_A121", 121},
         {"HH_A126", 126}, {"HH_A166", 166}, {"HH_A169", 169},
@@ -63,7 +202,7 @@ int main() {
 
     auto game = hh::game::Simulation::tutorial(19);
     const auto before = game.save();
-    const auto snapshot = game.view();
+    auto snapshot = game.view();
     require(!snapshot.rooms.empty(), "starter must contain furnished rooms");
 
     WorldAssetSet assets;
@@ -76,6 +215,12 @@ int main() {
     assets.showerGlass = visual(171);
     assets.receptionDesk = visual(186);
     assets.pottedPlant = visual(396);
+    snapshot.constructionObjects.push_back(
+        {1000001, hh::game::ConstructionObjectKind::Nightstand,
+         {0, 6, 12}, 0, {{0, 6, 12}}});
+    snapshot.constructionObjects.push_back(
+        {1000002, hh::game::ConstructionObjectKind::Desk,
+         {0, 7, 12}, 0, {{0, 7, 12}}});
 
     WorldViewOptions options;
     options.selected = snapshot.rooms.front().id;

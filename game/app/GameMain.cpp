@@ -55,7 +55,10 @@ std::string readFile(const std::filesystem::path &path) {
   return {std::istreambuf_iterator<char>(stream), {}};
 }
 CommandResult applyBuildTool(Simulation &simulation, Tool tool,
-                             Position position, std::size_t roomCount) {
+                             Position position, std::size_t roomCount,
+                             GridSide edgeSide,
+                             ConstructionObjectKind objectKind,
+                             int quarterTurns) {
   if (tool == Tool::Bedroom) {
     RoomBlueprint r;
     r.name =
@@ -69,6 +72,13 @@ CommandResult applyBuildTool(Simulation &simulation, Tool tool,
     r.nightlyRate = 120;
     return simulation.buildFurnishedRoom(r);
   }
+  if (tool == Tool::Wall)
+    return simulation.setConstructionWall(edgeForSide(position, edgeSide), true);
+  if (tool == Tool::Door)
+    return simulation.setConstructionDoor(edgeForSide(position, edgeSide), true);
+  if (tool == Tool::Furnishing)
+    return simulation.placeConstructionObject(objectKind, position,
+                                               quarterTurns);
   constexpr std::array<TileKind, 13> kinds = {
       TileKind::Empty,     TileKind::Empty,        TileKind::Floor,
       TileKind::Wall,      TileKind::Door,         TileKind::Entrance,
@@ -76,6 +86,15 @@ CommandResult applyBuildTool(Simulation &simulation, Tool tool,
       TileKind::Empty,     TileKind::Bathroom,     TileKind::StaffRoom,
       TileKind::Lobby};
   return simulation.buildTile(position, kinds[static_cast<std::size_t>(tool)]);
+}
+ConstructionPreviewKind constructionPreviewKind(Tool tool) {
+  switch (tool) {
+  case Tool::Bedroom: return ConstructionPreviewKind::Room;
+  case Tool::Wall: return ConstructionPreviewKind::Wall;
+  case Tool::Door: return ConstructionPreviewKind::Door;
+  case Tool::Furnishing: return ConstructionPreviewKind::Object;
+  default: return ConstructionPreviewKind::Tile;
+  }
 }
 void captureClient(HWND window, const std::filesystem::path &path) {
   RECT r{};
@@ -271,20 +290,40 @@ void Client::click(int x, int y) {
         y < b.rect.bottom) {
       auto fn = b.action;
       fn();
+      if (hoverX >= 0 && hoverY >= 0 && tool != Tool::Inspect) {
+        auto preview = simulation;
+        previewValid = applyBuildTool(
+                           preview, tool, {floor, hoverX, hoverY},
+                           snapshot.rooms.size(), edgeSide, selectedObjectKind,
+                           objectQuarterTurns)
+                           .ok;
+        previewTool = tool;
+        previewEdgeSide = edgeSide;
+        previewObjectKind = selectedObjectKind;
+        previewQuarterTurns = objectQuarterTurns;
+      }
       refresh();
       return;
     }
 }
 void Client::hover(int x, int y) {
   const auto p = pick(*this, x, y);
-  if (p && p->x == hoverX && p->y == hoverY && previewTool == tool)
+  if (p && p->x == hoverX && p->y == hoverY && previewTool == tool &&
+      previewEdgeSide == edgeSide &&
+      previewObjectKind == selectedObjectKind &&
+      previewQuarterTurns == objectQuarterTurns)
     return;
   hoverX = p ? p->x : -1;
   hoverY = p ? p->y : -1;
   previewTool = tool;
+  previewEdgeSide = edgeSide;
+  previewObjectKind = selectedObjectKind;
+  previewQuarterTurns = objectQuarterTurns;
   if (p && tool != Tool::Inspect) {
     auto preview = simulation;
-    const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size());
+    const auto check = applyBuildTool(preview, tool, *p, snapshot.rooms.size(),
+                                      edgeSide, selectedObjectKind,
+                                      objectQuarterTurns);
     previewValid = check.ok;
     notice =
         check.ok ? L"Placement preview · click to build" : wide(check.message);
@@ -298,8 +337,8 @@ void Client::mapClick(int x, int y) {
   if (tool == Tool::Inspect) {
     selected = 0;
     for (const auto &r : snapshot.rooms)
-      if (r.floor == floor && pos->x >= r.x && pos->x < r.x + r.width &&
-          pos->y >= r.y && pos->y < r.y + r.height) {
+      if (r.floor == floor &&
+          std::find(r.tiles.begin(), r.tiles.end(), *pos) != r.tiles.end()) {
         selected = r.id;
         page = Page::Rooms;
         tabScroll = 0;
@@ -309,7 +348,8 @@ void Client::mapClick(int x, int y) {
     return;
   }
   const auto out =
-      applyBuildTool(simulation, tool, *pos, snapshot.rooms.size());
+      applyBuildTool(simulation, tool, *pos, snapshot.rooms.size(), edgeSide,
+                     selectedObjectKind, objectQuarterTurns);
   if (out && tool == Tool::Bedroom)
     selected = out.id;
   result(out);
@@ -534,11 +574,20 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
         c.refresh();
         refreshTime = 0;
       }
-      const auto scene =
-          worldScene(c.snapshot, {c.floor, c.selected, c.overlay, c.hoverX,
-                                  c.hoverY, c.tool == Tool::Bedroom ? 6.f : 1.f,
-                                  c.tool != Tool::Inspect, c.previewValid},
-                     &c.worldAssets);
+      WorldViewOptions worldOptions;
+      worldOptions.floor = c.floor;
+      worldOptions.selected = c.selected;
+      worldOptions.overlay = c.overlay;
+      worldOptions.hoverX = c.hoverX;
+      worldOptions.hoverY = c.hoverY;
+      worldOptions.previewSize = c.tool == Tool::Bedroom ? 6.f : 1.f;
+      worldOptions.showPreview = c.tool != Tool::Inspect;
+      worldOptions.previewValid = c.previewValid;
+      worldOptions.previewKind = constructionPreviewKind(c.tool);
+      worldOptions.previewEdgeSide = c.edgeSide;
+      worldOptions.previewObjectKind = c.selectedObjectKind;
+      worldOptions.previewQuarterTurns = c.objectQuarterTurns;
+      const auto scene = worldScene(c.snapshot, worldOptions, &c.worldAssets);
       const auto frame = composeVisibleFrame(
           scene, composer,
           c.context ? hh::renderer::FloorContextMode::AdjacentContext
@@ -550,12 +599,29 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
       ++frames;
       if (c.smoke && frames == 10)
         captureClient(c.window, c.directory / L"smoke-guide.bmp");
+      if (c.smoke && frames == 15) {
+        c.page = Page::Build;
+        c.refresh();
+        UpdateWindow(c.window);
+        const auto buildScreenshot = c.directory / L"smoke-build.bmp";
+        captureClient(c.window, buildScreenshot);
+        if (!std::filesystem::exists(buildScreenshot) ||
+            std::filesystem::file_size(buildScreenshot) < 54)
+          throw std::runtime_error(
+              "Build page smoke screenshot was not captured");
+      }
       if (c.smoke && frames == 20) {
         c.page = Page::Rooms;
         if (!c.snapshot.rooms.empty())
           c.selected = c.snapshot.rooms.front().id;
         c.refresh();
         UpdateWindow(c.window);
+        const auto roomsScreenshot = c.directory / L"smoke-rooms.bmp";
+        captureClient(c.window, roomsScreenshot);
+        if (!std::filesystem::exists(roomsScreenshot) ||
+            std::filesystem::file_size(roomsScreenshot) < 54)
+          throw std::runtime_error(
+              "Rooms page smoke screenshot was not captured");
       }
       if (c.smoke && frames >= 30) {
         RECT viewSize{};
@@ -564,6 +630,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
             viewSize.bottom != c.height - HeaderHeight - FooterHeight)
           throw std::runtime_error(
               "Viewport dimensions do not match client layout");
+        c.page = Page::Build;
+        c.refresh();
+        UpdateWindow(c.window);
         captureClient(c.window, c.directory / L"smoke-hotel.bmp");
         auto state = c.simulation.save();
         auto restored = hh::game::Simulation::load(state);

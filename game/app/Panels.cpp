@@ -50,6 +50,10 @@ std::wstring taskName(TaskKind k) {
     return L"Supply pickup";
   case TaskKind::Repair:
     return L"Maintenance";
+  case TaskKind::Break:
+    return L"Staff break";
+  case TaskKind::Training:
+    return L"Training";
   }
   return L"Task";
 }
@@ -139,6 +143,42 @@ std::wstring guestCategoryName(GuestCategory category) {
   case GuestCategory::Count: break;
   }
   return L"Category";
+}
+std::wstring edgeSideName(GridSide side) {
+  switch (side) {
+  case GridSide::North: return L"North";
+  case GridSide::East: return L"East";
+  case GridSide::South: return L"South";
+  case GridSide::West: return L"West";
+  }
+  return L"North";
+}
+std::wstring constructionObjectName(ConstructionObjectKind kind) {
+  switch (kind) {
+  case ConstructionObjectKind::SingleBed: return L"Single bed";
+  case ConstructionObjectKind::DoubleBed: return L"Double bed";
+  case ConstructionObjectKind::Toilet: return L"Toilet";
+  case ConstructionObjectKind::Sink: return L"Sink";
+  case ConstructionObjectKind::Shower: return L"Shower";
+  case ConstructionObjectKind::Bath: return L"Bath";
+  case ConstructionObjectKind::Light: return L"Light";
+  case ConstructionObjectKind::Desk: return L"Room desk";
+  case ConstructionObjectKind::Chair: return L"Chair";
+  case ConstructionObjectKind::Nightstand: return L"Nightstand";
+  case ConstructionObjectKind::Plant: return L"Plant";
+  }
+  return L"Furnishing";
+}
+std::wstring doorEdgeName(const RoomView &room) {
+  if (!room.primaryDoorEdge)
+    return L"None";
+  const auto edge = *room.primaryDoorEdge;
+  const std::array<GridSide, 4> sides{GridSide::North, GridSide::East,
+                                      GridSide::South, GridSide::West};
+  for (const GridSide side : sides)
+    if (edgeForSide(room.door, side) == edge)
+      return edgeSideName(side) + L" edge";
+  return L"Boundary edge";
 }
 std::wstring decimal(double value) {
   std::wostringstream out;
@@ -273,14 +313,14 @@ void Client::paint(HDC output) {
   const int bottom = height - FooterHeight - 52;
   if (page == Page::Build) {
     heading(L"Build your property");
-    paragraph(L"Choose a tool, then click the hotel. Rooms include furniture "
-              L"and a bathroom. Connect the door to the entrance.",
+    paragraph(L"Choose a tool, then click the hotel. Walls and doors sit on "
+              L"the selected edge. Furnishings match their room positions.",
               64);
-    const std::array<std::wstring, 13> labels = {L"Inspect / select",
+    const std::array<std::wstring, 14> labels = {L"Inspect / select",
                                                  L"Room · 6 × 6",
                                                  L"Corridor / floor",
-                                                 L"Wall",
-                                                 L"Door",
+                                                 L"Wall edge",
+                                                 L"Door edge",
                                                  L"Guest entrance",
                                                  L"Reception desk",
                                                  L"Supply closet",
@@ -288,8 +328,9 @@ void Client::paint(HDC output) {
                                                  L"Remove tile",
                                                  L"Bathroom tile",
                                                  L"Staff room tile",
-                                                 L"Lobby tile"};
-    for (int i = 0; i < 13; ++i) {
+                                                 L"Lobby tile",
+                                                 L"Furnishing"};
+    for (int i = 0; i < 14; ++i) {
       button(
           left + (i % 2) * 163, y + (i / 2) * 35, 151, 30,
           labels[static_cast<std::size_t>(i)],
@@ -300,10 +341,25 @@ void Client::paint(HDC output) {
           static_cast<int>(tool) == i);
     }
     y += 7 * 35;
+    fullButton(L"Edge side · " + edgeSideName(edgeSide), [this] {
+      edgeSide = static_cast<GridSide>((static_cast<int>(edgeSide) + 1) % 4);
+      notice = L"Edge selector cycles North, East, South, West.";
+    });
+    fullButton(L"Object · " + constructionObjectName(selectedObjectKind),
+               [this] {
+                 selectedObjectKind = static_cast<ConstructionObjectKind>(
+                     (static_cast<int>(selectedObjectKind) + 1) % 11);
+                 tool = Tool::Furnishing;
+               },
+               tool == Tool::Furnishing);
+    fullButton(L"Rotation · " +
+                   std::to_wstring(objectQuarterTurns * 90) + L"°",
+               [this] {
+                 objectQuarterTurns = (objectQuarterTurns + 1) % 4;
+               });
     if (y + 55 < bottom)
       paragraph(L"Stairs connect matching coordinates on adjacent floors. "
-                L"Invalid construction shows its reason below.",
-                56);
+                L"Invalid construction shows its reason below.", 56);
   } else if (page == Page::Rooms) {
     heading(L"Rooms & service");
     const auto room =
@@ -315,11 +371,24 @@ void Client::paint(HDC output) {
       label(L"Status", roomStatus(r.status));
       label(L"Cleanliness", pct(r.cleanliness));
       label(L"Condition", pct(r.condition));
+      label(L"Area", std::to_wstring(r.area) + L" tiles");
+      label(L"Bed capacity", std::to_wstring(r.capacity));
+      label(L"Baths", std::to_wstring(r.baths));
+      label(L"Door", doorEdgeName(r));
       label(L"Nightly rate", money(r.nightlyRateCents));
       paragraph(r.reachable ? L"Connected to the guest entrance."
                             : L"No route to the entrance. Connect the door "
                               L"with corridor tiles.",
                 42);
+      if (!r.diagnostics.empty()) {
+        std::wstring diagnostics = L"Requirements · ";
+        for (std::size_t index = 0; index < r.diagnostics.size(); ++index) {
+          if (index != 0)
+            diagnostics += L" · ";
+          diagnostics += wide(r.diagnostics[index]);
+        }
+        paragraph(std::move(diagnostics), 58);
+      }
       button(left, y, 151, 31, L"Rate − $10", [this, r] {
         result(simulation.setRoomRate(
             r.id,

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(HotelHavenSimulation LANGUAGES CXX)
 add_library(hh_game
+  src/ConstructionWorld.cpp
   src/Simulation.cpp
   src/Housekeeping.cpp
   src/Laundry.cpp
@@ -39,6 +40,14 @@ if(HH_GAME_BUILD_TESTS)
   add_executable(hh_game_tests tests/SimulationTests.cpp)
   target_link_libraries(hh_game_tests PRIVATE hh_game)
   add_test(NAME hh_game_tests COMMAND hh_game_tests)
+
+  add_executable(hh_construction_world_tests tests/ConstructionWorldTests.cpp)
+  target_link_libraries(hh_construction_world_tests PRIVATE hh_game)
+  add_test(NAME ConstructionWorld COMMAND hh_construction_world_tests)
+
+  add_executable(hh_simulation_construction_tests tests/SimulationConstructionTests.cpp)
+  target_link_libraries(hh_simulation_construction_tests PRIVATE hh_game)
+  add_test(NAME SimulationConstruction COMMAND hh_simulation_construction_tests)
 
   foreach(service_test Housekeeping Laundry Logistics Engineering ServiceLogistics ServiceLogisticsSoak SimulationServiceLogistics)
     add_executable(hh_${service_test}_tests tests/${service_test}Tests.cpp)

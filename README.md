@@ -32,13 +32,13 @@ The Integrated Game workflow builds both Linux and Windows, runs the tests, smok
 | Space | Pause / resume |
 | F5 / F9 | Save / load campaign |
 | Escape | Return to inspection tool |
-| Bottom toolbar | Pause, 1×, 3×, 8×, 20×; floors; walls; diagnostic overlays |
+| Bottom toolbar | Pause, 1×, 3×, 8×, 20×; floors; construction tools; diagnostic overlays |
 
-Standard room placement uses a 6×6 footprint. Its door is the third tile of the bottom edge. Connect that door to the single main entrance with passable corridor or lobby tiles. Stairs connect matching coordinates on adjacent floors. Construction is charged only after full validation and cannot exceed available cash. Commands that violate construction, service or occupancy rules report their exact reason in the status line.
+The standard room blueprint uses a 6×6 footprint, with a door on the third segment of its bottom edge. Wall and door tools place a selected North, East, South or West boundary edge. The furnishing tool places explicit objects and supports quarter-turn rotation. Connect room doors to the single main entrance with passable corridor or lobby tiles; stairs connect matching coordinates on adjacent floors. The Rooms inspector shows region area, bed capacity, reachability and construction diagnostics. Construction is charged only after full validation and cannot exceed available cash. Commands that violate construction, service or occupancy rules report their exact reason in the status line.
 
 Room-status colors: green ready, blue occupied, purple reserved, amber cleaning, orange dirty, red unavailable. Cleanliness and condition overlays run from red (0) to green (100); the Rooms inspector gives exact values.
 
-Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The HHGS 10 writer uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and loads saves from formats v2 through v10. HMG-010 guest profiles, lifecycle, groups, needs, goals, memories, complaint recovery, reviews, and the Windows guest inspector are implemented. Its 1,000-profile decision soak reports candidate visits, utility evaluations, and v10 save size; it does not represent 1,000 simultaneously active hotel guests.
+Save location: `%LOCALAPPDATA%\HotelHaven\campaign.hhsave`. Saving writes a temporary file before replacing the previous save. Loading pauses the simulation. The HHGS 11 writer stores construction edges and objects, uses integer currency, validates references on load, retains full reservation/review history plus a bounded recent-task history, and loads saves from formats v2 through v10. HMG-010 guest profiles, lifecycle, groups, needs, goals, memories, complaint recovery, reviews, and the Windows guest inspector are implemented. Its 1,000-profile decision soak reports candidate visits, utility evaluations, and save size; it does not represent 1,000 simultaneously active hotel guests.
 
 ## Portable simulation and automated campaigns
 
@@ -58,7 +58,7 @@ The campaign runner prints CSV with cash, revenue, payroll, occupancy, reputatio
 - `game/include/hh/game/Simulation.h`: command and read-only snapshot interface.
 - `game/src`: authoritative simulation and serialization.
 - `game/data`: external balance definitions.
-- `game/app`: native client, procedural world presentation, management panels, campaign runner.
+- `game/app`: native client, construction/world presentation, management panels, campaign runner.
 - `game/tests`: behavioral and determinism checks.
 - `renderer`: existing orthographic camera, floor visibility, cutaway and instanced D3D11 renderer.
 - `Tools/ContentPipeline`: existing HMG-070 asset metadata, cooking and validation tooling.

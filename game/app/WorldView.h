@@ -7,6 +7,7 @@
 
 namespace hh::client {
 enum class Overlay { Natural, Status, Cleanliness, Condition };
+enum class ConstructionPreviewKind { Tile, Room, Wall, Door, Object };
 
 struct WorldAssetVisual {
   hh::renderer::AssetHandle handle;
@@ -42,6 +43,11 @@ struct WorldViewOptions {
   int hoverX{-1}, hoverY{-1};
   float previewSize{1};
   bool showPreview{}, previewValid{};
+  ConstructionPreviewKind previewKind{ConstructionPreviewKind::Tile};
+  hh::game::GridSide previewEdgeSide{hh::game::GridSide::North};
+  hh::game::ConstructionObjectKind previewObjectKind{
+      hh::game::ConstructionObjectKind::SingleBed};
+  int previewQuarterTurns{};
 };
 
 hh::renderer::RenderScene worldScene(
