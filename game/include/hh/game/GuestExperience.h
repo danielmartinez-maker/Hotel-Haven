@@ -46,6 +46,7 @@ inline constexpr std::size_t GuestRecoveryOptionCount =
 
 struct GuestExperienceEvent {
   std::uint64_t eventId{};
+  GuestId guestId{};
   EntityId incidentId{};
   GuestExperienceEventType type{GuestExperienceEventType::FastCheckIn};
   std::int64_t timestampSeconds{};

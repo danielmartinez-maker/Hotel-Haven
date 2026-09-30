@@ -3,11 +3,13 @@
 #include "hh/game/ServiceLogistics.h"
 #include "hh/game/Departments.h"
 #include "hh/game/GuestModel.h"
+#include "hh/game/GuestExperience.h"
 #include "hh/game/StaffOptimization.h"
 #include "hh/game/Workforce.h"
 #include "hh/game/ServiceTypes.h"
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -129,6 +131,8 @@ struct ReservationView {
 };
 struct GuestView {
   GuestProfile profile;
+  GuestNeedState needs;
+  GuestExperienceState experience;
   EntityId reservationId{};
   EntityId groupId{};
   GuestId leaderGuestId{};
@@ -270,6 +274,11 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  CommandResult reportGuestExperience(const GuestExperienceEvent &event);
+  CommandResult reportGuestSleepNoise(GuestId guestId,
+                                      std::optional<double> measuredNoiseDb);
+  CommandResult resolveGuestComplaint(GuestId guestId, EntityId complaintId,
+                                      GuestRecoveryOption option);
 
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
