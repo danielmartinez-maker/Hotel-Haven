@@ -599,12 +599,29 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
       ++frames;
       if (c.smoke && frames == 10)
         captureClient(c.window, c.directory / L"smoke-guide.bmp");
+      if (c.smoke && frames == 15) {
+        c.page = Page::Build;
+        c.refresh();
+        UpdateWindow(c.window);
+        const auto buildScreenshot = c.directory / L"smoke-build.bmp";
+        captureClient(c.window, buildScreenshot);
+        if (!std::filesystem::exists(buildScreenshot) ||
+            std::filesystem::file_size(buildScreenshot) < 54)
+          throw std::runtime_error(
+              "Build page smoke screenshot was not captured");
+      }
       if (c.smoke && frames == 20) {
         c.page = Page::Rooms;
         if (!c.snapshot.rooms.empty())
           c.selected = c.snapshot.rooms.front().id;
         c.refresh();
         UpdateWindow(c.window);
+        const auto roomsScreenshot = c.directory / L"smoke-rooms.bmp";
+        captureClient(c.window, roomsScreenshot);
+        if (!std::filesystem::exists(roomsScreenshot) ||
+            std::filesystem::file_size(roomsScreenshot) < 54)
+          throw std::runtime_error(
+              "Rooms page smoke screenshot was not captured");
       }
       if (c.smoke && frames >= 30) {
         RECT viewSize{};
@@ -613,6 +630,9 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR commandLine,
             viewSize.bottom != c.height - HeaderHeight - FooterHeight)
           throw std::runtime_error(
               "Viewport dimensions do not match client layout");
+        c.page = Page::Build;
+        c.refresh();
+        UpdateWindow(c.window);
         captureClient(c.window, c.directory / L"smoke-hotel.bmp");
         auto state = c.simulation.save();
         auto restored = hh::game::Simulation::load(state);
