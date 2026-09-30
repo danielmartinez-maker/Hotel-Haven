@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 43812)
-Total output lines: 3891
-
 #include "hh/game/Simulation.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
@@ -1449,7 +1446,1205 @@ struct Simulation::Impl {
                   ? GuestActivity::Sleeping
               : p.state == PersonState::Idle ? GuestActivity::Relaxing
                                              : GuestActivity::Awake;
-          member->needs = updateGuestNeeds(mem…13812 tokens truncated…0, 50.0);
+          member->needs = updateGuestNeeds(member->needs, member->profile,
+                                           activity, 60.0, guestDefinitions);
+          if (p.state == PersonState::Sleeping)
+            (void)updateGuestSleepingNoise(
+                member->needs, member->profile, std::nullopt, 60.0,
+                member->profile.randomState, guestDefinitions.needTuning);
+          p.hunger = member->needs.values[
+              static_cast<std::size_t>(GuestNeed::Hunger)];
+          p.rest = member->needs.values[
+              static_cast<std::size_t>(GuestNeed::Energy)];
+        } else if (p.state == PersonState::Sleeping) {
+          p.rest = std::min(100.0, p.rest + 22.0 / 3600.0);
+        } else {
+          p.hunger = std::max(0.0, p.hunger - hungerRate / 60.0);
+          p.rest = std::max(0.0, p.rest - restLoss / 60.0);
+        }
+        if (p.state == PersonState::Traveling) {
+          ++p.travelSeconds;
+          auto route = path(p.position, p.destination);
+          if (!route.empty())
+            p.position = route.front();
+          else {
+            p.queueWaitSeconds += 1;
+            p.patience = std::max(0.0, p.patience - 1.0 / 120);
+            if (p.queueWaitSeconds > 8 * 60)
+              p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
+          }
+          if (same(p.position, p.destination)) {
+            if (p.goal == "Reach front desk") {
+              p.state = PersonState::Waiting;
+              p.goal = "Wait for check-in";
+              if (reservation && member) {
+                if (member->lifecycle == GuestLifecycleState::TravelingToHotel)
+                  transitionGuest(*member, GuestLifecycleState::Arriving);
+                if (member->lifecycle == GuestLifecycleState::Arriving)
+                  transitionGuest(*member, GuestLifecycleState::AwaitingCheckIn);
+                setGuestGoal(*reservation, p.id, GuestGoal::CheckIn);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckIn, p.id, frontDesk(), checkInWork);
+              }
+            } else if (p.goal == "Reach front desk for checkout") {
+              p.state = PersonState::Waiting;
+              p.goal = "Wait for checkout";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::AwaitingCheckout);
+                setGuestGoal(*reservation, p.id, GuestGoal::Checkout);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckOut, p.id, frontDesk(),
+                             checkInWork * 0.6);
+              }
+            } else if (p.goal == "Leave hotel") {
+              p.state = PersonState::CheckedOut;
+              p.goal = "Departed";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::CompletedStay);
+                setGuestGoal(*reservation, p.id, GuestGoal::LeaveHotel);
+              }
+            } else {
+              p.state = hour >= 7 && hour < 22 ? PersonState::Idle
+                                               : PersonState::Sleeping;
+              p.goal = p.state == PersonState::Sleeping ? "Sleep in room"
+                                                        : "Relax in room";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::InStay);
+                setGuestGoal(*reservation, p.id,
+                             p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                              : GuestGoal::Relax,
+                             reservation->roomId);
+              }
+            }
+          }
+        } else if (p.state == PersonState::Waiting) {
+          p.queueWaitSeconds += 1;
+          p.patience = std::max(0.0, p.patience - 1.0 / 120);
+          if (p.queueWaitSeconds > 8 * 60)
+            p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
+        }
+        if (reservation)
+          reservation->satisfaction = p.satisfaction;
+      }
+  }
+  void compactTransientState() {
+    people.erase(std::remove_if(people.begin(), people.end(), [](const auto &p) {
+                   return p.kind == PersonKind::Guest &&
+                          p.state == PersonState::CheckedOut;
+                 }),
+                 people.end());
+
+    for (auto &task : tasks)
+      if (task.status == TaskStatus::Completed)
+        completedTaskHistory.push_back(std::move(task));
+    tasks.erase(std::remove_if(tasks.begin(), tasks.end(), [](const auto &task) {
+                  return task.status == TaskStatus::Completed;
+                }),
+                tasks.end());
+    if (completedTaskHistory.size() > completedTaskHistoryLimit)
+      completedTaskHistory.erase(
+          completedTaskHistory.begin(),
+          completedTaskHistory.begin() + static_cast<std::ptrdiff_t>(
+                                             completedTaskHistory.size() -
+                                             completedTaskHistoryLimit));
+
+    for (auto &reservation : reservations)
+      if (reservation.completed)
+        completedReservationHistory.push_back(std::move(reservation));
+    reservations.erase(
+        std::remove_if(reservations.begin(), reservations.end(),
+                       [](const auto &reservation) {
+                         return reservation.completed;
+                       }),
+        reservations.end());
+  }
+  void minute() {
+    elapsed += 1;
+    int minute = (elapsed / 60) % 60, hour = (elapsed / 3600) % 24,
+        day = elapsed / 86400;
+    bool hourBoundary = (elapsed % 3600) == 0;
+    if (hourBoundary)
+      hourlyBookings(day, hour);
+    if (hourBoundary && hour == 11)
+      beginDepartures(day);
+    if (hourBoundary && hour == 15)
+      arrivals(day);
+    if (hourBoundary) {
+      for (auto &o : orders)
+        if (!o.delivered && o.etaDay <= day)
+          o.delivered = true;
+    }
+    staffAndTasks();
+    guests();
+    const int dirtyLinen = services.logistics().totalInventory("dirty_linen_set");
+    bool laundryActive = false;
+    for (const auto &batch : services.laundry().snapshot().batches)
+      laundryActive |= batch.stage != LaundryStage::Completed;
+    if (dirtyLinen > 0 && !laundryActive)
+      (void)services.requestLaundryBatch(std::min(dirtyLinen, 8));
+    compactTransientState();
+    if (hour == 0 && minute == 0 && hourBoundary) {
+      for (auto &p : people)
+        if (p.kind != PersonKind::Guest)
+          postAccruedWage(p);
+      const auto util =
+          static_cast<std::int64_t>(rooms.size()) * utilityPerRoomDayCents;
+      economy.utilityCostCents += util;
+      economy.cashCents -= util;
+      economy.distressed = economy.cashCents < 0;
+      economy.stars = std::min(5, 1 + economy.completedStays / 15);
+    }
+    int available = 0, occupied = 0;
+    for (auto &r : rooms)
+      if (!r.closed && r.status != RoomStatus::Incomplete) {
+        available++;
+        occupied += r.status == RoomStatus::Occupied;
+      }
+    economy.occupancy = available ? double(occupied) / available : 0;
+  }
+};
+
+Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
+    : impl_(std::make_unique<Impl>()) {
+  if (w < 4 || h < 4 || f < 1)
+    throw std::invalid_argument("invalid map dimensions");
+  impl_->seed = seed;
+  impl_->rng.seed(seed);
+  impl_->services = ServiceLogisticsRuntime(seed);
+  if (!impl_->services.setScenarioInventory(
+          impl_->inventory.linen, impl_->inventory.towels,
+          impl_->inventory.amenities, impl_->inventory.chemicals,
+          impl_->inventory.parts))
+    throw std::logic_error("failed to seed FINAL-04 physical inventory");
+  impl_->services.engineering().setConditionLossPerDayHundredths(
+      static_cast<int>(std::llround(impl_->roomConditionLossPerDay * 100.0)));
+  impl_->width = w;
+  impl_->height = h;
+  impl_->floors = f;
+  impl_->map.assign((size_t)w * h * f, TileKind::Empty);
+  impl_->economy.reputation = 70;
+  impl_->economy.stars = 1;
+}
+Simulation::~Simulation() = default;
+Simulation::Simulation(Simulation &&) noexcept = default;
+Simulation &Simulation::operator=(Simulation &&) noexcept = default;
+Simulation::Simulation(const Simulation &o)
+    : impl_(std::make_unique<Impl>(*o.impl_)) {}
+Simulation &Simulation::operator=(const Simulation &o) {
+  if (this != &o)
+    impl_ = std::make_unique<Impl>(*o.impl_);
+  return *this;
+}
+
+Simulation Simulation::tutorial(std::uint64_t seed) {
+  Simulation s(seed, 32, 20, 3);
+  // Scenario seed capital: enough to open the six-room starter hotel with a
+  // meaningful expansion reserve after construction is posted.
+  s.impl_->economy.cashCents = 5'000'000;
+  for (int x = 0; x < 26; ++x)
+    s.buildTile({0, x, 8}, x == 0  ? TileKind::Entrance
+                           : x < 7 ? TileKind::Lobby
+                                   : TileKind::Floor);
+  s.buildTile({0, 2, 8}, TileKind::FrontDesk);
+  s.buildTile({0, 7, 8}, TileKind::SupplyCloset);
+  s.buildTile({0, 12, 8}, TileKind::Stairs);
+  s.buildTile({1, 12, 8}, TileKind::Stairs);
+  s.buildTile({2, 12, 8}, TileKind::Stairs);
+  for (int f = 1; f < 3; ++f)
+    for (int x = 2; x < 26; ++x)
+      s.buildTile({f, x, 8}, x == 12 ? TileKind::Stairs : TileKind::Floor);
+  for (int floor = 0; floor < 2; ++floor)
+    for (int i = 0; i < 3; ++i) {
+      const int x = 4 + i * 8;
+      s.buildFurnishedRoom({std::to_string((floor + 1) * 100 + i + 1),
+                            floor,
+                            x,
+                            9,
+                            6,
+                            6,
+                            {floor, x, 9},
+                            1,
+                            1,
+                            135.0 + i * 10 + floor * 5});
+    }
+  s.hireStaff({"Alex", PersonKind::Receptionist, 8, 22, 20});
+  s.hireStaff({"Morgan", PersonKind::Housekeeper, 8, 16, 18});
+  s.hireStaff({"Casey", PersonKind::Maintenance, 10, 12, 25});
+  s.impl_->elapsed = 14 * 3600;
+  return s;
+}
+CommandResult Simulation::buildTile(Position p, TileKind k) {
+  if (!impl_->inside(p) || ei(k) < ei(TileKind::Empty) ||
+      ei(k) > ei(TileKind::Lobby))
+    return {false, "Tile or type is invalid"};
+  auto old = impl_->map[impl_->index(p)];
+  if (old == TileKind::Entrance && k != TileKind::Entrance)
+    return {false, "The hotel entrance cannot be removed"};
+  if (k == TileKind::Entrance && old != TileKind::Entrance &&
+      impl_->has(TileKind::Entrance))
+    return {false, "The hotel already has a main entrance"};
+  if (old == TileKind::FrontDesk && k != TileKind::FrontDesk &&
+      std::any_of(impl_->people.begin(), impl_->people.end(), [](auto &person) {
+        return person.kind == PersonKind::Guest &&
+               person.state != PersonState::CheckedOut;
+      }))
+    return {false, "Reception is required while guests are on property"};
+  if (old == TileKind::SupplyCloset && k != TileKind::SupplyCloset &&
+      std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [](auto &task) {
+        return task.kind == TaskKind::Turnover && !task.resourcesClaimed &&
+               task.status != TaskStatus::Completed;
+      }))
+    return {false, "Supply closet is required by an active turnover"};
+  if (!passableKind(k) &&
+      std::any_of(impl_->people.begin(), impl_->people.end(),
+                  [&](auto &person) { return same(person.position, p); }))
+    return {false, "A person is standing on this tile"};
+  for (auto &r : impl_->rooms)
+    if (p.floor == r.floor && p.x >= r.x && p.x < r.x + r.width && p.y >= r.y &&
+        p.y < r.y + r.height)
+      return {false, "Use room commands to alter a room"};
+  if (old == k)
+    return {true, "Tile unchanged"};
+  if (impl_->economy.cashCents < 500)
+    return {false, "Insufficient cash for construction"};
+  impl_->map[impl_->index(p)] = k;
+  impl_->economy.cashCents -= 500;
+  impl_->economy.constructionCostCents += 500;
+  impl_->refreshReachability();
+  return {true, "Tile built"};
+}
+CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
+  if (b.width < 3 || b.height < 3 || b.beds < 1 || b.baths < 1 ||
+      !std::isfinite(b.nightlyRate) || b.nightlyRate <= 0 ||
+      b.nightlyRate > 5000)
+    return {false,
+            "Room requires a 3x3 footprint, bed, bath, and positive rate"};
+  if (!impl_->inside({b.floor, b.x, b.y}) ||
+      !impl_->inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
+    return {false, "Room footprint outside property"};
+  if (b.door.floor != b.floor || b.door.x < b.x || b.door.x >= b.x + b.width ||
+      b.door.y < b.y || b.door.y >= b.y + b.height ||
+      (b.door.x != b.x && b.door.x != b.x + b.width - 1 && b.door.y != b.y &&
+       b.door.y != b.y + b.height - 1))
+    return {false, "Door must lie on room perimeter"};
+  for (auto &r : impl_->rooms)
+    if (r.floor == b.floor && b.x < r.x + r.width && b.x + b.width > r.x &&
+        b.y < r.y + r.height && b.y + b.height > r.y)
+      return {false, "Room overlaps another room"};
+  for (int y = b.y; y < b.y + b.height; ++y)
+    for (int x = b.x; x < b.x + b.width; ++x)
+      if (impl_->map[impl_->index({b.floor, x, y})] != TileKind::Empty)
+        return {false, "Room footprint contains existing construction"};
+  const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
+  if (impl_->economy.cashCents < cost)
+    return {false, "Insufficient cash for furnished room construction"};
+  for (int y = b.y; y < b.y + b.height; ++y)
+    for (int x = b.x; x < b.x + b.width; ++x) {
+      Position p{b.floor, x, y};
+      bool edge = x == b.x || x == b.x + b.width - 1 || y == b.y ||
+                  y == b.y + b.height - 1;
+      impl_->map[impl_->index(p)] = same(p, b.door) ? TileKind::Door
+                                    : edge          ? TileKind::Wall
+                                                    : TileKind::Floor;
+    }
+  impl_->map[impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
+  Room r;
+  r.id = impl_->nextId++;
+  r.name = b.name;
+  r.door = b.door;
+  r.floor = b.floor;
+  r.x = b.x;
+  r.y = b.y;
+  r.width = b.width;
+  r.height = b.height;
+  r.beds = b.beds;
+  r.baths = b.baths;
+  r.nightlyRateCents =
+      static_cast<std::int64_t>(std::llround(b.nightlyRate * 100));
+  r.nightlyRate = r.nightlyRateCents / 100.0;
+  r.cleanliness = 100;
+  r.condition = 100;
+  r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
+  r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
+  impl_->rooms.push_back(r);
+  impl_->services.registerRoom(
+      r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
+                                                 : ServiceRoomStatus::Blocked);
+  impl_->services.registerAsset(
+      r.id, std::clamp(static_cast<int>(std::llround(r.condition * 100.0)), 0, 10000));
+  impl_->economy.cashCents -= cost;
+  impl_->economy.constructionCostCents += cost;
+  return {true,
+          r.reachable ? "Furnished room opened"
+                      : "Room built but lacks an entrance route",
+          r.id};
+}
+CommandResult Simulation::hireStaff(const StaffHire &h) {
+  if (!impl_->has(TileKind::Entrance))
+    return {false, "Build an entrance before hiring staff"};
+  if (ei(h.role) < ei(PersonKind::Receptionist) ||
+      ei(h.role) > ei(PersonKind::Maintenance) || h.name.empty() ||
+      !std::isfinite(h.hourlyWage) || h.hourlyWage <= 0 ||
+      h.hourlyWage > 10000 || h.shiftStartHour < 0 || h.shiftStartHour > 23 ||
+      h.shiftEndHour < 0 || h.shiftEndHour > 23)
+    return {false, "Invalid staff details"};
+  Person p;
+  p.id = impl_->nextId++;
+  p.name = h.name;
+  p.kind = h.role;
+  p.position = impl_->entrance();
+  p.destination = p.position;
+  p.state = PersonState::OffDuty;
+  p.skill = 65;
+  p.shiftStartHour = h.shiftStartHour;
+  p.shiftEndHour = h.shiftEndHour;
+  p.hourlyWageCents =
+      static_cast<std::int64_t>(std::llround(h.hourlyWage * 100));
+  p.reliability = 100.0;
+  p.contract = {0, staffRole(h.role), p.hourlyWageCents, 0,
+                h.shiftStartHour, h.shiftEndHour};
+  impl_->people.push_back(p);
+  return {true, "Staff hired", p.id};
+}
+std::vector<Applicant> Simulation::applicants() const {
+  const int day = static_cast<int>(impl_->elapsed / 86400);
+  auto pool = Workforce::applicantPool(impl_->seed, day);
+  if (impl_->consumedApplicantDay != day)
+    return pool;
+  pool.erase(std::remove_if(pool.begin(), pool.end(), [&](const Applicant &a) {
+               return std::find(impl_->consumedApplicantIds.begin(),
+                                impl_->consumedApplicantIds.end(),
+                                a.id) != impl_->consumedApplicantIds.end();
+             }),
+             pool.end());
+  return pool;
+}
+HireResult Simulation::hireApplicant(ApplicantId applicantId) {
+  if (!impl_->has(TileKind::Entrance))
+    return {false, "Build an entrance before hiring staff", 0, applicantId};
+  const int day = static_cast<int>(impl_->elapsed / 86400);
+  if (impl_->consumedApplicantDay != day) {
+    impl_->consumedApplicantDay = day;
+    impl_->consumedApplicantIds.clear();
+  }
+  const auto pool = Workforce::applicantPool(impl_->seed, day);
+  const auto found = std::find_if(pool.begin(), pool.end(),
+                                  [&](const Applicant &a) {
+                                    return a.id == applicantId;
+                                  });
+  if (found == pool.end() ||
+      std::find(impl_->consumedApplicantIds.begin(),
+                impl_->consumedApplicantIds.end(), applicantId) !=
+          impl_->consumedApplicantIds.end())
+    return {false, "Applicant is not available", 0, applicantId};
+  if (impl_->economy.cashCents < impl_->onboardingCostCents)
+    return {false, "Insufficient cash for onboarding", 0, applicantId};
+
+  Person p;
+  p.id = impl_->nextId++;
+  p.name = found->name;
+  p.kind = personKind(found->role);
+  p.position = impl_->entrance();
+  p.destination = p.position;
+  p.state = PersonState::OffDuty;
+  p.skill = found->skill;
+  p.reliability = found->reliability;
+  p.shiftStartHour = found->shiftStartHour;
+  p.shiftEndHour = found->shiftEndHour;
+  p.hourlyWageCents = found->wageExpectationCents;
+  p.contract = {found->id, found->role, found->wageExpectationCents,
+                impl_->onboardingCostCents, found->shiftStartHour,
+                found->shiftEndHour};
+  impl_->people.push_back(p);
+  impl_->consumedApplicantIds.push_back(found->id);
+  impl_->economy.cashCents -= impl_->onboardingCostCents;
+  return {true, "Applicant hired", p.id, found->id};
+}
+CommandResult Simulation::fireStaff(EntityId id) {
+  auto it =
+      std::find_if(impl_->people.begin(), impl_->people.end(), [&](auto &p) {
+        return p.id == id && p.kind != PersonKind::Guest;
+      });
+  if (it == impl_->people.end())
+    return {false, "Employee not found"};
+  impl_->tasks.erase(
+      std::remove_if(impl_->tasks.begin(), impl_->tasks.end(),
+                     [&](const Task &task) {
+                       return task.status != TaskStatus::Completed &&
+                              (task.kind == TaskKind::Break ||
+                               task.kind == TaskKind::Training) &&
+                              task.targetId == id;
+                     }),
+      impl_->tasks.end());
+  for (auto &t : impl_->tasks)
+    if (t.employeeId == id && t.status != TaskStatus::Completed) {
+      t.employeeId = 0;
+      t.status = TaskStatus::Ready;
+    }
+  impl_->postAccruedWage(*it);
+  impl_->people.erase(it);
+  impl_->managers.erase(
+      std::remove_if(impl_->managers.begin(), impl_->managers.end(),
+                     [&](const ManagerAssignment &assignment) {
+                       return assignment.managerId == id;
+                     }),
+      impl_->managers.end());
+  return {true, "Staff released", id};
+}
+CommandResult Simulation::setStaffShift(EntityId id, int a, int b) {
+  auto *p = impl_->getPerson(id);
+  if (!p || p->kind == PersonKind::Guest || a < 0 || a > 23 || b < 0 || b > 23)
+    return {false, "Invalid employee or shift"};
+  p->shiftStartHour = a;
+  p->shiftEndHour = b;
+  p->contract.shiftStartHour = a;
+  p->contract.shiftEndHour = b;
+  return {true, "Shift updated", id};
+}
+CommandResult Simulation::scheduleTraining(EntityId id,
+                                                   std::int64_t startSecond,
+                                                   int durationMinutes) {
+  auto *person = impl_->getPerson(id);
+  if (!person || person->kind == PersonKind::Guest || durationMinutes <= 0 ||
+      durationMinutes > 24 * 60 || startSecond < impl_->elapsed ||
+      startSecond > impl_->elapsed + 30LL * 86400LL)
+    return {false, "Invalid employee or training window"};
+  if (person->task != 0 || person->absent)
+    return {false, "Training cannot overlap active work"};
+  if (std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](const Task &task) {
+        return task.kind == TaskKind::Training && task.targetId == id &&
+               task.status != TaskStatus::Completed;
+      }))
+    return {false, "Employee already has scheduled training"};
+
+  Task task;
+  task.id = impl_->nextId++;
+  task.kind = TaskKind::Training;
+  task.targetId = id;
+  task.target = person->position;
+  task.total = task.workRemainingSeconds =
+      static_cast<double>(durationMinutes * 60);
+  task.notBeforeSecond = startSecond;
+  task.trainingSkillGain = impl_->trainingSkillGain;
+  impl_->tasks.push_back(task);
+  person->trainingProgress = 0;
+  return {true, "Training scheduled", task.id};
+}
+CommandResult Simulation::assignDepartmentManager(DepartmentId department,
+                                                   EntityId employeeId) {
+  if (ei(department) < ei(DepartmentId::FrontOffice) ||
+      ei(department) > ei(DepartmentId::Engineering))
+    return {false, "Invalid department"};
+  if (employeeId == 0) {
+    impl_->managers.erase(
+        std::remove_if(impl_->managers.begin(), impl_->managers.end(),
+                       [&](const ManagerAssignment &assignment) {
+                         return assignment.department == department;
+                       }),
+        impl_->managers.end());
+    return {true, "Department manager cleared"};
+  }
+  auto *employee = impl_->getPerson(employeeId);
+  if (!employee || employee->kind == PersonKind::Guest ||
+      staffRole(employee->kind) != departmentRole(department))
+    return {false, "Manager must belong to the department"};
+
+  auto it = std::find_if(impl_->managers.begin(), impl_->managers.end(),
+                         [&](const ManagerAssignment &assignment) {
+                           return assignment.department == department;
+                         });
+  if (it == impl_->managers.end())
+    impl_->managers.push_back({department, employeeId});
+  else
+    it->managerId = employeeId;
+  return {true, "Department manager assigned", employeeId};
+}
+
+std::vector<DepartmentView> Simulation::departments() const {
+  std::vector<DepartmentView> result;
+  result.reserve(allDepartments().size());
+  for (const auto department : allDepartments()) {
+    DepartmentView view;
+    view.id = department;
+    view.name = departmentName(department);
+    view.role = departmentRole(department);
+    const auto manager =
+        std::find_if(impl_->managers.begin(), impl_->managers.end(),
+                     [&](const ManagerAssignment &assignment) {
+                       return assignment.department == department;
+                     });
+    if (manager != impl_->managers.end())
+      view.managerId = manager->managerId;
+    for (const auto &person : impl_->people)
+      if (person.kind != PersonKind::Guest &&
+          staffRole(person.kind) == view.role && person.id != view.managerId)
+        view.directReports.push_back(person.id);
+    std::sort(view.directReports.begin(), view.directReports.end());
+    result.push_back(std::move(view));
+  }
+  return result;
+}
+
+DepartmentForecast Simulation::departmentForecast(DepartmentId department,
+                                                   SimDay day) const {
+  if (ei(department) < ei(DepartmentId::FrontOffice) ||
+      ei(department) > ei(DepartmentId::Engineering) || day < 0)
+    throw std::invalid_argument("invalid department forecast request");
+
+  DepartmentForecast forecast;
+  forecast.department = department;
+  forecast.day = day;
+  for (int bucket = 0; bucket < 4; ++bucket)
+    forecast.buckets.push_back(
+        {bucket * 360, (bucket + 1) * 360, 0, 0, 0});
+
+  auto addRequired = [&](int minuteOfDay, int minutes) {
+    if (minutes <= 0)
+      return;
+    const int bucket = std::clamp(minuteOfDay / 360, 0, 3);
+    forecast.buckets[static_cast<std::size_t>(bucket)].requiredMinutes +=
+        minutes;
+  };
+  auto roundedMinutes = [](double seconds) {
+    return static_cast<int>(std::ceil(std::max(0.0, seconds) / 60.0));
+  };
+
+  if (department == DepartmentId::Housekeeping) {
+    for (const auto &reservation : impl_->reservations)
+      if (!reservation.completed && reservation.departureDay == day)
+        addRequired(11 * 60, roundedMinutes(impl_->turnoverWork));
+    if (day == static_cast<int>(impl_->elapsed / 86400))
+      for (const auto &task : impl_->tasks)
+        if (task.kind == TaskKind::Turnover &&
+            task.status != TaskStatus::Completed)
+          addRequired(static_cast<int>((impl_->elapsed / 60) % 1440),
+                      roundedMinutes(task.workRemainingSeconds));
+  } else if (department == DepartmentId::FrontOffice) {
+    for (const auto &reservation : impl_->reservations) {
+      if (reservation.completed)
+        continue;
+      if (reservation.arrivalDay == day && !reservation.checkedIn)
+        addRequired(15 * 60, roundedMinutes(impl_->checkInWork));
+      if (reservation.departureDay == day && !reservation.checkoutStarted)
+        addRequired(11 * 60, roundedMinutes(impl_->checkInWork * 0.6));
+    }
+  } else {
+    if (day == static_cast<int>(impl_->elapsed / 86400)) {
+      for (const auto &task : impl_->tasks)
+        if (task.kind == TaskKind::Repair &&
+            task.status != TaskStatus::Completed)
+          addRequired(static_cast<int>((impl_->elapsed / 60) % 1440),
+                      roundedMinutes(task.workRemainingSeconds));
+    } else {
+      double repairSeconds{};
+      int repairCount{};
+      for (const auto &task : impl_->completedTaskHistory)
+        if (task.kind == TaskKind::Repair) {
+          repairSeconds += task.total;
+          ++repairCount;
+        }
+      if (repairCount)
+        addRequired(10 * 60, roundedMinutes(repairSeconds / repairCount));
+    }
+  }
+
+  const StaffRole role = departmentRole(department);
+  const std::int64_t dayStart = static_cast<std::int64_t>(day) * 86400;
+  auto overlapSeconds = [](std::int64_t a0, std::int64_t a1,
+                           std::int64_t b0, std::int64_t b1) {
+    return std::max<std::int64_t>(0, std::min(a1, b1) - std::max(a0, b0));
+  };
+
+  for (const auto &person : impl_->people) {
+    if (person.kind == PersonKind::Guest || staffRole(person.kind) != role)
+      continue;
+    const std::int64_t shiftDuration =
+        person.shiftStartHour == person.shiftEndHour
+            ? 86400
+            : static_cast<std::int64_t>(
+                  (person.shiftEndHour - person.shiftStartHour + 24) % 24) *
+                  3600;
+    for (int startOffset = -1; startOffset <= 0; ++startOffset) {
+      const int startDay = day + startOffset;
+      const std::int64_t shiftStart =
+          static_cast<std::int64_t>(startDay) * 86400 +
+          person.shiftStartHour * 3600LL;
+      const std::int64_t shiftEnd = shiftStart + shiftDuration;
+      const auto key = static_cast<std::int64_t>(startDay) * 24 +
+                       person.shiftStartHour;
+      if (person.absent && person.shiftInstanceKey == key)
+        continue;
+
+      for (std::size_t bucketIndex = 0;
+           bucketIndex < forecast.buckets.size(); ++bucketIndex) {
+        const auto &bucket = forecast.buckets[bucketIndex];
+        const std::int64_t bucketStart = dayStart + bucket.startMinute * 60LL;
+        const std::int64_t bucketEnd = dayStart + bucket.endMinute * 60LL;
+        forecast.buckets[bucketIndex].scheduledMinutes +=
+            static_cast<int>(overlapSeconds(shiftStart, shiftEnd, bucketStart,
+                                            bucketEnd) /
+                             60);
+      }
+
+      if (impl_->staffBreakAfterMinutes > 0) {
+        const std::int64_t breakStart =
+            shiftStart + impl_->staffBreakAfterMinutes * 60LL;
+        const std::int64_t breakEnd =
+            std::min<std::int64_t>(
+                shiftEnd, breakStart +
+                              static_cast<std::int64_t>(
+                                  impl_->staffBreakDurationMinutes) *
+                                  60);
+        if (breakEnd > breakStart)
+          for (std::size_t bucketIndex = 0;
+               bucketIndex < forecast.buckets.size(); ++bucketIndex) {
+            const auto &bucket = forecast.buckets[bucketIndex];
+            const std::int64_t bucketStart =
+                dayStart + bucket.startMinute * 60LL;
+            const std::int64_t bucketEnd = dayStart + bucket.endMinute * 60LL;
+            forecast.buckets[bucketIndex].scheduledMinutes -=
+                static_cast<int>(overlapSeconds(breakStart, breakEnd,
+                                                bucketStart, bucketEnd) /
+                                 60);
+          }
+      }
+    }
+
+    for (const auto &task : impl_->tasks) {
+      if (task.kind != TaskKind::Training || task.targetId != person.id ||
+          task.status == TaskStatus::Completed)
+        continue;
+      const auto trainingStart = task.notBeforeSecond;
+      const auto trainingEnd = trainingStart +
+                               static_cast<std::int64_t>(std::ceil(task.total));
+      for (std::size_t bucketIndex = 0;
+           bucketIndex < forecast.buckets.size(); ++bucketIndex) {
+        const auto &bucket = forecast.buckets[bucketIndex];
+        const std::int64_t bucketStart = dayStart + bucket.startMinute * 60LL;
+        const std::int64_t bucketEnd = dayStart + bucket.endMinute * 60LL;
+        forecast.buckets[bucketIndex].scheduledMinutes -=
+            static_cast<int>(overlapSeconds(trainingStart, trainingEnd,
+                                            bucketStart, bucketEnd) /
+                             60);
+      }
+    }
+  }
+
+  for (auto &bucket : forecast.buckets) {
+    bucket.scheduledMinutes = std::max(0, bucket.scheduledMinutes);
+    bucket.uncoveredMinutes =
+        std::max(0, bucket.requiredMinutes - bucket.scheduledMinutes);
+    forecast.requiredMinutes += bucket.requiredMinutes;
+    forecast.scheduledMinutes += bucket.scheduledMinutes;
+    forecast.uncoveredMinutes += bucket.uncoveredMinutes;
+  }
+  return forecast;
+}
+
+OptimizerSnapshot Simulation::buildOptimizerSnapshot() const {
+  OptimizerSnapshot snapshot;
+  snapshot.capturedSecond = impl_->elapsed;
+  snapshot.horizonEndSecond = impl_->elapsed + 86400;
+  const int currentDay = static_cast<int>(impl_->elapsed / 86400);
+
+  auto serviceRole = [](TaskKind kind) {
+    if (kind == TaskKind::Turnover || kind == TaskKind::Restock)
+      return StaffRole::Housekeeper;
+    if (kind == TaskKind::Repair)
+      return StaffRole::Maintenance;
+    return StaffRole::Receptionist;
+  };
+  auto addWindow = [&](std::vector<OptimizationWindow> &windows,
+                       std::int64_t start, std::int64_t end) {
+    start = std::max(start, snapshot.capturedSecond);
+    end = std::min(end, snapshot.horizonEndSecond);
+    if (end > start)
+      windows.push_back({start, end});
+  };
+
+  for (const auto &person : impl_->people) {
+    if (person.kind == PersonKind::Guest)
+      continue;
+    OptimizerEmployee employee;
+    employee.id = person.id;
+    employee.role = staffRole(person.kind);
+    employee.absent = person.absent;
+    employee.availableNow = person.onShift && !person.absent && person.task == 0;
+
+    const std::int64_t shiftDuration =
+        person.shiftStartHour == person.shiftEndHour
+            ? 86400
+            : static_cast<std::int64_t>(
+                  (person.shiftEndHour - person.shiftStartHour + 24) % 24) *
+                  3600;
+    for (int offset = -1; offset <= 2; ++offset) {
+      const int startDay = currentDay + offset;
+      const std::int64_t shiftStart =
+          static_cast<std::int64_t>(startDay) * 86400 +
+          person.shiftStartHour * 3600LL;
+      const std::int64_t shiftEnd = shiftStart + shiftDuration;
+      const std::int64_t key = static_cast<std::int64_t>(startDay) * 24 +
+                               person.shiftStartHour;
+      if (!(person.absent && person.shiftInstanceKey == key))
+        addWindow(employee.shiftWindows, shiftStart, shiftEnd);
+
+      if (impl_->staffBreakAfterMinutes > 0) {
+        const std::int64_t breakStart =
+            shiftStart + impl_->staffBreakAfterMinutes * 60LL;
+        const std::int64_t breakEnd = std::min<std::int64_t>(
+            shiftEnd,
+            breakStart +
+                static_cast<std::int64_t>(impl_->staffBreakDurationMinutes) *
+                    60);
+        const bool alreadyTookCurrentBreak =
+            key == person.shiftInstanceKey && person.breakMinutesTakenToday > 0;
+        if (!alreadyTookCurrentBreak)
+          addWindow(employee.unavailableWindows, breakStart, breakEnd);
+      }
+    }
+
+    for (const auto &task : impl_->tasks) {
+      if (task.status == TaskStatus::Completed)
+        continue;
+      if ((task.kind == TaskKind::Break || task.kind == TaskKind::Training) &&
+          task.targetId == person.id) {
+        const auto start =
+            task.status == TaskStatus::Working ? impl_->elapsed
+                                               : task.notBeforeSecond;
+        const auto duration = static_cast<std::int64_t>(
+            std::ceil(task.status == TaskStatus::Working
+                          ? task.workRemainingSeconds
+                          : task.total));
+        addWindow(employee.unavailableWindows, start, start + duration);
+      } else if (task.employeeId == person.id &&
+                 task.kind != TaskKind::Break &&
+                 task.kind != TaskKind::Training) {
+        const auto duration = static_cast<std::int64_t>(
+            std::ceil(std::max(1.0, task.workRemainingSeconds)));
+        addWindow(employee.unavailableWindows, impl_->elapsed,
+                  impl_->elapsed + duration);
+      }
+    }
+
+    std::sort(employee.shiftWindows.begin(), employee.shiftWindows.end(),
+              [](const auto &a, const auto &b) {
+                if (a.startSecond != b.startSecond)
+                  return a.startSecond < b.startSecond;
+                return a.endSecond < b.endSecond;
+              });
+    std::sort(employee.unavailableWindows.begin(),
+              employee.unavailableWindows.end(), [](const auto &a, const auto &b) {
+                if (a.startSecond != b.startSecond)
+                  return a.startSecond < b.startSecond;
+                return a.endSecond < b.endSecond;
+              });
+    snapshot.employees.push_back(std::move(employee));
+  }
+
+  for (const auto &task : impl_->tasks) {
+    if (task.employeeId != 0 || task.status == TaskStatus::Completed ||
+        task.kind == TaskKind::Break || task.kind == TaskKind::Training)
+      continue;
+    OptimizerTask view;
+    view.id = task.id;
+    view.requiredRole = serviceRole(task.kind);
+    view.critical = task.kind == TaskKind::Repair ||
+                    task.kind == TaskKind::CheckIn ||
+                    task.kind == TaskKind::CheckOut;
+    view.earliestStartSecond =
+        std::max(impl_->elapsed, task.notBeforeSecond);
+    view.durationSeconds = static_cast<int>(std::clamp<std::int64_t>(
+        static_cast<std::int64_t>(
+            std::ceil(std::max(1.0, task.workRemainingSeconds))),
+        1, 7LL * 86400LL));
+    snapshot.tasks.push_back(view);
+  }
+
+  std::sort(snapshot.employees.begin(), snapshot.employees.end(),
+            [](const auto &a, const auto &b) { return a.id < b.id; });
+  std::sort(snapshot.tasks.begin(), snapshot.tasks.end(),
+            [](const auto &a, const auto &b) { return a.id < b.id; });
+  return snapshot;
+}
+
+PlanValidation Simulation::validatePlan(const OptimizerSnapshot &snapshot,
+                                        const AssignmentPlan &plan) const {
+  return validateAssignmentPlan(snapshot, plan);
+}
+
+CommandResult Simulation::setRoomRate(EntityId id, double rate) {
+  auto *r = impl_->getRoom(id);
+  if (!r || !std::isfinite(rate) || rate < 20 || rate > 5000)
+    return {false, "Room or rate invalid"};
+  r->nightlyRateCents = static_cast<std::int64_t>(std::llround(rate * 100));
+  r->nightlyRate = r->nightlyRateCents / 100.0;
+  return {true, "Rate updated", id};
+}
+CommandResult Simulation::requestClean(EntityId id) {
+  auto *r = impl_->getRoom(id);
+  if (!r || r->reservationId != 0 || r->status == RoomStatus::Occupied ||
+      r->status == RoomStatus::OutOfOrder || r->condition < 40)
+    return {false, "Occupied, reserved, or closed room cannot be cleaned"};
+  r->status = RoomStatus::VacantDirty;
+  impl_->createTask(TaskKind::Turnover, id, r->door, impl_->turnoverWork);
+  return {true, "Cleaning requested", id};
+}
+CommandResult Simulation::requestRepair(EntityId id) {
+  auto *r = impl_->getRoom(id);
+  if (!r || r->status == RoomStatus::Occupied || r->reservationId != 0)
+    return {false, "Occupied or reserved room cannot be repaired"};
+  if (std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
+        return task.targetId == id && task.status != TaskStatus::Completed;
+      }))
+    return {false, "Complete existing room service before requesting repair"};
+  r->status = RoomStatus::OutOfOrder;
+  impl_->createTask(TaskKind::Repair, id, r->door, impl_->repairWork);
+  return {true, "Repair requested", id};
+}
+CommandResult Simulation::closeRoom(EntityId id, bool closed) {
+  auto *r = impl_->getRoom(id);
+  if (!r || r->status == RoomStatus::Occupied || r->reservationId != 0)
+    return {false, "Occupied or reserved room cannot change availability"};
+  if (!closed) {
+    const bool activeRepair =
+        std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
+          return task.targetId == id && task.kind == TaskKind::Repair &&
+                 task.status != TaskStatus::Completed;
+        });
+    if ((!r->closed && r->status == RoomStatus::OutOfOrder) || activeRepair ||
+        r->condition < 40)
+      return {false, "Room must be repaired before reopening"};
+  }
+  r->closed = closed;
+  r->status = closed ? RoomStatus::OutOfOrder
+                     : (r->cleanliness >= 70 ? RoomStatus::VacantReady
+                                             : RoomStatus::VacantDirty);
+  return {true, closed ? "Room closed" : "Room reopened", id};
+}
+CommandResult Simulation::removeRoom(EntityId id) {
+  auto it = std::find_if(impl_->rooms.begin(), impl_->rooms.end(),
+                         [&](auto &r) { return r.id == id; });
+  if (it == impl_->rooms.end() || it->status == RoomStatus::Occupied ||
+      it->reservationId)
+    return {false, "Room is occupied or reserved"};
+  if (std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
+        return task.targetId == id && task.status != TaskStatus::Completed;
+      }))
+    return {false, "Complete room service before demolition"};
+  for (int y = it->y; y < it->y + it->height; ++y)
+    for (int x = it->x; x < it->x + it->width; ++x)
+      impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
+  impl_->rooms.erase(it);
+  impl_->refreshReachability();
+  return {true, "Room removed", id};
+}
+CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
+  const auto valid = [](int quantity) {
+    return quantity >= 0 && quantity <= 100000;
+  };
+  const std::int64_t total = static_cast<std::int64_t>(o.linen) + o.towels +
+                             o.amenities + o.chemicals + o.parts;
+  if (!valid(o.linen) || !valid(o.towels) || !valid(o.amenities) ||
+      !valid(o.chemicals) || !valid(o.parts) || total == 0)
+    return {false, "Order quantities invalid"};
+
+  const auto snapshot = impl_->services.logisticsSnapshot();
+  StorageNodeId receiving{};
+  StorageNodeId cleanLinen{};
+  StorageNodeId central{};
+  int cleanCapacity{};
+  int centralCapacity{};
+  for (const auto &node : snapshot.storage) {
+    const int available = node.capacityUnits - node.usedUnits - node.reservedUnits;
+    if (node.kind == StorageKind::Receiving && node.operational)
+      receiving = node.id;
+    else if (node.kind == StorageKind::CleanLinen && node.operational) {
+      cleanLinen = node.id;
+      cleanCapacity = available;
+    } else if (node.kind == StorageKind::CentralStorage && node.operational) {
+      central = node.id;
+      centralCapacity = available;
+    }
+  }
+  if (receiving == 0 || cleanLinen == 0 || central == 0)
+    return {false, "Required receiving or storage is unavailable"};
+  const int centralNeed = o.towels + o.amenities + o.chemicals + o.parts;
+  if (o.linen > cleanCapacity || centralNeed > centralCapacity)
+    return {false, "Insufficient physical storage capacity"};
+
+  std::int64_t cost = static_cast<std::int64_t>(o.linen) * 1200 +
+                      static_cast<std::int64_t>(o.towels) * 500 +
+                      static_cast<std::int64_t>(o.amenities) * 250 +
+                      static_cast<std::int64_t>(o.chemicals) * 800 +
+                      static_cast<std::int64_t>(o.parts) * 3500;
+  if (impl_->economy.cashCents < cost)
+    return {false, "Insufficient cash"};
+
+  auto &logistics = impl_->services.logistics();
+  constexpr int leadSeconds = 2 * 24 * 60 * 60;
+  const auto place = [&](std::string_view item, int quantity,
+                         StorageNodeId destination) {
+    if (quantity == 0)
+      return true;
+    return logistics.placePurchaseOrder(item, quantity, destination, leadSeconds).ok();
+  };
+  if (!place("clean_linen_set", o.linen, cleanLinen) ||
+      !place("towel_unit", o.towels, central) ||
+      !place("amenity_kit", o.amenities, central) ||
+      !place("cleaning_chemical", o.chemicals, central) ||
+      !place("maintenance_part", o.parts, central))
+    throw std::logic_error("preflighted FINAL-04 purchase order failed");
+
+  PendingOrder p;
+  p.id = impl_->nextId++;
+  p.items = {o.linen, o.towels, o.amenities, o.chemicals, o.parts};
+  p.etaDay = impl_->elapsed / 86400 + 2;
+  impl_->orders.push_back(p);
+  impl_->economy.cashCents -= cost;
+  impl_->economy.supplyCostCents += cost;
+  return {true, "Order submitted to receiving", p.id};
+}
+CommandResult Simulation::loadDefinitions(std::string_view j) {
+  auto d = *impl_;
+  hh::assets::JsonValue root;
+  try {
+    root = hh::assets::parse_json(j);
+  } catch (const std::exception &) {
+    return {false, "Definitions must be valid JSON"};
+  }
+  if (!root.is_object())
+    return {false, "Definitions must be a JSON object"};
+  const bool inventoryDefinition =
+      root.find("initialLinen") || root.find("initialTowels") ||
+      root.find("initialAmenities") || root.find("initialChemicals") ||
+      root.find("initialParts");
+  auto number = [&](std::string_view key, double &out) {
+    const auto *value = root.find(key);
+    if (!value)
+      return true;
+    if (!value->is_number())
+      return false;
+    out = value->as_number();
+    return std::isfinite(out);
+  };
+  auto integer = [&](std::string_view key, int &out) {
+    double x = out;
+    if (!number(key, x) || x < 0 || x > 100000 || std::floor(x) != x)
+      return false;
+    out = (int)x;
+    return true;
+  };
+  if (!number("baseDemand", d.baseDemand) ||
+      !integer("utilityPerRoomDayCents", d.utilityPerRoomDayCents) ||
+      !number("turnoverWorkSeconds", d.turnoverWork) ||
+      !number("repairWorkSeconds", d.repairWork) ||
+      !number("checkInWorkSeconds", d.checkInWork) ||
+      !number("guestHungerPerMinute", d.hungerRate) ||
+      !number("guestRestLossPerMinute", d.restLoss) ||
+      !number("roomConditionLossPerDay", d.roomConditionLossPerDay) ||
+      !integer("onboardingCostCents", d.onboardingCostCents) ||
+      !integer("staffBreakAfterMinutes", d.staffBreakAfterMinutes) ||
+      !integer("staffBreakDurationMinutes", d.staffBreakDurationMinutes) ||
+      !number("missedBreakFatiguePerHour", d.missedBreakFatiguePerHour) ||
+      !number("missedBreakMoralePerHour", d.missedBreakMoralePerHour) ||
+      !number("trainingSkillGain", d.trainingSkillGain) ||
+      !integer("initialLinen", d.inventory.linen) ||
+      !integer("initialTowels", d.inventory.towels) ||
+      !integer("initialAmenities", d.inventory.amenities) ||
+      !integer("initialChemicals", d.inventory.chemicals) ||
+      !integer("initialParts", d.inventory.parts) || d.baseDemand < 0 ||
+      d.turnoverWork <= 0 || d.repairWork <= 0 || d.checkInWork <= 0 ||
+      d.roomConditionLossPerDay < 0 || d.roomConditionLossPerDay > 100 ||
+      d.staffBreakDurationMinutes <= 0 || d.staffBreakDurationMinutes > 24 * 60 ||
+      d.missedBreakFatiguePerHour < 0 || d.missedBreakFatiguePerHour > 1000 ||
+      d.missedBreakMoralePerHour < 0 || d.missedBreakMoralePerHour > 1000 ||
+      d.trainingSkillGain < 0 || d.trainingSkillGain > 100)
+    return {false, "Definition values are invalid"};
+  if (const auto *psychology = root.find("guestPsychology")) {
+    if (!psychology->is_object())
+      return {false, "Guest psychology definitions must be an object"};
+    const auto *version = psychology->find("version");
+    if (!version || !version->is_number() || version->as_number() != 1.0)
+      return {false, "Unsupported guest psychology definition version"};
+    auto &guestDefinitions = d.guestExperienceDefinitions;
+    auto &needTuning = d.guestDefinitions.needTuning;
+    auto numbers = [&](std::string_view key, auto &target) {
+      const auto *value = psychology->find(key);
+      if (!value)
+        return true;
+      if (!value->is_array() || value->as_array().size() != target.size())
+        return false;
+      for (std::size_t index = 0; index < target.size(); ++index) {
+        const auto &entry = value->as_array()[index];
+        if (!entry.is_number() || !std::isfinite(entry.as_number()))
+          return false;
+        target[index] = entry.as_number();
+      }
+      return true;
+    };
+    auto psychologyNumber = [&](std::string_view key, double &out) {
+      const auto *value = psychology->find(key);
+      if (!value)
+        return true;
+      if (!value->is_number() || !std::isfinite(value->as_number()))
+        return false;
+      out = value->as_number();
+      return true;
+    };
+    if (!numbers("categoryWeights", guestDefinitions.categoryWeights) ||
+        !numbers("memoryHalfLifeHours",
+                 guestDefinitions.memoryHalfLifeHours) ||
+        !numbers("recoveryMagnitudeReduction",
+                 guestDefinitions.recoveryMagnitudeReduction) ||
+        !psychologyNumber("complaintMagnitudeThreshold",
+                          guestDefinitions.complaintMagnitudeThreshold) ||
+        !psychologyNumber("reviewGenerationProbability",
+                          guestDefinitions.reviewGenerationProbability) ||
+        !psychologyNumber("lowSatisfactionReviewBonus",
+                          guestDefinitions.lowSatisfactionReviewBonus) ||
+        !psychologyNumber("highSatisfactionReviewBonus",
+                          guestDefinitions.highSatisfactionReviewBonus) ||
+        !psychologyNumber("reviewScoreNoiseRange",
+                          guestDefinitions.reviewScoreNoiseRange) ||
+        !psychologyNumber("criticReputationImpactMultiplier",
+                          guestDefinitions.criticReputationImpactMultiplier))
+      return {false, "Guest psychology definitions are invalid"};
+    if (const auto *needTuningValue = psychology->find("needTuning")) {
+      if (!needTuningValue->is_object())
+        return {false, "Guest need tuning must be an object"};
+      auto needNumber = [&](std::string_view key, double &out) {
+        const auto *value = needTuningValue->find(key);
+        if (!value)
+          return true;
+        if (!value->is_number() || !std::isfinite(value->as_number()))
+          return false;
+        out = value->as_number();
+        return true;
+      };
+      if (!needNumber("awakeEnergyDecayPerHour",
+                      needTuning.awakeEnergyDecayPerHour) ||
+          !needNumber("awakeHungerDecayPerHour",
+                      needTuning.awakeHungerDecayPerHour) ||
+          !needNumber("hygieneDecayPerHour", needTuning.hygieneDecayPerHour) ||
+          !needNumber("idleEntertainmentDecayPerHour",
+                      needTuning.idleEntertainmentDecayPerHour) ||
+          !needNumber("socialGuestDecayPerHour",
+                      needTuning.socialGuestDecayPerHour) ||
+          !needNumber("privateGuestDecayPerHour",
+                      needTuning.privateGuestDecayPerHour) ||
+          !needNumber("sleepingEnergyRecoveryPerHour",
+                      needTuning.sleepingEnergyRecoveryPerHour) ||
+          !needNumber("exerciseHygienePenaltyPerHour",
+                      needTuning.exerciseHygienePenaltyPerHour) ||
+          !needNumber("sleepNoiseThresholdDb",
+                      needTuning.sleepNoiseThresholdDb) ||
+          !needNumber("noiseSensitivityThresholdOffsetDb",
+                      needTuning.noiseSensitivityThresholdOffsetDb) ||
+          !needNumber("sleepNoiseSampleIntervalSeconds",
+                      needTuning.sleepNoiseSampleIntervalSeconds) ||
+          !needNumber("sleepNoiseDisruptionSeconds",
+                      needTuning.sleepNoiseDisruptionSeconds) ||
+          !needNumber("noiseComplaintWindowSeconds",
+                      needTuning.noiseComplaintWindowSeconds))
+        return {false, "Guest need tuning is invalid"};
+      if (const auto *disruptions =
+              needTuningValue->find("noiseDisruptionsForComplaint")) {
+        if (!disruptions->is_number() ||
+            std::floor(disruptions->as_number()) !=
+                disruptions->as_number() ||
+            disruptions->as_number() < 1 || disruptions->as_number() > 3)
+          return {false, "Guest noise complaint threshold is invalid"};
+        needTuning.noiseDisruptionsForComplaint =
+            static_cast<std::size_t>(disruptions->as_number());
+      }
+    }
+    if (!validateGuestExperienceDefinitions(guestDefinitions) ||
+        !validateGuestModelDefinitions(d.guestDefinitions))
+      return {false, "Guest psychology definitions are invalid"};
+  }
+  if (inventoryDefinition &&
+      !d.services.setScenarioInventory(d.inventory.linen, d.inventory.towels,
+                                       d.inventory.amenities,
+                                       d.inventory.chemicals,
+                                       d.inventory.parts))
+    return {false, "Inventory definitions require idle FINAL-04 services and physical capacity"};
+  d.services.engineering().setConditionLossPerDayHundredths(
+      static_cast<int>(std::llround(d.roomConditionLossPerDay * 100.0)));
+  d.inventory = d.serviceInventoryView();
+  *impl_ = std::move(d);
+  return {true, "Definitions loaded"};
+}
+CommandResult Simulation::reportGuestExperience(
+    const GuestExperienceEvent &event) {
+  if (event.guestId == 0)
+    return {false, "Guest identity is required"};
+  Reservation *reservation = nullptr;
+  GuestMember *guest = nullptr;
+  for (auto &candidate : impl_->reservations) {
+    if (auto *member = impl_->getGuestMember(candidate, event.guestId)) {
+      reservation = &candidate;
+      guest = member;
+      break;
+    }
+  }
+  if (!reservation || !guest || reservation->completed ||
+      guest->lifecycle == GuestLifecycleState::CompletedStay ||
+      guest->lifecycle == GuestLifecycleState::Departing)
+    return {false, "Guest is not in an active stay"};
+  if (event.locationId != 0 && event.locationId != reservation->roomId &&
+      !impl_->getRoom(event.locationId))
+    return {false, "Experience location is unknown"};
+  if (event.sourceEntityId && !impl_->getPerson(*event.sourceEntityId))
+    return {false, "Experience source is unknown"};
+  if (event.eventId != 0 && impl_->hasEventId(event.eventId))
+    return {false, "Experience event was already reported"};
+  auto result = impl_->applyGuestEvent(*reservation, *guest, event);
+  if (!result.accepted)
+    return {false, "Guest experience event is invalid"};
+  return {true, "Guest experience recorded", result.memoryId};
+}
+
+CommandResult Simulation::reportGuestSleepNoise(
+    GuestId guestId, std::optional<double> measuredNoiseDb) {
+  if (guestId == 0 ||
+      (measuredNoiseDb &&
+       (!std::isfinite(*measuredNoiseDb) || *measuredNoiseDb < 0.0 ||
+        *measuredNoiseDb > 140.0)))
+    return {false, "Guest identity or measured noise is invalid"};
+  Person *actor = impl_->getPerson(guestId);
+  if (!actor || actor->kind != PersonKind::Guest ||
+      actor->state != PersonState::Sleeping)
+    return {false, "Guest is not currently sleeping"};
+  Reservation *reservation = impl_->getReservation(actor->reservation);
+  GuestMember *guest = reservation
+                           ? impl_->getGuestMember(*reservation, guestId)
+                           : nullptr;
+  if (!reservation || !guest || reservation->completed)
+    return {false, "Guest is not in an active stay"};
+
+  const auto &tuning = impl_->guestDefinitions.needTuning;
+  const auto update = updateGuestSleepingNoise(
+      guest->needs, guest->profile, measuredNoiseDb,
+      tuning.sleepNoiseSampleIntervalSeconds, guest->profile.randomState,
+      tuning);
+  if (!measuredNoiseDb || !update.disrupted)
+    return {true, "No measured sleep disturbance"};
+
+  const double sensitivity =
+      std::clamp(guest->profile.sensitivities.noise, 0.0, 1.0);
+  const double threshold = std::clamp(
+      tuning.sleepNoiseThresholdDb -
+          sensitivity * tuning.noiseSensitivityThresholdOffsetDb,
+      0.0, 140.0);
+  GuestExperienceEvent event;
+  event.guestId = guestId;
+  event.type = GuestExperienceEventType::NoiseDisturbance;
+  event.timestampSeconds = impl_->elapsed;
+  event.locationId = reservation->roomId;
+  event.category = GuestCategory::Quiet;
+  event.observedValue = *measuredNoiseDb * 100.0 / 140.0;
+  event.expectedValue = threshold * 100.0 / 140.0;
+  event.rawImpact = -std::clamp((*measuredNoiseDb - threshold) * 0.6, 5.0, 50.0);
   event.salience = 0.9;
   event.complaintEligible = update.complaintEligible;
   event.reviewStatement = "Noise interrupted our sleep.";
@@ -2693,4 +3888,3 @@ Simulation Simulation::load(std::string_view data) {
 }
 
 } // namespace hh::game
-
