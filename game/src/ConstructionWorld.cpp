@@ -123,8 +123,8 @@ bool regionFirstTileLess(const ConstructionRegion &lhs,
     return !rhs.tiles.empty();
   if (rhs.tiles.empty())
     return false;
-  const auto key = [](Position position) {
-    return std::tie(position.floor, position.y, position.x);
+  const auto key = [](const Position &position) {
+    return std::tuple{position.floor, position.y, position.x};
   };
   return key(lhs.tiles.front()) < key(rhs.tiles.front());
 }
