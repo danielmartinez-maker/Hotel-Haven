@@ -454,6 +454,7 @@ void Client::paint(HDC output) {
         const auto next = selectedIndex == 0 ? snapshot.guests.size() - 1
                                              : selectedIndex - 1;
         selectedGuest = snapshot.guests[next].profile.id;
+        selectedGuestComplaint = 0;
         guestInspectorTab = GuestInspectorTab::Overview;
       });
       button(left + 163, y, 151, 30, L"Next guest", [this, selectedIndex] {
@@ -462,16 +463,20 @@ void Client::paint(HDC output) {
         selectedGuest = snapshot.guests[(selectedIndex + 1) %
                                         snapshot.guests.size()]
                             .profile.id;
+        selectedGuestComplaint = 0;
         guestInspectorTab = GuestInspectorTab::Overview;
       });
       y += 35;
-      button(left, y, 100, 30, L"Overview",
+      button(left, y, 76, 30, L"Guest",
              [this] { guestInspectorTab = GuestInspectorTab::Overview; },
              guestInspectorTab == GuestInspectorTab::Overview);
-      button(left + 104, y, 100, 30, L"Memories",
-             [this] { guestInspectorTab = GuestInspectorTab::Memories; },
-             guestInspectorTab == GuestInspectorTab::Memories);
-      button(left + 208, y, 108, 30, L"Reviews",
+      button(left + 80, y, 76, 30, L"Experience",
+             [this] { guestInspectorTab = GuestInspectorTab::Experience; },
+             guestInspectorTab == GuestInspectorTab::Experience);
+      button(left + 160, y, 76, 30, L"Care",
+             [this] { guestInspectorTab = GuestInspectorTab::Care; },
+             guestInspectorTab == GuestInspectorTab::Care);
+      button(left + 240, y, 76, 30, L"Reviews",
              [this] { guestInspectorTab = GuestInspectorTab::Reviews; },
              guestInspectorTab == GuestInspectorTab::Reviews);
       y += 38;
@@ -534,6 +539,7 @@ void Client::paint(HDC output) {
               pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Privacy)]) +
                   L" / " +
                   pct(guest.needs.values[static_cast<std::size_t>(GuestNeed::Safety)]));
+      } else if (guestInspectorTab == GuestInspectorTab::Experience) {
         label(L"Service / cleanliness",
               pct(guest.needs.perceptions.serviceConfidence) + L" / " +
                   pct(guest.needs.perceptions.cleanlinessConfidence));
@@ -565,12 +571,11 @@ void Client::paint(HDC output) {
                                ? decimal(*guest.measuredRoomNoise)
                                : L"unavailable";
         paragraph(L"Market rate " + market + L" · room noise " + noise, 30);
-      } else if (guestInspectorTab == GuestInspectorTab::Memories) {
         paragraph(L"Active memories · " +
                       std::to_wstring(guest.activeMemories.size()),
                   28);
         for (std::size_t offset = 0;
-             offset < guest.activeMemories.size() && offset < 7 && y + 50 < bottom;
+             offset < guest.activeMemories.size() && offset < 4 && y + 50 < bottom;
              ++offset) {
           const auto &memory = guest.activeMemories[
               guest.activeMemories.size() - 1 - offset];
@@ -587,35 +592,82 @@ void Client::paint(HDC output) {
                         std::to_wstring(memory.timestampSeconds / 86400 + 1) +
                         L" · location #" + std::to_wstring(memory.locationId) +
                         L" · " + source + L" · " + statement,
-                    44);
+                    42);
         }
-        std::size_t openComplaintCount{};
-        const GuestComplaint *openComplaint{};
+      } else if (guestInspectorTab == GuestInspectorTab::Care) {
+        std::vector<const GuestComplaint *> openComplaints;
         for (const auto &complaint : guest.experience.complaints)
-          if (complaint.open) {
-            ++openComplaintCount;
-            if (!openComplaint)
-              openComplaint = &complaint;
-          }
+          if (complaint.open)
+            openComplaints.push_back(&complaint);
+        std::sort(openComplaints.begin(), openComplaints.end(),
+                  [](const auto *a, const auto *b) { return a->id < b->id; });
+        std::vector<EntityId> openComplaintIds;
+        for (const auto *complaint : openComplaints)
+          openComplaintIds.push_back(complaint->id);
         paragraph(L"Open complaints · " +
-                      std::to_wstring(openComplaintCount),
+                      std::to_wstring(openComplaintIds.size()),
                   28);
-        if (openComplaint && y + 76 < bottom) {
-          const std::array<std::pair<std::wstring, GuestRecoveryOption>, 3>
-              recoveryOptions = {{{L"Apologize", GuestRecoveryOption::ApologyOnly},
-                                  {L"Half refund", GuestRecoveryOption::PartialRoomRefund},
-                                  {L"Refund", GuestRecoveryOption::FullNightRefund}}};
-          for (std::size_t i = 0; i < recoveryOptions.size(); ++i)
-            button(left + static_cast<int>(i) * 104, y, 100, 30,
-                   recoveryOptions[i].first,
-                   [this, guestId = guest.profile.id,
-                    complaintId = openComplaint->id,
-                    option = recoveryOptions[i].second] {
-                     result(simulation.resolveGuestComplaint(guestId,
-                                                             complaintId,
-                                                             option));
+        if (!openComplaints.empty()) {
+          auto complaintIt = std::find_if(
+              openComplaints.begin(), openComplaints.end(), [this](const auto *c) {
+                return c->id == selectedGuestComplaint;
+              });
+          if (complaintIt == openComplaints.end()) {
+            complaintIt = openComplaints.begin();
+            selectedGuestComplaint = (*complaintIt)->id;
+          }
+          const auto complaintIndex = static_cast<std::size_t>(
+              std::distance(openComplaints.begin(), complaintIt));
+          const auto *openComplaint = *complaintIt;
+          const auto memory = std::find_if(
+              guest.experience.memories.begin(), guest.experience.memories.end(),
+              [openComplaint](const auto &candidate) {
+                return candidate.id == openComplaint->memoryId;
+              });
+          label(L"Complaint",
+                L"#" + std::to_wstring(openComplaint->id) + L" · incident #" +
+                    std::to_wstring(openComplaint->incidentId) + L" · urgency " +
+                    std::to_wstring(static_cast<int>(openComplaint->urgency) + 1));
+          paragraph(memory == guest.experience.memories.end()
+                        ? L"The guest is waiting for a recovery response."
+                        : guestCategoryName(memory->category) + L" · " +
+                              (memory->reviewStatement.empty()
+                                   ? L"Guest experience incident"
+                                   : wide(memory->reviewStatement)),
+                    48);
+          if (openComplaints.size() > 1) {
+            button(left, y, 151, 30, L"Previous complaint",
+                   [this, openComplaintIds, complaintIndex] {
+                     const auto next = complaintIndex == 0
+                                           ? openComplaintIds.size() - 1
+                                           : complaintIndex - 1;
+                     selectedGuestComplaint = openComplaintIds[next];
                    });
-          y += 39;
+            button(left + 163, y, 151, 30, L"Next complaint",
+                   [this, openComplaintIds, complaintIndex] {
+                     selectedGuestComplaint =
+                         openComplaintIds[(complaintIndex + 1) %
+                                          openComplaintIds.size()];
+                   });
+            y += 35;
+          }
+          if (y + 76 < bottom) {
+            const std::array<std::pair<std::wstring, GuestRecoveryOption>, 2>
+                recoveryOptions = {
+                    {{L"Half refund", GuestRecoveryOption::PartialRoomRefund},
+                     {L"Refund", GuestRecoveryOption::FullNightRefund}}};
+            for (std::size_t i = 0; i < recoveryOptions.size(); ++i)
+              button(left + static_cast<int>(i) * 160, y, 151, 30,
+                     recoveryOptions[i].first,
+                     [this, guestId = guest.profile.id,
+                      complaintId = openComplaint->id,
+                      option = recoveryOptions[i].second] {
+                       result(simulation.resolveGuestComplaint(guestId,
+                                                               complaintId,
+                                                               option));
+                     });
+            y += 39;
+          }
         }
       } else {
         label(L"Rating scale", decimal(guest.reviewRatingMinimum) + L"–" +

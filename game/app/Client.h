@@ -27,7 +27,7 @@
 namespace hh::client {
 constexpr int HeaderHeight = 88, FooterHeight = 58, SidebarWidth = 356;
 enum class Page { Build, Rooms, Staff, Guests, Supplies, Finance, Guide };
-enum class GuestInspectorTab { Overview, Memories, Reviews };
+enum class GuestInspectorTab { Overview, Experience, Care, Reviews };
 enum class Tool {
   Inspect,
   Bedroom,
@@ -85,6 +85,7 @@ struct Client {
   double pendingSimulationSeconds = 0;
   hh::game::EntityId selected{};
   hh::game::GuestId selectedGuest{};
+  hh::game::EntityId selectedGuestComplaint{};
   Page page = Page::Guide;
   GuestInspectorTab guestInspectorTab = GuestInspectorTab::Overview;
   Tool tool = Tool::Inspect;

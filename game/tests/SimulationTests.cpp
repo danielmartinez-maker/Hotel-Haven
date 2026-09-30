@@ -496,7 +496,7 @@ static void guest_recovery_command_changes_only_the_selected_complaint() {
   require(firstComplaint != 0 && secondComplaint != 0,
           "both guests did not receive independent complaints");
   require(s.resolveGuestComplaint(firstId, firstComplaint,
-                                  GuestRecoveryOption::ApologyOnly)
+                                  GuestRecoveryOption::PartialRoomRefund)
               .ok,
           "selected complaint recovery failed");
   const auto after = s.view();
