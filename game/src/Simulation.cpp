@@ -685,7 +685,8 @@ struct Simulation::Impl {
       if (review.generated) {
         const auto score = static_cast<int>(std::clamp(
             std::llround(review.overallSatisfaction), 0LL, 100LL));
-        reviews.push_back({z->id, review.completedDay, score, review.text});
+        reviews.push_back({z->id, review.completedDay, score, review.text,
+                           review.rating, review.overallSatisfaction});
         const double multiplier = review.reputationImpactMultiplier;
         economy.reputation = std::clamp(
             economy.reputation +
@@ -3411,3 +3412,4 @@ Simulation Simulation::load(std::string_view data) {
 }
 
 } // namespace hh::game
+

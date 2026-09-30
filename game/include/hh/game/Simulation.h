@@ -158,6 +158,8 @@ struct ReviewView {
   int day{};
   int score{};
   std::string text;
+  double rating{1.0};
+  double overallSatisfaction{};
 };
 struct InventoryView {
   int linen{};
@@ -302,3 +304,4 @@ private:
 };
 
 } // namespace hh::game
+
