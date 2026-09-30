@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include "hh/game/GuestModel.h"
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -15,6 +16,148 @@ static const RoomView &room(const SimulationView &v, EntityId id) {
     if (r.id == id)
       return r;
   throw std::runtime_error("room missing");
+}
+
+static Simulation guest_integration_hotel(std::uint64_t seed) {
+  auto s = Simulation::tutorial(seed);
+  require(s.loadDefinitions(
+              R"({"baseDemand":100,"checkInWorkSeconds":1,"turnoverWorkSeconds":1,"repairWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":400,"initialTowels":500,"initialAmenities":200,"initialChemicals":200})")
+              .ok,
+          "guest integration definitions rejected");
+  for (int x : {4, 12, 20})
+    require(s.buildFurnishedRoom({"Group " + std::to_string(x), 2, x, 9, 6,
+                                  6, {2, x, 9}, 2, 1, 140})
+                .ok,
+            "two-bed guest room build failed");
+  s.step(3600);
+  return s;
+}
+
+static Simulation hotel_with_group_booking() {
+  for (std::uint64_t seed = 1; seed <= 16; ++seed) {
+    auto s = guest_integration_hotel(seed);
+    for (const auto &guest : s.view().guests)
+      if (guest.groupId != 0 && guest.memberIds.size() >= 2)
+        return s;
+  }
+  throw std::runtime_error("fixture did not produce a supported guest group");
+}
+
+static void reservation_creates_stable_guest_profile_and_group() {
+  auto s = hotel_with_group_booking();
+  const auto v = s.view();
+  require(!v.guests.empty(), "booking created no stable guest profiles");
+  bool foundGroup = false;
+  for (std::size_t i = 0; i < v.guests.size(); ++i) {
+    const auto &guest = v.guests[i];
+    require(guest.profile.id != 0, "guest profile has no stable identity");
+    require(guest.memberIds.size() >= 1,
+            "reservation guest has no membership list");
+    require(guest.leaderGuestId == guest.memberIds.front(),
+            "group leader is not stable in member ordering");
+    foundGroup |= guest.groupId != 0 && guest.memberIds.size() >= 2;
+    for (std::size_t j = i + 1; j < v.guests.size(); ++j)
+      require(guest.profile.id != v.guests[j].profile.id,
+              "guest identities collided across reservations");
+  }
+  require(foundGroup, "couple/family/tour archetype did not form a group");
+}
+
+static void group_checkin_and_checkout_run_once_for_all_members() {
+  auto s = hotel_with_group_booking();
+  const auto before = s.view();
+  GuestView grouped;
+  for (const auto &guest : before.guests)
+    if (guest.groupId != 0 && guest.memberIds.size() >= 2) {
+      grouped = guest;
+      break;
+    }
+  require(grouped.groupId != 0, "group booking missing");
+  s.step(4 * 86400);
+  const auto after = s.view();
+  int checkIns = 0, checkOuts = 0, matchingReviews = 0;
+  for (const auto &task : after.tasks) {
+    if (task.targetId != grouped.leaderGuestId)
+      continue;
+    checkIns += task.kind == TaskKind::CheckIn;
+    checkOuts += task.kind == TaskKind::CheckOut;
+  }
+  for (const auto &review : after.reviews)
+    matchingReviews += review.reservationId == grouped.reservationId;
+  require(checkIns == 1 && checkOuts == 1,
+          "group members created duplicate front-desk tasks");
+  require(matchingReviews == 1,
+          "group stay was charged/reviewed more than once");
+  int completedReservations = 0;
+  for (const auto &reservation : after.reservations)
+    completedReservations += reservation.completed;
+  require(after.economy.completedStays == completedReservations,
+          "economy counted group members as separate stays");
+  for (GuestId memberId : grouped.memberIds) {
+    bool completed = false;
+    for (const auto &guest : after.guests)
+      if (guest.profile.id == memberId)
+        completed = guest.lifecycle == GuestLifecycleState::CompletedStay;
+    require(completed, "group member did not complete the shared stay");
+  }
+}
+
+static void guest_lifecycle_tracks_arrival_room_stay_and_departure() {
+  auto s = guest_integration_hotel(250);
+  auto v = s.view();
+  require(!v.guests.empty(), "arrival did not create guest state");
+  bool traveling = false;
+  for (const auto &guest : v.guests)
+    traveling |= guest.lifecycle == GuestLifecycleState::TravelingToHotel ||
+                 guest.lifecycle == GuestLifecycleState::Arriving ||
+                 guest.lifecycle == GuestLifecycleState::AwaitingCheckIn;
+  require(traveling, "arrival did not advance the reservation lifecycle");
+  s.step(3600);
+  v = s.view();
+  bool staying = false;
+  for (const auto &guest : v.guests)
+    staying |= guest.lifecycle == GuestLifecycleState::CheckedIn ||
+               guest.lifecycle == GuestLifecycleState::InStay;
+  require(staying, "check-in did not advance a guest into the stay");
+  s.step(4 * 86400);
+  v = s.view();
+  bool departed = false;
+  for (const auto &guest : v.guests)
+    departed |= guest.lifecycle == GuestLifecycleState::CompletedStay;
+  require(departed, "checkout and departure did not complete guest lifecycle");
+}
+
+static void guest_goal_candidates_require_real_available_services() {
+  auto s = guest_integration_hotel(251);
+  s.step(3600);
+  const auto v = s.view();
+  require(!v.guests.empty(), "goal selection test has no guests");
+  for (const auto &guest : v.guests)
+    require(guest.currentGoal != GuestGoal::Eat &&
+                guest.currentGoal != GuestGoal::Drink &&
+                guest.currentGoal != GuestGoal::Swim &&
+                guest.currentGoal != GuestGoal::Exercise &&
+                guest.currentGoal != GuestGoal::AttendEvent,
+            "guest selected an activity without an available venue");
+}
+
+static void guest_profiles_do_not_advance_shared_simulation_rng() {
+  auto first = guest_integration_hotel(731);
+  auto second = guest_integration_hotel(731);
+  const auto a = first.view(), b = second.view();
+  require(a.reservations.size() == b.reservations.size(),
+          "profile generation changed the deterministic booking count");
+  for (std::size_t i = 0; i < a.reservations.size(); ++i) {
+    require(a.reservations[i].id == b.reservations[i].id &&
+                a.reservations[i].roomId == b.reservations[i].roomId &&
+                a.reservations[i].departureDay == b.reservations[i].departureDay,
+            "profile generation advanced the shared simulation RNG");
+  }
+  require(a.guests.size() == b.guests.size(),
+          "guest-local random streams changed guest count");
+  for (std::size_t i = 0; i < a.guests.size(); ++i)
+    require(a.guests[i].profile == b.guests[i].profile,
+            "guest-local profile generation is not reproducible");
 }
 
 static void construction_and_routes() {
@@ -704,6 +847,11 @@ static void long_campaign_bounds_transient_history() {
 
 int main() {
   try {
+    reservation_creates_stable_guest_profile_and_group();
+    group_checkin_and_checkout_run_once_for_all_members();
+    guest_lifecycle_tracks_arrival_room_stay_and_departure();
+    guest_goal_candidates_require_real_available_services();
+    guest_profiles_do_not_advance_shared_simulation_rng();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
