@@ -22,6 +22,34 @@
     "business": { "leadDays": 10, "cleanlinessWeight": 0.20, "quietWeight": 0.15 },
     "leisure": { "leadDays": 21, "cleanlinessWeight": 0.25, "valueWeight": 0.20 }
   },
+  "guestPsychology": {
+    "version": 1,
+    "categoryWeights": [0.28, 0.16, 0.24, 0.10, 0.08, 0.08, 0.06, 0.05, 0.03],
+    "memoryHalfLifeHours": [12, 6, 72, 48, 12, 12, 48, 12, 12, 6, 6, 72, 12, 12, 72, 12],
+    "recoveryMagnitudeReduction": [10, 15, 25, 35, 45],
+    "complaintMagnitudeThreshold": 25,
+    "reviewGenerationProbability": 0.65,
+    "lowSatisfactionReviewBonus": 0.20,
+    "highSatisfactionReviewBonus": 0.10,
+    "reviewScoreNoiseRange": 0.30,
+    "criticReputationImpactMultiplier": 5.0,
+    "needTuning": {
+      "awakeEnergyDecayPerHour": 5.0,
+      "awakeHungerDecayPerHour": 10.0,
+      "hygieneDecayPerHour": 2.0,
+      "idleEntertainmentDecayPerHour": 4.0,
+      "socialGuestDecayPerHour": 3.0,
+      "privateGuestDecayPerHour": 1.0,
+      "sleepingEnergyRecoveryPerHour": 22.0,
+      "exerciseHygienePenaltyPerHour": 5.0,
+      "sleepNoiseThresholdDb": 75.0,
+      "noiseSensitivityThresholdOffsetDb": 45.0,
+      "sleepNoiseSampleIntervalSeconds": 300.0,
+      "sleepNoiseDisruptionSeconds": 300.0,
+      "noiseComplaintWindowSeconds": 3600.0,
+      "noiseDisruptionsForComplaint": 3
+    }
+  },
   "roomTypes": {
     "standard": { "minimumBeds": 1, "minimumBaths": 1, "minimumWidth": 3, "minimumHeight": 3 }
   },

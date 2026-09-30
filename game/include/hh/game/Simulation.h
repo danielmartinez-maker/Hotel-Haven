@@ -2,17 +2,19 @@
 
 #include "hh/game/ServiceLogistics.h"
 #include "hh/game/Departments.h"
+#include "hh/game/GuestModel.h"
+#include "hh/game/GuestExperience.h"
 #include "hh/game/StaffOptimization.h"
 #include "hh/game/Workforce.h"
+#include "hh/game/ServiceTypes.h"
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace hh::game {
-
-using EntityId = std::uint64_t;
 
 struct Position {
   int floor{};
@@ -127,6 +129,27 @@ struct ReservationView {
   bool checkoutStarted{};
   bool completed{};
 };
+struct GuestView {
+  GuestProfile profile;
+  GuestNeedState needs;
+  GuestExperienceState experience;
+  std::optional<GuestGoalSelection> goalSelection;
+  std::vector<GuestMemory> activeMemories;
+  EntityId reservationId{};
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestId> memberIds;
+  GuestLifecycleState lifecycle{GuestLifecycleState::Prospective};
+  GuestGoal currentGoal{GuestGoal::Count};
+  EntityId currentTargetId{};
+  double currentGoalUtility{};
+  double queueToleranceMinutes{60.0};
+  double reviewRatingMinimum{1.0};
+  double reviewRatingMaximum{10.0};
+  double reviewScoreNoiseRange{};
+  std::optional<std::int64_t> marketReferenceNightlyRateCents;
+  std::optional<double> measuredRoomNoise;
+};
 struct TaskView {
   EntityId id{};
   TaskKind kind{TaskKind::Turnover};
@@ -143,6 +166,8 @@ struct ReviewView {
   int day{};
   int score{};
   std::string text;
+  double rating{1.0};
+  double overallSatisfaction{};
 };
 struct InventoryView {
   int linen{};
@@ -181,6 +206,7 @@ struct SimulationView {
   std::vector<RoomView> rooms;
   std::vector<PersonView> people;
   std::vector<ReservationView> reservations;
+  std::vector<GuestView> guests;
   std::vector<TaskView> tasks;
   std::vector<ReviewView> reviews;
   InventoryView inventory;
@@ -258,6 +284,11 @@ public:
   CommandResult removeRoom(EntityId roomId);
   CommandResult orderSupplies(const SupplyOrder &);
   CommandResult loadDefinitions(std::string_view jsonText);
+  CommandResult reportGuestExperience(const GuestExperienceEvent &event);
+  CommandResult reportGuestSleepNoise(GuestId guestId,
+                                      std::optional<double> measuredNoiseDb);
+  CommandResult resolveGuestComplaint(GuestId guestId, EntityId complaintId,
+                                      GuestRecoveryOption option);
 
   [[nodiscard]] LogisticsSnapshot logisticsSnapshot() const;
   [[nodiscard]] TaskId requestRoomTurn(RoomId roomId);
@@ -281,3 +312,4 @@ private:
 };
 
 } // namespace hh::game
+

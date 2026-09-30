@@ -79,10 +79,25 @@ struct Person : PersonView {
   std::int64_t shiftInstanceKey{std::numeric_limits<std::int64_t>::min()};
   bool breakTaskCreated{};
 };
+struct GuestMember {
+  GuestProfile profile;
+  GuestLifecycleState lifecycle{GuestLifecycleState::Prospective};
+  GuestNeedState needs;
+  GuestExperienceState experience;
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestId> memberIds;
+  GuestGoal currentGoal{GuestGoal::Count};
+  EntityId currentTargetId{};
+  double currentGoalUtility{};
+};
 struct Reservation : ReservationView {
   double satisfaction{70};
   double checkoutCleanliness{100};
   bool arrived{};
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestMember> guests;
 };
 struct Task : TaskView {
   double total{};
@@ -90,6 +105,181 @@ struct Task : TaskView {
   double trainingSkillGain{};
 };
 struct PendingOrder : SupplyOrderView {};
+struct SavedGuestExperience {
+  std::uint64_t randomState{};
+  GuestExperienceState experience;
+};
+void writeGuestModelState(std::ostream &o, const GuestMember &guest) {
+  const auto &profile = guest.profile;
+  const auto &needs = guest.needs;
+  o << profile.id << ' ' << guest.groupId << ' ' << guest.leaderGuestId << ' '
+    << ei(guest.lifecycle) << ' ' << ei(guest.currentGoal) << ' '
+    << guest.currentTargetId << ' ' << guest.currentGoalUtility << ' '
+    << profile.randomState << ' ' << guest.memberIds.size();
+  for (const auto id : guest.memberIds)
+    o << ' ' << id;
+  o << '\n' << ei(profile.archetype) << ' ' << ei(profile.ageBand) << ' '
+    << ei(profile.travelPurpose) << ' ' << ei(profile.wealthBand) << ' '
+    << profile.budgetPerNightCents << ' ' << profile.sensitivities.price << ' '
+    << profile.sensitivities.service << ' '
+    << profile.sensitivities.cleanliness << ' '
+    << profile.sensitivities.noise << ' ' << profile.sensitivities.privacy
+    << ' ' << profile.sensitivities.safety << ' '
+    << profile.sensitivities.comfort << ' ' << profile.sensitivities.food
+    << ' ' << profile.patience << ' ' << profile.socialPreference;
+  for (const auto value : profile.activityPreferences)
+    o << ' ' << value;
+  for (const auto value : profile.roomPreferences)
+    o << ' ' << value;
+  for (const auto value : profile.expectations)
+    o << ' ' << value;
+  o << ' ' << profile.traits.size();
+  for (const auto trait : profile.traits)
+    o << ' ' << ei(trait);
+  o << ' ' << profile.queueToleranceMultiplier << ' '
+    << profile.negativeMemoryReviewWeightMultiplier << ' '
+    << profile.lightSleepModifier << ' ' << profile.hygieneDecayMultiplier
+    << ' ' << profile.complaintThresholdDelta << ' '
+    << profile.morningPreference << ' ' << profile.eveningPreference << '\n';
+  for (const auto value : needs.values)
+    o << value << ' ';
+  o << needs.perceptions.serviceConfidence << ' '
+    << needs.perceptions.cleanlinessConfidence << ' '
+    << needs.perceptions.environmentComfort << ' '
+    << needs.perceptions.valuePerception << ' '
+    << needs.noiseSampleElapsedSeconds << ' '
+    << needs.energyPauseRemainingSeconds;
+  for (const auto value : needs.recentNoiseDisruptionAgesSeconds)
+    o << ' ' << value;
+  o << ' ' << needs.recentNoiseDisruptionCount << '\n';
+}
+
+GuestMember readGuestModelState(std::istream &i) {
+  GuestMember guest;
+  auto &profile = guest.profile;
+  auto &needs = guest.needs;
+  int lifecycle{}, goal{};
+  std::size_t memberCount{};
+  i >> profile.id >> guest.groupId >> guest.leaderGuestId >> lifecycle >> goal >>
+      guest.currentTargetId >> guest.currentGoalUtility >> profile.randomState >>
+      memberCount;
+  if (!i || profile.id == 0 || lifecycle < 0 ||
+      lifecycle >= ei(GuestLifecycleState::Count) || goal < 0 ||
+      goal > ei(GuestGoal::Count) || memberCount == 0 || memberCount > 4 ||
+      !std::isfinite(guest.currentGoalUtility))
+    throw std::invalid_argument("invalid saved guest model header");
+  guest.lifecycle = static_cast<GuestLifecycleState>(lifecycle);
+  guest.currentGoal = static_cast<GuestGoal>(goal);
+  guest.memberIds.resize(memberCount);
+  for (auto &id : guest.memberIds)
+    i >> id;
+  int archetype{}, age{}, purpose{}, wealth{};
+  i >> archetype >> age >> purpose >> wealth >> profile.budgetPerNightCents >>
+      profile.sensitivities.price >> profile.sensitivities.service >>
+      profile.sensitivities.cleanliness >> profile.sensitivities.noise >>
+      profile.sensitivities.privacy >> profile.sensitivities.safety >>
+      profile.sensitivities.comfort >> profile.sensitivities.food >>
+      profile.patience >> profile.socialPreference;
+  for (auto &value : profile.activityPreferences)
+    i >> value;
+  for (auto &value : profile.roomPreferences)
+    i >> value;
+  for (auto &value : profile.expectations)
+    i >> value;
+  std::size_t traitCount{};
+  i >> traitCount;
+  if (!i || archetype < 0 || archetype >= ei(GuestArchetype::Count) || age < 0 ||
+      age >= ei(GuestAgeBand::Count) || purpose < 0 ||
+      purpose >= ei(GuestTravelPurpose::Count) || wealth < 0 ||
+      wealth >= ei(GuestWealthBand::Count) || traitCount > 3)
+    throw std::invalid_argument("invalid saved guest profile header");
+  profile.archetype = static_cast<GuestArchetype>(archetype);
+  profile.ageBand = static_cast<GuestAgeBand>(age);
+  profile.travelPurpose = static_cast<GuestTravelPurpose>(purpose);
+  profile.wealthBand = static_cast<GuestWealthBand>(wealth);
+  profile.traits.resize(traitCount);
+  for (auto &trait : profile.traits) {
+    int value{};
+    i >> value;
+    if (value < 0 || value >= ei(GuestTrait::Count))
+      throw std::invalid_argument("invalid saved guest trait");
+    trait = static_cast<GuestTrait>(value);
+  }
+  i >> profile.queueToleranceMultiplier >>
+      profile.negativeMemoryReviewWeightMultiplier >>
+      profile.lightSleepModifier >> profile.hygieneDecayMultiplier >>
+      profile.complaintThresholdDelta >> profile.morningPreference >>
+      profile.eveningPreference;
+  for (auto &value : needs.values)
+    i >> value;
+  i >> needs.perceptions.serviceConfidence >>
+      needs.perceptions.cleanlinessConfidence >>
+      needs.perceptions.environmentComfort >>
+      needs.perceptions.valuePerception >> needs.noiseSampleElapsedSeconds >>
+      needs.energyPauseRemainingSeconds;
+  for (auto &value : needs.recentNoiseDisruptionAgesSeconds)
+    i >> value;
+  i >> needs.recentNoiseDisruptionCount;
+  if (!i)
+    throw std::invalid_argument("truncated saved guest model state");
+
+  const auto inRange = [](double value, double low, double high) {
+    return std::isfinite(value) && value >= low && value <= high;
+  };
+  const auto &s = profile.sensitivities;
+  if (profile.budgetPerNightCents < 0 ||
+      !inRange(s.price, 0, 1) || !inRange(s.service, 0, 1) ||
+      !inRange(s.cleanliness, 0, 1) || !inRange(s.noise, 0, 1) ||
+      !inRange(s.privacy, 0, 1) || !inRange(s.safety, 0, 1) ||
+      !inRange(s.comfort, 0, 1) || !inRange(s.food, 0, 1) ||
+      !inRange(profile.patience, 0, 1) ||
+      !inRange(profile.socialPreference, 0, 1) ||
+      !inRange(profile.queueToleranceMultiplier, 0, 16) ||
+      !inRange(profile.negativeMemoryReviewWeightMultiplier, 0, 16) ||
+      !inRange(profile.lightSleepModifier, 0, 16) ||
+      !inRange(profile.hygieneDecayMultiplier, 0, 16) ||
+      !inRange(profile.complaintThresholdDelta, -100, 100) ||
+      !inRange(profile.morningPreference, -1, 1) ||
+      !inRange(profile.eveningPreference, -1, 1) ||
+      !inRange(guest.currentGoalUtility, 0, 1000000))
+    throw std::invalid_argument("invalid saved guest profile values");
+  for (const auto value : profile.activityPreferences)
+    if (!inRange(value, 0, 1))
+      throw std::invalid_argument("invalid saved guest activity preference");
+  for (const auto value : profile.roomPreferences)
+    if (!inRange(value, 0, 1))
+      throw std::invalid_argument("invalid saved guest room preference");
+  for (const auto value : profile.expectations)
+    if (!inRange(value, 0, 100))
+      throw std::invalid_argument("invalid saved guest expectation");
+  for (const auto value : needs.values)
+    if (!inRange(value, 0, 100))
+      throw std::invalid_argument("invalid saved guest need");
+  if (!inRange(needs.perceptions.serviceConfidence, 0, 100) ||
+      !inRange(needs.perceptions.cleanlinessConfidence, 0, 100) ||
+      !inRange(needs.perceptions.environmentComfort, 0, 100) ||
+      !inRange(needs.perceptions.valuePerception, 0, 100) ||
+      !inRange(needs.noiseSampleElapsedSeconds, 0, 1.0e9) ||
+      !inRange(needs.energyPauseRemainingSeconds, 0, 300) ||
+      needs.recentNoiseDisruptionCount >
+          needs.recentNoiseDisruptionAgesSeconds.size())
+    throw std::invalid_argument("invalid saved guest need state");
+  for (const auto value : needs.recentNoiseDisruptionAgesSeconds)
+    if (!inRange(value, 0, 1.0e9))
+      throw std::invalid_argument("invalid saved guest noise history");
+  if (std::find(guest.memberIds.begin(), guest.memberIds.end(), profile.id) ==
+          guest.memberIds.end() ||
+      std::find(guest.memberIds.begin(), guest.memberIds.end(),
+                guest.leaderGuestId) == guest.memberIds.end())
+    throw std::invalid_argument("invalid saved guest group membership");
+  std::unordered_set<GuestId> uniqueMembers(guest.memberIds.begin(),
+                                            guest.memberIds.end());
+  if (uniqueMembers.size() != guest.memberIds.size() ||
+      (guest.groupId == 0 && memberCount != 1) ||
+      (guest.groupId != 0 && memberCount < 2))
+    throw std::invalid_argument("invalid saved guest group");
+  return guest;
+}
 } // namespace
 
 struct Simulation::Impl {
@@ -97,6 +287,9 @@ struct Simulation::Impl {
 
   std::uint64_t seed{1};
   std::mt19937_64 rng{1};
+  GuestModelDefinitions guestDefinitions{defaultGuestModelDefinitions()};
+  GuestExperienceDefinitions guestExperienceDefinitions{
+      defaultGuestExperienceDefinitions()};
   int width{32}, height{20}, floors{1};
   std::int64_t elapsed{}, remainderMillis{};
   EntityId nextId{1};
@@ -225,7 +418,287 @@ struct Simulation::Impl {
     for (auto &x : reservations)
       if (x.id == id)
         return &x;
+    for (auto &x : completedReservationHistory)
+      if (x.id == id)
+        return &x;
     return nullptr;
+  }
+  GuestMember *getGuestMember(Reservation &reservation, GuestId id) {
+    for (auto &guest : reservation.guests)
+      if (guest.profile.id == id)
+        return &guest;
+    return nullptr;
+  }
+  bool hasExperienceType(const GuestMember &guest,
+                         GuestExperienceEventType type) const {
+    return std::any_of(guest.experience.events.begin(),
+                       guest.experience.events.end(),
+                       [type](const GuestExperienceEvent &event) {
+                         return event.type == type;
+                       });
+  }
+  bool hasEventId(std::uint64_t eventId) const {
+    if (eventId == 0)
+      return false;
+    const auto found = [&](const Reservation &reservation) {
+      for (const auto &guest : reservation.guests)
+        if (std::any_of(guest.experience.events.begin(),
+                        guest.experience.events.end(),
+                        [eventId](const GuestExperienceEvent &event) {
+                          return event.eventId == eventId;
+                        }))
+          return true;
+      return false;
+    };
+    return std::any_of(reservations.begin(), reservations.end(), found) ||
+           std::any_of(completedReservationHistory.begin(),
+                       completedReservationHistory.end(), found);
+  }
+  bool hasEntityIdInUse(EntityId id) const {
+    if (id == 0)
+      return true;
+    for (const auto &room : rooms)
+      if (room.id == id)
+        return true;
+    for (const auto &person : people)
+      if (person.id == id)
+        return true;
+    for (const auto &reservation : reservations)
+      if (reservation.id == id)
+        return true;
+    for (const auto &reservation : completedReservationHistory)
+      if (reservation.id == id)
+        return true;
+    for (const auto &task : tasks)
+      if (task.id == id)
+        return true;
+    for (const auto &task : completedTaskHistory)
+      if (task.id == id)
+        return true;
+    for (const auto &order : orders)
+      if (order.id == id)
+        return true;
+    const auto reservationContains = [id](const Reservation &reservation) {
+      if (reservation.groupId == id)
+        return true;
+      for (const auto &guest : reservation.guests) {
+        if (guest.profile.id == id || guest.groupId == id)
+          return true;
+        for (const auto &event : guest.experience.events)
+          if (event.eventId == id || event.incidentId == id)
+            return true;
+        for (const auto &memory : guest.experience.memories)
+          if (memory.id == id)
+            return true;
+        for (const auto &complaint : guest.experience.complaints)
+          if (complaint.id == id)
+            return true;
+      }
+      return false;
+    };
+    return std::any_of(reservations.begin(), reservations.end(),
+                       reservationContains) ||
+           std::any_of(completedReservationHistory.begin(),
+                       completedReservationHistory.end(), reservationContains);
+  }
+  GuestExperienceResult applyGuestEvent(
+      Reservation &reservation, GuestMember &guest,
+      const GuestExperienceEvent &submitted) {
+    GuestExperienceResult rejected;
+    GuestExperienceEvent event = submitted;
+    event.guestId = guest.profile.id;
+    event.timestampSeconds = elapsed;
+    if (event.locationId == 0)
+      event.locationId = reservation.roomId;
+    if (event.eventId != 0 &&
+        (hasEventId(event.eventId) || hasEntityIdInUse(event.eventId)))
+      return rejected;
+    if (event.incidentId != 0 &&
+        (event.incidentId == event.eventId ||
+         hasEntityIdInUse(event.incidentId)))
+      return rejected;
+
+    EntityId cursor = nextId;
+    constexpr auto maxId = std::numeric_limits<EntityId>::max();
+    if (event.eventId > maxId - 4 || event.incidentId > maxId - 4)
+      return rejected;
+    if (event.eventId == 0)
+      event.eventId = cursor++;
+    if (event.eventId >= cursor)
+      cursor = event.eventId + 1;
+    if (event.incidentId != 0 && event.incidentId >= cursor)
+      cursor = event.incidentId + 1;
+    if (event.complaintEligible && event.incidentId == 0)
+      event.incidentId = cursor++;
+    const EntityId memoryId = event.rawImpact == 0.0 ? 0 : cursor++;
+    const EntityId complaintId = event.complaintEligible ? cursor++ : 0;
+
+    GuestExperienceState candidate = guest.experience;
+    auto result = applyGuestExperience(guest.profile, candidate, event,
+                                       guestExperienceDefinitions, memoryId,
+                                       complaintId);
+    if (!result.accepted)
+      return result;
+    guest.experience = std::move(candidate);
+    reservation.satisfaction = result.overallSatisfaction;
+    for (auto &person : people)
+      if (person.reservation == reservation.id)
+        person.satisfaction = result.overallSatisfaction;
+    nextId = cursor;
+    return result;
+  }
+  void recordReservationEvent(Reservation &reservation,
+                              GuestExperienceEventType type,
+                              GuestCategory category, double observed,
+                              double expected, double impact,
+                              bool complaintEligible,
+                              std::string statement) {
+    for (auto &guest : reservation.guests) {
+      if (hasExperienceType(guest, type))
+        continue;
+      GuestExperienceEvent event;
+      event.guestId = guest.profile.id;
+      event.type = type;
+      event.timestampSeconds = elapsed;
+      event.locationId = reservation.roomId;
+      event.category = category;
+      event.observedValue = std::clamp(observed, 0.0, 100.0);
+      event.expectedValue = std::clamp(expected, 0.0, 100.0);
+      event.rawImpact = std::clamp(impact, -100.0, 100.0);
+      event.salience = 0.8;
+      event.complaintEligible = complaintEligible;
+      event.reviewStatement = statement;
+      (void)applyGuestEvent(reservation, guest, event);
+    }
+  }
+  bool transitionGuest(GuestMember &guest, GuestLifecycleState next) {
+    if (guest.lifecycle == next)
+      return true;
+    if (!canTransitionGuest(guest.lifecycle, next))
+      return false;
+    guest.lifecycle = next;
+    return true;
+  }
+  void setGuestGoal(Reservation &reservation, GuestId id, GuestGoal goal,
+                    EntityId target = 0, double utility = 0.0) {
+    if (auto *guest = getGuestMember(reservation, id)) {
+      guest->currentGoal = goal;
+      guest->currentTargetId = target;
+      guest->currentGoalUtility = utility;
+    }
+  }
+  std::size_t groupMemberCount(const GuestProfile &leaderProfile,
+                               int beds) const {
+    if (beds < 2)
+      return 1;
+    switch (leaderProfile.archetype) {
+    case GuestArchetype::CoupleLeisure:
+      return 2;
+    case GuestArchetype::FamilyLeisure:
+    case GuestArchetype::GroupTourTraveler:
+      return std::min<std::size_t>(static_cast<std::size_t>(beds), 4);
+    default:
+      return 1;
+    }
+  }
+  void restoreGuestState(Reservation &reservation, bool integratedFormat) {
+    if (!reservation.guests.empty())
+      return;
+    std::vector<const Person *> actors;
+    for (const auto &person : people)
+      if (person.kind == PersonKind::Guest &&
+          person.reservation == reservation.id)
+        actors.push_back(&person);
+    std::sort(actors.begin(), actors.end(), [](const auto *a, const auto *b) {
+      return a->id < b->id;
+    });
+
+    std::vector<GuestId> memberIds;
+    if (!actors.empty()) {
+      for (const auto *actor : actors)
+        memberIds.push_back(actor->id);
+    } else if (integratedFormat) {
+      const GuestId leaderId = reservation.id + 1;
+      const auto leaderProfile =
+          generateGuestProfile(seed, leaderId, guestDefinitions);
+      const Room *room = getRoom(reservation.roomId);
+      const auto count = groupMemberCount(leaderProfile, room ? room->beds : 1);
+      for (std::size_t index = 0; index < count; ++index)
+        memberIds.push_back(leaderId + index);
+    } else {
+      memberIds.push_back(nextId++);
+    }
+
+    const auto *room = getRoom(reservation.roomId);
+    reservation.groupId = integratedFormat && memberIds.size() > 1
+                              ? reservation.id + memberIds.size() + 1
+                              : 0;
+    reservation.leaderGuestId = memberIds.front();
+    for (std::size_t index = 0; index < memberIds.size(); ++index) {
+      GuestMember member;
+      member.profile =
+          generateGuestProfile(seed, memberIds[index], guestDefinitions);
+      if (index == 0 && memberIds.size() > 1)
+        member.profile.ageBand = GuestAgeBand::Adult;
+      member.groupId = reservation.groupId;
+      member.leaderGuestId = reservation.leaderGuestId;
+      member.memberIds = memberIds;
+      const Person *actor = index < actors.size() ? actors[index] : nullptr;
+      if (actor) {
+        member.needs.values[static_cast<std::size_t>(GuestNeed::Energy)] =
+            actor->rest;
+        member.needs.values[static_cast<std::size_t>(GuestNeed::Hunger)] =
+            actor->hunger;
+      }
+      if (reservation.completed)
+        member.lifecycle = actor ? GuestLifecycleState::Departing
+                                 : GuestLifecycleState::CompletedStay;
+      else if (!reservation.arrived)
+        member.lifecycle = GuestLifecycleState::Reserved;
+      else if (!reservation.checkedIn)
+        member.lifecycle = actor && actor->state == PersonState::Waiting
+                               ? GuestLifecycleState::AwaitingCheckIn
+                               : GuestLifecycleState::TravelingToHotel;
+      else if (reservation.checkoutStarted)
+        member.lifecycle = actor && actor->state == PersonState::Waiting
+                               ? GuestLifecycleState::AwaitingCheckout
+                               : GuestLifecycleState::PreparingCheckout;
+      else if (actor && actor->goal == "Reach assigned room")
+        member.lifecycle = GuestLifecycleState::CheckedIn;
+      else
+        member.lifecycle = GuestLifecycleState::InStay;
+
+      if (actor && actor->goal == "Reach front desk")
+        member.currentGoal = GuestGoal::ReachHotel;
+      else if (actor && actor->goal == "Wait for check-in")
+        member.currentGoal = GuestGoal::CheckIn;
+      else if (actor && actor->goal == "Reach assigned room") {
+        member.currentGoal = GuestGoal::ReachRoom;
+        member.currentTargetId = reservation.roomId;
+      } else if (actor && (actor->goal == "Reach front desk for checkout" ||
+                           actor->goal == "Wait for checkout"))
+        member.currentGoal = GuestGoal::Checkout;
+      else if (actor && (actor->goal == "Leave hotel" ||
+                         actor->goal == "Departed"))
+        member.currentGoal = GuestGoal::LeaveHotel;
+      else if (reservation.completed)
+        member.currentGoal = GuestGoal::LeaveHotel;
+      else if (actor && actor->state == PersonState::Sleeping)
+        member.currentGoal = GuestGoal::Sleep;
+      else if (reservation.arrived && reservation.checkedIn)
+        member.currentGoal = GuestGoal::Relax;
+      else
+        member.currentGoal = GuestGoal::ReachHotel;
+      if (room && member.currentGoal == GuestGoal::Relax)
+        member.currentTargetId = room->id;
+      reservation.guests.push_back(std::move(member));
+    }
+  }
+  void restoreGuestStates(bool integratedFormat) {
+    for (auto &reservation : reservations)
+      restoreGuestState(reservation, integratedFormat);
+    for (auto &reservation : completedReservationHistory)
+      restoreGuestState(reservation, integratedFormat);
   }
   Position locate(TileKind kind) const {
     for (int i = 0; i < (int)map.size(); ++i)
@@ -306,6 +779,36 @@ struct Simulation::Impl {
       z.departureDay = z.arrivalDay + 1 + (int)(rng() % 3);
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
+      const GuestId leaderId = nextId++;
+      auto leaderProfile =
+          generateGuestProfile(seed, leaderId, guestDefinitions);
+      const std::size_t memberCount = groupMemberCount(leaderProfile, r->beds);
+      std::vector<GuestProfile> profiles;
+      profiles.reserve(memberCount);
+      profiles.push_back(std::move(leaderProfile));
+      for (std::size_t member = 1; member < memberCount; ++member) {
+        const GuestId guestId = nextId++;
+        profiles.push_back(generateGuestProfile(seed, guestId, guestDefinitions));
+      }
+      z.groupId = memberCount > 1 ? nextId++ : 0;
+      z.leaderGuestId = leaderId;
+      std::vector<GuestId> memberIds;
+      memberIds.reserve(memberCount);
+      for (const auto &profile : profiles)
+        memberIds.push_back(profile.id);
+      if (memberCount > 1)
+        profiles.front().ageBand = GuestAgeBand::Adult;
+      for (auto &profile : profiles) {
+        GuestMember member;
+        member.profile = std::move(profile);
+        member.groupId = z.groupId;
+        member.leaderGuestId = leaderId;
+        member.memberIds = memberIds;
+        member.currentGoal = GuestGoal::ReachHotel;
+        if (!transitionGuest(member, GuestLifecycleState::Reserved))
+          throw std::logic_error("new guest could not enter Reserved state");
+        z.guests.push_back(std::move(member));
+      }
       reservations.push_back(z);
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
@@ -320,20 +823,29 @@ struct Simulation::Impl {
         if (!r || r->status == RoomStatus::OutOfOrder)
           continue;
         z.arrived = true;
-        Person p;
-        p.id = nextId++;
-        p.name = z.guestName;
-        p.kind = PersonKind::Guest;
-        p.position = entrance();
-        p.destination = frontDesk();
-        p.state = PersonState::Traveling;
-        p.satisfaction = z.satisfaction;
-        p.hunger = 90;
-        p.rest = 90;
-        p.patience = 100;
-        p.goal = "Reach front desk";
-        p.reservation = z.id;
-        people.push_back(p);
+        for (std::size_t i = 0; i < z.guests.size(); ++i) {
+          auto &member = z.guests[i];
+          transitionGuest(member, GuestLifecycleState::TravelingToHotel);
+          member.currentGoal = GuestGoal::ReachHotel;
+          Person p;
+          p.id = member.profile.id;
+          p.name = i == 0 ? z.guestName : "Guest " + std::to_string(p.id);
+          p.kind = PersonKind::Guest;
+          p.position = entrance();
+          p.destination = frontDesk();
+          p.state = PersonState::Traveling;
+          p.satisfaction = z.satisfaction;
+          p.hunger = 90;
+          p.rest = 90;
+          p.patience = 100;
+          p.goal = "Reach front desk";
+          p.reservation = z.id;
+          member.needs.values[static_cast<std::size_t>(GuestNeed::Energy)] =
+              p.rest;
+          member.needs.values[static_cast<std::size_t>(GuestNeed::Hunger)] =
+              p.hunger;
+          people.push_back(p);
+        }
       }
   }
   void beginDepartures(int day) {
@@ -356,6 +868,11 @@ struct Simulation::Impl {
             createTask(TaskKind::Turnover, r->id, r->door, turnoverWork);
           }
         }
+        for (auto &member : z.guests) {
+          transitionGuest(member, GuestLifecycleState::PreparingCheckout);
+          member.currentGoal = GuestGoal::Checkout;
+          member.currentTargetId = 0;
+        }
         for (auto &p : people)
           if (p.reservation == z.id) {
             p.destination = frontDesk();
@@ -369,23 +886,52 @@ struct Simulation::Impl {
     if (!z || z->completed)
       return;
     auto *r = getRoom(z->roomId);
+    const double checkoutWaitMinutes = guest.queueWaitSeconds / 60.0;
+    if (checkoutWaitMinutes > 5.0) {
+      recordReservationEvent(
+          *z, GuestExperienceEventType::LongCheckInQueue,
+          GuestCategory::ArrivalDeparture, checkoutWaitMinutes, 5.0,
+          -std::clamp((checkoutWaitMinutes - 5.0) * 2.0, 1.0, 45.0),
+          checkoutWaitMinutes >= 15.0,
+          "Checkout involved a long front desk queue.");
+    }
     z->completed = true;
     economy.completedStays++;
     const auto charge = z->nightlyRateCents * (z->departureDay - z->arrivalDay);
     economy.revenueCents += charge;
     economy.cashCents += charge;
-    const int score =
-        static_cast<int>(std::clamp(z->satisfaction + z->checkoutCleanliness -
-                                        80 - ((r && !r->reachable) ? 20 : 0),
-                                    0.0, 100.0));
-    reviews.push_back({z->id, static_cast<int>(elapsed / 86400), score,
-                       score >= 80   ? "A comfortable, well-run stay."
-                       : score >= 60 ? "Fine, though service could improve."
-                                     : "Service delays hurt the stay."});
-    economy.reputation = economy.reputation * 0.85 + score * 0.15;
+    if (auto *leader = getGuestMember(*z, z->leaderGuestId)) {
+      auto review = generateGuestReview(
+          leader->profile, leader->experience,
+          static_cast<int>(elapsed / 86400), leader->profile.randomState,
+          guestExperienceDefinitions);
+      if (review.generated) {
+        const auto score = static_cast<int>(std::clamp(
+            std::llround(review.overallSatisfaction), 0LL, 100LL));
+        reviews.push_back({z->id, review.completedDay, score, review.text,
+                           review.rating, review.overallSatisfaction});
+        const double multiplier = review.reputationImpactMultiplier;
+        economy.reputation = std::clamp(
+            economy.reputation +
+                (review.overallSatisfaction - economy.reputation) * 0.15 *
+                    multiplier,
+            0.0, 100.0);
+      }
+    }
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
+    for (auto &member : z->guests) {
+      transitionGuest(member, GuestLifecycleState::Departing);
+      member.currentGoal = GuestGoal::LeaveHotel;
+      member.currentTargetId = 0;
+    }
+    for (auto &person : people)
+      if (person.reservation == z->id && person.id != guest.id) {
+        person.destination = entrance();
+        person.state = PersonState::Traveling;
+        person.goal = "Leave hotel";
+      }
   }
   bool shiftActive(const Person &p, int hour) const {
     if (p.shiftStartHour == p.shiftEndHour)
@@ -733,16 +1279,56 @@ struct Simulation::Impl {
       }
       if (task.kind == TaskKind::CheckIn) {
         if (auto *guest = getPerson(task.targetId)) {
-          for (auto &reservation : reservations)
-            if (reservation.id == guest->reservation) {
-              if (auto *room = getRoom(reservation.roomId)) {
-                guest->destination = room->door;
-                guest->state = PersonState::Traveling;
-                guest->goal = "Reach assigned room";
-                reservation.checkedIn = true;
-                room->status = RoomStatus::Occupied;
+          if (auto *reservation = getReservation(guest->reservation)) {
+            if (auto *room = getRoom(reservation->roomId)) {
+              reservation->checkedIn = true;
+              room->status = RoomStatus::Occupied;
+              for (auto &member : reservation->guests) {
+                if (member.lifecycle == GuestLifecycleState::TravelingToHotel)
+                  transitionGuest(member, GuestLifecycleState::Arriving);
+                if (member.lifecycle == GuestLifecycleState::Arriving)
+                  transitionGuest(member, GuestLifecycleState::AwaitingCheckIn);
+                transitionGuest(member, GuestLifecycleState::CheckedIn);
+                member.currentGoal = GuestGoal::ReachRoom;
+                member.currentTargetId = room->id;
+              }
+              for (auto &person : people)
+                if (person.reservation == reservation->id) {
+                  person.destination = room->door;
+                  person.state = PersonState::Traveling;
+                  person.goal = "Reach assigned room";
+                }
+              const double queueMinutes = guest->queueWaitSeconds / 60.0;
+              if (queueMinutes > 5.0) {
+                recordReservationEvent(
+                    *reservation, GuestExperienceEventType::LongCheckInQueue,
+                    GuestCategory::ArrivalDeparture, queueMinutes, 5.0,
+                    -std::clamp((queueMinutes - 5.0) * 2.0, 1.0, 45.0),
+                    queueMinutes >= 15.0,
+                    "Check-in involved a long front desk queue.");
+              } else {
+                recordReservationEvent(
+                    *reservation, GuestExperienceEventType::FastCheckIn,
+                    GuestCategory::ArrivalDeparture, queueMinutes, 5.0,
+                    std::clamp((5.0 - queueMinutes) * 2.0, 1.0, 10.0), false,
+                    "The front desk checked us in quickly.");
+              }
+              if (room->cleanliness >= 85.0) {
+                recordReservationEvent(
+                    *reservation,
+                    GuestExperienceEventType::ExcellentRoomCleanliness,
+                    GuestCategory::Cleanliness, room->cleanliness, 70.0,
+                    std::clamp((room->cleanliness - 70.0) * 0.35, 1.0, 12.0),
+                    false, "Our room was exceptionally clean.");
+              }
+              for (auto &member : reservation->guests) {
+                GuestPerceptionEvidence evidence;
+                evidence.cleanlinessConfidence = room->cleanliness;
+                member.needs.perceptions = updateGuestPerceptions(
+                    member.needs.perceptions, evidence);
               }
             }
+          }
         }
       }
       if (task.kind == TaskKind::CheckOut)
@@ -840,6 +1426,8 @@ struct Simulation::Impl {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
     for (auto &p : people)
       if (p.kind == PersonKind::Guest && p.state != PersonState::CheckedOut) {
+        auto *reservation = getReservation(p.reservation);
+        auto *member = reservation ? getGuestMember(*reservation, p.id) : nullptr;
         if (p.state == PersonState::Sleeping && hour >= 7 && hour < 22) {
           p.state = PersonState::Idle;
           p.goal = "Relax in room";
@@ -847,9 +1435,30 @@ struct Simulation::Impl {
           p.state = PersonState::Sleeping;
           p.goal = "Sleep in room";
         }
-        if (p.state == PersonState::Sleeping)
+        if (member && member->lifecycle == GuestLifecycleState::InStay)
+          setGuestGoal(*reservation, p.id,
+                       p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                        : GuestGoal::Relax,
+                       reservation->roomId);
+        if (member) {
+          const GuestActivity activity =
+              p.state == PersonState::Sleeping
+                  ? GuestActivity::Sleeping
+              : p.state == PersonState::Idle ? GuestActivity::Relaxing
+                                             : GuestActivity::Awake;
+          member->needs = updateGuestNeeds(member->needs, member->profile,
+                                           activity, 60.0, guestDefinitions);
+          if (p.state == PersonState::Sleeping)
+            (void)updateGuestSleepingNoise(
+                member->needs, member->profile, std::nullopt, 60.0,
+                member->profile.randomState, guestDefinitions.needTuning);
+          p.hunger = member->needs.values[
+              static_cast<std::size_t>(GuestNeed::Hunger)];
+          p.rest = member->needs.values[
+              static_cast<std::size_t>(GuestNeed::Energy)];
+        } else if (p.state == PersonState::Sleeping) {
           p.rest = std::min(100.0, p.rest + 22.0 / 3600.0);
-        else {
+        } else {
           p.hunger = std::max(0.0, p.hunger - hungerRate / 60.0);
           p.rest = std::max(0.0, p.rest - restLoss / 60.0);
         }
@@ -868,20 +1477,44 @@ struct Simulation::Impl {
             if (p.goal == "Reach front desk") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for check-in";
-              createTask(TaskKind::CheckIn, p.id, frontDesk(), checkInWork);
+              if (reservation && member) {
+                if (member->lifecycle == GuestLifecycleState::TravelingToHotel)
+                  transitionGuest(*member, GuestLifecycleState::Arriving);
+                if (member->lifecycle == GuestLifecycleState::Arriving)
+                  transitionGuest(*member, GuestLifecycleState::AwaitingCheckIn);
+                setGuestGoal(*reservation, p.id, GuestGoal::CheckIn);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckIn, p.id, frontDesk(), checkInWork);
+              }
             } else if (p.goal == "Reach front desk for checkout") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for checkout";
-              createTask(TaskKind::CheckOut, p.id, frontDesk(),
-                         checkInWork * 0.6);
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::AwaitingCheckout);
+                setGuestGoal(*reservation, p.id, GuestGoal::Checkout);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckOut, p.id, frontDesk(),
+                             checkInWork * 0.6);
+              }
             } else if (p.goal == "Leave hotel") {
               p.state = PersonState::CheckedOut;
               p.goal = "Departed";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::CompletedStay);
+                setGuestGoal(*reservation, p.id, GuestGoal::LeaveHotel);
+              }
             } else {
               p.state = hour >= 7 && hour < 22 ? PersonState::Idle
                                                : PersonState::Sleeping;
               p.goal = p.state == PersonState::Sleeping ? "Sleep in room"
                                                         : "Relax in room";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::InStay);
+                setGuestGoal(*reservation, p.id,
+                             p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                              : GuestGoal::Relax,
+                             reservation->roomId);
+              }
             }
           }
         } else if (p.state == PersonState::Waiting) {
@@ -890,9 +1523,8 @@ struct Simulation::Impl {
           if (p.queueWaitSeconds > 8 * 60)
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation)
-            z.satisfaction = p.satisfaction;
+        if (reservation)
+          reservation->satisfaction = p.satisfaction;
       }
   }
   void compactTransientState() {
@@ -1828,6 +2460,108 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
       d.missedBreakMoralePerHour < 0 || d.missedBreakMoralePerHour > 1000 ||
       d.trainingSkillGain < 0 || d.trainingSkillGain > 100)
     return {false, "Definition values are invalid"};
+  if (const auto *psychology = root.find("guestPsychology")) {
+    if (!psychology->is_object())
+      return {false, "Guest psychology definitions must be an object"};
+    const auto *version = psychology->find("version");
+    if (!version || !version->is_number() || version->as_number() != 1.0)
+      return {false, "Unsupported guest psychology definition version"};
+    auto &guestDefinitions = d.guestExperienceDefinitions;
+    auto &needTuning = d.guestDefinitions.needTuning;
+    auto numbers = [&](std::string_view key, auto &target) {
+      const auto *value = psychology->find(key);
+      if (!value)
+        return true;
+      if (!value->is_array() || value->as_array().size() != target.size())
+        return false;
+      for (std::size_t index = 0; index < target.size(); ++index) {
+        const auto &entry = value->as_array()[index];
+        if (!entry.is_number() || !std::isfinite(entry.as_number()))
+          return false;
+        target[index] = entry.as_number();
+      }
+      return true;
+    };
+    auto psychologyNumber = [&](std::string_view key, double &out) {
+      const auto *value = psychology->find(key);
+      if (!value)
+        return true;
+      if (!value->is_number() || !std::isfinite(value->as_number()))
+        return false;
+      out = value->as_number();
+      return true;
+    };
+    if (!numbers("categoryWeights", guestDefinitions.categoryWeights) ||
+        !numbers("memoryHalfLifeHours",
+                 guestDefinitions.memoryHalfLifeHours) ||
+        !numbers("recoveryMagnitudeReduction",
+                 guestDefinitions.recoveryMagnitudeReduction) ||
+        !psychologyNumber("complaintMagnitudeThreshold",
+                          guestDefinitions.complaintMagnitudeThreshold) ||
+        !psychologyNumber("reviewGenerationProbability",
+                          guestDefinitions.reviewGenerationProbability) ||
+        !psychologyNumber("lowSatisfactionReviewBonus",
+                          guestDefinitions.lowSatisfactionReviewBonus) ||
+        !psychologyNumber("highSatisfactionReviewBonus",
+                          guestDefinitions.highSatisfactionReviewBonus) ||
+        !psychologyNumber("reviewScoreNoiseRange",
+                          guestDefinitions.reviewScoreNoiseRange) ||
+        !psychologyNumber("criticReputationImpactMultiplier",
+                          guestDefinitions.criticReputationImpactMultiplier))
+      return {false, "Guest psychology definitions are invalid"};
+    if (const auto *needTuningValue = psychology->find("needTuning")) {
+      if (!needTuningValue->is_object())
+        return {false, "Guest need tuning must be an object"};
+      auto needNumber = [&](std::string_view key, double &out) {
+        const auto *value = needTuningValue->find(key);
+        if (!value)
+          return true;
+        if (!value->is_number() || !std::isfinite(value->as_number()))
+          return false;
+        out = value->as_number();
+        return true;
+      };
+      if (!needNumber("awakeEnergyDecayPerHour",
+                      needTuning.awakeEnergyDecayPerHour) ||
+          !needNumber("awakeHungerDecayPerHour",
+                      needTuning.awakeHungerDecayPerHour) ||
+          !needNumber("hygieneDecayPerHour", needTuning.hygieneDecayPerHour) ||
+          !needNumber("idleEntertainmentDecayPerHour",
+                      needTuning.idleEntertainmentDecayPerHour) ||
+          !needNumber("socialGuestDecayPerHour",
+                      needTuning.socialGuestDecayPerHour) ||
+          !needNumber("privateGuestDecayPerHour",
+                      needTuning.privateGuestDecayPerHour) ||
+          !needNumber("sleepingEnergyRecoveryPerHour",
+                      needTuning.sleepingEnergyRecoveryPerHour) ||
+          !needNumber("exerciseHygienePenaltyPerHour",
+                      needTuning.exerciseHygienePenaltyPerHour) ||
+          !needNumber("sleepNoiseThresholdDb",
+                      needTuning.sleepNoiseThresholdDb) ||
+          !needNumber("noiseSensitivityThresholdOffsetDb",
+                      needTuning.noiseSensitivityThresholdOffsetDb) ||
+          !needNumber("sleepNoiseSampleIntervalSeconds",
+                      needTuning.sleepNoiseSampleIntervalSeconds) ||
+          !needNumber("sleepNoiseDisruptionSeconds",
+                      needTuning.sleepNoiseDisruptionSeconds) ||
+          !needNumber("noiseComplaintWindowSeconds",
+                      needTuning.noiseComplaintWindowSeconds))
+        return {false, "Guest need tuning is invalid"};
+      if (const auto *disruptions =
+              needTuningValue->find("noiseDisruptionsForComplaint")) {
+        if (!disruptions->is_number() ||
+            std::floor(disruptions->as_number()) !=
+                disruptions->as_number() ||
+            disruptions->as_number() < 1 || disruptions->as_number() > 3)
+          return {false, "Guest noise complaint threshold is invalid"};
+        needTuning.noiseDisruptionsForComplaint =
+            static_cast<std::size_t>(disruptions->as_number());
+      }
+    }
+    if (!validateGuestExperienceDefinitions(guestDefinitions) ||
+        !validateGuestModelDefinitions(d.guestDefinitions))
+      return {false, "Guest psychology definitions are invalid"};
+  }
   if (inventoryDefinition &&
       !d.services.setScenarioInventory(d.inventory.linen, d.inventory.towels,
                                        d.inventory.amenities,
@@ -1840,6 +2574,170 @@ CommandResult Simulation::loadDefinitions(std::string_view j) {
   *impl_ = std::move(d);
   return {true, "Definitions loaded"};
 }
+CommandResult Simulation::reportGuestExperience(
+    const GuestExperienceEvent &event) {
+  if (event.guestId == 0)
+    return {false, "Guest identity is required"};
+  Reservation *reservation = nullptr;
+  GuestMember *guest = nullptr;
+  for (auto &candidate : impl_->reservations) {
+    if (auto *member = impl_->getGuestMember(candidate, event.guestId)) {
+      reservation = &candidate;
+      guest = member;
+      break;
+    }
+  }
+  if (!reservation || !guest || reservation->completed ||
+      guest->lifecycle == GuestLifecycleState::CompletedStay ||
+      guest->lifecycle == GuestLifecycleState::Departing)
+    return {false, "Guest is not in an active stay"};
+  if (event.locationId != 0 && event.locationId != reservation->roomId &&
+      !impl_->getRoom(event.locationId))
+    return {false, "Experience location is unknown"};
+  if (event.sourceEntityId && !impl_->getPerson(*event.sourceEntityId))
+    return {false, "Experience source is unknown"};
+  if (event.eventId != 0 && impl_->hasEventId(event.eventId))
+    return {false, "Experience event was already reported"};
+  auto result = impl_->applyGuestEvent(*reservation, *guest, event);
+  if (!result.accepted)
+    return {false, "Guest experience event is invalid"};
+  return {true, "Guest experience recorded", result.memoryId};
+}
+
+CommandResult Simulation::reportGuestSleepNoise(
+    GuestId guestId, std::optional<double> measuredNoiseDb) {
+  if (guestId == 0 ||
+      (measuredNoiseDb &&
+       (!std::isfinite(*measuredNoiseDb) || *measuredNoiseDb < 0.0 ||
+        *measuredNoiseDb > 140.0)))
+    return {false, "Guest identity or measured noise is invalid"};
+  Person *actor = impl_->getPerson(guestId);
+  if (!actor || actor->kind != PersonKind::Guest ||
+      actor->state != PersonState::Sleeping)
+    return {false, "Guest is not currently sleeping"};
+  Reservation *reservation = impl_->getReservation(actor->reservation);
+  GuestMember *guest = reservation
+                           ? impl_->getGuestMember(*reservation, guestId)
+                           : nullptr;
+  if (!reservation || !guest || reservation->completed)
+    return {false, "Guest is not in an active stay"};
+
+  const auto &tuning = impl_->guestDefinitions.needTuning;
+  const auto update = updateGuestSleepingNoise(
+      guest->needs, guest->profile, measuredNoiseDb,
+      tuning.sleepNoiseSampleIntervalSeconds, guest->profile.randomState,
+      tuning);
+  if (!measuredNoiseDb || !update.disrupted)
+    return {true, "No measured sleep disturbance"};
+
+  const double sensitivity =
+      std::clamp(guest->profile.sensitivities.noise, 0.0, 1.0);
+  const double threshold = std::clamp(
+      tuning.sleepNoiseThresholdDb -
+          sensitivity * tuning.noiseSensitivityThresholdOffsetDb,
+      0.0, 140.0);
+  GuestExperienceEvent event;
+  event.guestId = guestId;
+  event.type = GuestExperienceEventType::NoiseDisturbance;
+  event.timestampSeconds = impl_->elapsed;
+  event.locationId = reservation->roomId;
+  event.category = GuestCategory::Quiet;
+  event.observedValue = *measuredNoiseDb * 100.0 / 140.0;
+  event.expectedValue = threshold * 100.0 / 140.0;
+  event.rawImpact = -std::clamp((*measuredNoiseDb - threshold) * 0.6, 5.0, 50.0);
+  event.salience = 0.9;
+  event.complaintEligible = update.complaintEligible;
+  event.reviewStatement = "Noise interrupted our sleep.";
+  const auto result = impl_->applyGuestEvent(*reservation, *guest, event);
+  if (!result.accepted)
+    return {false, "Sleep disturbance could not be recorded"};
+  return {true, "Sleep disturbance recorded", result.memoryId};
+}
+
+CommandResult Simulation::resolveGuestComplaint(
+    GuestId guestId, EntityId complaintId, GuestRecoveryOption option) {
+  if (guestId == 0 || complaintId == 0)
+    return {false, "Guest and complaint identities are required"};
+  Reservation *reservation = nullptr;
+  GuestMember *guest = nullptr;
+  for (auto &candidate : impl_->reservations) {
+    if (auto *member = impl_->getGuestMember(candidate, guestId)) {
+      reservation = &candidate;
+      guest = member;
+      break;
+    }
+  }
+  if (!reservation || !guest || reservation->completed)
+    return {false, "Guest is not in an active stay"};
+  auto complaint = std::find_if(
+      guest->experience.complaints.begin(), guest->experience.complaints.end(),
+      [complaintId](const GuestComplaint &candidate) {
+        return candidate.id == complaintId && candidate.open;
+      });
+  if (complaint == guest->experience.complaints.end())
+    return {false, "Open guest complaint was not found"};
+  auto memory = std::find_if(
+      guest->experience.memories.begin(), guest->experience.memories.end(),
+      [&](const GuestMemory &candidate) {
+        return candidate.id == complaint->memoryId && !candidate.resolved &&
+               candidate.incidentId == complaint->incidentId;
+      });
+  if (memory == guest->experience.memories.end())
+    return {false, "Complaint no longer has an unresolved memory"};
+  if (option == GuestRecoveryOption::FreeDrink ||
+      option == GuestRecoveryOption::RoomUpgrade)
+    return {false, "Required food or room service is not available"};
+
+  GuestRecoveryContext context;
+  context.staffHospitality = 0.75;
+  for (const auto &person : impl_->people)
+    if (person.kind == PersonKind::Receptionist)
+      context.staffHospitality = std::clamp(person.skill / 100.0, 0.3, 1.0);
+  context.guestForgiveness =
+      std::find(guest->profile.traits.begin(), guest->profile.traits.end(),
+                GuestTrait::Forgiving) != guest->profile.traits.end()
+          ? 1.0
+          : 0.8;
+  if (impl_->elapsed > memory->timestampSeconds)
+    context.responseMinutes =
+        (impl_->elapsed - memory->timestampSeconds) / 60.0;
+  context.complaintUrgency = complaint->urgency;
+  context.issueFixed = false;
+  context.superiorRoomAvailable = false;
+  const auto recovery = calculateGuestRecovery(
+      *memory, option, context, impl_->guestExperienceDefinitions);
+  if (!recovery)
+    return {false, "Recovery option is unavailable or invalid"};
+
+  GuestExperienceEvent event;
+  event.guestId = guestId;
+  event.type = GuestExperienceEventType::Recovery;
+  event.timestampSeconds = impl_->elapsed;
+  event.locationId = reservation->roomId;
+  event.category = memory->category;
+  event.observedValue =
+      std::clamp(100.0 - recovery->remainingNegativeMagnitude, 0.0, 100.0);
+  event.expectedValue = 70.0;
+  event.rawImpact = std::max(0.1, recovery->magnitudeReduction);
+  event.salience = 0.8;
+  event.resolved = true;
+  event.resolvesIncidentId = complaint->incidentId;
+  event.resolvedMagnitudeReduction = recovery->magnitudeReduction;
+  event.reviewStatement = "Staff responded to our complaint.";
+  const auto applied = impl_->applyGuestEvent(*reservation, *guest, event);
+  if (!applied.accepted || !applied.complaintResolved)
+    return {false, "Guest recovery could not be recorded"};
+
+  std::int64_t refundCents = 0;
+  if (option == GuestRecoveryOption::PartialRoomRefund)
+    refundCents = reservation->nightlyRateCents / 2;
+  else if (option == GuestRecoveryOption::FullNightRefund)
+    refundCents = reservation->nightlyRateCents;
+  impl_->economy.cashCents -= refundCents;
+  impl_->economy.revenueCents -= refundCents;
+  return {true, "Guest complaint resolved", complaintId};
+}
+
 void Simulation::step(double seconds) {
   if (!std::isfinite(seconds) || seconds < 0 || seconds > 1.0e9)
     throw std::invalid_argument("step seconds must be finite and bounded");
@@ -1910,6 +2808,77 @@ SimulationView Simulation::view() const {
     v.reservations.push_back(r);
   for (auto &r : impl_->completedReservationHistory)
     v.reservations.push_back(r);
+  const auto appendGuestViews = [&](const Reservation &reservation) {
+    for (const auto &member : reservation.guests) {
+      GuestView guest;
+      guest.profile = member.profile;
+      guest.needs = member.needs;
+      guest.experience = member.experience;
+      guest.activeMemories.reserve(member.experience.memories.size());
+      for (const auto &memory : member.experience.memories)
+        if (!memory.resolved)
+          guest.activeMemories.push_back(memory);
+      std::sort(guest.activeMemories.begin(), guest.activeMemories.end(),
+                [](const auto &a, const auto &b) {
+                  if (a.timestampSeconds != b.timestampSeconds)
+                    return a.timestampSeconds < b.timestampSeconds;
+                  return a.id < b.id;
+                });
+      guest.reservationId = reservation.id;
+      guest.groupId = member.groupId;
+      guest.leaderGuestId = member.leaderGuestId;
+      guest.memberIds = member.memberIds;
+      guest.lifecycle = member.lifecycle;
+      guest.currentGoal = member.currentGoal;
+      guest.currentTargetId = member.currentTargetId;
+      guest.currentGoalUtility = member.currentGoalUtility;
+      guest.queueToleranceMinutes = guestQueueToleranceMinutes(
+          60.0, member.profile, 1.0, 1.0);
+      guest.reviewScoreNoiseRange =
+          impl_->guestExperienceDefinitions.reviewScoreNoiseRange;
+      switch (member.currentGoal) {
+      case GuestGoal::ReachHotel:
+      case GuestGoal::CheckIn:
+      case GuestGoal::ReachRoom:
+      case GuestGoal::Checkout:
+      case GuestGoal::LeaveHotel: {
+        const auto selection = selectGuestGoal(
+            member.profile, member.needs, std::span<const GuestGoalCandidate>{},
+            member.currentGoal);
+        if (selection)
+          guest.goalSelection = *selection;
+        break;
+      }
+      case GuestGoal::Sleep:
+      case GuestGoal::Relax: {
+        GuestGoalCandidate candidate;
+        candidate.goal = member.currentGoal;
+        candidate.targetId = member.currentTargetId;
+        candidate.requiredNeed = member.currentGoal == GuestGoal::Sleep
+                                     ? GuestNeed::Energy
+                                     : GuestNeed::Comfort;
+        candidate.preference = 1.0;
+        candidate.queueToleranceMinutes = guest.queueToleranceMinutes;
+        const auto selection = selectGuestGoal(
+            member.profile, member.needs,
+            std::span<const GuestGoalCandidate>(&candidate, 1), std::nullopt);
+        if (selection)
+          guest.goalSelection = *selection;
+        break;
+      }
+      default:
+        break;
+      }
+      v.guests.push_back(std::move(guest));
+    }
+  };
+  for (const auto &r : impl_->reservations)
+    appendGuestViews(r);
+  for (const auto &r : impl_->completedReservationHistory)
+    appendGuestViews(r);
+  std::sort(v.guests.begin(), v.guests.end(), [](const auto &a, const auto &b) {
+    return a.profile.id < b.profile.id;
+  });
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)
@@ -1925,7 +2894,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 9 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -2005,8 +2974,8 @@ std::string Simulation::save() const {
       << t.trainingSkillGain << '\n';
   o << impl_->reviews.size() << '\n';
   for (auto &r : impl_->reviews)
-    o << r.reservationId << ' ' << r.day << ' ' << r.score << ' '
-      << std::quoted(r.text) << '\n';
+    o << r.reservationId << ' ' << r.day << ' ' << r.score << ' ' << r.rating
+      << ' ' << r.overallSatisfaction << ' ' << std::quoted(r.text) << '\n';
   o << impl_->orders.size() << '\n';
   for (auto &p : impl_->orders) {
     o << p.id << ' ';
@@ -2028,6 +2997,61 @@ std::string Simulation::save() const {
   o << "FINAL04 " << serviceState.size() << '\n';
   o.write(serviceState.data(), static_cast<std::streamsize>(serviceState.size()));
   o << '\n';
+  std::size_t guestCount = 0;
+  for (const auto &reservation : impl_->reservations)
+    guestCount += reservation.guests.size();
+  for (const auto &reservation : impl_->completedReservationHistory)
+    guestCount += reservation.guests.size();
+  std::ostringstream guestPayload;
+  guestPayload << std::setprecision(17) << guestCount << '\n';
+  const auto writeGuest = [&](const GuestMember &guest) {
+    writeGuestModelState(guestPayload, guest);
+    guestPayload << guest.experience.isGroupLeader;
+    for (const auto value : guest.experience.categoryStartingSatisfaction)
+      guestPayload << ' ' << value;
+    for (const auto value : guest.experience.categorySatisfaction)
+      guestPayload << ' ' << value;
+    guestPayload << ' ' << guest.experience.events.size() << '\n';
+    for (const auto &event : guest.experience.events)
+      guestPayload << event.eventId << ' ' << event.guestId << ' '
+        << event.incidentId
+        << ' ' << ei(event.type) << ' ' << event.timestampSeconds << ' '
+        << event.locationId << ' ' << event.sourceEntityId.has_value() << ' '
+        << event.sourceEntityId.value_or(0) << ' ' << ei(event.category) << ' '
+        << event.observedValue << ' ' << event.expectedValue << ' '
+        << event.rawImpact << ' ' << event.salience << ' '
+        << event.complaintEligible << ' ' << event.critical << ' '
+        << event.resolved << ' ' << event.resolvesIncidentId.has_value() << ' '
+        << event.resolvesIncidentId.value_or(0) << ' '
+        << event.resolvedMagnitudeReduction << ' '
+        << std::quoted(event.reviewStatement) << '\n';
+    guestPayload << guest.experience.memories.size() << '\n';
+    for (const auto &memory : guest.experience.memories)
+      guestPayload << memory.id << ' ' << memory.eventId << ' '
+        << memory.incidentId
+        << ' ' << ei(memory.type) << ' ' << memory.timestampSeconds << ' '
+        << memory.locationId << ' ' << memory.sourceEntityId.has_value() << ' '
+        << memory.sourceEntityId.value_or(0) << ' ' << ei(memory.category) << ' '
+        << memory.valence << ' ' << memory.magnitude << ' ' << memory.salience
+        << ' ' << memory.decayHalfLifeHours << ' ' << memory.critical << ' '
+        << memory.resolved << ' ' << std::quoted(memory.reviewStatement)
+        << '\n';
+    guestPayload << guest.experience.complaints.size() << '\n';
+    for (const auto &complaint : guest.experience.complaints)
+      guestPayload << complaint.id << ' ' << complaint.incidentId << ' '
+        << complaint.memoryId << ' ' << ei(complaint.urgency) << ' '
+        << complaint.open << '\n';
+  };
+  for (const auto &reservation : impl_->reservations)
+    for (const auto &guest : reservation.guests)
+      writeGuest(guest);
+  for (const auto &reservation : impl_->completedReservationHistory)
+    for (const auto &guest : reservation.guests)
+      writeGuest(guest);
+  const auto guestBytes = guestPayload.str();
+  o << "GUEST10 1 " << guestBytes.size() << '\n';
+  o.write(guestBytes.data(), static_cast<std::streamsize>(guestBytes.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -2036,8 +3060,12 @@ Simulation Simulation::load(std::string_view data) {
   std::istringstream i{std::string(data)};
   std::string magic;
   int version, w, h, f;
+  bool integratedGuestFormat = false;
+  bool fullGuestFormat = false;
+  std::unordered_map<GuestId, SavedGuestExperience> savedGuestExperience;
+  std::unordered_map<GuestId, GuestMember> savedGuestStates;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 9)
+  if (magic != "HHGS" || version < 2 || version > 10)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -2275,10 +3303,21 @@ Simulation Simulation::load(std::string_view data) {
   if (n > 100000)
     throw std::invalid_argument("too many saved reviews");
   d.reviews.resize(n);
-  for (auto &r : d.reviews)
-    i >> r.reservationId >> r.day >> r.score >> std::quoted(r.text);
+  for (auto &r : d.reviews) {
+    i >> r.reservationId >> r.day >> r.score;
+    if (version >= 10)
+      i >> r.rating >> r.overallSatisfaction;
+    i >> std::quoted(r.text);
+    if (version < 10) {
+      r.rating = std::clamp(r.score / 10.0, 1.0, 10.0);
+      r.overallSatisfaction = r.score;
+    }
+  }
   for (const auto &r : d.reviews)
-    if (r.day < 0 || r.score < 0 || r.score > 100)
+    if (r.day < 0 || r.score < 0 || r.score > 100 ||
+        !std::isfinite(r.rating) || r.rating < 1 || r.rating > 10 ||
+        !std::isfinite(r.overallSatisfaction) ||
+        r.overallSatisfaction < 0 || r.overallSatisfaction > 100)
       throw std::invalid_argument("invalid saved review");
   i >> n;
   if (n > 100000)
@@ -2364,6 +3403,186 @@ Simulation Simulation::load(std::string_view data) {
                      0, 10000));
     }
   }
+  int guestVersion{};
+  bool hasGuestExtension = false;
+  if (version == 10) {
+    std::string guestTag;
+    std::size_t guestBytes{};
+    i >> guestTag >> guestVersion >> guestBytes;
+    if (!i || guestTag != "GUEST10" || guestVersion != 1 ||
+        guestBytes > 48 * 1024 * 1024 || i.get() != '\n')
+      throw std::invalid_argument("invalid GUEST-10 save section");
+    std::string payload(guestBytes, '\0');
+    i.read(payload.data(), static_cast<std::streamsize>(guestBytes));
+    if (!i || static_cast<std::size_t>(i.gcount()) != guestBytes ||
+        i.get() != '\n')
+      throw std::invalid_argument("truncated GUEST-10 save section");
+    i >> std::ws;
+    if (!i.eof())
+      throw std::invalid_argument("unexpected trailing guest save data");
+    i.clear();
+    i.str(std::move(payload));
+    i.seekg(0);
+    fullGuestFormat = true;
+    hasGuestExtension = true;
+  } else if (version >= 9 &&
+             i.peek() != std::char_traits<char>::eof()) {
+    std::string guestTag;
+    i >> guestTag >> guestVersion;
+    if (!i || guestTag != "GUEST9" || guestVersion < 1 || guestVersion > 2)
+      throw std::invalid_argument("invalid guest save extension");
+    hasGuestExtension = true;
+  }
+  if (version >= 9 && hasGuestExtension) {
+    integratedGuestFormat = true;
+    if (fullGuestFormat || guestVersion == 2) {
+        std::size_t guestCount{};
+        i >> guestCount;
+        if (!i || guestCount > 100000)
+          throw std::invalid_argument("too many saved guest states");
+        std::size_t totalEvents{}, totalMemories{}, totalComplaints{};
+        const auto readSource = [&](bool present, EntityId value,
+                                    std::optional<EntityId> &destination) {
+          if (present) {
+            if (value == 0)
+              return false;
+            destination = value;
+          } else if (value != 0) {
+            return false;
+          }
+          return true;
+        };
+        for (std::size_t guestIndex = 0; guestIndex < guestCount;
+             ++guestIndex) {
+          GuestId guestId{};
+          SavedGuestExperience saved;
+          GuestMember savedModel;
+          bool isGroupLeader{};
+          if (fullGuestFormat) {
+            savedModel = readGuestModelState(i);
+            guestId = savedModel.profile.id;
+            saved.randomState = savedModel.profile.randomState;
+            i >> isGroupLeader;
+          } else {
+            i >> guestId >> saved.randomState >> isGroupLeader;
+          }
+          saved.experience.isGroupLeader = isGroupLeader;
+          for (auto &value : saved.experience.categoryStartingSatisfaction)
+            i >> value;
+          for (auto &value : saved.experience.categorySatisfaction)
+            i >> value;
+          std::size_t eventCount{};
+          i >> eventCount;
+          if (!i || guestId == 0 || eventCount > 100000 ||
+              totalEvents + eventCount > 100000)
+            throw std::invalid_argument("invalid saved guest state header");
+          for (const auto value :
+               saved.experience.categoryStartingSatisfaction)
+            if (!std::isfinite(value) || value < 0 || value > 100)
+              throw std::invalid_argument("invalid saved guest baseline");
+          for (const auto value : saved.experience.categorySatisfaction)
+            if (!std::isfinite(value) || value < 0 || value > 100)
+              throw std::invalid_argument("invalid saved guest satisfaction");
+          totalEvents += eventCount;
+          saved.experience.events.resize(eventCount);
+          for (auto &event : saved.experience.events) {
+            int type{}, category{};
+            bool hasSource{}, hasResolution{};
+            EntityId source{}, resolves{};
+            i >> event.eventId >> event.guestId >> event.incidentId >> type >>
+                event.timestampSeconds >> event.locationId >> hasSource >>
+                source >> category >> event.observedValue >>
+                event.expectedValue >> event.rawImpact >> event.salience >>
+                event.complaintEligible >> event.critical >> event.resolved >>
+                hasResolution >> resolves >> event.resolvedMagnitudeReduction >>
+                std::quoted(event.reviewStatement);
+            if (!i || type < 0 || type >= ei(GuestExperienceEventType::Count) ||
+                category < 0 || category >= ei(GuestCategory::Count) ||
+                event.eventId == 0 || event.guestId != guestId ||
+                event.timestampSeconds < 0 || event.locationId == 0 ||
+                !readSource(hasSource, source, event.sourceEntityId) ||
+                !readSource(hasResolution, resolves,
+                            event.resolvesIncidentId) ||
+                !std::isfinite(event.observedValue) ||
+                event.observedValue < 0 || event.observedValue > 100 ||
+                !std::isfinite(event.expectedValue) ||
+                event.expectedValue < 0 || event.expectedValue > 100 ||
+                !std::isfinite(event.rawImpact) || event.rawImpact < -100 ||
+                event.rawImpact > 100 || !std::isfinite(event.salience) ||
+                event.salience < 0 || event.salience > 1 ||
+                !std::isfinite(event.resolvedMagnitudeReduction) ||
+                event.resolvedMagnitudeReduction < 0 ||
+                event.resolvedMagnitudeReduction > 100 ||
+                event.reviewStatement.size() > 512 ||
+                (event.complaintEligible && event.incidentId == 0))
+              throw std::invalid_argument("invalid saved guest event");
+            event.type = static_cast<GuestExperienceEventType>(type);
+            event.category = static_cast<GuestCategory>(category);
+          }
+
+          std::size_t memoryCount{};
+          i >> memoryCount;
+          if (!i || memoryCount > 100000 ||
+              totalMemories + memoryCount > 100000)
+            throw std::invalid_argument("too many saved guest memories");
+          totalMemories += memoryCount;
+          saved.experience.memories.resize(memoryCount);
+          for (auto &memory : saved.experience.memories) {
+            int type{}, category{};
+            bool hasSource{};
+            EntityId source{};
+            i >> memory.id >> memory.eventId >> memory.incidentId >> type >>
+                memory.timestampSeconds >> memory.locationId >> hasSource >>
+                source >> category >> memory.valence >> memory.magnitude >>
+                memory.salience >> memory.decayHalfLifeHours >> memory.critical >>
+                memory.resolved >> std::quoted(memory.reviewStatement);
+            if (!i || type < 0 || type >= ei(GuestExperienceEventType::Count) ||
+                category < 0 || category >= ei(GuestCategory::Count) ||
+                memory.id == 0 || memory.eventId == 0 ||
+                memory.timestampSeconds < 0 || memory.locationId == 0 ||
+                !readSource(hasSource, source, memory.sourceEntityId) ||
+                !std::isfinite(memory.valence) || memory.valence < -1 ||
+                memory.valence > 1 || !std::isfinite(memory.magnitude) ||
+                memory.magnitude < 0 || memory.magnitude > 100 ||
+                !std::isfinite(memory.salience) || memory.salience < 0 ||
+                memory.salience > 1 ||
+                !std::isfinite(memory.decayHalfLifeHours) ||
+                memory.decayHalfLifeHours < 0.001 ||
+                memory.decayHalfLifeHours > 87600 ||
+                memory.reviewStatement.size() > 512)
+              throw std::invalid_argument("invalid saved guest memory");
+            memory.type = static_cast<GuestExperienceEventType>(type);
+            memory.category = static_cast<GuestCategory>(category);
+          }
+
+          std::size_t complaintCount{};
+          i >> complaintCount;
+          if (!i || complaintCount > 100000 ||
+              totalComplaints + complaintCount > 100000)
+            throw std::invalid_argument("too many saved guest complaints");
+          totalComplaints += complaintCount;
+          saved.experience.complaints.resize(complaintCount);
+          for (auto &complaint : saved.experience.complaints) {
+            int urgency{};
+            i >> complaint.id >> complaint.incidentId >> complaint.memoryId >>
+                urgency >> complaint.open;
+            if (!i || complaint.id == 0 || complaint.incidentId == 0 ||
+                complaint.memoryId == 0 || urgency < 0 ||
+                urgency >= ei(GuestComplaintUrgency::Count))
+              throw std::invalid_argument("invalid saved guest complaint");
+            complaint.urgency =
+                static_cast<GuestComplaintUrgency>(urgency);
+          }
+          if (fullGuestFormat) {
+            savedModel.experience = std::move(saved.experience);
+            if (!savedGuestStates.emplace(guestId, std::move(savedModel)).second)
+              throw std::invalid_argument("duplicate saved guest identity");
+          } else if (!savedGuestExperience.emplace(guestId, std::move(saved)).second) {
+            throw std::invalid_argument("duplicate saved guest identity");
+          }
+        }
+  }
+  }
   d.services.engineering().setConditionLossPerDayHundredths(
       static_cast<int>(std::llround(d.roomConditionLossPerDay * 100.0)));
   d.inventory = d.serviceInventoryView();
@@ -2405,6 +3624,39 @@ Simulation Simulation::load(std::string_view data) {
   }
   for (const auto &order : d.orders)
     addEntityId(order.id);
+  if (fullGuestFormat) {
+    std::unordered_map<EntityId, EntityId> groupReservations;
+    const auto validateGuestGroups = [&](const std::vector<Reservation> &items) {
+      for (const auto &reservation : items) {
+        std::vector<GuestId> reservationIds;
+        for (const auto &guest : reservation.guests)
+          reservationIds.push_back(guest.profile.id);
+        auto sortedIds = reservationIds;
+        std::sort(sortedIds.begin(), sortedIds.end());
+        for (const auto &guest : reservation.guests) {
+          if (guest.profile.id >= d.nextId || guest.leaderGuestId == 0 ||
+              guest.leaderGuestId >= d.nextId || guest.groupId >= d.nextId)
+            throw std::invalid_argument("saved guest identity is out of range");
+          auto members = guest.memberIds;
+          std::sort(members.begin(), members.end());
+          if (members != sortedIds)
+            throw std::invalid_argument("saved guest member reference is broken");
+          if (guest.groupId != 0) {
+            const auto [group, inserted] =
+                groupReservations.emplace(guest.groupId, reservation.id);
+            if ((inserted && entityIds.contains(guest.groupId)) ||
+                (!inserted && group->second != reservation.id))
+              throw std::invalid_argument(
+                  "saved guest group identity is duplicated");
+            if (inserted)
+              entityIds.insert(guest.groupId);
+          }
+        }
+      }
+    };
+    validateGuestGroups(d.reservations);
+    validateGuestGroups(d.completedReservationHistory);
+  }
   for (const auto &manager : d.managers) {
     const auto person = personById.find(manager.managerId);
     if (person == personById.end() ||
@@ -2435,13 +3687,23 @@ Simulation Simulation::load(std::string_view data) {
   }
   for (const auto &reservation : d.reservations) {
     const auto room = roomById.find(reservation.roomId);
+    const auto guestCount = guestsByReservation[reservation.id];
+    const auto maxGuestCount =
+        room == roomById.end()
+            ? std::size_t{4}
+            : std::min<std::size_t>(static_cast<std::size_t>(room->second->beds),
+                                    4);
+    const bool guestCountValid =
+        reservation.completed
+            ? guestCount <= maxGuestCount
+            : reservation.arrived
+                  ? guestCount > 0 && guestCount <= maxGuestCount
+                  : guestCount == 0;
     if ((!reservation.completed && room == roomById.end()) ||
         (reservation.checkedIn && !reservation.arrived) ||
         (reservation.checkoutStarted && !reservation.checkedIn) ||
         (reservation.completed && !reservation.checkoutStarted) ||
-        (!reservation.completed &&
-         guestsByReservation[reservation.id] != (reservation.arrived ? 1 : 0)) ||
-        (reservation.completed && guestsByReservation[reservation.id] > 1))
+        !guestCountValid)
       throw std::invalid_argument("invalid saved reservation references");
     if (!reservation.checkoutStarted && !reservation.completed &&
         room->second->reservationId != reservation.id)
@@ -2484,6 +3746,142 @@ Simulation Simulation::load(std::string_view data) {
     const auto reservation = reservationById.find(review.reservationId);
     if (reservation == reservationById.end() || !reservation->second->completed)
       throw std::invalid_argument("invalid saved review reference");
+  }
+  d.restoreGuestStates(integratedGuestFormat);
+  if (fullGuestFormat) {
+    std::size_t restoredGuestCount{};
+    const auto restoreModels = [&](std::vector<Reservation> &reservations) {
+      for (auto &reservation : reservations) {
+        std::vector<GuestId> reservationMembers;
+        reservationMembers.reserve(reservation.guests.size());
+        for (const auto &guest : reservation.guests)
+          reservationMembers.push_back(guest.profile.id);
+        const auto canonicalMembers = reservationMembers;
+        std::sort(reservationMembers.begin(), reservationMembers.end());
+        if (std::adjacent_find(reservationMembers.begin(),
+                              reservationMembers.end()) !=
+            reservationMembers.end())
+          throw std::invalid_argument("duplicate guest in reservation");
+        for (auto &guest : reservation.guests) {
+          const auto found = savedGuestStates.find(guest.profile.id);
+          if (found == savedGuestStates.end())
+            throw std::invalid_argument("saved guest state has an unknown identity");
+          guest = found->second;
+          auto expectedMembers = guest.memberIds;
+          std::sort(expectedMembers.begin(), expectedMembers.end());
+          if (expectedMembers != reservationMembers ||
+              guest.leaderGuestId == 0 ||
+              (guest.groupId == 0 && guest.memberIds.size() != 1) ||
+              (guest.groupId != 0 && guest.memberIds.size() < 2))
+            throw std::invalid_argument("saved guest group reference is invalid");
+          ++restoredGuestCount;
+        }
+        if (!reservation.guests.empty()) {
+          const auto &leader = reservation.guests.front();
+          for (const auto &guest : reservation.guests)
+            if (guest.groupId != leader.groupId ||
+                guest.leaderGuestId != leader.leaderGuestId ||
+                guest.memberIds != leader.memberIds)
+              throw std::invalid_argument("saved reservation group is inconsistent");
+          if (std::find(canonicalMembers.begin(), canonicalMembers.end(),
+                        leader.leaderGuestId) == canonicalMembers.end())
+            throw std::invalid_argument("saved group leader is not a member");
+          reservation.groupId = leader.groupId;
+          reservation.leaderGuestId = leader.leaderGuestId;
+        }
+      }
+    };
+    restoreModels(d.reservations);
+    restoreModels(d.completedReservationHistory);
+    if (restoredGuestCount != savedGuestStates.size())
+      throw std::invalid_argument("saved guest state has an unknown identity");
+  } else if (!savedGuestExperience.empty()) {
+    std::size_t restoredGuestCount{};
+    const auto restoreExperiences = [&](std::vector<Reservation> &reservations) {
+      for (auto &reservation : reservations)
+        for (auto &guest : reservation.guests) {
+          const auto found = savedGuestExperience.find(guest.profile.id);
+          if (found == savedGuestExperience.end())
+            continue;
+          guest.profile.randomState = found->second.randomState;
+          guest.experience = found->second.experience;
+          ++restoredGuestCount;
+        }
+    };
+    restoreExperiences(d.reservations);
+    restoreExperiences(d.completedReservationHistory);
+    if (restoredGuestCount != savedGuestExperience.size())
+      throw std::invalid_argument("saved guest state has an unknown identity");
+  }
+  if (fullGuestFormat) {
+    std::unordered_set<EntityId> extensionIds = entityIds;
+    const auto claimExtensionId = [&](EntityId id) {
+      if (id == 0 || id >= d.nextId || !extensionIds.insert(id).second)
+        throw std::invalid_argument("duplicate or invalid guest entity reference");
+    };
+    std::unordered_set<GuestId> guestIds;
+    std::size_t guestRecordCount{}, memoryCount{}, complaintCount{};
+    const auto validateExperience = [&](const std::vector<Reservation> &items) {
+      for (const auto &reservation : items) {
+        for (const auto &guest : reservation.guests) {
+          ++guestRecordCount;
+          if (!guestIds.insert(guest.profile.id).second)
+            throw std::invalid_argument("duplicate saved guest identity");
+          const auto person = personById.find(guest.profile.id);
+          if (person != personById.end() &&
+              (person->second->kind != PersonKind::Guest ||
+               person->second->reservation != reservation.id))
+            throw std::invalid_argument("saved guest actor reference is broken");
+
+          std::unordered_map<EntityId, const GuestExperienceEvent *> events;
+          std::unordered_set<EntityId> incidents;
+          for (const auto &event : guest.experience.events) {
+            claimExtensionId(event.eventId);
+            if (!events.emplace(event.eventId, &event).second)
+              throw std::invalid_argument("duplicate guest event reference");
+            if (event.incidentId != 0) {
+              claimExtensionId(event.incidentId);
+              incidents.insert(event.incidentId);
+            }
+            if (!roomById.contains(event.locationId) ||
+                (event.sourceEntityId &&
+                 !personById.contains(*event.sourceEntityId)))
+              throw std::invalid_argument("guest event location or source is unknown");
+          }
+          for (const auto &event : guest.experience.events)
+            if (event.resolvesIncidentId &&
+                !incidents.contains(*event.resolvesIncidentId))
+              throw std::invalid_argument("guest resolution references an unknown incident");
+
+          std::unordered_map<EntityId, const GuestMemory *> memories;
+          for (const auto &memory : guest.experience.memories) {
+            claimExtensionId(memory.id);
+            if (!memories.emplace(memory.id, &memory).second ||
+                !events.contains(memory.eventId) ||
+                !roomById.contains(memory.locationId) ||
+                (memory.sourceEntityId &&
+                 !personById.contains(*memory.sourceEntityId)) ||
+                (memory.incidentId != 0 &&
+                 !incidents.contains(memory.incidentId)))
+              throw std::invalid_argument("guest memory references are broken");
+          }
+          for (const auto &complaint : guest.experience.complaints) {
+            claimExtensionId(complaint.id);
+            ++complaintCount;
+            const auto memory = memories.find(complaint.memoryId);
+            if (memory == memories.end() ||
+                memory->second->incidentId != complaint.incidentId)
+              throw std::invalid_argument("guest complaint references are broken");
+          }
+          memoryCount += guest.experience.memories.size();
+        }
+      }
+    };
+    validateExperience(d.reservations);
+    validateExperience(d.completedReservationHistory);
+    if (guestRecordCount > 100000 || memoryCount > 100000 ||
+        complaintCount > 100000 || guestRecordCount != savedGuestStates.size())
+      throw std::invalid_argument("saved guest collections exceed their limit");
   }
   d.compactTransientState();
   return s;

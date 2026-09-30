@@ -11,6 +11,8 @@ add_library(hh_game
   src/Workforce.cpp
   src/Departments.cpp
   src/StaffOptimization.cpp
+  src/GuestModel.cpp
+  src/GuestExperience.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
@@ -43,4 +45,22 @@ if(HH_GAME_BUILD_TESTS)
     target_link_libraries(hh_${service_test}_tests PRIVATE hh_game)
     add_test(NAME ${service_test} COMMAND hh_${service_test}_tests)
   endforeach()
+
+  add_executable(hh_guest_model_tests tests/GuestModelTests.cpp)
+  target_link_libraries(hh_guest_model_tests PRIVATE hh_game)
+  add_test(NAME GuestModel COMMAND hh_guest_model_tests)
+
+  add_executable(hh_guest_experience_tests tests/GuestExperienceTests.cpp)
+  target_link_libraries(hh_guest_experience_tests PRIVATE hh_game)
+  add_test(NAME GuestExperience COMMAND hh_guest_experience_tests)
+
+  add_executable(hh_simulation_save_migration_tests tests/SimulationSaveMigrationTests.cpp)
+  target_link_libraries(hh_simulation_save_migration_tests PRIVATE hh_game)
+  add_test(NAME GuestSaveMigration COMMAND hh_simulation_save_migration_tests)
+
+  add_executable(hh_guest_scale_tests tests/GuestScaleTests.cpp)
+  target_link_libraries(hh_guest_scale_tests PRIVATE hh_game)
+  add_test(NAME GuestScale COMMAND hh_guest_scale_tests)
 endif()
+
+
