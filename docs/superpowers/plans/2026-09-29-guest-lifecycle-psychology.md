@@ -131,7 +131,91 @@
 - [x] **Step 1: Write failing campaign tests in the existing registered simulation target** named `reservation_creates_stable_guest_profile_and_group`, `group_checkin_and_checkout_run_once_for_all_members`, `guest_lifecycle_tracks_arrival_room_stay_and_departure`, `guest_goal_candidates_require_real_available_services`, and `guest_profiles_do_not_advance_shared_simulation_rng`.
 - [x] **Step 2: Run `cmake --build build --config Release --target hh_game_tests --parallel 4` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: the new integration assertions fail against the single-person reservation flow. GitHub Integrated Game run `36657867458` failed at the intended red checkpoint because `SimulationView.guests` and `GuestView` are not implemented yet; this workspace has no local CMake executable.
 - [x] **Step 3: Integrate profiles at booking, preserve globally unique guest IDs from booking through arrival, create multi-member groups for couple/family/group archetypes when room beds allow them, and coordinate one reservation check-in/checkout for all group members** in `Simulation.cpp`. Add lifecycle transitions around arrival, check-in, in-stay, checkout, and departure. Keep `PersonState` as movement/action state.
-- [ ] **Step 4: Build and run `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: PASS; single and group reservations preserve existing room, task, and deterministic-campaign behavior.
+- [x] **Step 4: Build and run `ctest --test-dir build -C Release -R '^hh_game_tests
+- [x] **Step 5: Commit** `feat: integrate guest lifecycle into campaigns`. Integration landed in `2126f04`; `18333ef` fixes check-in task scope and `e75a527` restores deterministic guest state across saves. Verified by Integrated Game run `36659936078`.
+
+## Task 5: Wire experience events and balance definitions into current operations
+
+**Files:**
+- Modify: `game/include/hh/game/Simulation.h`
+- Modify: `game/src/Simulation.cpp`
+- Modify: `game/data/balance.json`
+- Modify: `game/tests/SimulationTests.cpp`
+
+**Interfaces:**
+- Produces: `CommandResult reportGuestExperience(const GuestExperienceEvent &event)` for trusted simulation operations to submit factual outcomes.
+- Produces: `CommandResult resolveGuestComplaint(GuestId guestId, EntityId complaintId, GuestRecoveryOption option)`; successful refunds update the integer-currency ledger exactly once.
+- Guest expectations accept optional market context; sleep/noise accepts optional measured room noise; later market/environment/venue systems populate those inputs.
+
+- [ ] **Step 1: Write failing tests** named `balance_v1_loads_and_guest_tuning_is_atomic`, `invalid_guest_tuning_is_rejected_without_mutation`, `missing_market_or_noise_inputs_do_not_create_memories`, `recorded_queue_and_room_events_update_guest_memory`, `missing_food_venue_leaves_need_unserved_without_fake_completion`, `unknown_guest_experience_event_is_rejected`, and `complaint_recovery_cannot_refund_twice`.
+- [ ] **Step 2: Run `cmake --build build --config Release --target hh_game_tests --parallel 4` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: the new API and event assertions fail.
+- [ ] **Step 3: Add an optional `guestPsychology` table with its own version field to `balance.json` while retaining the current `balance.v1` payload; parse into a temporary definitions object and apply only after all fields validate. Add the two `Simulation` methods, event sources for existing queue/check-in/checkout/room-cleanliness facts, measured-noise sampling and five-minute energy interruption from Task 2, memory/complaint updates, completed-stay review generation, and recovery ledger handling** in `Simulation.cpp`.
+- [ ] **Step 4: Run `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: PASS, including legacy balance input and no fabricated events when later-system inputs are absent.
+- [ ] **Step 5: Commit** `feat: connect guest experiences to hotel operations`.
+
+## Task 6: Version-10 guest persistence and legacy migration
+
+**Files:**
+- Create: `game/tests/SimulationSaveMigrationTests.cpp`
+- Create: `game/tests/fixtures/legacy-v2.hhsave` through `legacy-v9.hhsave`
+- Modify: `game/src/Simulation.cpp`
+- Modify: `game/CMakeLists.txt`
+
+**Interfaces:**
+- Consumes: Task 4 reservation/group/profile state and Task 5 experience, complaint, recovery, review, and guest-local random state.
+- Produces: writer header `HHGS 10`; loader accepts versions 2–10; the v10 extension stores guest/group state without changing the legacy record layouts parsed for v2–v9.
+
+- [ ] **Step 1: Add one valid, checked-in fixture captured from or generated against each legacy header version v2–v9, and write failing tests** named `every_legacy_version_migrates_to_v10`, `v10_roundtrip_preserves_guest_group_memories_and_random_state`, `corrupt_guest_references_are_rejected`, `guest_collection_limits_are_enforced`, `legacy_review_scores_migrate_to_hmg_rating`, and `legacy_migration_does_not_consume_shared_rng`. Include fixture provenance or a deterministic fixture-generation helper so each legacy payload is reproducible.
+- [ ] **Step 2: Run `cmake --build build --config Release --target hh_simulation_save_migration_tests --parallel 4` and `ctest --test-dir build -C Release -R '^GuestSaveMigration$' --output-on-failure`.** Expected: legacy migration assertions fail until v10 guest state is serialized.
+- [ ] **Step 3: Write `HHGS 10` and a length-bounded `GUEST10` extension after the existing service payload. Keep the v2–v9 parser layout unchanged; migrate legacy reservations to deterministic single-member groups and preserve existing live guest IDs. Reject duplicate/broken references and more than 100,000 total saved guest records, memories, or complaints** in `Simulation.cpp`.
+- [ ] **Step 4: Run `ctest --test-dir build -C Release -R '^GuestSaveMigration$' --output-on-failure` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: PASS for v2–v9 migration, v10 round-trip, malformed-state rejection, and deterministic continuation.
+- [ ] **Step 5: Commit** `feat: persist guest psychology in save v10`.
+
+## Task 7: Guest inspection and recovery controls in the Windows client
+
+**Files:**
+- Modify: `game/include/hh/game/Simulation.h`
+- Modify: `game/src/Simulation.cpp`
+- Modify: `game/app/Client.h`
+- Modify: `game/app/Panels.cpp`
+- Modify: `game/app/GameMain.cpp`
+
+**Interfaces:**
+- Produces: `GuestView` snapshots with profile/archetype, group and leader, lifecycle, goal plus utility factors, needs, perceptions, category expectations/satisfaction, active memories, queue tolerance, review range, and complaint state.
+- Produces: `SimulationView.guests` as a stable, read-only collection; the client selects guests by `GuestId` and sends recovery through `resolveGuestComplaint`.
+- `ReviewView` exposes a 1.0–10.0 rating and 0–100 overall satisfaction; legacy v2–v9 ratings migrate from their prior 0–100 score.
+
+- [ ] **Step 1: Add failing snapshot tests** named `guest_snapshot_contains_required_diagnostics`, `guest_snapshot_orders_members_and_memories_stably`, `guest_recovery_command_changes_only_the_selected_complaint`, and `review_view_exposes_rating_and_overall_satisfaction_separately`.
+- [ ] **Step 2: Run `cmake --build build --config Release --target hh_game_tests --parallel 4` and `ctest --test-dir build -C Release -R '^hh_game_tests$' --output-on-failure`.** Expected: guest inspection fields and HMG review ratings are not present.
+- [ ] **Step 3: Populate `GuestView` in `Simulation::view`, add selected-guest state and an inspector on the existing Guests page, display missing external inputs as unavailable, add complaint recovery buttons, and render reviews on the HMG-010 1–10 scale** in the listed files. Extend the Windows smoke path to select the Guests page and capture `smoke-guests.bmp` with at least one active guest.
+- [ ] **Step 4: Run `cmake --build build --config Release --parallel 4` and `ctest --test-dir build -C Release --output-on-failure`; run the Windows client smoke test and verify `smoke-guests.bmp` is captured.** Expected: all portable tests pass and the Windows smoke process exits 0.
+- [ ] **Step 5: Commit** `feat: inspect guest psychology in the client`.
+
+## Task 8: Scale soak, full regression, and status documentation
+
+**Files:**
+- Create: `game/tests/GuestScaleTests.cpp`
+- Modify: `game/CMakeLists.txt`
+- Modify: `README.md`
+- Modify: `docs/IMPLEMENTATION_STATUS.md`
+
+**Interfaces:**
+- Consumes: complete guest model, experience, simulation, save, and UI interfaces from Tasks 1–7.
+- Produces: a bounded, repeatable 1,000-guest decision soak that reports goal-evaluation work and v10 save size without a guessed timing threshold.
+
+- [ ] **Step 1: Write failing scale assertions** named `one_thousand_guest_decisions_use_filtered_candidates`, `memories_and_complaints_remain_within_save_limits`, and `guest_model_soak_is_repeatable_for_fixed_seed`.
+- [ ] **Step 2: Run `cmake --build build --config Release --target hh_guest_scale_tests --parallel 4` and `ctest --test-dir build -C Release -R '^GuestScale$' --output-on-failure`.** Expected: scale target is not yet registered and the checks fail.
+- [ ] **Step 3: Add the deterministic 1,000-guest decision soak and report decision evaluations plus serialized save bytes for that fixture; update `README.md` and `docs/IMPLEMENTATION_STATUS.md`** to state the verified HHGS 10 writer, v2–v10 loader, HMG-010 coverage, remaining HMG workstreams, and unclaimed full-scale targets.
+- [ ] **Step 4: Run `cmake --build build --config Release --parallel 4` and `ctest --test-dir build -C Release --output-on-failure`; confirm the existing 14-day campaign and all guest tests pass.** Expected: all CTest tests pass; no 500-room or 1,300-moving-character claim is added without measurement.
+- [ ] **Step 5: Commit** `test: verify guest decision scale and document coverage`.
+
+## Execution notes
+
+- Work through tasks in order because the simulation, persistence, and client all consume the new guest interfaces.
+- Keep tests in the repository’s existing small C++ executable style and register them with CTest.
+- Each task ends with its own passing test cycle and commit. No task silently expands into restaurants, competitor AI, financing, campaign content, or production asset completion; those remain later full-game projects.
+
+ --output-on-failure`.** Expected: PASS; single and group reservations preserve existing room, task, and deterministic-campaign behavior. GitHub Integrated Game run `36659936078` passed on Ubuntu and Windows, including deterministic save continuation.
 - [ ] **Step 5: Commit** `feat: integrate guest lifecycle into campaigns`.
 
 ## Task 5: Wire experience events and balance definitions into current operations
