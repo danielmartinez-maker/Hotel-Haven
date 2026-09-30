@@ -185,7 +185,7 @@ static void review_probability_and_critic_modifier_are_deterministic() {
   require(first.reputationImpactMultiplier == 5.0,
           "critic review did not receive its reputation impact multiplier");
   require(first.rating >= 1.0 && first.rating <= 10.0 &&
-              first.overallSatisfaction == 72.0,
+              std::abs(first.overallSatisfaction - 72.0) < 1e-12,
           "review rating and satisfaction were not kept as separate scales");
 }
 
