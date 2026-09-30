@@ -267,7 +267,7 @@ GuestModelDefinitions defaultGuestModelDefinitions() {
   setActivity(family, GuestActivityPreference::Event, 0.68);
   setRoom(family, GuestRoomPreference::Double, 0.90);
   setRoom(family, GuestRoomPreference::Accessible, 0.40);
-  setExpectation(family, GuestCategory::Safety, 82.0);
+  setExpectation(family, GuestCategory::Convenience, 82.0);
   setExpectation(family, GuestCategory::Amenities, 76.0);
 
   auto &luxury = definitions.archetypes[6];
@@ -314,7 +314,7 @@ GuestModelDefinitions defaultGuestModelDefinitions() {
   setRoom(vip, GuestRoomPreference::HighFloor, 0.72);
   setExpectation(vip, GuestCategory::Service, 94.0);
   setExpectation(vip, GuestCategory::Quiet, 88.0);
-  setExpectation(vip, GuestCategory::Safety, 92.0);
+  setExpectation(vip, GuestCategory::ArrivalDeparture, 92.0);
 
   auto &critic = definitions.archetypes[12];
   setActivity(critic, GuestActivityPreference::Breakfast, 0.78);
@@ -431,6 +431,11 @@ GuestModelDefinitions defaultGuestModelDefinitions() {
 
   definitions.categoryWeights = {0.28, 0.16, 0.24, 0.10, 0.08,
                                  0.08, 0.06, 0.05, 0.03};
+  const double categoryWeightTotal = std::accumulate(
+      definitions.categoryWeights.begin(), definitions.categoryWeights.end(),
+      0.0);
+  for (auto &weight : definitions.categoryWeights)
+    weight /= categoryWeightTotal;
   return definitions;
 }
 
