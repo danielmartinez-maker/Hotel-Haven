@@ -1,5 +1,6 @@
 #include "hh/game/Simulation.h"
 #include "hh/game/GuestModel.h"
+#include "hh/game/GuestExperience.h"
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -171,6 +172,184 @@ static void guest_profiles_do_not_advance_shared_simulation_rng() {
     require(v.reservations[i].roomId == expectedRoomOrder[i] &&
                 v.reservations[i].departureDay == expectedDepartureDays[i],
             "profile generation advanced the shared simulation RNG");
+}
+
+static GuestExperienceEvent simulation_experience_event(
+    const SimulationView &view, const GuestView &guest, std::uint64_t eventId,
+    GuestExperienceEventType type, GuestCategory category, double impact) {
+  GuestExperienceEvent event;
+  event.eventId = eventId;
+  event.guestId = guest.profile.id;
+  event.type = type;
+  event.timestampSeconds = view.elapsedSeconds;
+  event.locationId = guest.reservationId;
+  for (const auto &reservation : view.reservations)
+    if (reservation.id == guest.reservationId)
+      event.locationId = reservation.roomId;
+  event.category = category;
+  event.observedValue = impact < 0.0 ? 25.0 : 95.0;
+  event.expectedValue = impact < 0.0 ? 70.0 : 70.0;
+  event.rawImpact = impact;
+  event.salience = 1.0;
+  event.incidentId = impact < 0.0 ? eventId + 10000 : 0;
+  event.complaintEligible = impact <= -50.0;
+  event.reviewStatement =
+      impact < 0.0 ? "The front desk queue delayed our arrival."
+                   : "The room was exceptionally clean.";
+  return event;
+}
+
+static const GuestView &firstGuest(const SimulationView &view) {
+  if (view.guests.empty())
+    throw std::runtime_error("simulation has no guest profile");
+  return view.guests.front();
+}
+
+static void balance_v1_loads_and_guest_tuning_is_atomic() {
+  auto s = guest_integration_hotel(603);
+  require(s.loadDefinitions(
+              R"({"schema":"hh.game.balance.v1","baseDemand":100,"guestPsychology":{"version":1,"categoryWeights":[0.28,0.16,0.24,0.10,0.08,0.08,0.06,0.05,0.03],"memoryHalfLifeHours":[12,6,72,48,12,12,48,6,6,72,12,12,12,12,12,12],"recoveryMagnitudeReduction":[10,15,25,35,45],"complaintMagnitudeThreshold":25,"reviewGenerationProbability":0.65,"lowSatisfactionReviewBonus":0.20,"highSatisfactionReviewBonus":0.10,"reviewScoreNoiseRange":0.30,"criticReputationImpactMultiplier":5}})")
+              .ok,
+          "versioned guest psychology settings were rejected");
+  auto legacy = Simulation(604);
+  require(legacy.loadDefinitions(
+              R"({"schema":"hh.game.balance.v1","baseDemand":1.5})")
+              .ok,
+          "balance.v1 without guest psychology settings no longer loads");
+}
+
+static void invalid_guest_tuning_is_rejected_without_mutation() {
+  auto s = guest_integration_hotel(605);
+  require(s.loadDefinitions(
+              R"({"baseDemand":2,"guestPsychology":{"version":1,"categoryWeights":[0.28,0.16,0.24,0.10,0.08,0.08,0.06,0.05,0.03],"memoryHalfLifeHours":[12,6,72,48,12,12,48,6,6,72,12,12,12,12,12,12],"recoveryMagnitudeReduction":[10,15,25,35,45],"complaintMagnitudeThreshold":70}})")
+              .ok,
+          "valid guest tuning was rejected");
+  const auto before = s.save();
+  require(!s.loadDefinitions(
+              R"({"baseDemand":99,"guestPsychology":{"version":1,"categoryWeights":[-1,1,1,1,1,1,1,1,1]}})")
+               .ok,
+          "negative guest category weight was accepted");
+  require(s.save() == before,
+          "invalid guest tuning partially changed simulation definitions");
+
+  const auto view = s.view();
+  auto event = simulation_experience_event(
+      view, firstGuest(view), 70001, GuestExperienceEventType::StaffRudeness,
+      GuestCategory::Service, -60.0);
+  require(s.reportGuestExperience(event).ok,
+          "guest event could not be reported after rejected tuning");
+  const auto after = s.view();
+  bool foundComplaint = false;
+  for (const auto &guest : after.guests)
+    if (guest.profile.id == event.guestId)
+      for (const auto &complaint : guest.experience.complaints)
+        foundComplaint |= complaint.open;
+  require(!foundComplaint,
+          "rejected guest tuning changed the active complaint threshold");
+}
+
+static void missing_market_or_noise_inputs_do_not_create_memories() {
+  auto s = guest_integration_hotel(606);
+  s.step(3 * 3600);
+  const auto view = s.view();
+  require(!view.guests.empty(), "missing-input test has no guest");
+  for (const auto &guest : view.guests)
+    for (const auto &memory : guest.experience.memories)
+      require(memory.type != GuestExperienceEventType::NoiseDisturbance &&
+                  memory.category != GuestCategory::Value,
+              "missing measured noise or market context created a memory");
+}
+
+static void recorded_queue_and_room_events_update_guest_memory() {
+  auto s = guest_integration_hotel(607);
+  const auto view = s.view();
+  const auto &guest = firstGuest(view);
+  auto queue = simulation_experience_event(
+      view, guest, 70002, GuestExperienceEventType::LongCheckInQueue,
+      GuestCategory::ArrivalDeparture, -22.0);
+  auto cleanliness = simulation_experience_event(
+      view, guest, 70003,
+      GuestExperienceEventType::ExcellentRoomCleanliness,
+      GuestCategory::Cleanliness, 28.0);
+  require(s.reportGuestExperience(queue).ok,
+          "recorded queue outcome was rejected");
+  require(s.reportGuestExperience(cleanliness).ok,
+          "recorded room outcome was rejected");
+  const auto after = s.view();
+  std::size_t matched = 0;
+  for (const auto &updated : after.guests)
+    if (updated.profile.id == guest.profile.id)
+      for (const auto &memory : updated.experience.memories)
+        matched += memory.eventId == queue.eventId ||
+                   memory.eventId == cleanliness.eventId;
+  require(matched == 2,
+          "factual queue and room events did not create guest memories");
+}
+
+static void missing_food_venue_leaves_need_unserved_without_fake_completion() {
+  auto s = guest_integration_hotel(608);
+  s.step(3 * 3600);
+  const auto view = s.view();
+  require(!view.guests.empty(), "food availability test has no guest");
+  bool guestStayedHungry = false;
+  for (const auto &guest : view.guests) {
+    guestStayedHungry |=
+        guest.needs.values[static_cast<std::size_t>(GuestNeed::Hunger)] < 100.0;
+    require(guest.currentGoal != GuestGoal::Eat,
+            "guest completed a meal at a hotel without a food venue");
+    for (const auto &memory : guest.experience.memories)
+      require(memory.type != GuestExperienceEventType::GreatMeal,
+              "hotel without a food venue fabricated a meal memory");
+  }
+  require(guestStayedHungry,
+          "unserved hunger need was incorrectly marked satisfied");
+}
+
+static void unknown_guest_experience_event_is_rejected() {
+  auto s = guest_integration_hotel(609);
+  const auto before = s.view();
+  auto event = simulation_experience_event(
+      before, firstGuest(before), 70004,
+      GuestExperienceEventType::StaffExceptionalService,
+      GuestCategory::Service, 20.0);
+  event.guestId = 999999999;
+  require(!s.reportGuestExperience(event).ok,
+          "event for an unknown guest was accepted");
+  for (const auto &guest : s.view().guests)
+    require(guest.experience.events.empty(),
+            "unknown guest event mutated another guest");
+}
+
+static void complaint_recovery_cannot_refund_twice() {
+  auto s = guest_integration_hotel(610);
+  const auto before = s.view();
+  const auto &guest = firstGuest(before);
+  auto event = simulation_experience_event(
+      before, guest, 70005, GuestExperienceEventType::StaffRudeness,
+      GuestCategory::Service, -80.0);
+  require(s.reportGuestExperience(event).ok,
+          "eligible guest complaint incident was rejected");
+  const auto afterIncident = s.view();
+  EntityId complaintId = 0;
+  for (const auto &updated : afterIncident.guests)
+    if (updated.profile.id == guest.profile.id)
+      for (const auto &complaint : updated.experience.complaints)
+        if (complaint.open)
+          complaintId = complaint.id;
+  require(complaintId != 0, "eligible negative incident raised no complaint");
+  const auto cashBefore = afterIncident.economy.cashCents;
+  require(s.resolveGuestComplaint(guest.profile.id, complaintId,
+                                  GuestRecoveryOption::FullNightRefund)
+              .ok,
+          "valid complaint refund was rejected");
+  const auto cashAfter = s.view().economy.cashCents;
+  require(cashAfter < cashBefore, "refund did not debit integer cash");
+  require(!s.resolveGuestComplaint(guest.profile.id, complaintId,
+                                  GuestRecoveryOption::FullNightRefund)
+               .ok,
+          "closed complaint was refunded a second time");
+  require(s.view().economy.cashCents == cashAfter,
+          "duplicate recovery changed the cash ledger twice");
 }
 
 static void construction_and_routes() {
@@ -865,6 +1044,13 @@ int main() {
     guest_lifecycle_tracks_arrival_room_stay_and_departure();
     guest_goal_candidates_require_real_available_services();
     guest_profiles_do_not_advance_shared_simulation_rng();
+    balance_v1_loads_and_guest_tuning_is_atomic();
+    invalid_guest_tuning_is_rejected_without_mutation();
+    missing_market_or_noise_inputs_do_not_create_memories();
+    recorded_queue_and_room_events_update_guest_memory();
+    missing_food_venue_leaves_need_unserved_without_fake_completion();
+    unknown_guest_experience_event_is_rejected();
+    complaint_recovery_cannot_refund_twice();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
@@ -894,3 +1080,4 @@ int main() {
   }
   std::cout << "All simulation behavior tests passed\n";
 }
+
