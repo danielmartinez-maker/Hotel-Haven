@@ -534,7 +534,7 @@ static void construction_and_routes() {
         s.buildTile({0, x, 0}, x == 0 ? TileKind::Entrance : TileKind::Floor)
             .ok,
         "corridor");
-  auto r = s.buildFurnishedRoom({"101", 0, 2, 1, 4, 4, {0, 2, 1}, 1, 1, 120});
+  auto r = s.buildFurnishedRoom({"101", 0, 2, 1, 5, 5, {0, 2, 1}, 1, 1, 120});
   require(r.ok, "valid room rejected");
   require(s.isReachable({0, 0, 0}, {0, 2, 1}), "room not reachable");
   require(room(s.view(), r.id).beds == 1 && room(s.view(), r.id).baths == 1,
@@ -576,7 +576,7 @@ static void operational_infrastructure_cannot_strand_service() {
             .ok,
         "infrastructure test corridor build failed");
   require(incomplete
-              .buildFurnishedRoom({"101", 0, 2, 1, 3, 3, {0, 2, 1}, 1, 1, 100})
+              .buildFurnishedRoom({"101", 0, 2, 1, 5, 5, {0, 2, 1}, 1, 1, 100})
               .ok,
           "infrastructure test room build failed");
   require(incomplete.loadDefinitions(R"({"baseDemand":100})").ok,
@@ -679,29 +679,29 @@ struct LayoutOutcome {
 
 static LayoutOutcome run_layout_campaign(bool efficient) {
   Simulation s(89, 512, 10, 1);
-  for (int x = 0; x < 512; ++x)
-    require(
-        s.buildTile({0, x, 0}, x == 0 ? TileKind::Entrance : TileKind::Floor)
-            .ok,
-        "layout benchmark corridor build failed");
-  require(s.buildTile({0, efficient ? 2 : 510, 0}, TileKind::FrontDesk).ok,
-          "layout benchmark desk build failed");
-  require(s.buildTile({0, efficient ? 50 : 509, 0}, TileKind::SupplyCloset).ok,
-          "layout benchmark closet build failed");
+  const int deskX = efficient ? 2 : 498;
+  const int closetX = efficient ? 50 : 497;
+  for (int x = 0; x <= std::max(deskX, closetX); ++x) {
+    const auto kind = x == 0 ? TileKind::Entrance
+                      : x == deskX ? TileKind::FrontDesk
+                      : x == closetX ? TileKind::SupplyCloset
+                                     : TileKind::Floor;
+    require(s.buildTile({0, x, 0}, kind).ok,
+            "layout benchmark corridor build failed");
+  }
   for (int roomIndex = 0; roomIndex < 6; ++roomIndex) {
     const int x = 4 + roomIndex * 8;
-    require(s.buildFurnishedRoom({std::to_string(101 + roomIndex),
-                                  0,
-                                  x,
-                                  1,
-                                  3,
-                                  3,
-                                  {0, x, 1},
-                                  1,
-                                  1,
-                                  140})
-                .ok,
-            "layout benchmark room build failed");
+    const auto roomBuild = s.buildFurnishedRoom({std::to_string(101 + roomIndex),
+                                                  0,
+                                                  x,
+                                                  1,
+                                                  5,
+                                                  5,
+                                                  {0, x, 1},
+                                                  1,
+                                                  1,
+                                                  140});
+    require(roomBuild.ok, roomBuild.message.c_str());
   }
   require(s.hireStaff({"Desk", PersonKind::Receptionist, 9, 23, 20}).ok,
           "layout benchmark receptionist hire failed");
@@ -774,7 +774,9 @@ static void construction_preserves_property_invariants() {
           "room mutation accepted");
   require(!s.isReachable({0, -1, 0}, {0, -1, 0}),
           "same invalid position reachable");
-  require(s.buildTile({0, 3, 8}, TileKind::Wall).ok, "corridor edit rejected");
+  require(s.setConstructionWall(
+              edgeForSide({0, 3, 8}, GridSide::East), true).ok,
+          "corridor edit rejected");
   require(!room(s.view(), r.id).reachable, "room reachability not invalidated");
 }
 
@@ -791,7 +793,7 @@ static void invalid_inputs_are_rejected() {
   require(!s.loadDefinitions(R"({"utilityPerRoomDayCents":1.5})"),
           "fractional smallest-currency utility cost accepted");
   auto saved = s.save();
-  auto pos = saved.find("HHGS 10 16 32 20 3");
+  auto pos = saved.find("HHGS 11 16 32 20 3");
   require(pos == 0, "unexpected save header");
   saved.replace(10, 2, "99");
   bool rejected = false;
@@ -1160,7 +1162,7 @@ static void fatigue_tracks_work_instead_of_idle_shift_time() {
   require(s.buildTile({0, 2, 0}, TileKind::SupplyCloset).ok,
           "fatigue test closet build failed");
   const auto built =
-      s.buildFurnishedRoom({"101", 0, 4, 1, 3, 3, {0, 4, 1}, 1, 1, 100});
+      s.buildFurnishedRoom({"101", 0, 4, 1, 5, 5, {0, 4, 1}, 1, 1, 100});
   require(built.ok, "fatigue test room build failed");
   const auto hired = s.hireStaff({"Worker", PersonKind::Housekeeper, 0, 8, 18});
   require(hired.ok, "fatigue test employee hire failed");

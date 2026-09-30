@@ -84,7 +84,7 @@ static Simulation make_staff_scenario(std::uint64_t seed, EntityId &employeeId,
   require(sim.buildTile({0, 2, 0}, TileKind::SupplyCloset).ok,
           "staff scenario supply closet failed");
   const auto room = sim.buildFurnishedRoom(
-      {"101", 0, 4, 1, 4, 4, {0, 4, 1}, 1, 1, 120});
+      {"101", 0, 4, 1, 5, 5, {0, 4, 1}, 1, 1, 120});
   require(room.ok, "staff scenario room failed");
   const auto hire =
       sim.hireStaff({"Cleaner", PersonKind::Housekeeper, 0, 0, 18});

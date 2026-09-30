@@ -152,6 +152,175 @@ void adjustGuestPayloadLength(std::string &data, std::ptrdiff_t delta) {
   data.replace(marker, lineEnd - marker, replacement);
 }
 
+std::string constructionPayload(const std::string &data) {
+  const auto marker = data.find("CONSTRUCTION11 ");
+  require(marker != std::string::npos,
+          "v11 construction section was not emitted");
+  const auto headerEnd = data.find('\n', marker);
+  std::istringstream header(data.substr(marker, headerEnd - marker));
+  std::string tag;
+  int version{};
+  std::size_t byteCount{};
+  header >> tag >> version >> byteCount;
+  require(header && tag == "CONSTRUCTION11" && version == 1,
+          "v11 construction section header is invalid");
+  return data.substr(headerEnd + 1, byteCount);
+}
+
+void replaceConstructionPayload(std::string &data, const std::string &payload) {
+  const auto marker = data.find("CONSTRUCTION11 ");
+  require(marker != std::string::npos,
+          "v11 construction section was not emitted");
+  const auto headerEnd = data.find('\n', marker);
+  std::istringstream header(data.substr(marker, headerEnd - marker));
+  std::string tag;
+  int version{};
+  std::size_t oldSize{};
+  header >> tag >> version >> oldSize;
+  require(header && tag == "CONSTRUCTION11" && version == 1,
+          "v11 construction section header is invalid");
+  data.replace(marker, headerEnd - marker,
+               "CONSTRUCTION11 1 " + std::to_string(payload.size()));
+  const auto payloadStart = marker +
+                            std::string("CONSTRUCTION11 1 ").size() +
+                            std::to_string(payload.size()).size() + 1;
+  data.replace(payloadStart, oldSize, payload);
+}
+
+void replaceConstructionObjectToken(std::string &data, std::size_t row,
+                                    std::size_t token,
+                                    const std::string &replacement) {
+  auto payload = constructionPayload(data);
+  const auto marker = payload.find("objects ");
+  require(marker != std::string::npos,
+          "construction payload is missing its objects table");
+  auto lineEnd = payload.find('\n', marker);
+  const auto count = static_cast<std::size_t>(
+      std::stoull(payload.substr(marker + 8, lineEnd - marker - 8)));
+  require(row < count, "construction object row is outside the table");
+  std::size_t rowStart = lineEnd + 1;
+  for (std::size_t index = 0; index < row; ++index) {
+    rowStart = payload.find('\n', rowStart) + 1;
+    require(rowStart != 0, "construction object row is truncated");
+  }
+  lineEnd = payload.find('\n', rowStart);
+  std::vector<std::pair<std::size_t, std::size_t>> spans;
+  for (std::size_t position = rowStart; position < lineEnd;) {
+    while (position < lineEnd && payload[position] == ' ')
+      ++position;
+    if (position == lineEnd)
+      break;
+    const auto start = position;
+    while (position < lineEnd && payload[position] != ' ')
+      ++position;
+    spans.emplace_back(start, position - start);
+  }
+  require(token < spans.size(), "construction object record is truncated");
+  const auto [start, length] = spans[token];
+  payload.replace(start, length, replacement);
+  replaceConstructionPayload(data, payload);
+}
+
+void replaceConstructionEdgeToken(std::string &data, const char *sectionName,
+                                  std::size_t row, std::size_t token,
+                                  const std::string &replacement) {
+  auto payload = constructionPayload(data);
+  const auto marker = payload.find(std::string(sectionName) + " ");
+  require(marker != std::string::npos,
+          "construction payload is missing its edge table");
+  auto lineEnd = payload.find('\n', marker);
+  const auto countStart = marker + std::string(sectionName).size() + 1;
+  const auto count = static_cast<std::size_t>(std::stoull(
+      payload.substr(countStart, lineEnd - countStart)));
+  require(row < count, "construction edge row is outside the table");
+  std::size_t rowStart = lineEnd + 1;
+  for (std::size_t index = 0; index < row; ++index) {
+    rowStart = payload.find('\n', rowStart) + 1;
+    require(rowStart != 0, "construction edge row is truncated");
+  }
+  lineEnd = payload.find('\n', rowStart);
+  std::vector<std::pair<std::size_t, std::size_t>> spans;
+  for (std::size_t position = rowStart; position < lineEnd;) {
+    while (position < lineEnd && payload[position] == ' ')
+      ++position;
+    if (position == lineEnd)
+      break;
+    const auto start = position;
+    while (position < lineEnd && payload[position] != ' ')
+      ++position;
+    spans.emplace_back(start, position - start);
+  }
+  require(token < spans.size(), "construction edge record is truncated");
+  const auto [start, length] = spans[token];
+  payload.replace(start, length, replacement);
+  replaceConstructionPayload(data, payload);
+}
+
+void replaceConstructionDeclaredBytes(std::string &data, std::size_t size) {
+  const auto marker = data.find("CONSTRUCTION11 ");
+  require(marker != std::string::npos,
+          "v11 construction section was not emitted");
+  const auto headerEnd = data.find('\n', marker);
+  data.replace(marker, headerEnd - marker,
+               "CONSTRUCTION11 1 " + std::to_string(size));
+}
+
+std::string asLegacyV10(std::string data) {
+  const auto versionStart = data.find(' ') + 1;
+  const auto versionEnd = data.find(' ', versionStart);
+  require(data.substr(versionStart, versionEnd - versionStart) == "11",
+          "only a v11 save can be downgraded to the v10 fixture");
+  data.replace(versionStart, versionEnd - versionStart, "10");
+  const auto constructionStart = data.find("CONSTRUCTION11 ");
+  require(constructionStart != std::string::npos,
+          "v11 fixture has no construction section");
+  data.resize(constructionStart);
+  return data;
+}
+
+void replaceLegacyTile(std::string &data, int width, int height, int floor,
+                       int x, int y, int kind) {
+  const auto headerEnd = data.find('\n');
+  const auto rngEnd = data.find('\n', headerEnd + 1);
+  const auto tileLineStart = rngEnd + 1;
+  const auto tileLineEnd = data.find('\n', tileLineStart);
+  std::size_t position = tileLineStart;
+  std::size_t tileCount{};
+  while (position < tileLineEnd && data[position] != ' ')
+    ++position;
+  tileCount = static_cast<std::size_t>(
+      std::stoull(data.substr(tileLineStart, position - tileLineStart)));
+  const auto index = (static_cast<std::size_t>(floor) * height + y) * width + x;
+  require(index < tileCount, "legacy tile index is outside its map");
+  for (std::size_t item = 0; item <= index; ++item) {
+    while (position < tileLineEnd && data[position] == ' ')
+      ++position;
+    require(position < tileLineEnd, "legacy tile row is truncated");
+    const auto start = position;
+    while (position < tileLineEnd && data[position] != ' ')
+      ++position;
+    if (item == index) {
+      data.replace(start, position - start, std::to_string(kind));
+      return;
+    }
+  }
+}
+
+Simulation constructionFixture(std::uint64_t seed = 8140) {
+  Simulation simulation(seed, 16, 12, 1);
+  for (int x = 0; x <= 8; ++x)
+    require(simulation.buildTile({0, x, 1},
+                                 x == 0 ? TileKind::Entrance : TileKind::Floor)
+                .ok,
+            "construction migration corridor failed");
+  require(simulation
+              .buildFurnishedRoom({"Corner", 0, 2, 2, 6, 6, {0, 2, 2}, 1, 1,
+                                   120})
+              .ok,
+          "construction migration room failed");
+  return simulation;
+}
+
 Simulation groupHotel(std::uint64_t seed) {
   auto simulation = Simulation::tutorial(seed);
   for (const auto &room : simulation.view().rooms)
@@ -202,28 +371,236 @@ Simulation guestWithRecordedMemory() {
   throw std::runtime_error("no group guest was generated for save test");
 }
 
-void every_legacy_version_migrates_to_v10() {
+void every_legacy_version_migrates_to_v11() {
   for (int version = 2; version <= 9; ++version) {
     const auto migrated = Simulation::load(legacyFixture(version)).save();
-    require(migrated.rfind("HHGS 10 ", 0) == 0,
-            "legacy save did not migrate to the v10 writer");
+    require(migrated.rfind("HHGS 11 ", 0) == 0,
+            "legacy save did not migrate to the v11 writer");
   }
+  const auto migrated = Simulation::load(asLegacyV10(constructionFixture().save())).save();
+  require(migrated.rfind("HHGS 11 ", 0) == 0,
+          "v10 save did not migrate to the v11 writer");
 }
 
-void v10_roundtrip_preserves_guest_group_memories_and_random_state() {
+void v11_roundtrip_preserves_guest_group_memories_and_random_state() {
   auto simulation = guestWithRecordedMemory();
   const auto saved = simulation.save();
-  require(saved.rfind("HHGS 10 ", 0) == 0,
-          "simulation is not writing save version 10");
+  require(saved.rfind("HHGS 11 ", 0) == 0,
+          "simulation is not writing save version 11");
   const auto loaded = Simulation::load(saved);
   require(loaded.save() == saved,
-          "v10 guest/group/memory state changed during round-trip");
+          "v11 guest/group/memory state changed during round-trip");
   auto continued = Simulation::load(saved);
   auto uninterrupted = Simulation::load(saved);
   continued.step(1800);
   uninterrupted.step(1800);
   require(continued.save() == uninterrupted.save(),
-          "guest random continuation changed after v10 restore");
+          "guest random continuation changed after v11 restore");
+}
+
+void v10_corner_door_migrates_deterministically() {
+  const auto legacy = asLegacyV10(constructionFixture().save());
+  const auto loaded = Simulation::load(legacy);
+  require(loaded.isReachable({0, 2, 1}, {0, 2, 2}),
+          "v10 corner room door was not migrated to the north boundary");
+  require(loaded.save() == Simulation::load(legacy).save(),
+          "v10 construction migration is not deterministic");
+}
+
+void v10_wall_tiles_become_blocking_edges() {
+  auto legacy = asLegacyV10(constructionFixture().save());
+  replaceLegacyTile(legacy, 16, 12, 0, 4, 1, 2);
+  const auto loaded = Simulation::load(legacy);
+  require(!loaded.isReachable({0, 1, 1}, {0, 7, 1}),
+          "legacy wall tile did not become a blocking construction edge");
+}
+
+void v10_door_tiles_become_deterministic_edges() {
+  auto legacy = asLegacyV10(constructionFixture().save());
+  replaceLegacyTile(legacy, 16, 12, 0, 4, 1, 3);
+  const auto migrated = Simulation::load(legacy).save();
+  const auto payload = constructionPayload(migrated);
+  require(payload.find("0 4 1 1\n") != std::string::npos,
+          "freestanding legacy door tile did not migrate to its north edge");
+}
+
+void v11_roundtrip_preserves_construction_and_room_ids() {
+  auto simulation = constructionFixture();
+  require(simulation.setConstructionWall({0, 9, 1, EdgeAxis::Vertical}, true).ok,
+          "could not add a hallway wall for save fixture");
+  require(simulation.setConstructionDoor({0, 9, 1, EdgeAxis::Vertical}, true).ok,
+          "could not add a hallway door for save fixture");
+  const auto plant = simulation.placeConstructionObject(
+      ConstructionObjectKind::Plant, {0, 4, 4});
+  require(plant.ok, "could not place a save-fixture construction object");
+  const auto saved = simulation.save();
+  require(saved.rfind("HHGS 11 ", 0) == 0,
+          "construction save is not using HHGS v11");
+  const auto payload = constructionPayload(saved);
+  require(payload.find("\nwalls ") != std::string::npos &&
+              payload.find("\ndoors ") != std::string::npos &&
+              payload.find("\nobjects ") != std::string::npos,
+          "construction extension omitted canonical topology or objects");
+  const auto loaded = Simulation::load(saved);
+  require(loaded.save() == saved,
+          "v11 construction state changed during round-trip");
+  const auto originalRooms = simulation.view().rooms;
+  const auto loadedRooms = loaded.view().rooms;
+  require(originalRooms.size() == loadedRooms.size(),
+          "v11 round-trip changed the room count");
+  for (std::size_t index = 0; index < originalRooms.size(); ++index)
+    require(originalRooms[index].id == loadedRooms[index].id,
+            "v11 round-trip changed a room identity");
+}
+
+void v11_rejects_duplicate_object_ids_and_invalid_footprints() {
+  auto simulation = constructionFixture();
+  require(simulation.placeConstructionObject(ConstructionObjectKind::Plant,
+                                               {0, 4, 4}).ok &&
+              simulation.placeConstructionObject(ConstructionObjectKind::Plant,
+                                                  {0, 5, 4}).ok,
+          "could not place construction objects for corruption fixtures");
+  const auto saved = simulation.save();
+  const auto payload = constructionPayload(saved);
+  const auto objects = payload.find("objects ");
+  require(objects != std::string::npos,
+          "construction object table was not emitted");
+  const auto objectLineEnd = payload.find('\n', objects);
+  const auto objectCount = static_cast<std::size_t>(std::stoull(
+      payload.substr(objects + 8, objectLineEnd - objects - 8)));
+  require(objectCount >= 2, "construction object table is too small");
+  const auto firstLine = objectLineEnd + 1;
+  const auto idEnd = payload.find(' ', firstLine);
+  require(idEnd != std::string::npos,
+          "construction object identity was not emitted");
+  const auto firstId = payload.substr(firstLine, idEnd - firstLine);
+
+  auto duplicateId = saved;
+  replaceConstructionObjectToken(duplicateId, 1, 0, firstId);
+  bool duplicateRejected = false;
+  try {
+    (void)Simulation::load(duplicateId);
+  } catch (const std::invalid_argument &) {
+    duplicateRejected = true;
+  }
+  require(duplicateRejected, "duplicate construction object ID was accepted");
+
+  auto invalidKind = saved;
+  replaceConstructionObjectToken(invalidKind, 0, 1, "999");
+  bool kindRejected = false;
+  try {
+    (void)Simulation::load(invalidKind);
+  } catch (const std::invalid_argument &) {
+    kindRejected = true;
+  }
+  require(kindRejected, "invalid construction object kind was accepted");
+
+  auto invalidOrientation = saved;
+  replaceConstructionObjectToken(invalidOrientation, 0, 5, "4");
+  bool orientationRejected = false;
+  try {
+    (void)Simulation::load(invalidOrientation);
+  } catch (const std::invalid_argument &) {
+    orientationRejected = true;
+  }
+  require(orientationRejected, "invalid construction object orientation was accepted");
+
+  auto invalidFootprint = saved;
+  replaceConstructionObjectToken(invalidFootprint, 0, 4, "9999");
+  bool footprintRejected = false;
+  try {
+    (void)Simulation::load(invalidFootprint);
+  } catch (const std::invalid_argument &) {
+    footprintRejected = true;
+  }
+  require(footprintRejected, "out-of-bounds object footprint was accepted");
+
+  auto invalidEdge = saved;
+  replaceConstructionEdgeToken(invalidEdge, "walls", 0, 0, "9999");
+  bool edgeRejected = false;
+  try {
+    (void)Simulation::load(invalidEdge);
+  } catch (const std::invalid_argument &) {
+    edgeRejected = true;
+  }
+  require(edgeRejected, "out-of-bounds construction edge was accepted");
+
+  auto oversized = saved;
+  replaceConstructionDeclaredBytes(oversized, 32 * 1024 * 1024 + 1);
+  bool oversizedRejected = false;
+  try {
+    (void)Simulation::load(oversized);
+  } catch (const std::invalid_argument &) {
+    oversizedRejected = true;
+  }
+  require(oversizedRejected, "oversized construction payload was accepted");
+
+  auto trailing = saved + "extra";
+  bool trailingRejected = false;
+  try {
+    (void)Simulation::load(trailing);
+  } catch (const std::invalid_argument &) {
+    trailingRejected = true;
+  }
+  require(trailingRejected, "trailing bytes after construction payload were accepted");
+
+  auto truncated = saved;
+  truncated.pop_back();
+  bool truncatedRejected = false;
+  try {
+    (void)Simulation::load(truncated);
+  } catch (const std::invalid_argument &) {
+    truncatedRejected = true;
+  }
+  require(truncatedRejected, "truncated construction payload was accepted");
+}
+
+void migrated_room_references_and_guest_continuation_remain_valid() {
+  const auto legacy = asLegacyV10(guestWithRecordedMemory().save());
+  const auto oldView = Simulation::load(legacy).view();
+  const auto migrated = Simulation::load(legacy);
+  const auto newView = migrated.view();
+  require(oldView.rooms.size() == newView.rooms.size() &&
+              oldView.reservations.size() == newView.reservations.size() &&
+              oldView.reviews.size() == newView.reviews.size(),
+          "v10 construction migration changed guest or room collection sizes");
+  for (std::size_t index = 0; index < oldView.rooms.size(); ++index)
+    require(oldView.rooms[index].id == newView.rooms[index].id,
+            "v10 construction migration changed a room identity");
+  for (std::size_t index = 0; index < oldView.reservations.size(); ++index)
+    require(oldView.reservations[index].id == newView.reservations[index].id &&
+                oldView.reservations[index].roomId ==
+                    newView.reservations[index].roomId,
+            "v10 construction migration broke a reservation room reference");
+  require(oldView.tasks.size() == newView.tasks.size(),
+          "v10 construction migration changed the task count");
+  for (std::size_t index = 0; index < oldView.tasks.size(); ++index)
+    require(oldView.tasks[index].id == newView.tasks[index].id &&
+                oldView.tasks[index].targetId == newView.tasks[index].targetId,
+            "v10 construction migration changed a task identity or reference");
+  require(oldView.economy.cashCents == newView.economy.cashCents &&
+              oldView.economy.revenueCents == newView.economy.revenueCents &&
+              oldView.economy.payrollCents == newView.economy.payrollCents &&
+              oldView.economy.supplyCostCents ==
+                  newView.economy.supplyCostCents &&
+              oldView.economy.constructionCostCents ==
+                  newView.economy.constructionCostCents &&
+              oldView.economy.utilityCostCents ==
+                  newView.economy.utilityCostCents,
+          "v10 construction migration changed the economic ledgers");
+  require(oldView.guests.size() == newView.guests.size(),
+          "v10 construction migration changed the guest count");
+  for (std::size_t index = 0; index < oldView.guests.size(); ++index)
+    require(oldView.guests[index].profile.id == newView.guests[index].profile.id &&
+                oldView.guests[index].reservationId ==
+                    newView.guests[index].reservationId,
+            "v10 construction migration changed guest identities or references");
+  auto continued = Simulation::load(migrated.save());
+  auto uninterrupted = Simulation::load(migrated.save());
+  continued.step(1800);
+  uninterrupted.step(1800);
+  require(continued.save() == uninterrupted.save(),
+          "guest continuation changed after migrated v10 restore");
 }
 
 void corrupt_guest_references_are_rejected() {
@@ -311,8 +688,14 @@ void legacy_migration_does_not_consume_shared_rng() {
 
 int main() {
   try {
-    every_legacy_version_migrates_to_v10();
-    v10_roundtrip_preserves_guest_group_memories_and_random_state();
+    every_legacy_version_migrates_to_v11();
+    v10_corner_door_migrates_deterministically();
+    v10_wall_tiles_become_blocking_edges();
+    v10_door_tiles_become_deterministic_edges();
+    v11_roundtrip_preserves_construction_and_room_ids();
+    v11_rejects_duplicate_object_ids_and_invalid_footprints();
+    migrated_room_references_and_guest_continuation_remain_valid();
+    v11_roundtrip_preserves_guest_group_memories_and_random_state();
     corrupt_guest_references_are_rejected();
     guest_collection_limits_are_enforced();
     legacy_review_scores_migrate_to_hmg_rating();

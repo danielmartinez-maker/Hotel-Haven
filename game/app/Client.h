@@ -41,7 +41,8 @@ enum class Tool {
   Erase,
   Bathroom,
   StaffRoom,
-  Lobby
+  Lobby,
+  Furnishing
 };
 struct Button {
   RECT rect{};
@@ -90,6 +91,14 @@ struct Client {
   GuestInspectorTab guestInspectorTab = GuestInspectorTab::Overview;
   Tool tool = Tool::Inspect;
   Tool previewTool = Tool::Inspect;
+  hh::game::GridSide previewEdgeSide{hh::game::GridSide::North};
+  hh::game::ConstructionObjectKind previewObjectKind{
+      hh::game::ConstructionObjectKind::SingleBed};
+  int previewQuarterTurns{};
+  hh::game::GridSide edgeSide{hh::game::GridSide::North};
+  hh::game::ConstructionObjectKind selectedObjectKind{
+      hh::game::ConstructionObjectKind::SingleBed};
+  int objectQuarterTurns{};
   bool previewValid = false;
   Overlay overlay = Overlay::Natural;
   hh::renderer::WallRenderMode wallMode = hh::renderer::WallRenderMode::Cutaway;

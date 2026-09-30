@@ -1,4 +1,5 @@
 #include "hh/game/Simulation.h"
+#include "hh/game/ConstructionWorld.h"
 #include "hh/assets/Json.h"
 #include <algorithm>
 #include <cmath>
@@ -70,7 +71,13 @@ bool passableKind(TileKind kind) {
          kind == TileKind::Bathroom || kind == TileKind::StaffRoom ||
          kind == TileKind::Lobby;
 }
-struct Room : RoomView {};
+struct Room : RoomView {
+  bool baselineReady{};
+  bool requiredObjectsReachable{true};
+  bool legacyContent{};
+  std::vector<GridEdge> boundaryEdges;
+  std::vector<EntityId> objectIds;
+};
 struct Person : PersonView {
   EntityId reservation{};
   EntityId task{};
@@ -293,7 +300,8 @@ struct Simulation::Impl {
   int width{32}, height{20}, floors{1};
   std::int64_t elapsed{}, remainderMillis{};
   EntityId nextId{1};
-  std::vector<TileKind> map;
+  ConstructionWorld constructionWorld{32, 20, 1};
+  std::vector<TileKind> legacyTileProjection;
   std::vector<Room> rooms;
   std::vector<Person> people;
   std::vector<Reservation> reservations;
@@ -345,6 +353,9 @@ struct Simulation::Impl {
   }
 
   int index(Position p) const { return (p.floor * height + p.y) * width + p.x; }
+  std::size_t tileCount() const {
+    return static_cast<std::size_t>(width) * height * floors;
+  }
   bool inside(Position p) const {
     return p.floor >= 0 && p.floor < floors && p.x >= 0 && p.x < width &&
            p.y >= 0 && p.y < height;
@@ -352,22 +363,43 @@ struct Simulation::Impl {
   bool passable(Position p) const {
     if (!inside(p))
       return false;
-    return passableKind(map[index(p)]);
+    const auto kind = constructionWorld.tileAt(p);
+    if (!passableKind(kind))
+      return false;
+    return !constructionWorld.occupiedByObject(p);
+  }
+  bool wallBetween(Position from, Position to) const {
+    GridEdge edge;
+    if (to.x == from.x + 1 && to.y == from.y)
+      edge = edgeForSide(from, GridSide::East);
+    else if (to.x == from.x - 1 && to.y == from.y)
+      edge = edgeForSide(from, GridSide::West);
+    else if (to.y == from.y + 1 && to.x == from.x)
+      edge = edgeForSide(from, GridSide::South);
+    else if (to.y == from.y - 1 && to.x == from.x)
+      edge = edgeForSide(from, GridSide::North);
+    else
+      return false;
+    const auto &walls = constructionWorld.walls();
+    return std::binary_search(walls.begin(), walls.end(), edge);
   }
   std::vector<Position> neighbors(Position p) const {
     std::vector<Position> n{{p.floor, p.x + 1, p.y},
                             {p.floor, p.x - 1, p.y},
                             {p.floor, p.x, p.y + 1},
                             {p.floor, p.x, p.y - 1}};
-    if (inside(p) && map[index(p)] == TileKind::Stairs) {
+    if (inside(p) && constructionWorld.tileAt(p) == TileKind::Stairs) {
       n.push_back({p.floor + 1, p.x, p.y});
       n.push_back({p.floor - 1, p.x, p.y});
     }
     n.erase(std::remove_if(n.begin(), n.end(),
                            [&](auto q) {
                              return !passable(q) ||
+                                    (q.floor == p.floor &&
+                                     wallBetween(p, q)) ||
                                     (q.floor != p.floor &&
-                                     map[index(q)] != TileKind::Stairs);
+                                     constructionWorld.tileAt(q) !=
+                                         TileKind::Stairs);
                            }),
             n.end());
     return n;
@@ -375,7 +407,7 @@ struct Simulation::Impl {
   std::vector<Position> path(Position from, Position to) const {
     if (!passable(from) || !passable(to))
       return {};
-    std::vector<int> prev(map.size(), -1);
+    std::vector<int> prev(tileCount(), -1);
     std::queue<Position> q;
     q.push(from);
     prev[index(from)] = index(from);
@@ -404,6 +436,12 @@ struct Simulation::Impl {
   }
   Room *getRoom(EntityId id) {
     for (auto &x : rooms)
+      if (x.id == id)
+        return &x;
+    return nullptr;
+  }
+  const Room *getRoom(EntityId id) const {
+    for (const auto &x : rooms)
       if (x.id == id)
         return &x;
     return nullptr;
@@ -477,6 +515,9 @@ struct Simulation::Impl {
         return true;
     for (const auto &order : orders)
       if (order.id == id)
+        return true;
+    for (const auto &object : constructionWorld.objects())
+      if (object.id == id)
         return true;
     const auto reservationContains = [id](const Reservation &reservation) {
       if (reservation.groupId == id)
@@ -701,24 +742,749 @@ struct Simulation::Impl {
       restoreGuestState(reservation, integratedFormat);
   }
   Position locate(TileKind kind) const {
-    for (int i = 0; i < (int)map.size(); ++i)
-      if (map[i] == kind)
-        return {i / (width * height), i % width, (i / width) % height};
+    for (int floor = 0; floor < floors; ++floor)
+      for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x) {
+          const Position position{floor, x, y};
+          if (constructionWorld.tileAt(position) == kind)
+            return position;
+        }
     return {-1, -1, -1};
   }
   Position entrance() const { return locate(TileKind::Entrance); }
   Position supply() const { return locate(TileKind::SupplyCloset); }
   Position frontDesk() const { return locate(TileKind::FrontDesk); }
   bool has(TileKind kind) const {
-    return std::find(map.begin(), map.end(), kind) != map.end();
+    return inside(locate(kind));
   }
   void refreshReachability() {
     for (auto &r : rooms) {
       r.reachable =
           has(TileKind::Entrance) && !path(entrance(), r.door).empty();
-      if (!r.closed && r.status == RoomStatus::Incomplete && r.reachable)
-        r.status = RoomStatus::VacantReady;
+      if (r.status == RoomStatus::Occupied || r.status == RoomStatus::Reserved ||
+          r.status == RoomStatus::Cleaning || r.status == RoomStatus::OutOfOrder)
+        continue;
+      if (r.closed)
+        r.status = RoomStatus::OutOfOrder;
+      else if (r.baselineReady && r.requiredObjectsReachable && r.reachable)
+        r.status = r.cleanliness >= 70 ? RoomStatus::VacantReady
+                                       : RoomStatus::VacantDirty;
+      else
+        r.status = RoomStatus::Incomplete;
     }
+  }
+  bool reconcileConstructionRooms(std::string &error) {
+    const auto oldRooms = rooms;
+    std::vector<Room> updated;
+    updated.reserve(constructionWorld.regions().size());
+    std::unordered_set<EntityId> previousIds;
+    for (const auto &room : oldRooms)
+      previousIds.insert(room.id);
+
+    const auto hasRoomReference = [&](EntityId id) {
+      const auto reservationReferences = [&](const auto &items) {
+        return std::any_of(items.begin(), items.end(), [&](const auto &entry) {
+          return entry.roomId == id;
+        });
+      };
+      const auto taskReferences = [&](const auto &items) {
+        return std::any_of(items.begin(), items.end(), [&](const auto &entry) {
+          return entry.targetId == id;
+        });
+      };
+      if (reservationReferences(reservations) ||
+          reservationReferences(completedReservationHistory) ||
+          taskReferences(tasks) || taskReferences(completedTaskHistory))
+        return true;
+      const auto guestReferences = [&](const auto &items) {
+        for (const auto &reservation : items)
+          for (const auto &guest : reservation.guests) {
+            for (const auto &event : guest.experience.events)
+              if (event.locationId == id)
+                return true;
+            for (const auto &memory : guest.experience.memories)
+              if (memory.locationId == id)
+                return true;
+          }
+        return false;
+      };
+      return guestReferences(reservations) ||
+             guestReferences(completedReservationHistory);
+    };
+
+    const auto containsTile = [](const std::vector<Position> &tiles,
+                                 Position position) {
+      return std::find(tiles.begin(), tiles.end(), position) != tiles.end();
+    };
+    for (const auto &region : constructionWorld.regions()) {
+      Room room;
+      const auto old = std::find_if(oldRooms.begin(), oldRooms.end(),
+                                    [&](const auto &entry) {
+                                      return entry.id == region.id;
+                                    });
+      if (old != oldRooms.end())
+        room = *old;
+      else {
+        const Room *source = nullptr;
+        std::size_t bestOverlap = 0;
+        for (const auto &entry : oldRooms) {
+          std::size_t overlap = 0;
+          for (const Position tile : entry.tiles)
+            overlap += containsTile(region.tiles, tile);
+          if (overlap > bestOverlap ||
+              (overlap == bestOverlap && overlap > 0 && source &&
+               std::tie(entry.floor, entry.y, entry.x) <
+                   std::tie(source->floor, source->y, source->x))) {
+            source = &entry;
+            bestOverlap = overlap;
+          }
+        }
+        if (source) {
+          room.name = source->name;
+          room.nightlyRateCents = source->nightlyRateCents;
+          room.nightlyRate = source->nightlyRate;
+          room.cleanliness = source->cleanliness;
+          room.condition = source->condition;
+          room.legacyContent = source->legacyContent;
+          if (room.legacyContent) {
+            room.beds = source->beds;
+            room.baths = source->baths;
+          }
+        } else {
+          room.name = "Room " + std::to_string(region.id);
+          room.nightlyRateCents = 12000;
+          room.nightlyRate = 120.0;
+          room.cleanliness = 100.0;
+          room.condition = 100.0;
+        }
+        room.id = region.id;
+        room.status = RoomStatus::Incomplete;
+      }
+
+      room.tiles = region.tiles;
+      room.boundaryEdges = region.boundaryEdges;
+      room.area = static_cast<int>(region.tiles.size());
+      room.objectIds.clear();
+      room.diagnostics.clear();
+      if (region.tiles.empty())
+        continue;
+
+      room.floor = region.tiles.front().floor;
+      int minX = region.tiles.front().x;
+      int maxX = minX;
+      int minY = region.tiles.front().y;
+      int maxY = minY;
+      for (const Position tile : region.tiles) {
+        minX = std::min(minX, tile.x);
+        maxX = std::max(maxX, tile.x);
+        minY = std::min(minY, tile.y);
+        maxY = std::max(maxY, tile.y);
+      }
+      room.x = minX;
+      room.y = minY;
+      room.width = maxX - minX + 1;
+      room.height = maxY - minY + 1;
+
+      bool foundDoorTile = false;
+      room.primaryDoorEdge.reset();
+      for (const GridEdge door : region.doorEntrances) {
+        for (const Position tile : region.tiles) {
+          if (edgeForSide(tile, GridSide::North) == door ||
+              edgeForSide(tile, GridSide::East) == door ||
+              edgeForSide(tile, GridSide::South) == door ||
+              edgeForSide(tile, GridSide::West) == door) {
+            room.door = tile;
+            room.primaryDoorEdge = door;
+            foundDoorTile = true;
+            break;
+          }
+        }
+        if (foundDoorTile)
+          break;
+      }
+      if (!foundDoorTile)
+        room.door = region.tiles.front();
+
+      int bedCapacity = room.legacyContent ? room.beds : 0;
+      int toiletCount = room.legacyContent ? room.baths : 0;
+      int sinkCount = room.legacyContent ? room.baths : 0;
+      int bathingCount = room.legacyContent ? room.baths : 0;
+      int lightCount = room.legacyContent ? 1 : 0;
+      bool requiredObjectsReachable = true;
+      for (const auto &object : constructionWorld.objects()) {
+        if (object.legacyBaseline) {
+          if (!containsTile(region.tiles, object.anchor))
+            continue;
+          room.objectIds.push_back(object.id);
+          const auto &definition = objectDefinition(object.kind);
+          bedCapacity += definition.bedCapacity;
+          toiletCount += definition.providesToilet;
+          sinkCount += definition.providesSink;
+          bathingCount += definition.providesBathing;
+          lightCount += definition.providesLight;
+          continue;
+        }
+        const auto footprint = footprintTiles(object);
+        const bool belongs = !footprint.empty() &&
+            std::all_of(footprint.begin(), footprint.end(), [&](Position tile) {
+              return containsTile(region.tiles, tile);
+            });
+        if (!belongs)
+          continue;
+        room.objectIds.push_back(object.id);
+        const auto &definition = objectDefinition(object.kind);
+        bedCapacity += definition.bedCapacity;
+        toiletCount += definition.providesToilet;
+        sinkCount += definition.providesSink;
+        bathingCount += definition.providesBathing;
+        lightCount += definition.providesLight;
+        const bool required = definition.bedCapacity > 0 ||
+                              definition.providesToilet ||
+                              definition.providesSink ||
+                              definition.providesBathing ||
+                              definition.providesLight;
+        if (!required)
+          continue;
+        const auto nodes = interactionNodes(object);
+        for (const Position node : nodes) {
+          bool adjacentWithoutWall = false;
+          for (const Position tile : footprint)
+            if (manhattan(tile, node) == 1 && !wallBetween(tile, node))
+              adjacentWithoutWall = true;
+          if (!adjacentWithoutWall || !containsTile(region.tiles, node) ||
+              !passable(node) ||
+              (!same(room.door, node) && path(room.door, node).empty()))
+            requiredObjectsReachable = false;
+        }
+      }
+      std::sort(room.objectIds.begin(), room.objectIds.end());
+      room.beds = bedCapacity;
+      room.capacity = bedCapacity;
+      room.baths = std::min({toiletCount, sinkCount, bathingCount});
+      room.requiredObjectsReachable = requiredObjectsReachable;
+
+      const bool hasDoor = !region.doorEntrances.empty();
+      const bool hasBed = room.beds > 0;
+      const bool hasToilet = toiletCount > 0;
+      const bool hasSink = sinkCount > 0;
+      const bool hasBathing = bathingCount > 0;
+      const bool hasLight = lightCount > 0;
+      if (!hasBed)
+        room.diagnostics.push_back("Missing a bed");
+      if (!hasToilet)
+        room.diagnostics.push_back("Missing a toilet");
+      if (!hasSink)
+        room.diagnostics.push_back("Missing a sink");
+      if (!hasBathing)
+        room.diagnostics.push_back("Missing a shower or bath");
+      if (!hasLight)
+        room.diagnostics.push_back("Missing a light");
+      if (!hasDoor)
+        room.diagnostics.push_back("Missing a door entrance");
+      room.reachable = hasDoor && has(TileKind::Entrance) &&
+                       !path(entrance(), room.door).empty();
+      if (!room.reachable)
+        room.diagnostics.push_back("Room is unreachable");
+      if (!requiredObjectsReachable)
+        room.diagnostics.push_back("Required object is unreachable");
+      room.baselineReady = hasBed && hasToilet && hasSink && hasBathing &&
+                           hasLight && hasDoor;
+
+      if (room.closed) {
+        room.status = RoomStatus::OutOfOrder;
+      } else if (old != oldRooms.end() &&
+                 (old->status == RoomStatus::Occupied ||
+                  old->status == RoomStatus::Reserved ||
+                  old->status == RoomStatus::Cleaning ||
+                  old->status == RoomStatus::OutOfOrder)) {
+        room.status = old->status;
+      } else if (room.baselineReady && room.requiredObjectsReachable &&
+                 room.reachable) {
+        room.status = room.cleanliness >= 70 ? RoomStatus::VacantReady
+                                             : RoomStatus::VacantDirty;
+      } else {
+        room.status = RoomStatus::Incomplete;
+      }
+      updated.push_back(std::move(room));
+    }
+
+    std::unordered_set<EntityId> updatedIds;
+    for (const auto &room : updated)
+      updatedIds.insert(room.id);
+    std::unordered_map<EntityId, EntityId> remappedIds;
+    for (const auto &old : oldRooms) {
+      if (updatedIds.contains(old.id))
+        continue;
+      const Room *best = nullptr;
+      std::size_t bestOverlap = 0;
+      for (const auto &candidate : updated) {
+        std::size_t overlap = 0;
+        for (const Position tile : old.tiles)
+          overlap += containsTile(candidate.tiles, tile);
+        if (overlap > bestOverlap ||
+            (overlap == bestOverlap && overlap > 0 && best &&
+             std::tie(candidate.floor, candidate.y, candidate.x) <
+                 std::tie(best->floor, best->y, best->x))) {
+          best = &candidate;
+          bestOverlap = overlap;
+        }
+      }
+      if (best) {
+        remappedIds.emplace(old.id, best->id);
+      } else if (hasRoomReference(old.id)) {
+        error = "Room geometry cannot remove referenced room state";
+        return false;
+      }
+    }
+
+    const auto remap = [&](EntityId &id) {
+      if (const auto it = remappedIds.find(id); it != remappedIds.end())
+        id = it->second;
+    };
+    const auto remapReferences = [&](auto &items, auto member) {
+      for (auto &item : items)
+        remap(item.*member);
+    };
+    remapReferences(reservations, &Reservation::roomId);
+    remapReferences(completedReservationHistory, &Reservation::roomId);
+    remapReferences(tasks, &Task::targetId);
+    remapReferences(completedTaskHistory, &Task::targetId);
+    const auto remapGuestLocations = [&](auto &items) {
+      for (auto &reservation : items)
+        for (auto &guest : reservation.guests) {
+          for (auto &event : guest.experience.events)
+            remap(event.locationId);
+          for (auto &memory : guest.experience.memories)
+            remap(memory.locationId);
+        }
+    };
+    remapGuestLocations(reservations);
+    remapGuestLocations(completedReservationHistory);
+
+    for (const auto &room : updated)
+      if (!previousIds.contains(room.id)) {
+        const auto serviceStatus =
+            room.status == RoomStatus::VacantReady
+                ? ServiceRoomStatus::Ready
+                : room.status == RoomStatus::VacantDirty
+                      ? ServiceRoomStatus::Dirty
+                      : ServiceRoomStatus::Blocked;
+        services.registerRoom(room.id, serviceStatus);
+        services.registerAsset(
+            room.id,
+            std::clamp(static_cast<int>(std::llround(room.condition * 100.0)),
+                       0, 10000));
+      }
+    rooms = std::move(updated);
+    return true;
+  }
+  bool protectedRoomsIntact(const Impl &before, std::string &error) const {
+    for (const auto &prior : before.rooms) {
+      if (prior.status != RoomStatus::Reserved &&
+          prior.status != RoomStatus::Occupied &&
+          prior.status != RoomStatus::Cleaning && prior.reservationId == 0)
+        continue;
+      const auto *current = getRoom(prior.id);
+      if (!current || current->tiles != prior.tiles ||
+          current->door != prior.door || !current->baselineReady ||
+          !current->requiredObjectsReachable || current->beds < prior.beds ||
+          current->baths < prior.baths) {
+        error = "Room geometry cannot invalidate an occupied or reserved room";
+        return false;
+      }
+    }
+    return true;
+  }
+  bool hydrateLegacyConstructionWorld(std::string &error) {
+    std::size_t baselineObjectCount{};
+    for (const auto &room : rooms) {
+      const auto roomObjects = static_cast<std::size_t>(room.beds) +
+                               static_cast<std::size_t>(room.baths) * 3 +
+                               ((room.beds > 0 || room.baths > 0) ? 1 : 0);
+      if (roomObjects > 100000 - baselineObjectCount) {
+        error = "Legacy construction object count exceeds its limit";
+        return false;
+      }
+      baselineObjectCount += roomObjects;
+    }
+    if (baselineObjectCount >
+        std::numeric_limits<EntityId>::max() - nextId) {
+      error = "Legacy construction identities exceed their limit";
+      return false;
+    }
+    constructionWorld = ConstructionWorld(width, height, floors);
+    std::vector<std::uint8_t> roomTile(tileCount(), 0);
+    for (const auto &room : rooms)
+      for (int y = room.y; y < room.y + room.height; ++y)
+        for (int x = room.x; x < room.x + room.width; ++x)
+          if (inside({room.floor, x, y}))
+            roomTile[static_cast<std::size_t>(index({room.floor, x, y}))] = 1;
+
+    for (int floor = 0; floor < floors; ++floor)
+      for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x) {
+          const Position tile{floor, x, y};
+          const auto i = static_cast<std::size_t>(index(tile));
+          const auto kind = legacyTileProjection[i];
+          if (roomTile[i] || kind == TileKind::Wall || kind == TileKind::Empty)
+            continue;
+          const auto result = constructionWorld.setTile(
+              tile, kind == TileKind::Door ? TileKind::Floor : kind);
+          if (!result.ok) {
+            error = result.message;
+            return false;
+          }
+        }
+
+    for (const auto &room : rooms) {
+      for (int y = room.y; y < room.y + room.height; ++y)
+        for (int x = room.x; x < room.x + room.width; ++x) {
+          const Position tile{room.floor, x, y};
+          const auto projected = legacyTileProjection[
+              static_cast<std::size_t>(index(tile))];
+          const auto result = constructionWorld.setTile(
+              tile, projected == TileKind::Bathroom ? TileKind::Bathroom
+                                                    : TileKind::Floor);
+          if (!result.ok) {
+            error = result.message;
+            return false;
+          }
+        }
+      for (int x = room.x; x < room.x + room.width; ++x) {
+        constructionWorld.setWall(
+            edgeForSide({room.floor, x, room.y}, GridSide::North), true);
+        constructionWorld.setWall(
+            edgeForSide({room.floor, x, room.y + room.height - 1},
+                        GridSide::South),
+            true);
+      }
+      for (int y = room.y; y < room.y + room.height; ++y) {
+        constructionWorld.setWall(
+            edgeForSide({room.floor, room.x, y}, GridSide::West), true);
+        constructionWorld.setWall(
+            edgeForSide({room.floor, room.x + room.width - 1, y},
+                        GridSide::East),
+            true);
+      }
+      GridSide doorSide{};
+      if (room.door.y == room.y)
+        doorSide = GridSide::North;
+      else if (room.door.x == room.x + room.width - 1)
+        doorSide = GridSide::East;
+      else if (room.door.y == room.y + room.height - 1)
+        doorSide = GridSide::South;
+      else
+        doorSide = GridSide::West;
+      const auto door = constructionWorld.setDoor(edgeForSide(room.door, doorSide),
+                                                   true);
+      if (!door.ok) {
+        error = door.message;
+        return false;
+      }
+    }
+
+    // Old saves represented each wall as a blocked tile. Keep the walkable
+    // cells intact and put blocking edges around every legacy wall tile that
+    // is outside a room rectangle.
+    const std::array<GridSide, 4> sides{GridSide::North, GridSide::East,
+                                        GridSide::South, GridSide::West};
+    for (int floor = 0; floor < floors; ++floor)
+      for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x) {
+          const Position wallTile{floor, x, y};
+          const auto wallIndex = static_cast<std::size_t>(index(wallTile));
+          if (roomTile[wallIndex] ||
+              legacyTileProjection[wallIndex] != TileKind::Wall)
+            continue;
+          for (const GridSide side : sides) {
+            const GridEdge edge = edgeForSide(wallTile, side);
+            if (std::binary_search(constructionWorld.walls().begin(),
+                                   constructionWorld.walls().end(), edge) ||
+                std::binary_search(constructionWorld.doors().begin(),
+                                   constructionWorld.doors().end(), edge))
+              continue;
+            const auto result = constructionWorld.setWall(edge, true);
+            if (!result.ok) {
+              error = result.message;
+              return false;
+            }
+          }
+        }
+
+    // A legacy door tile outside a room did not identify a side. Attach it to
+    // the first adjacent legacy wall in N/E/S/W order, or to its north edge
+    // when it was a freestanding passable door tile.
+    for (int floor = 0; floor < floors; ++floor)
+      for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x) {
+          const Position tile{floor, x, y};
+          const auto tileIndex = static_cast<std::size_t>(index(tile));
+          if (roomTile[tileIndex] ||
+              legacyTileProjection[tileIndex] != TileKind::Door)
+            continue;
+          GridSide chosen = GridSide::North;
+          for (const GridSide side : sides) {
+            Position neighbor = tile;
+            switch (side) {
+            case GridSide::North: --neighbor.y; break;
+            case GridSide::East: ++neighbor.x; break;
+            case GridSide::South: ++neighbor.y; break;
+            case GridSide::West: --neighbor.x; break;
+            }
+            if (inside(neighbor) &&
+                legacyTileProjection[static_cast<std::size_t>(index(neighbor))] ==
+                    TileKind::Wall) {
+              chosen = side;
+              break;
+            }
+          }
+          const GridEdge edge = edgeForSide(tile, chosen);
+          if (!std::binary_search(constructionWorld.walls().begin(),
+                                  constructionWorld.walls().end(), edge)) {
+            const auto wall = constructionWorld.setWall(edge, true);
+            if (!wall.ok) {
+              error = wall.message;
+              return false;
+            }
+          }
+          const auto door = constructionWorld.setDoor(edge, true);
+          if (!door.ok) {
+            error = door.message;
+            return false;
+          }
+        }
+
+    // Legacy bed and bath counters become non-blocking logical objects. They
+    // preserve guest readiness and stable entity identities without inventing
+    // physical footprints in compact historical rooms.
+    for (auto &room : rooms) {
+      const int beds = room.beds;
+      const int baths = room.baths;
+      const auto addBaseline = [&](ConstructionObjectKind kind) {
+        ConstructionObject object{nextId++, kind, room.door, 0, true};
+        return constructionWorld.placeObject(object);
+      };
+      for (int bed = 0; bed < beds; ++bed)
+        if (!addBaseline(ConstructionObjectKind::SingleBed).ok) {
+          error = "Legacy room bed state could not be migrated";
+          return false;
+        }
+      for (int bath = 0; bath < baths; ++bath)
+        if (!addBaseline(ConstructionObjectKind::Toilet).ok ||
+            !addBaseline(ConstructionObjectKind::Sink).ok ||
+            !addBaseline(ConstructionObjectKind::Shower).ok) {
+          error = "Legacy room bath state could not be migrated";
+          return false;
+        }
+      if (beds > 0 || baths > 0)
+        if (!addBaseline(ConstructionObjectKind::Light).ok) {
+          error = "Legacy room light state could not be migrated";
+          return false;
+        }
+      room.legacyContent = false;
+    }
+
+    std::vector<const Room *> roomOrder;
+    roomOrder.reserve(rooms.size());
+    for (const auto &room : rooms)
+      roomOrder.push_back(&room);
+    std::sort(roomOrder.begin(), roomOrder.end(), [](const auto *lhs,
+                                                     const auto *rhs) {
+      return std::tie(lhs->floor, lhs->y, lhs->x) <
+             std::tie(rhs->floor, rhs->y, rhs->x);
+    });
+    std::size_t roomIndex = 0;
+    constructionWorld.rebuildRegions([&] {
+      if (roomIndex < roomOrder.size())
+        return roomOrder[roomIndex++]->id;
+      return nextId++;
+    });
+    if (constructionWorld.regions().size() < roomOrder.size()) {
+      error = "Legacy room geometry cannot be reconstructed";
+      return false;
+    }
+    if (!reconcileConstructionRooms(error))
+      return false;
+    return true;
+  }
+  bool hydrateV11ConstructionWorld(std::string_view payload,
+                                   std::string &error) {
+    std::istringstream input{std::string(payload)};
+    const auto fail = [&](const char *message) {
+      error = message;
+      return false;
+    };
+    std::string tag;
+    int savedWidth{}, savedHeight{}, savedFloors{};
+    input >> tag >> savedWidth >> savedHeight >> savedFloors;
+    if (!input || tag != "dimensions" || savedWidth != width ||
+        savedHeight != height || savedFloors != floors)
+      return fail("invalid construction dimensions");
+
+    constructionWorld = ConstructionWorld(width, height, floors);
+    for (int floor = 0; floor < floors; ++floor)
+      for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x) {
+          const Position position{floor, x, y};
+          const TileKind kind = legacyTileProjection[
+              static_cast<std::size_t>(index(position))];
+          if (kind == TileKind::Empty || kind == TileKind::Wall ||
+              kind == TileKind::Door)
+            continue;
+          const auto result = constructionWorld.setTile(position, kind);
+          if (!result.ok)
+            return fail("invalid canonical construction tile");
+        }
+
+    const std::size_t tileLimit = tileCount();
+    std::string section;
+    std::size_t count{};
+    input >> section >> count;
+    if (!input || section != "overrides" || count > tileLimit)
+      return fail("invalid construction tile overrides");
+    std::unordered_set<std::size_t> overrideIndices;
+    std::size_t previousOverride{};
+    bool firstOverride = true;
+    for (std::size_t entry = 0; entry < count; ++entry) {
+      int floor{}, x{}, y{}, kindValue{};
+      input >> floor >> x >> y >> kindValue;
+      const Position position{floor, x, y};
+      if (!input || !inside(position) || kindValue < ei(TileKind::Empty) ||
+          kindValue > ei(TileKind::Lobby) || kindValue == ei(TileKind::Wall) ||
+          kindValue == ei(TileKind::Door))
+        return fail("invalid construction tile override");
+      const auto tileIndex = static_cast<std::size_t>(index(position));
+      if ((!firstOverride && tileIndex <= previousOverride) ||
+          !overrideIndices.insert(tileIndex).second)
+        return fail("duplicate or unsorted construction tile override");
+      previousOverride = tileIndex;
+      firstOverride = false;
+      const auto result = constructionWorld.setTile(
+          position, static_cast<TileKind>(kindValue));
+      if (!result.ok)
+        return fail("construction tile override could not be applied");
+    }
+
+    const std::size_t maxEdges =
+        static_cast<std::size_t>(floors) *
+        (static_cast<std::size_t>(width + 1) * height +
+         static_cast<std::size_t>(height + 1) * width);
+    std::vector<GridEdge> savedWalls;
+    input >> section >> count;
+    if (!input || section != "walls" || count > maxEdges)
+      return fail("invalid construction walls");
+    savedWalls.reserve(count);
+    for (std::size_t entry = 0; entry < count; ++entry) {
+      int floor{}, x{}, y{}, axis{};
+      input >> floor >> x >> y >> axis;
+      if (!input || axis < ei(EdgeAxis::Vertical) ||
+          axis > ei(EdgeAxis::Horizontal))
+        return fail("invalid construction wall record");
+      const GridEdge edge{floor, x, y, static_cast<EdgeAxis>(axis)};
+      if (!constructionWorld.validEdge(edge) ||
+          (!savedWalls.empty() && !(savedWalls.back() < edge)))
+        return fail("duplicate, unsorted, or out-of-bounds construction wall");
+      savedWalls.push_back(edge);
+      const auto result = constructionWorld.setWall(edge, true);
+      if (!result.ok)
+        return fail("construction wall could not be applied");
+    }
+
+    std::vector<GridEdge> savedDoors;
+    input >> section >> count;
+    if (!input || section != "doors" || count > maxEdges)
+      return fail("invalid construction doors");
+    savedDoors.reserve(count);
+    for (std::size_t entry = 0; entry < count; ++entry) {
+      int floor{}, x{}, y{}, axis{};
+      input >> floor >> x >> y >> axis;
+      if (!input || axis < ei(EdgeAxis::Vertical) ||
+          axis > ei(EdgeAxis::Horizontal))
+        return fail("invalid construction door record");
+      const GridEdge edge{floor, x, y, static_cast<EdgeAxis>(axis)};
+      if (!constructionWorld.validEdge(edge) ||
+          (!savedDoors.empty() && !(savedDoors.back() < edge)) ||
+          std::binary_search(savedWalls.begin(), savedWalls.end(), edge))
+        return fail("duplicate, conflicting, unsorted, or out-of-bounds construction door");
+      savedDoors.push_back(edge);
+      const auto wall = constructionWorld.setWall(edge, true);
+      if (!wall.ok || !constructionWorld.setDoor(edge, true).ok)
+        return fail("construction door could not be applied");
+    }
+
+    input >> section >> count;
+    if (!input || section != "objects" || count > 100000)
+      return fail("invalid construction objects");
+    EntityId previousObjectId{};
+    for (std::size_t entry = 0; entry < count; ++entry) {
+      EntityId id{};
+      int kind{}, floor{}, x{}, y{}, turns{}, legacyBaseline{};
+      input >> id >> kind >> floor >> x >> y >> turns >> legacyBaseline;
+      if (!input || id == 0 || id >= nextId || id <= previousObjectId ||
+          kind < ei(ConstructionObjectKind::SingleBed) ||
+          kind > ei(ConstructionObjectKind::Plant) || turns < 0 || turns > 3 ||
+          (legacyBaseline != 0 && legacyBaseline != 1))
+        return fail("invalid construction object record");
+      previousObjectId = id;
+      const ConstructionObject object{
+          id, static_cast<ConstructionObjectKind>(kind), {floor, x, y}, turns,
+          legacyBaseline != 0};
+      const auto result = constructionWorld.placeObject(object);
+      if (!result.ok)
+        return fail("invalid construction object footprint");
+    }
+
+    std::vector<std::tuple<EntityId, Position>> savedRooms;
+    input >> section >> count;
+    if (!input || section != "rooms" || count != rooms.size() ||
+        count > 100000)
+      return fail("invalid construction room metadata");
+    savedRooms.reserve(count);
+    std::unordered_set<EntityId> roomIds;
+    for (std::size_t entry = 0; entry < count; ++entry) {
+      EntityId id{};
+      Position firstTile;
+      input >> id >> firstTile.floor >> firstTile.x >> firstTile.y;
+      if (!input || id == 0 || id >= nextId || !inside(firstTile) ||
+          !roomIds.insert(id).second ||
+          (!savedRooms.empty() &&
+           std::tie(std::get<1>(savedRooms.back()).floor,
+                    std::get<1>(savedRooms.back()).y,
+                    std::get<1>(savedRooms.back()).x) >=
+               std::tie(firstTile.floor, firstTile.y, firstTile.x)))
+        return fail("invalid or unsorted construction room identity");
+      savedRooms.emplace_back(id, firstTile);
+    }
+    input >> std::ws;
+    if (!input.eof())
+      return fail("unexpected trailing construction payload data");
+
+    std::unordered_set<EntityId> existingRoomIds;
+    for (const auto &room : rooms)
+      existingRoomIds.insert(room.id);
+    if (existingRoomIds != roomIds)
+      return fail("construction room identities do not match saved rooms");
+
+    std::size_t roomIndex = 0;
+    constructionWorld.rebuildRegions([&] {
+      if (roomIndex < savedRooms.size())
+        return std::get<0>(savedRooms[roomIndex++]);
+      return nextId++;
+    });
+    if (roomIndex != savedRooms.size() ||
+        constructionWorld.regions().size() != savedRooms.size())
+      return fail("construction topology does not match saved room metadata");
+    for (std::size_t index = 0; index < savedRooms.size(); ++index)
+      if (constructionWorld.regions()[index].tiles.empty() ||
+          constructionWorld.regions()[index].tiles.front() !=
+              std::get<1>(savedRooms[index]))
+        return fail("construction room first tile does not match saved metadata");
+
+    for (auto &room : rooms)
+      room.legacyContent = false;
+    if (!reconcileConstructionRooms(error))
+      return false;
+    return true;
   }
   void createTask(TaskKind kind, EntityId target, Position pos, double work) {
     for (auto &t : tasks)
@@ -1621,7 +2387,8 @@ Simulation::Simulation(std::uint64_t seed, int w, int h, int f)
   impl_->width = w;
   impl_->height = h;
   impl_->floors = f;
-  impl_->map.assign((size_t)w * h * f, TileKind::Empty);
+  impl_->constructionWorld = ConstructionWorld(w, h, f);
+  impl_->legacyTileProjection.assign((size_t)w * h * f, TileKind::Empty);
   impl_->economy.reputation = 70;
   impl_->economy.stars = 1;
 }
@@ -1629,10 +2396,18 @@ Simulation::~Simulation() = default;
 Simulation::Simulation(Simulation &&) noexcept = default;
 Simulation &Simulation::operator=(Simulation &&) noexcept = default;
 Simulation::Simulation(const Simulation &o)
-    : impl_(std::make_unique<Impl>(*o.impl_)) {}
+    : impl_(std::make_unique<Impl>(*o.impl_)) {
+  // Engineering wear tuning is derived from Simulation settings and is not
+  // part of the service runtime's independent serialization format.
+  impl_->services.engineering().setConditionLossPerDayHundredths(
+      static_cast<int>(std::llround(impl_->roomConditionLossPerDay * 100.0)));
+}
 Simulation &Simulation::operator=(const Simulation &o) {
-  if (this != &o)
+  if (this != &o) {
     impl_ = std::make_unique<Impl>(*o.impl_);
+    impl_->services.engineering().setConditionLossPerDayHundredths(
+        static_cast<int>(std::llround(impl_->roomConditionLossPerDay * 100.0)));
+  }
   return *this;
 }
 
@@ -1677,7 +2452,9 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
   if (!impl_->inside(p) || ei(k) < ei(TileKind::Empty) ||
       ei(k) > ei(TileKind::Lobby))
     return {false, "Tile or type is invalid"};
-  auto old = impl_->map[impl_->index(p)];
+  if (k == TileKind::Wall || k == TileKind::Door)
+    return {false, "Walls and doors are placed on edges"};
+  auto old = impl_->legacyTileProjection[impl_->index(p)];
   if (old == TileKind::Entrance && k != TileKind::Entrance)
     return {false, "The hotel entrance cannot be removed"};
   if (k == TileKind::Entrance && old != TileKind::Entrance &&
@@ -1700,28 +2477,215 @@ CommandResult Simulation::buildTile(Position p, TileKind k) {
                   [&](auto &person) { return same(person.position, p); }))
     return {false, "A person is standing on this tile"};
   for (auto &r : impl_->rooms)
-    if (p.floor == r.floor && p.x >= r.x && p.x < r.x + r.width && p.y >= r.y &&
-        p.y < r.y + r.height)
+    if (std::find(r.tiles.begin(), r.tiles.end(), p) != r.tiles.end())
       return {false, "Use room commands to alter a room"};
   if (old == k)
     return {true, "Tile unchanged"};
   if (impl_->economy.cashCents < 500)
     return {false, "Insufficient cash for construction"};
-  impl_->map[impl_->index(p)] = k;
-  impl_->economy.cashCents -= 500;
-  impl_->economy.constructionCostCents += 500;
-  impl_->refreshReachability();
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto changed = candidate.impl_->constructionWorld.setTile(p, k);
+  if (!changed.ok)
+    return {false, changed.message};
+  candidate.impl_->legacyTileProjection[candidate.impl_->index(p)] = k;
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  candidate.impl_->economy.cashCents -= 500;
+  candidate.impl_->economy.constructionCostCents += 500;
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
   return {true, "Tile built"};
 }
+
+CommandResult Simulation::setConstructionWall(GridEdge edge, bool enabled) {
+  const bool existed = std::binary_search(impl_->constructionWorld.walls().begin(),
+                                          impl_->constructionWorld.walls().end(),
+                                          edge);
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto changed = candidate.impl_->constructionWorld.setWall(edge, enabled);
+  if (!changed.ok)
+    return {false, changed.message};
+  if (existed == enabled)
+    return {true, "Wall unchanged"};
+  constexpr std::int64_t cost = 500;
+  if (enabled && candidate.impl_->economy.cashCents < cost)
+    return {false, "Insufficient cash for construction"};
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  if (enabled) {
+    candidate.impl_->economy.cashCents -= cost;
+    candidate.impl_->economy.constructionCostCents += cost;
+  }
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
+  return {true, enabled ? "Wall built" : "Wall removed"};
+}
+
+CommandResult Simulation::setConstructionDoor(GridEdge edge, bool enabled) {
+  const bool existed = std::binary_search(impl_->constructionWorld.doors().begin(),
+                                          impl_->constructionWorld.doors().end(),
+                                          edge);
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto changed = candidate.impl_->constructionWorld.setDoor(edge, enabled);
+  if (!changed.ok)
+    return {false, changed.message};
+  if (existed == enabled)
+    return {true, "Door unchanged"};
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
+  return {true, enabled ? "Door installed" : "Door closed"};
+}
+
+CommandResult Simulation::removeConstructionEdge(GridEdge edge) {
+  const bool existed = std::binary_search(impl_->constructionWorld.walls().begin(),
+                                          impl_->constructionWorld.walls().end(),
+                                          edge) ||
+                       std::binary_search(impl_->constructionWorld.doors().begin(),
+                                          impl_->constructionWorld.doors().end(),
+                                          edge);
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto changed = candidate.impl_->constructionWorld.removeEdge(edge);
+  if (!changed.ok)
+    return {false, changed.message};
+  if (!existed)
+    return {true, "Construction edge unchanged"};
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
+  return {true, "Construction edge removed"};
+}
+
+CommandResult Simulation::placeConstructionObject(ConstructionObjectKind kind,
+                                                     Position anchor,
+                                                     int quarterTurns) {
+  const auto &definition = objectDefinition(kind);
+  if (definition.width <= 0 || definition.height <= 0)
+    return {false, "Construction object kind is invalid"};
+  if (!impl_->inside(anchor))
+    return {false, "Object footprint is outside the property"};
+  ConstructionObject object{impl_->nextId, kind, anchor, quarterTurns};
+  const auto footprint = footprintTiles(object);
+  const Room *owner = nullptr;
+  for (const auto &room : impl_->rooms)
+    if (!footprint.empty() &&
+        std::all_of(footprint.begin(), footprint.end(), [&](Position tile) {
+          return std::find(room.tiles.begin(), room.tiles.end(), tile) !=
+                 room.tiles.end();
+        })) {
+      owner = &room;
+      break;
+    }
+  if (!owner)
+    return {false, "Objects must be placed inside a room"};
+  if (owner->status == RoomStatus::Reserved ||
+      owner->status == RoomStatus::Occupied ||
+      owner->status == RoomStatus::Cleaning || owner->reservationId != 0)
+    return {false, "Room geometry cannot invalidate an occupied or reserved room"};
+
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  object.id = candidate.impl_->nextId++;
+  const auto placed = candidate.impl_->constructionWorld.placeObject(object);
+  if (!placed.ok)
+    return {false, placed.message};
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  const auto *room = candidate.impl_->getRoom(owner->id);
+  const bool required = definition.bedCapacity > 0 || definition.providesToilet ||
+                        definition.providesSink || definition.providesBathing ||
+                        definition.providesLight;
+  if (required && (!room || !room->requiredObjectsReachable))
+    return {false, "Required object is unreachable"};
+  if (candidate.impl_->economy.cashCents < definition.purchaseCostCents)
+    return {false, "Insufficient cash for construction object"};
+  candidate.impl_->economy.cashCents -= definition.purchaseCostCents;
+  candidate.impl_->economy.constructionCostCents += definition.purchaseCostCents;
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
+  return {true, "Construction object placed", object.id};
+}
+
+CommandResult Simulation::removeConstructionObject(EntityId objectId) {
+  const auto found = std::find_if(
+      impl_->constructionWorld.objects().begin(),
+      impl_->constructionWorld.objects().end(),
+      [&](const auto &object) { return object.id == objectId; });
+  if (found == impl_->constructionWorld.objects().end())
+    return {false, "Construction object does not exist"};
+  const auto footprint = footprintTiles(*found);
+  const Room *owner = nullptr;
+  for (const auto &room : impl_->rooms)
+    if (!footprint.empty() &&
+        std::all_of(footprint.begin(), footprint.end(), [&](Position tile) {
+          return std::find(room.tiles.begin(), room.tiles.end(), tile) !=
+                 room.tiles.end();
+        })) {
+      owner = &room;
+      break;
+    }
+  if (owner && (owner->status == RoomStatus::Reserved ||
+                owner->status == RoomStatus::Occupied ||
+                owner->status == RoomStatus::Cleaning ||
+                owner->reservationId != 0))
+    return {false, "Room geometry cannot invalidate an occupied or reserved room"};
+
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto removed = candidate.impl_->constructionWorld.removeObject(objectId);
+  if (!removed.ok)
+    return {false, removed.message};
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
+  return {true, "Construction object removed", objectId};
+}
+
 CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
   if (b.width < 3 || b.height < 3 || b.beds < 1 || b.baths < 1 ||
       !std::isfinite(b.nightlyRate) || b.nightlyRate <= 0 ||
       b.nightlyRate > 5000)
     return {false,
             "Room requires a 3x3 footprint, bed, bath, and positive rate"};
-  if (!impl_->inside({b.floor, b.x, b.y}) ||
-      !impl_->inside({b.floor, b.x + b.width - 1, b.y + b.height - 1}))
+  if (b.floor < 0 || b.floor >= impl_->floors || b.x < 0 || b.y < 0 ||
+      b.width > impl_->width || b.height > impl_->height ||
+      b.x > impl_->width - b.width || b.y > impl_->height - b.height)
     return {false, "Room footprint outside property"};
+  const auto interiorTiles =
+      static_cast<std::int64_t>(b.width - 2) * (b.height - 2);
+  if (2LL * b.beds + 3LL * b.baths + 1 > interiorTiles)
+    return {false, "Room blueprint cannot fit its contents"};
   if (b.door.floor != b.floor || b.door.x < b.x || b.door.x >= b.x + b.width ||
       b.door.y < b.y || b.door.y >= b.y + b.height ||
       (b.door.x != b.x && b.door.x != b.x + b.width - 1 && b.door.y != b.y &&
@@ -1733,51 +2697,127 @@ CommandResult Simulation::buildFurnishedRoom(const RoomBlueprint &b) {
       return {false, "Room overlaps another room"};
   for (int y = b.y; y < b.y + b.height; ++y)
     for (int x = b.x; x < b.x + b.width; ++x)
-      if (impl_->map[impl_->index({b.floor, x, y})] != TileKind::Empty)
+      if (impl_->constructionWorld.tileAt({b.floor, x, y}) != TileKind::Empty ||
+          impl_->constructionWorld.occupiedByObject({b.floor, x, y}))
         return {false, "Room footprint contains existing construction"};
   const auto cost = static_cast<std::int64_t>(b.width) * b.height * 15000;
   if (impl_->economy.cashCents < cost)
     return {false, "Insufficient cash for furnished room construction"};
+  Simulation candidate(*this);
+  auto &world = candidate.impl_->constructionWorld;
+  for (int y = b.y; y < b.y + b.height; ++y)
+    for (int x = b.x; x < b.x + b.width; ++x)
+      world.setTile({b.floor, x, y}, TileKind::Floor);
+  const auto doorSide = [&] {
+    if (b.door.y == b.y)
+      return GridSide::North;
+    if (b.door.x == b.x + b.width - 1)
+      return GridSide::East;
+    if (b.door.y == b.y + b.height - 1)
+      return GridSide::South;
+    return GridSide::West;
+  }();
+  const GridEdge doorEdge = edgeForSide(b.door, doorSide);
+  // Add every perimeter edge; corners contribute two distinct edges.
+  for (int x = b.x; x < b.x + b.width; ++x) {
+    world.setWall(edgeForSide({b.floor, x, b.y}, GridSide::North), true);
+    world.setWall(edgeForSide({b.floor, x, b.y + b.height - 1}, GridSide::South), true);
+  }
+  for (int y = b.y; y < b.y + b.height; ++y) {
+    world.setWall(edgeForSide({b.floor, b.x, y}, GridSide::West), true);
+    world.setWall(edgeForSide({b.floor, b.x + b.width - 1, y}, GridSide::East), true);
+  }
+  world.setDoor(doorEdge, true);
+
+  auto allocateObject = [&](ConstructionObjectKind kind, Position anchor) {
+    ConstructionObject object{candidate.impl_->nextId++, kind, anchor, 0};
+    return world.placeObject(object).ok;
+  };
+  auto interactionAvailable = [&](ConstructionObjectKind kind, Position anchor) {
+    const ConstructionObject probe{0, kind, anchor, 0};
+    const auto footprint = footprintTiles(probe);
+    for (const Position node : interactionNodes(probe)) {
+      if (!candidate.impl_->inside(node) ||
+          node.x < b.x || node.x >= b.x + b.width || node.y < b.y ||
+          node.y >= b.y + b.height || world.occupiedByObject(node) ||
+          !passableKind(world.tileAt(node)))
+        return false;
+      bool accessible = false;
+      for (const Position tile : footprint)
+        if (manhattan(tile, node) == 1 &&
+            !candidate.impl_->wallBetween(tile, node))
+          accessible = true;
+      if (!accessible)
+        return false;
+    }
+    return true;
+  };
+  auto placeOneTile = [&](ConstructionObjectKind kind) {
+    for (int y = b.y + 1; y < b.y + b.height - 1; ++y)
+      for (int x = b.x + 1; x < b.x + b.width - 1; ++x)
+        if (interactionAvailable(kind, {b.floor, x, y}) &&
+            allocateObject(kind, {b.floor, x, y}))
+          return true;
+    return false;
+  };
+  for (int bed = 0; bed < b.beds; ++bed) {
+    bool placed = false;
+    for (int y = b.y + 1; y < b.y + b.height - 2 && !placed; ++y)
+      for (int x = b.x + 1; x < b.x + b.width - 1 && !placed; ++x)
+        placed = interactionAvailable(ConstructionObjectKind::SingleBed,
+                                      {b.floor, x, y}) &&
+                 allocateObject(ConstructionObjectKind::SingleBed,
+                                {b.floor, x, y});
+    if (!placed)
+      return {false, "Room blueprint cannot fit its contents"};
+  }
+  for (int bath = 0; bath < b.baths; ++bath)
+    if (!placeOneTile(ConstructionObjectKind::Toilet) ||
+        !placeOneTile(ConstructionObjectKind::Sink) ||
+        !placeOneTile(ConstructionObjectKind::Shower))
+      return {false, "Room blueprint cannot fit its contents"};
+  if (!placeOneTile(ConstructionObjectKind::Light))
+    return {false, "Room blueprint cannot fit its contents"};
+
+  world.rebuildRegions([&] { return candidate.impl_->nextId++; });
+  std::string error;
+  if (!candidate.impl_->reconcileConstructionRooms(error))
+    return {false, error};
+  auto region = std::find_if(candidate.impl_->rooms.begin(),
+                             candidate.impl_->rooms.end(), [&](const auto &room) {
+                               return room.floor == b.floor &&
+                                      std::find(room.tiles.begin(), room.tiles.end(),
+                                                b.door) != room.tiles.end();
+                             });
+  if (region == candidate.impl_->rooms.end())
+    return {false, "Room blueprint cannot fit its contents"};
+  region->name = b.name;
+  region->nightlyRateCents =
+      static_cast<std::int64_t>(std::llround(b.nightlyRate * 100));
+  region->nightlyRate = region->nightlyRateCents / 100.0;
+  region->cleanliness = 100.0;
+  region->legacyContent = false;
+  candidate.impl_->refreshReachability();
   for (int y = b.y; y < b.y + b.height; ++y)
     for (int x = b.x; x < b.x + b.width; ++x) {
-      Position p{b.floor, x, y};
-      bool edge = x == b.x || x == b.x + b.width - 1 || y == b.y ||
-                  y == b.y + b.height - 1;
-      impl_->map[impl_->index(p)] = same(p, b.door) ? TileKind::Door
-                                    : edge          ? TileKind::Wall
-                                                    : TileKind::Floor;
+      const Position p{b.floor, x, y};
+      const bool perimeter = x == b.x || x == b.x + b.width - 1 ||
+                             y == b.y || y == b.y + b.height - 1;
+      candidate.impl_->legacyTileProjection[candidate.impl_->index(p)] =
+          same(p, b.door) ? TileKind::Door
+          : perimeter    ? TileKind::Wall
+                         : TileKind::Floor;
     }
-  impl_->map[impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
-  Room r;
-  r.id = impl_->nextId++;
-  r.name = b.name;
-  r.door = b.door;
-  r.floor = b.floor;
-  r.x = b.x;
-  r.y = b.y;
-  r.width = b.width;
-  r.height = b.height;
-  r.beds = b.beds;
-  r.baths = b.baths;
-  r.nightlyRateCents =
-      static_cast<std::int64_t>(std::llround(b.nightlyRate * 100));
-  r.nightlyRate = r.nightlyRateCents / 100.0;
-  r.cleanliness = 100;
-  r.condition = 100;
-  r.reachable = !impl_->path(impl_->entrance(), b.door).empty();
-  r.status = r.reachable ? RoomStatus::VacantReady : RoomStatus::Incomplete;
-  impl_->rooms.push_back(r);
-  impl_->services.registerRoom(
-      r.id, r.status == RoomStatus::VacantReady ? ServiceRoomStatus::Ready
-                                                 : ServiceRoomStatus::Blocked);
-  impl_->services.registerAsset(
-      r.id, std::clamp(static_cast<int>(std::llround(r.condition * 100.0)), 0, 10000));
-  impl_->economy.cashCents -= cost;
-  impl_->economy.constructionCostCents += cost;
-  return {true,
-          r.reachable ? "Furnished room opened"
-                      : "Room built but lacks an entrance route",
-          r.id};
+  candidate.impl_->legacyTileProjection[
+      candidate.impl_->index({b.floor, b.x + 1, b.y + 1})] = TileKind::Bathroom;
+  candidate.impl_->economy.cashCents -= cost;
+  candidate.impl_->economy.constructionCostCents += cost;
+  const EntityId roomId = region->id;
+  const bool reachable = region->reachable;
+  impl_ = std::move(candidate.impl_);
+  return {true, reachable ? "Furnished room opened"
+                          : "Room built but lacks an entrance route",
+          roomId};
 }
 CommandResult Simulation::hireStaff(const StaffHire &h) {
   if (!impl_->has(TileKind::Entrance))
@@ -2322,20 +3362,49 @@ CommandResult Simulation::closeRoom(EntityId id, bool closed) {
   return {true, closed ? "Room closed" : "Room reopened", id};
 }
 CommandResult Simulation::removeRoom(EntityId id) {
-  auto it = std::find_if(impl_->rooms.begin(), impl_->rooms.end(),
-                         [&](auto &r) { return r.id == id; });
+  const auto it = std::find_if(impl_->rooms.begin(), impl_->rooms.end(),
+                               [&](const auto &r) { return r.id == id; });
   if (it == impl_->rooms.end() || it->status == RoomStatus::Occupied ||
+      it->status == RoomStatus::Reserved || it->status == RoomStatus::Cleaning ||
       it->reservationId)
     return {false, "Room is occupied or reserved"};
   if (std::any_of(impl_->tasks.begin(), impl_->tasks.end(), [&](auto &task) {
         return task.targetId == id && task.status != TaskStatus::Completed;
       }))
     return {false, "Complete room service before demolition"};
-  for (int y = it->y; y < it->y + it->height; ++y)
-    for (int x = it->x; x < it->x + it->width; ++x)
-      impl_->map[impl_->index({it->floor, x, y})] = TileKind::Empty;
-  impl_->rooms.erase(it);
-  impl_->refreshReachability();
+  const Simulation before(*this);
+  Simulation candidate(*this);
+  const auto room = std::find_if(candidate.impl_->rooms.begin(),
+                                 candidate.impl_->rooms.end(),
+                                 [&](const auto &entry) { return entry.id == id; });
+  const auto objects = room->objectIds;
+  for (const EntityId objectId : objects)
+    candidate.impl_->constructionWorld.removeObject(objectId);
+  for (const GridEdge edge : room->boundaryEdges) {
+    const bool shared = std::any_of(
+        candidate.impl_->rooms.begin(), candidate.impl_->rooms.end(),
+        [&](const auto &other) {
+          return other.id != id &&
+                 std::find(other.boundaryEdges.begin(), other.boundaryEdges.end(),
+                           edge) != other.boundaryEdges.end();
+        });
+    if (!shared)
+      candidate.impl_->constructionWorld.removeEdge(edge);
+  }
+  const auto tiles = room->tiles;
+  for (const Position tile : tiles) {
+    candidate.impl_->constructionWorld.setTile(tile, TileKind::Empty);
+    candidate.impl_->legacyTileProjection[candidate.impl_->index(tile)] =
+        TileKind::Empty;
+  }
+  std::string error;
+  candidate.impl_->constructionWorld.rebuildRegions(
+      [&] { return candidate.impl_->nextId++; });
+  if (!candidate.impl_->reconcileConstructionRooms(error) ||
+      !candidate.impl_->protectedRoomsIntact(*before.impl_, error))
+    return {false, error};
+  candidate.impl_->refreshReachability();
+  impl_ = std::move(candidate.impl_);
   return {true, "Room removed", id};
 }
 CommandResult Simulation::orderSupplies(const SupplyOrder &o) {
@@ -2795,11 +3864,19 @@ SimulationView Simulation::view() const {
   v.width = impl_->width;
   v.height = impl_->height;
   v.floors = impl_->floors;
-  for (int i = 0; i < (int)impl_->map.size(); ++i)
-    if (impl_->map[i] != TileKind::Empty)
+  for (int i = 0; i < (int)impl_->legacyTileProjection.size(); ++i)
+    if (impl_->legacyTileProjection[i] != TileKind::Empty)
       v.tiles.push_back({{i / (impl_->width * impl_->height), i % impl_->width,
                           (i / impl_->width) % impl_->height},
-                         impl_->map[i]});
+                         impl_->legacyTileProjection[i]});
+  v.constructionWalls = impl_->constructionWorld.walls();
+  v.constructionDoors = impl_->constructionWorld.doors();
+  v.constructionObjects.reserve(impl_->constructionWorld.objects().size());
+  for (const auto &object : impl_->constructionWorld.objects())
+    v.constructionObjects.push_back(
+        {object.id, object.kind, object.anchor, object.quarterTurns,
+         object.legacyBaseline ? std::vector<Position>{}
+                              : footprintTiles(object)});
   for (auto &r : impl_->rooms)
     v.rooms.push_back(r);
   for (auto &p : impl_->people)
@@ -2894,7 +3971,7 @@ SimulationView Simulation::view() const {
 
 std::string Simulation::save() const {
   std::ostringstream o;
-  o << std::setprecision(17) << "HHGS 10 " << impl_->seed << ' ' << impl_->width
+  o << std::setprecision(17) << "HHGS 11 " << impl_->seed << ' ' << impl_->width
     << ' ' << impl_->height << ' ' << impl_->floors << ' ' << impl_->elapsed
     << ' ' << impl_->remainderMillis << ' ' << impl_->nextId << ' '
     << impl_->baseDemand << ' ' << impl_->utilityPerRoomDayCents << ' '
@@ -2902,8 +3979,8 @@ std::string Simulation::save() const {
     << impl_->checkInWork << ' ' << impl_->hungerRate << ' ' << impl_->restLoss
     << ' ' << impl_->roomConditionLossPerDay << '\n'
     << impl_->rng << '\n';
-  o << impl_->map.size();
-  for (auto x : impl_->map)
+  o << impl_->legacyTileProjection.size();
+  for (auto x : impl_->legacyTileProjection)
     o << ' ' << ei(x);
   o << '\n';
   auto inv = [&](const InventoryView &x) {
@@ -3052,6 +4129,62 @@ std::string Simulation::save() const {
   o << "GUEST10 1 " << guestBytes.size() << '\n';
   o.write(guestBytes.data(), static_cast<std::streamsize>(guestBytes.size()));
   o << '\n';
+  std::ostringstream constructionPayload;
+  const auto &world = impl_->constructionWorld;
+  constructionPayload << "dimensions " << impl_->width << ' '
+                      << impl_->height << ' ' << impl_->floors << '\n';
+  std::vector<std::tuple<std::size_t, Position, TileKind>> overrides;
+  overrides.reserve(world.walls().size() * 2 + world.doors().size() * 2);
+  for (int floor = 0; floor < impl_->floors; ++floor)
+    for (int y = 0; y < impl_->height; ++y)
+      for (int x = 0; x < impl_->width; ++x) {
+        const Position position{floor, x, y};
+        const auto index = static_cast<std::size_t>(impl_->index(position));
+        const auto kind = world.tileAt(position);
+        if (kind != impl_->legacyTileProjection[index])
+          overrides.emplace_back(index, position, kind);
+      }
+  constructionPayload << "overrides " << overrides.size() << '\n';
+  for (const auto &[index, position, kind] : overrides) {
+    (void)index;
+    constructionPayload << position.floor << ' ' << position.x << ' '
+                        << position.y << ' ' << ei(kind) << '\n';
+  }
+  constructionPayload << "walls " << world.walls().size() << '\n';
+  for (const auto &edge : world.walls())
+    constructionPayload << edge.floor << ' ' << edge.x << ' ' << edge.y << ' '
+                        << ei(edge.axis) << '\n';
+  constructionPayload << "doors " << world.doors().size() << '\n';
+  for (const auto &edge : world.doors())
+    constructionPayload << edge.floor << ' ' << edge.x << ' ' << edge.y << ' '
+                        << ei(edge.axis) << '\n';
+  constructionPayload << "objects " << world.objects().size() << '\n';
+  for (const auto &object : world.objects())
+    constructionPayload << object.id << ' ' << ei(object.kind) << ' '
+                        << object.anchor.floor << ' ' << object.anchor.x << ' '
+                        << object.anchor.y << ' ' << object.quarterTurns << ' '
+                        << object.legacyBaseline << '\n';
+  std::vector<std::pair<Position, EntityId>> roomMetadata;
+  roomMetadata.reserve(world.regions().size());
+  for (const auto &region : world.regions())
+    if (!region.tiles.empty())
+      roomMetadata.emplace_back(region.tiles.front(), region.id);
+  std::sort(roomMetadata.begin(), roomMetadata.end(), [](const auto &lhs,
+                                                         const auto &rhs) {
+    return std::tie(lhs.first.floor, lhs.first.y, lhs.first.x) <
+           std::tie(rhs.first.floor, rhs.first.y, rhs.first.x);
+  });
+  constructionPayload << "rooms " << roomMetadata.size() << '\n';
+  for (const auto &[firstTile, roomId] : roomMetadata)
+    constructionPayload << roomId << ' ' << firstTile.floor << ' '
+                        << firstTile.x << ' ' << firstTile.y << '\n';
+  const auto constructionBytes = constructionPayload.str();
+  if (constructionBytes.size() > 32 * 1024 * 1024)
+    throw std::length_error("construction save payload too large");
+  o << "CONSTRUCTION11 1 " << constructionBytes.size() << '\n';
+  o.write(constructionBytes.data(),
+          static_cast<std::streamsize>(constructionBytes.size()));
+  o << '\n';
   return o.str();
 }
 Simulation Simulation::load(std::string_view data) {
@@ -3065,7 +4198,7 @@ Simulation Simulation::load(std::string_view data) {
   std::unordered_map<GuestId, SavedGuestExperience> savedGuestExperience;
   std::unordered_map<GuestId, GuestMember> savedGuestStates;
   i >> magic >> version;
-  if (magic != "HHGS" || version < 2 || version > 10)
+  if (magic != "HHGS" || version < 2 || version > 11)
     throw std::invalid_argument("unsupported simulation save");
   std::uint64_t seed;
   i >> seed >> w >> h >> f;
@@ -3094,8 +4227,8 @@ Simulation Simulation::load(std::string_view data) {
   i >> n;
   if (n != (size_t)w * h * f)
     throw std::invalid_argument("invalid saved tile count");
-  d.map.resize(n);
-  for (auto &x : d.map) {
+  d.legacyTileProjection.resize(n);
+  for (auto &x : d.legacyTileProjection) {
     int q;
     i >> q;
     if (q < ei(TileKind::Empty) || q > ei(TileKind::Lobby))
@@ -3141,8 +4274,12 @@ Simulation Simulation::load(std::string_view data) {
           static_cast<std::int64_t>(std::llround(legacyNightlyRate * 100.0));
     }
     r.nightlyRate = r.nightlyRateCents / 100.0;
+    r.legacyContent = true;
     if (st < ei(RoomStatus::Incomplete) || st > ei(RoomStatus::OutOfOrder) ||
-        r.width < 3 || r.height < 3 || !d.inside(r.door) ||
+        r.width < 3 || r.height < 3 || r.beds < 0 || r.baths < 0 ||
+        static_cast<std::size_t>(r.beds) > d.tileCount() ||
+        static_cast<std::size_t>(r.baths) > d.tileCount() ||
+        !d.inside(r.door) ||
         !d.inside({r.floor, r.x, r.y}) ||
         !d.inside({r.floor, r.x + r.width - 1, r.y + r.height - 1}) ||
         !std::isfinite(r.cleanliness) || !std::isfinite(r.condition) ||
@@ -3405,23 +4542,48 @@ Simulation Simulation::load(std::string_view data) {
   }
   int guestVersion{};
   bool hasGuestExtension = false;
-  if (version == 10) {
+  std::string guestPayloadBytes;
+  if (version >= 10) {
     std::string guestTag;
     std::size_t guestBytes{};
     i >> guestTag >> guestVersion >> guestBytes;
     if (!i || guestTag != "GUEST10" || guestVersion != 1 ||
         guestBytes > 48 * 1024 * 1024 || i.get() != '\n')
       throw std::invalid_argument("invalid GUEST-10 save section");
-    std::string payload(guestBytes, '\0');
-    i.read(payload.data(), static_cast<std::streamsize>(guestBytes));
+    guestPayloadBytes.resize(guestBytes);
+    i.read(guestPayloadBytes.data(), static_cast<std::streamsize>(guestBytes));
     if (!i || static_cast<std::size_t>(i.gcount()) != guestBytes ||
         i.get() != '\n')
       throw std::invalid_argument("truncated GUEST-10 save section");
-    i >> std::ws;
-    if (!i.eof())
-      throw std::invalid_argument("unexpected trailing guest save data");
+    if (version == 11) {
+      std::string constructionTag;
+      int constructionVersion{};
+      std::size_t constructionBytes{};
+      i >> constructionTag >> constructionVersion >> constructionBytes;
+      if (!i || constructionTag != "CONSTRUCTION11" ||
+          constructionVersion != 1 || constructionBytes > 32 * 1024 * 1024 ||
+          i.get() != '\n')
+        throw std::invalid_argument("invalid CONSTRUCTION-11 save section");
+      std::string constructionPayload(constructionBytes, '\0');
+      i.read(constructionPayload.data(),
+             static_cast<std::streamsize>(constructionBytes));
+      if (!i || static_cast<std::size_t>(i.gcount()) != constructionBytes ||
+          i.get() != '\n')
+        throw std::invalid_argument("truncated CONSTRUCTION-11 save section");
+      i >> std::ws;
+      if (!i.eof())
+        throw std::invalid_argument("unexpected trailing construction save data");
+      std::string constructionError;
+      if (!d.hydrateV11ConstructionWorld(constructionPayload,
+                                         constructionError))
+        throw std::invalid_argument(constructionError);
+    } else {
+      i >> std::ws;
+      if (!i.eof())
+        throw std::invalid_argument("unexpected trailing guest save data");
+    }
     i.clear();
-    i.str(std::move(payload));
+    i.str(std::move(guestPayloadBytes));
     i.seekg(0);
     fullGuestFormat = true;
     hasGuestExtension = true;
@@ -3592,6 +4754,12 @@ Simulation Simulation::load(std::string_view data) {
   if (!i.eof())
     throw std::invalid_argument("unexpected trailing save data");
 
+  if (version < 11) {
+    std::string constructionError;
+    if (!d.hydrateLegacyConstructionWorld(constructionError))
+      throw std::invalid_argument(constructionError);
+  }
+
   std::unordered_set<EntityId> entityIds;
   auto addEntityId = [&](EntityId id) {
     if (id == 0 || id >= d.nextId || !entityIds.insert(id).second)
@@ -3605,7 +4773,7 @@ Simulation Simulation::load(std::string_view data) {
     addEntityId(room.id);
     roomById.emplace(room.id, &room);
     if (room.floor != room.door.floor ||
-        d.map[d.index(room.door)] != TileKind::Door || room.cleanliness < 0 ||
+        d.legacyTileProjection[d.index(room.door)] != TileKind::Door || room.cleanliness < 0 ||
         room.cleanliness > 100 || room.condition < 0 || room.condition > 100 ||
         (room.closed && room.status != RoomStatus::OutOfOrder))
       throw std::invalid_argument("invalid saved room state");
@@ -3624,6 +4792,8 @@ Simulation Simulation::load(std::string_view data) {
   }
   for (const auto &order : d.orders)
     addEntityId(order.id);
+  for (const auto &object : d.constructionWorld.objects())
+    addEntityId(object.id);
   if (fullGuestFormat) {
     std::unordered_map<EntityId, EntityId> groupReservations;
     const auto validateGuestGroups = [&](const std::vector<Reservation> &items) {

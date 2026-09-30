@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hh/game/ConstructionTypes.h"
 #include "hh/game/ServiceLogistics.h"
 #include "hh/game/Departments.h"
 #include "hh/game/GuestModel.h"
@@ -16,24 +17,6 @@
 
 namespace hh::game {
 
-struct Position {
-  int floor{};
-  int x{};
-  int y{};
-};
-enum class TileKind {
-  Empty,
-  Floor,
-  Wall,
-  Door,
-  Entrance,
-  FrontDesk,
-  SupplyCloset,
-  Stairs,
-  Bathroom,
-  StaffRoom,
-  Lobby
-};
 enum class RoomStatus {
   Incomplete,
   VacantReady,
@@ -78,6 +61,11 @@ struct RoomView {
   int y{};
   int width{};
   int height{};
+  int area{};
+  int capacity{};
+  std::vector<Position> tiles;
+  std::optional<GridEdge> primaryDoorEdge;
+  std::vector<std::string> diagnostics;
   int beds{};
   int baths{};
   double cleanliness{};
@@ -87,6 +75,13 @@ struct RoomView {
   EntityId reservationId{};
   bool reachable{};
   bool closed{};
+};
+struct ConstructionObjectView {
+  EntityId id{};
+  ConstructionObjectKind kind{};
+  Position position;
+  int quarterTurns{};
+  std::vector<Position> footprint;
 };
 struct PersonView {
   EntityId id{};
@@ -203,6 +198,9 @@ struct SimulationView {
   int height{};
   int floors{};
   std::vector<TileView> tiles;
+  std::vector<GridEdge> constructionWalls;
+  std::vector<GridEdge> constructionDoors;
+  std::vector<ConstructionObjectView> constructionObjects;
   std::vector<RoomView> rooms;
   std::vector<PersonView> people;
   std::vector<ReservationView> reservations;
@@ -260,6 +258,13 @@ public:
 
   static Simulation tutorial(std::uint64_t seed = 1);
   CommandResult buildTile(Position, TileKind);
+  CommandResult setConstructionWall(GridEdge edge, bool enabled);
+  CommandResult setConstructionDoor(GridEdge edge, bool enabled);
+  CommandResult removeConstructionEdge(GridEdge edge);
+  CommandResult placeConstructionObject(ConstructionObjectKind kind,
+                                        Position anchor,
+                                        int quarterTurns = 0);
+  CommandResult removeConstructionObject(EntityId objectId);
   CommandResult buildFurnishedRoom(const RoomBlueprint &);
   CommandResult hireStaff(const StaffHire &);
   [[nodiscard]] std::vector<Applicant> applicants() const;
