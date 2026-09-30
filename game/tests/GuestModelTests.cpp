@@ -112,6 +112,21 @@ static void profile_definitions_reject_invalid_ranges() {
       std::numeric_limits<double>::quiet_NaN();
   require(!validateGuestModelDefinitions(definitions, &error),
           "non-finite profile sensitivity was accepted");
+
+  definitions = defaultGuestModelDefinitions();
+  definitions.archetypes[1].archetype = definitions.archetypes[0].archetype;
+  require(!validateGuestModelDefinitions(definitions, &error),
+          "duplicated archetype definition was accepted");
+
+  definitions = defaultGuestModelDefinitions();
+  definitions.categoryWeights.fill(0.0);
+  require(!validateGuestModelDefinitions(definitions, &error),
+          "empty category weight distribution was accepted");
+
+  definitions = defaultGuestModelDefinitions();
+  definitions.traits[0].effects.queueToleranceMultiplier = 4.5;
+  require(!validateGuestModelDefinitions(definitions, &error),
+          "out-of-range guest trait modifier was accepted");
 }
 
 int main() {

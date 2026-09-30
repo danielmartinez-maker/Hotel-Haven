@@ -543,14 +543,14 @@ bool validateGuestModelDefinitions(const GuestModelDefinitions &definitions,
     if (!seen)
       return fail("guest trait definitions are incomplete");
 
-  bool hasPositiveCategoryWeight = false;
+  double categoryWeightTotal = 0.0;
   for (const auto weight : definitions.categoryWeights) {
     if (!std::isfinite(weight) || weight < 0.0)
       return fail("guest category weight must be finite and nonnegative");
-    hasPositiveCategoryWeight |= weight > 0.0;
+    categoryWeightTotal += weight;
   }
-  if (!hasPositiveCategoryWeight)
-    return fail("guest category weights must include a positive weight");
+  if (!std::isfinite(categoryWeightTotal) || categoryWeightTotal <= 0.0)
+    return fail("guest category weights must have a positive finite sum");
   return true;
 }
 
