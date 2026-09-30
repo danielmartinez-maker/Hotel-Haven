@@ -309,7 +309,7 @@ Update `WorldView::worldScene` and its tests. Keep selection, status/cleanliness
 
 Update the `Tool` enum, preview, click dispatch, Build controls, and Rooms inspector. Wall side selection must be visible and identical in preview and commit.
 
-- [ ] **Step 5: Run world-view tests and build the Windows client**
+- [x] **Step 5: Run world-view tests and build the Windows client**
 
 Run: `cmake --build build --config Release --target hh_world_view_tests hotel_haven`
 
@@ -317,7 +317,7 @@ Run: `ctest --test-dir build -C Release -R '^hh_world_view_tests$' --output-on-f
 
 Expected: all three rendering cases pass and `hotel_haven` builds with the new Build and Rooms controls.
 
-Local result: all world-view tests passed, and both modified client source files compiled. The final `hotel_haven` link is blocked in this environment because its Zig toolchain cannot locate the `d3dcompiler` import library; Windows client build verification remains for Integrated Game CI.
+Local result: all world-view tests passed, and both modified client source files compiled. The local final link is blocked because this Zig toolchain cannot locate the `d3dcompiler` import library. Integrated Game run #1236 passed the complete client build, all CTest tests, and Windows client smoke on GitHub Actions.
 
 - [x] **Step 6: Commit**
 
@@ -337,7 +337,7 @@ git commit -m "feat: expose object construction in the hotel editor"
 - Documentation records the new geometry/topology slice as integrated and explicitly lists construction jobs, full utility/safety, quality/environment, and renovation as remaining HMG-020 work.
 - The integrated game remains the verification authority for simulation, persistence, renderer, and native client behavior.
 
-- [ ] **Step 1: Run the complete game build and CTest suite**
+- [x] **Step 1: Run the complete game build and CTest suite**
 
 Run: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`
 
@@ -347,13 +347,13 @@ Run: `ctest --test-dir build -C Release --output-on-failure`
 
 Expected: every configured test passes on Ubuntu and Windows CI.
 
-Local closeout result: 22 of 23 configured tests passed. `hh_renderer_tests` did not run because this Windows Zig toolchain cannot link `d3dcompiler`; the `hotel_haven` target compiled its sources but its final link failed for the same missing import library. The HMG-020 focused tests passed. This step remains open until the Integrated Game CI result is checked.
+Verified in Integrated Game run #1236: full Release builds and all configured CTest tests passed on Ubuntu and Windows. The local Windows Zig toolchain ran 22 of 23 tests; `hh_renderer_tests` and the final client link require the unavailable `d3dcompiler` import library.
 
-- [ ] **Step 2: Verify Windows smoke artifacts and package integrity in Integrated Game CI**
+- [x] **Step 2: Verify Windows smoke artifacts and package integrity in Integrated Game CI**
 
 Expected: Windows client smoke test exits 0; hotel, Build, and Rooms screenshots are present; the release package integrity verifier succeeds.
 
-The HMG-020 branch CI has not run yet.
+Run #1236's Windows client smoke test exited 0. The `Hotel-Haven-Visual-QA` artifact contains `smoke-guide.bmp`, `smoke-hotel.bmp`, `smoke-build.bmp`, `smoke-rooms.bmp`, and `smoke-guests.bmp`. The `Hotel-Haven-Windows` ZIP passed the package integrity verifier.
 
 - [x] **Step 3: Update the implementation ledger with only verified claims**
 
@@ -366,6 +366,6 @@ git add docs/IMPLEMENTATION_STATUS.md README.md docs/superpowers/plans/2026-09-3
 git commit -m "docs: record construction topology milestone"
 ```
 
-- [ ] **Step 5: Prepare the GitHub draft PR after local verification**
+- [x] **Step 5: Prepare the GitHub draft PR after local verification**
 
-If HMG-010 PR #77 is still open, base the HMG-020 draft PR on its feature branch; if HMG-010 has merged, target the repository default branch. Attach the created PR to this Codex task. Do not merge it.
+HMG-010 PR #77 remains open, so HMG-020 draft [PR #78](https://github.com/danielmartinez-maker/Hotel-Haven/pull/78) targets `feature/guest-lifecycle-psychology-design`. It is attached to this Codex task and remains unmerged.
