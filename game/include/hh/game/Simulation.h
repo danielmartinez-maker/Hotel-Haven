@@ -2,6 +2,7 @@
 
 #include "hh/game/ServiceLogistics.h"
 #include "hh/game/Departments.h"
+#include "hh/game/GuestModel.h"
 #include "hh/game/StaffOptimization.h"
 #include "hh/game/Workforce.h"
 #include "hh/game/ServiceTypes.h"
@@ -126,6 +127,17 @@ struct ReservationView {
   bool checkoutStarted{};
   bool completed{};
 };
+struct GuestView {
+  GuestProfile profile;
+  EntityId reservationId{};
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestId> memberIds;
+  GuestLifecycleState lifecycle{GuestLifecycleState::Prospective};
+  GuestGoal currentGoal{GuestGoal::Count};
+  EntityId currentTargetId{};
+  double currentGoalUtility{};
+};
 struct TaskView {
   EntityId id{};
   TaskKind kind{TaskKind::Turnover};
@@ -180,6 +192,7 @@ struct SimulationView {
   std::vector<RoomView> rooms;
   std::vector<PersonView> people;
   std::vector<ReservationView> reservations;
+  std::vector<GuestView> guests;
   std::vector<TaskView> tasks;
   std::vector<ReviewView> reviews;
   InventoryView inventory;

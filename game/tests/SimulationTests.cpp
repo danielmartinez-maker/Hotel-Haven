@@ -3,6 +3,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <string>
 
@@ -20,6 +21,9 @@ static const RoomView &room(const SimulationView &v, EntityId id) {
 
 static Simulation guest_integration_hotel(std::uint64_t seed) {
   auto s = Simulation::tutorial(seed);
+  for (const auto &starterRoom : s.view().rooms)
+    require(s.closeRoom(starterRoom.id, true).ok,
+            "starter room could not be closed for guest fixture");
   require(s.loadDefinitions(
               R"({"baseDemand":100,"checkInWorkSeconds":1,"turnoverWorkSeconds":1,"repairWorkSeconds":1,"roomConditionLossPerDay":0,"initialLinen":400,"initialTowels":500,"initialAmenities":200,"initialChemicals":200})")
               .ok,
@@ -142,22 +146,31 @@ static void guest_goal_candidates_require_real_available_services() {
 }
 
 static void guest_profiles_do_not_advance_shared_simulation_rng() {
-  auto first = guest_integration_hotel(731);
-  auto second = guest_integration_hotel(731);
-  const auto a = first.view(), b = second.view();
-  require(a.reservations.size() == b.reservations.size(),
-          "profile generation changed the deterministic booking count");
-  for (std::size_t i = 0; i < a.reservations.size(); ++i) {
-    require(a.reservations[i].id == b.reservations[i].id &&
-                a.reservations[i].roomId == b.reservations[i].roomId &&
-                a.reservations[i].departureDay == b.reservations[i].departureDay,
-            "profile generation advanced the shared simulation RNG");
+  constexpr std::uint64_t seed = 731;
+  auto s = guest_integration_hotel(seed);
+  const auto v = s.view();
+  std::vector<EntityId> expectedRoomOrder;
+  for (const auto &room : v.rooms)
+    if (!room.closed)
+      expectedRoomOrder.push_back(room.id);
+  std::mt19937_64 reference(seed);
+  for (std::size_t remaining = expectedRoomOrder.size(); remaining > 1;
+       --remaining) {
+    const auto index = static_cast<std::size_t>(
+        reference() % static_cast<std::mt19937_64::result_type>(remaining));
+    std::swap(expectedRoomOrder[remaining - 1], expectedRoomOrder[index]);
   }
-  require(a.guests.size() == b.guests.size(),
-          "guest-local random streams changed guest count");
-  for (std::size_t i = 0; i < a.guests.size(); ++i)
-    require(a.guests[i].profile == b.guests[i].profile,
-            "guest-local profile generation is not reproducible");
+  std::vector<int> expectedDepartureDays;
+  for (std::size_t i = 0; i < expectedRoomOrder.size(); ++i) {
+    (void)(reference() >> 11); // hourly booking probability draw
+    expectedDepartureDays.push_back(1 + static_cast<int>(reference() % 3));
+  }
+  require(v.reservations.size() == expectedRoomOrder.size(),
+          "fixture did not book every available room");
+  for (std::size_t i = 0; i < v.reservations.size(); ++i)
+    require(v.reservations[i].roomId == expectedRoomOrder[i] &&
+                v.reservations[i].departureDay == expectedDepartureDays[i],
+            "profile generation advanced the shared simulation RNG");
 }
 
 static void construction_and_routes() {

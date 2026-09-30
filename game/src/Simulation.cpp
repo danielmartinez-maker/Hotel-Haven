@@ -74,15 +74,32 @@ struct Room : RoomView {};
 struct Person : PersonView {
   EntityId reservation{};
   EntityId task{};
+  GuestGoal guestGoal{GuestGoal::Count};
+  EntityId guestTarget{};
+  double guestGoalUtility{};
   std::int64_t accruedWageUnits{};
   int shiftWorkedSeconds{};
   std::int64_t shiftInstanceKey{std::numeric_limits<std::int64_t>::min()};
   bool breakTaskCreated{};
 };
+struct GuestMember {
+  GuestProfile profile;
+  GuestLifecycleState lifecycle{GuestLifecycleState::Prospective};
+  GuestNeedState needs;
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestId> memberIds;
+  GuestGoal currentGoal{GuestGoal::Count};
+  EntityId currentTargetId{};
+  double currentGoalUtility{};
+};
 struct Reservation : ReservationView {
   double satisfaction{70};
   double checkoutCleanliness{100};
   bool arrived{};
+  EntityId groupId{};
+  GuestId leaderGuestId{};
+  std::vector<GuestMember> guests;
 };
 struct Task : TaskView {
   double total{};
@@ -97,6 +114,7 @@ struct Simulation::Impl {
 
   std::uint64_t seed{1};
   std::mt19937_64 rng{1};
+  GuestModelDefinitions guestDefinitions{defaultGuestModelDefinitions()};
   int width{32}, height{20}, floors{1};
   std::int64_t elapsed{}, remainderMillis{};
   EntityId nextId{1};
@@ -225,7 +243,32 @@ struct Simulation::Impl {
     for (auto &x : reservations)
       if (x.id == id)
         return &x;
+    for (auto &x : completedReservationHistory)
+      if (x.id == id)
+        return &x;
     return nullptr;
+  }
+  GuestMember *getGuestMember(Reservation &reservation, GuestId id) {
+    for (auto &guest : reservation.guests)
+      if (guest.profile.id == id)
+        return &guest;
+    return nullptr;
+  }
+  bool transitionGuest(GuestMember &guest, GuestLifecycleState next) {
+    if (guest.lifecycle == next)
+      return true;
+    if (!canTransitionGuest(guest.lifecycle, next))
+      return false;
+    guest.lifecycle = next;
+    return true;
+  }
+  void setGuestGoal(Reservation &reservation, GuestId id, GuestGoal goal,
+                    EntityId target = 0, double utility = 0.0) {
+    if (auto *guest = getGuestMember(reservation, id)) {
+      guest->currentGoal = goal;
+      guest->currentTargetId = target;
+      guest->currentGoalUtility = utility;
+    }
   }
   Position locate(TileKind kind) const {
     for (int i = 0; i < (int)map.size(); ++i)
@@ -306,6 +349,50 @@ struct Simulation::Impl {
       z.departureDay = z.arrivalDay + 1 + (int)(rng() % 3);
       z.nightlyRateCents = r->nightlyRateCents;
       z.nightlyRate = z.nightlyRateCents / 100.0;
+      const GuestId leaderId = nextId++;
+      auto leaderProfile =
+          generateGuestProfile(seed, leaderId, guestDefinitions);
+      std::size_t memberCount = 1;
+      switch (leaderProfile.archetype) {
+      case GuestArchetype::CoupleLeisure:
+        if (r->beds >= 2)
+          memberCount = 2;
+        break;
+      case GuestArchetype::FamilyLeisure:
+      case GuestArchetype::GroupTourTraveler:
+        if (r->beds >= 2)
+          memberCount = std::min<std::size_t>(
+              static_cast<std::size_t>(r->beds), 4);
+        break;
+      default:
+        break;
+      }
+      std::vector<GuestProfile> profiles;
+      profiles.reserve(memberCount);
+      profiles.push_back(std::move(leaderProfile));
+      for (std::size_t member = 1; member < memberCount; ++member) {
+        const GuestId guestId = nextId++;
+        profiles.push_back(generateGuestProfile(seed, guestId, guestDefinitions));
+      }
+      z.groupId = memberCount > 1 ? nextId++ : 0;
+      z.leaderGuestId = leaderId;
+      std::vector<GuestId> memberIds;
+      memberIds.reserve(memberCount);
+      for (const auto &profile : profiles)
+        memberIds.push_back(profile.id);
+      if (memberCount > 1)
+        profiles.front().ageBand = GuestAgeBand::Adult;
+      for (auto &profile : profiles) {
+        GuestMember member;
+        member.profile = std::move(profile);
+        member.groupId = z.groupId;
+        member.leaderGuestId = leaderId;
+        member.memberIds = memberIds;
+        member.currentGoal = GuestGoal::ReachHotel;
+        if (!transitionGuest(member, GuestLifecycleState::Reserved))
+          throw std::logic_error("new guest could not enter Reserved state");
+        z.guests.push_back(std::move(member));
+      }
       reservations.push_back(z);
       r->status = RoomStatus::Reserved;
       r->reservationId = z.id;
@@ -320,20 +407,26 @@ struct Simulation::Impl {
         if (!r || r->status == RoomStatus::OutOfOrder)
           continue;
         z.arrived = true;
-        Person p;
-        p.id = nextId++;
-        p.name = z.guestName;
-        p.kind = PersonKind::Guest;
-        p.position = entrance();
-        p.destination = frontDesk();
-        p.state = PersonState::Traveling;
-        p.satisfaction = z.satisfaction;
-        p.hunger = 90;
-        p.rest = 90;
-        p.patience = 100;
-        p.goal = "Reach front desk";
-        p.reservation = z.id;
-        people.push_back(p);
+        for (std::size_t i = 0; i < z.guests.size(); ++i) {
+          auto &member = z.guests[i];
+          transitionGuest(member, GuestLifecycleState::TravelingToHotel);
+          member.currentGoal = GuestGoal::ReachHotel;
+          Person p;
+          p.id = member.profile.id;
+          p.name = i == 0 ? z.guestName : "Guest " + std::to_string(p.id);
+          p.kind = PersonKind::Guest;
+          p.position = entrance();
+          p.destination = frontDesk();
+          p.state = PersonState::Traveling;
+          p.satisfaction = z.satisfaction;
+          p.hunger = 90;
+          p.rest = 90;
+          p.patience = 100;
+          p.goal = "Reach front desk";
+          p.guestGoal = GuestGoal::ReachHotel;
+          p.reservation = z.id;
+          people.push_back(p);
+        }
       }
   }
   void beginDepartures(int day) {
@@ -356,11 +449,18 @@ struct Simulation::Impl {
             createTask(TaskKind::Turnover, r->id, r->door, turnoverWork);
           }
         }
+        for (auto &member : z.guests) {
+          transitionGuest(member, GuestLifecycleState::PreparingCheckout);
+          member.currentGoal = GuestGoal::Checkout;
+          member.currentTargetId = 0;
+        }
         for (auto &p : people)
           if (p.reservation == z.id) {
             p.destination = frontDesk();
             p.state = PersonState::Traveling;
             p.goal = "Reach front desk for checkout";
+            p.guestGoal = GuestGoal::Checkout;
+            p.guestTarget = 0;
           }
       }
   }
@@ -386,6 +486,21 @@ struct Simulation::Impl {
     guest.destination = entrance();
     guest.state = PersonState::Traveling;
     guest.goal = "Leave hotel";
+    guest.guestGoal = GuestGoal::LeaveHotel;
+    guest.guestTarget = 0;
+    for (auto &member : z->guests) {
+      transitionGuest(member, GuestLifecycleState::Departing);
+      member.currentGoal = GuestGoal::LeaveHotel;
+      member.currentTargetId = 0;
+    }
+    for (auto &person : people)
+      if (person.reservation == z->id && person.id != guest.id) {
+        person.destination = entrance();
+        person.state = PersonState::Traveling;
+        person.goal = "Leave hotel";
+        person.guestGoal = GuestGoal::LeaveHotel;
+        person.guestTarget = 0;
+      }
   }
   bool shiftActive(const Person &p, int hour) const {
     if (p.shiftStartHour == p.shiftEndHour)
@@ -733,15 +848,27 @@ struct Simulation::Impl {
       }
       if (task.kind == TaskKind::CheckIn) {
         if (auto *guest = getPerson(task.targetId)) {
-          for (auto &reservation : reservations)
-            if (reservation.id == guest->reservation) {
-              if (auto *room = getRoom(reservation.roomId)) {
-                guest->destination = room->door;
-                guest->state = PersonState::Traveling;
-                guest->goal = "Reach assigned room";
-                reservation.checkedIn = true;
-                room->status = RoomStatus::Occupied;
+          if (auto *reservation = getReservation(guest->reservation)) {
+            if (auto *room = getRoom(reservation->roomId)) {
+              reservation->checkedIn = true;
+              room->status = RoomStatus::Occupied;
+              for (auto &member : reservation->guests) {
+                if (member.lifecycle == GuestLifecycleState::TravelingToHotel)
+                  transitionGuest(member, GuestLifecycleState::Arriving);
+                if (member.lifecycle == GuestLifecycleState::Arriving)
+                  transitionGuest(member, GuestLifecycleState::AwaitingCheckIn);
+                transitionGuest(member, GuestLifecycleState::CheckedIn);
+                member.currentGoal = GuestGoal::ReachRoom;
+                member.currentTargetId = room->id;
               }
+              for (auto &person : people)
+                if (person.reservation == reservation->id) {
+                  person.destination = room->door;
+                  person.state = PersonState::Traveling;
+                  person.goal = "Reach assigned room";
+                  person.guestGoal = GuestGoal::ReachRoom;
+                  person.guestTarget = room->id;
+                }
             }
         }
       }
@@ -840,13 +967,19 @@ struct Simulation::Impl {
     const int hour = static_cast<int>((elapsed / 3600) % 24);
     for (auto &p : people)
       if (p.kind == PersonKind::Guest && p.state != PersonState::CheckedOut) {
+        auto *reservation = getReservation(p.reservation);
+        auto *member = reservation ? getGuestMember(*reservation, p.id) : nullptr;
         if (p.state == PersonState::Sleeping && hour >= 7 && hour < 22) {
           p.state = PersonState::Idle;
           p.goal = "Relax in room";
+          p.guestGoal = GuestGoal::Relax;
         } else if (p.state == PersonState::Idle && (hour >= 22 || hour < 7)) {
           p.state = PersonState::Sleeping;
           p.goal = "Sleep in room";
+          p.guestGoal = GuestGoal::Sleep;
         }
+        if (member && member->lifecycle == GuestLifecycleState::InStay)
+          setGuestGoal(*reservation, p.id, p.guestGoal, reservation->roomId);
         if (p.state == PersonState::Sleeping)
           p.rest = std::min(100.0, p.rest + 22.0 / 3600.0);
         else {
@@ -868,20 +1001,46 @@ struct Simulation::Impl {
             if (p.goal == "Reach front desk") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for check-in";
-              createTask(TaskKind::CheckIn, p.id, frontDesk(), checkInWork);
+              p.guestGoal = GuestGoal::CheckIn;
+              if (reservation && member) {
+                if (member->lifecycle == GuestLifecycleState::TravelingToHotel)
+                  transitionGuest(*member, GuestLifecycleState::Arriving);
+                if (member->lifecycle == GuestLifecycleState::Arriving)
+                  transitionGuest(*member, GuestLifecycleState::AwaitingCheckIn);
+                setGuestGoal(*reservation, p.id, GuestGoal::CheckIn);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckIn, p.id, frontDesk(), checkInWork);
+              }
             } else if (p.goal == "Reach front desk for checkout") {
               p.state = PersonState::Waiting;
               p.goal = "Wait for checkout";
-              createTask(TaskKind::CheckOut, p.id, frontDesk(),
-                         checkInWork * 0.6);
+              p.guestGoal = GuestGoal::Checkout;
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::AwaitingCheckout);
+                setGuestGoal(*reservation, p.id, GuestGoal::Checkout);
+                if (p.id == reservation->leaderGuestId)
+                  createTask(TaskKind::CheckOut, p.id, frontDesk(),
+                             checkInWork * 0.6);
+              }
             } else if (p.goal == "Leave hotel") {
               p.state = PersonState::CheckedOut;
               p.goal = "Departed";
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::CompletedStay);
+                setGuestGoal(*reservation, p.id, GuestGoal::LeaveHotel);
+              }
             } else {
               p.state = hour >= 7 && hour < 22 ? PersonState::Idle
                                                : PersonState::Sleeping;
               p.goal = p.state == PersonState::Sleeping ? "Sleep in room"
                                                         : "Relax in room";
+              p.guestGoal = p.state == PersonState::Sleeping ? GuestGoal::Sleep
+                                                              : GuestGoal::Relax;
+              if (reservation && member) {
+                transitionGuest(*member, GuestLifecycleState::InStay);
+                setGuestGoal(*reservation, p.id, p.guestGoal,
+                             reservation->roomId);
+              }
             }
           }
         } else if (p.state == PersonState::Waiting) {
@@ -890,9 +1049,8 @@ struct Simulation::Impl {
           if (p.queueWaitSeconds > 8 * 60)
             p.satisfaction = std::max(0.0, p.satisfaction - 0.6 / 60.0);
         }
-        for (auto &z : reservations)
-          if (z.id == p.reservation)
-            z.satisfaction = p.satisfaction;
+        if (reservation)
+          reservation->satisfaction = p.satisfaction;
       }
   }
   void compactTransientState() {
@@ -1910,6 +2068,28 @@ SimulationView Simulation::view() const {
     v.reservations.push_back(r);
   for (auto &r : impl_->completedReservationHistory)
     v.reservations.push_back(r);
+  const auto appendGuestViews = [&](const Reservation &reservation) {
+    for (const auto &member : reservation.guests) {
+      GuestView guest;
+      guest.profile = member.profile;
+      guest.reservationId = reservation.id;
+      guest.groupId = member.groupId;
+      guest.leaderGuestId = member.leaderGuestId;
+      guest.memberIds = member.memberIds;
+      guest.lifecycle = member.lifecycle;
+      guest.currentGoal = member.currentGoal;
+      guest.currentTargetId = member.currentTargetId;
+      guest.currentGoalUtility = member.currentGoalUtility;
+      v.guests.push_back(std::move(guest));
+    }
+  };
+  for (const auto &r : impl_->reservations)
+    appendGuestViews(r);
+  for (const auto &r : impl_->completedReservationHistory)
+    appendGuestViews(r);
+  std::sort(v.guests.begin(), v.guests.end(), [](const auto &a, const auto &b) {
+    return a.profile.id < b.profile.id;
+  });
   for (auto &t : impl_->tasks)
     v.tasks.push_back(t);
   for (auto &t : impl_->completedTaskHistory)
