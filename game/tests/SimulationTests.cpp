@@ -1,6 +1,7 @@
 #include "hh/game/Simulation.h"
 #include "hh/game/GuestModel.h"
 #include "hh/game/GuestExperience.h"
+#include <algorithm>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -387,6 +388,140 @@ static void complaint_recovery_cannot_refund_twice() {
           "closed complaint was refunded a second time");
   require(s.view().economy.cashCents == cashAfter,
           "duplicate recovery changed the cash ledger twice");
+}
+
+static void guest_snapshot_contains_required_diagnostics() {
+  auto s = hotel_with_group_booking();
+  auto before = s.view();
+  const auto guestId = firstGuest(before).profile.id;
+  auto event = simulation_experience_event(
+      before, firstGuest(before), 71001,
+      GuestExperienceEventType::ExcellentRoomCleanliness,
+      GuestCategory::Cleanliness, 35.0);
+  require(s.reportGuestExperience(event).ok,
+          "snapshot memory event was rejected");
+
+  const auto view = s.view();
+  const GuestView *selected = nullptr;
+  for (const auto &guest : view.guests)
+    if (guest.profile.id == guestId)
+      selected = &guest;
+  require(selected != nullptr, "guest snapshot omitted the selected guest");
+  require(selected->profile.archetype < GuestArchetype::Count &&
+              selected->memberIds.size() >= 1 &&
+              selected->leaderGuestId != 0 &&
+              selected->lifecycle < GuestLifecycleState::Count,
+          "guest snapshot omitted profile, group, or lifecycle diagnostics");
+  require(selected->currentGoal < GuestGoal::Count &&
+              std::isfinite(selected->currentGoalUtility) &&
+              selected->queueToleranceMinutes > 0.0,
+          "guest snapshot omitted goal utility or queue tolerance");
+  require(selected->activeMemories.size() == 1 &&
+              selected->activeMemories.front().eventId == event.eventId,
+          "guest snapshot omitted its active experience memory");
+  require(selected->reviewRatingMinimum == 1.0 &&
+              selected->reviewRatingMaximum == 10.0 &&
+              selected->reviewScoreNoiseRange >= 0.0,
+          "guest snapshot omitted its review rating range");
+  require(!selected->marketReferenceNightlyRateCents.has_value() &&
+              !selected->measuredRoomNoise.has_value(),
+          "guest snapshot invented unavailable market or noise inputs");
+}
+
+static void guest_snapshot_orders_members_and_memories_stably() {
+  auto s = hotel_with_group_booking();
+  auto before = s.view();
+  GuestView grouped;
+  for (const auto &guest : before.guests)
+    if (guest.groupId != 0 && guest.memberIds.size() >= 2) {
+      grouped = guest;
+      break;
+    }
+  require(grouped.groupId != 0, "snapshot ordering fixture has no guest group");
+  auto first = simulation_experience_event(
+      before, grouped, 71011, GuestExperienceEventType::StaffExceptionalService,
+      GuestCategory::Service, 25.0);
+  auto second = simulation_experience_event(
+      before, grouped, 71012,
+      GuestExperienceEventType::ExcellentRoomCleanliness,
+      GuestCategory::Cleanliness, 35.0);
+  require(s.reportGuestExperience(first).ok &&
+              s.reportGuestExperience(second).ok,
+          "snapshot ordering events were rejected");
+
+  const auto view = s.view();
+  require(std::is_sorted(view.guests.begin(), view.guests.end(),
+                         [](const auto &a, const auto &b) {
+                           return a.profile.id < b.profile.id;
+                         }),
+          "guest snapshot order changed across equivalent reads");
+  for (const auto &guest : view.guests) {
+    require(std::is_sorted(guest.memberIds.begin(), guest.memberIds.end()),
+            "group members are not in stable identity order");
+    require(std::is_sorted(guest.activeMemories.begin(),
+                           guest.activeMemories.end(),
+                           [](const auto &a, const auto &b) {
+                             if (a.timestampSeconds != b.timestampSeconds)
+                               return a.timestampSeconds < b.timestampSeconds;
+                             return a.id < b.id;
+                           }),
+            "active memories are not in stable chronological order");
+  }
+}
+
+static void guest_recovery_command_changes_only_the_selected_complaint() {
+  auto s = guest_integration_hotel(711);
+  const auto before = s.view();
+  require(before.guests.size() >= 2,
+          "targeted recovery fixture needs two guests");
+  const auto firstId = before.guests[0].profile.id;
+  const auto secondId = before.guests[1].profile.id;
+  auto firstEvent = simulation_experience_event(
+      before, before.guests[0], 71101, GuestExperienceEventType::StaffRudeness,
+      GuestCategory::Service, -80.0);
+  auto secondEvent = simulation_experience_event(
+      before, before.guests[1], 71102, GuestExperienceEventType::StaffRudeness,
+      GuestCategory::Service, -80.0);
+  require(s.reportGuestExperience(firstEvent).ok &&
+              s.reportGuestExperience(secondEvent).ok,
+          "targeted recovery complaints could not be created");
+  const auto complaints = s.view();
+  EntityId firstComplaint{}, secondComplaint{};
+  for (const auto &guest : complaints.guests)
+    for (const auto &complaint : guest.experience.complaints)
+      if (complaint.open && guest.profile.id == firstId)
+        firstComplaint = complaint.id;
+      else if (complaint.open && guest.profile.id == secondId)
+        secondComplaint = complaint.id;
+  require(firstComplaint != 0 && secondComplaint != 0,
+          "both guests did not receive independent complaints");
+  require(s.resolveGuestComplaint(firstId, firstComplaint,
+                                  GuestRecoveryOption::ApologyOnly)
+              .ok,
+          "selected complaint recovery failed");
+  const auto after = s.view();
+  bool firstClosed = false, secondOpen = false;
+  for (const auto &guest : after.guests)
+    for (const auto &complaint : guest.experience.complaints) {
+      if (guest.profile.id == firstId && complaint.id == firstComplaint)
+        firstClosed = !complaint.open;
+      if (guest.profile.id == secondId && complaint.id == secondComplaint)
+        secondOpen = complaint.open;
+    }
+  require(firstClosed && secondOpen,
+          "recovery changed a complaint other than the selected guest's");
+}
+
+static void review_view_exposes_rating_and_overall_satisfaction_separately() {
+  auto s = Simulation::tutorial(9);
+  s.step(5 * 86400.0);
+  const auto view = s.view();
+  require(!view.reviews.empty(), "review snapshot fixture produced no reviews");
+  for (const auto &review : view.reviews)
+    require(review.rating >= 1.0 && review.rating <= 10.0 &&
+                review.overallSatisfaction >= 0.0 &&
+                review.overallSatisfaction <= 100.0,
+            "review rating and reputation satisfaction were conflated");
 }
 
 static void construction_and_routes() {
@@ -1089,6 +1224,10 @@ int main() {
     missing_food_venue_leaves_need_unserved_without_fake_completion();
     unknown_guest_experience_event_is_rejected();
     complaint_recovery_cannot_refund_twice();
+    guest_snapshot_contains_required_diagnostics();
+    guest_snapshot_orders_members_and_memories_stably();
+    guest_recovery_command_changes_only_the_selected_complaint();
+    review_view_exposes_rating_and_overall_satisfaction_separately();
     long_campaign_bounds_transient_history();
     payroll_uses_exact_integer_currency_units();
     fatigue_tracks_work_instead_of_idle_shift_time();
