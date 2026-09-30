@@ -442,7 +442,7 @@ static void guest_snapshot_orders_members_and_memories_stably() {
       before, grouped, 71011, GuestExperienceEventType::StaffExceptionalService,
       GuestCategory::Service, 25.0);
   auto second = simulation_experience_event(
-      before, grouped, 71012,
+      before, grouped, 72012,
       GuestExperienceEventType::ExcellentRoomCleanliness,
       GuestCategory::Cleanliness, 35.0);
   require(s.reportGuestExperience(first).ok &&
@@ -480,7 +480,7 @@ static void guest_recovery_command_changes_only_the_selected_complaint() {
       before, before.guests[0], 71101, GuestExperienceEventType::StaffRudeness,
       GuestCategory::Service, -80.0);
   auto secondEvent = simulation_experience_event(
-      before, before.guests[1], 71102, GuestExperienceEventType::StaffRudeness,
+      before, before.guests[1], 72102, GuestExperienceEventType::StaffRudeness,
       GuestCategory::Service, -80.0);
   require(s.reportGuestExperience(firstEvent).ok &&
               s.reportGuestExperience(secondEvent).ok,
@@ -1257,4 +1257,3 @@ int main() {
   }
   std::cout << "All simulation behavior tests passed\n";
 }
-

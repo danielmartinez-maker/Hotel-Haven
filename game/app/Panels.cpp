@@ -72,6 +72,16 @@ std::wstring guestArchetypeName(GuestArchetype archetype) {
   }
   return L"Guest";
 }
+std::wstring guestWealthBandName(GuestWealthBand wealth) {
+  switch (wealth) {
+  case GuestWealthBand::Budget: return L"Budget";
+  case GuestWealthBand::Standard: return L"Standard";
+  case GuestWealthBand::Affluent: return L"Affluent";
+  case GuestWealthBand::Luxury: return L"Luxury";
+  case GuestWealthBand::Count: break;
+  }
+  return L"Unclassified";
+}
 std::wstring guestLifecycleName(GuestLifecycleState state) {
   switch (state) {
   case GuestLifecycleState::Prospective: return L"Prospective";
@@ -468,6 +478,7 @@ void Client::paint(HDC output) {
       const auto &guest = **selectedIt;
       paragraph(L"Guest #" + std::to_wstring(guest.profile.id) + L" · " +
                     guestArchetypeName(guest.profile.archetype) + L" · " +
+                    guestWealthBandName(guest.profile.wealthBand) + L" · " +
                     money(guest.profile.budgetPerNightCents) + L" / night",
                 36);
       if (guestInspectorTab == GuestInspectorTab::Overview) {
@@ -592,7 +603,7 @@ void Client::paint(HDC output) {
         if (openComplaint && y + 76 < bottom) {
           const std::array<std::pair<std::wstring, GuestRecoveryOption>, 3>
               recoveryOptions = {{{L"Apologize", GuestRecoveryOption::ApologyOnly},
-                                  {L"Upgrade", GuestRecoveryOption::RoomUpgrade},
+                                  {L"Half refund", GuestRecoveryOption::PartialRoomRefund},
                                   {L"Refund", GuestRecoveryOption::FullNightRefund}}};
           for (std::size_t i = 0; i < recoveryOptions.size(); ++i)
             button(left + static_cast<int>(i) * 104, y, 100, 30,
@@ -794,4 +805,3 @@ void Client::paint(HDC output) {
   DeleteDC(dc);
 }
 } // namespace hh::client
-
