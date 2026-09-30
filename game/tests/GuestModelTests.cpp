@@ -129,6 +129,11 @@ static void profile_definitions_reject_invalid_ranges() {
   definitions.traits[0].effects.queueToleranceMultiplier = 4.5;
   require(!validateGuestModelDefinitions(definitions, &error),
           "out-of-range guest trait modifier was accepted");
+
+  definitions = defaultGuestModelDefinitions();
+  definitions.needTuning.sleepNoiseSampleIntervalSeconds = 0.0;
+  require(!validateGuestModelDefinitions(definitions, &error),
+          "invalid guest sleep sampling interval was accepted");
 }
 
 static void lifecycle_accepts_only_canonical_transitions() {
@@ -197,6 +202,23 @@ static void needs_decay_and_sleep_recovery_stay_in_range() {
   require(sleeping.values[static_cast<std::size_t>(GuestNeed::Energy)] <= 100.0,
           "sleep recovery exceeded the need range");
 
+  needs.values[static_cast<std::size_t>(GuestNeed::Energy)] = 50.0;
+  needs.energyPauseRemainingSeconds = 1800.0;
+  const auto interruptedSleep = updateGuestNeeds(
+      needs, profile, GuestActivity::Sleeping, 3600.0, definitions);
+  require(interruptedSleep.values[static_cast<std::size_t>(GuestNeed::Energy)] ==
+              61.0,
+          "sleep recovery did not resume after a noise interruption");
+  require(interruptedSleep.energyPauseRemainingSeconds == 0.0,
+          "expired sleep interruption remained active");
+
+  needs.values.fill(100.0);
+  const auto exercised = updateGuestNeeds(needs, profile, GuestActivity::Exercise,
+                                          3600.0, definitions);
+  require(exercised.values[static_cast<std::size_t>(GuestNeed::Hygiene)] ==
+              93.0,
+          "exercise did not add the configured hygiene penalty");
+
   needs.values.fill(0.0);
   const auto lowerBounded = updateGuestNeeds(needs, profile, GuestActivity::Idle,
                                              3600.0, definitions);
@@ -227,6 +249,25 @@ static void group_action_requires_utility_within_30_percent() {
           "member accepted a group action below the 30-percent boundary");
   require(groupAcceptsGoal(0.0, 0.0),
           "zero-utility group action was rejected with no alternative");
+}
+
+static void perceptions_use_only_supplied_bounded_evidence() {
+  GuestOperationalPerceptions current;
+  current.serviceConfidence = 63.0;
+  current.cleanlinessConfidence = 52.0;
+  GuestPerceptionEvidence evidence;
+  evidence.serviceConfidence = 120.0;
+  evidence.environmentComfort = 24.0;
+  evidence.valuePerception = std::numeric_limits<double>::quiet_NaN();
+  const auto updated = updateGuestPerceptions(current, evidence);
+  require(updated.serviceConfidence == 100.0,
+          "service evidence was not bounded to 0..100");
+  require(updated.cleanlinessConfidence == 52.0,
+          "missing cleanliness evidence changed the perception");
+  require(updated.environmentComfort == 24.0,
+          "provided environment evidence was ignored");
+  require(updated.valuePerception == 50.0,
+          "invalid value evidence fabricated a market perception");
 }
 
 static void selector_skips_unavailable_unreachable_and_over_budget_candidates() {
@@ -266,6 +307,15 @@ static void selector_skips_unavailable_unreachable_and_over_budget_candidates() 
   require(selected->targetId == viable.targetId &&
               selected->goal == GuestGoal::Eat,
           "selector chose an unavailable, unreachable, or unaffordable goal");
+
+  auto tiedHigherId = viable;
+  tiedHigherId.targetId = 20;
+  auto tiedLowerId = viable;
+  tiedLowerId.targetId = 19;
+  const std::array tied{tiedHigherId, tiedLowerId};
+  const auto stable = selectGuestGoal(profile, needs, tied, std::nullopt);
+  require(stable && stable->targetId == 19,
+          "equal-utility goals did not use the stable target-id tie break");
 }
 
 static void mandatory_goal_overrides_discretionary_goal() {
@@ -305,13 +355,17 @@ static void noise_sampling_requires_a_measured_sample_and_disrupts_for_five_minu
   std::uint64_t randomState = 42;
 
   const auto absent = updateGuestSleepingNoise(state, profile, std::nullopt,
-                                               300.0, randomState);
+                                               300.0, randomState,
+                                               defaultGuestModelDefinitions()
+                                                   .needTuning);
   require(!absent.sampled && !absent.disrupted &&
               !absent.negativeMemoryAdded && !absent.energyGainPaused,
           "missing room-noise evidence created a guest experience");
 
   const auto measured = updateGuestSleepingNoise(state, profile, 100.0, 300.0,
-                                                randomState);
+                                                randomState,
+                                                defaultGuestModelDefinitions()
+                                                    .needTuning);
   require(measured.sampled,
           "measured room noise was not sampled after five simulation minutes");
   require(measured.disrupted && measured.negativeMemoryAdded,
@@ -319,6 +373,12 @@ static void noise_sampling_requires_a_measured_sample_and_disrupts_for_five_minu
   require(state.energyPauseRemainingSeconds == 300.0 &&
               measured.energyGainPaused,
           "noise disruption did not pause sleep recovery for five minutes");
+
+  const auto repeated = updateGuestSleepingNoise(
+      state, profile, 100.0, 600.0, randomState,
+      defaultGuestModelDefinitions().needTuning);
+  require(repeated.disruptionCount == 2 && repeated.complaintEligible,
+          "three disruptions within an hour did not become complaint eligible");
 }
 
 int main() {
@@ -333,6 +393,7 @@ int main() {
     needs_decay_and_sleep_recovery_stay_in_range();
     children_cannot_accept_independent_lifecycle_goal();
     group_action_requires_utility_within_30_percent();
+    perceptions_use_only_supplied_bounded_evidence();
     selector_skips_unavailable_unreachable_and_over_budget_candidates();
     mandatory_goal_overrides_discretionary_goal();
     queue_tolerance_uses_patience_segment_and_urgency();

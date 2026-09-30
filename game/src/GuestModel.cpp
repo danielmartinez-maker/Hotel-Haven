@@ -5,6 +5,8 @@
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <tuple>
+#include <utility>
 
 namespace hh::game {
 namespace {
@@ -128,6 +130,75 @@ void setRoom(GuestArchetypeDefinition &definition,
 void setExpectation(GuestArchetypeDefinition &definition,
                     GuestCategory category, double value) {
   definition.expectationMean[static_cast<std::size_t>(category)] = value;
+}
+
+bool validNeedTuning(const GuestNeedTuning &tuning) noexcept {
+  const std::array rates{
+      tuning.awakeEnergyDecayPerHour,
+      tuning.awakeHungerDecayPerHour,
+      tuning.hygieneDecayPerHour,
+      tuning.idleEntertainmentDecayPerHour,
+      tuning.socialGuestDecayPerHour,
+      tuning.privateGuestDecayPerHour,
+      tuning.sleepingEnergyRecoveryPerHour,
+      tuning.exerciseHygienePenaltyPerHour};
+  for (const auto rate : rates)
+    if (!std::isfinite(rate) || rate < 0.0 || rate > 1000.0)
+      return false;
+  return std::isfinite(tuning.sleepNoiseThresholdDb) &&
+         tuning.sleepNoiseThresholdDb >= 0.0 &&
+         tuning.sleepNoiseThresholdDb <= 100.0 &&
+         std::isfinite(tuning.noiseSensitivityThresholdOffsetDb) &&
+         tuning.noiseSensitivityThresholdOffsetDb >= 0.0 &&
+         tuning.noiseSensitivityThresholdOffsetDb <= 100.0 &&
+         std::isfinite(tuning.sleepNoiseSampleIntervalSeconds) &&
+         tuning.sleepNoiseSampleIntervalSeconds > 0.0 &&
+         tuning.sleepNoiseSampleIntervalSeconds <= 3600.0 &&
+         std::isfinite(tuning.sleepNoiseDisruptionSeconds) &&
+         tuning.sleepNoiseDisruptionSeconds > 0.0 &&
+         tuning.sleepNoiseDisruptionSeconds <= 3600.0 &&
+         std::isfinite(tuning.noiseComplaintWindowSeconds) &&
+         tuning.noiseComplaintWindowSeconds > 0.0 &&
+         tuning.noiseComplaintWindowSeconds <= 86400.0 &&
+         tuning.noiseDisruptionsForComplaint >= 1 &&
+         tuning.noiseDisruptionsForComplaint <= 3;
+}
+
+double boundedNeed(double value) noexcept {
+  if (!std::isfinite(value))
+    return 0.0;
+  return std::clamp(value, 0.0, 100.0);
+}
+
+bool validEnum(GuestNeed value) noexcept {
+  return static_cast<std::size_t>(value) < GuestNeedCount;
+}
+
+bool validEnum(GuestGoal value) noexcept {
+  return static_cast<std::size_t>(value) <
+         static_cast<std::size_t>(GuestGoal::Count);
+}
+
+bool validEnum(GuestActivity value) noexcept {
+  return static_cast<std::size_t>(value) <
+         static_cast<std::size_t>(GuestActivity::Count);
+}
+
+bool validLifecycleState(GuestLifecycleState value) noexcept {
+  return static_cast<std::size_t>(value) <
+         static_cast<std::size_t>(GuestLifecycleState::Count);
+}
+
+bool lifecycleGoal(GuestGoal goal) noexcept {
+  return goal == GuestGoal::ReachHotel || goal == GuestGoal::CheckIn ||
+         goal == GuestGoal::ReachRoom || goal == GuestGoal::Checkout ||
+         goal == GuestGoal::LeaveHotel;
+}
+
+void setPerception(double &value, const std::optional<double> &evidence) noexcept {
+  value = boundedNeed(value);
+  if (evidence && std::isfinite(*evidence))
+    value = std::clamp(*evidence, 0.0, 100.0);
 }
 
 } // namespace
@@ -551,7 +622,362 @@ bool validateGuestModelDefinitions(const GuestModelDefinitions &definitions,
   }
   if (!std::isfinite(categoryWeightTotal) || categoryWeightTotal <= 0.0)
     return fail("guest category weights must have a positive finite sum");
+  if (!validNeedTuning(definitions.needTuning))
+    return fail("guest need and sleep tuning is out of range");
   return true;
+}
+
+bool canTransitionGuest(GuestLifecycleState from,
+                        GuestLifecycleState to) noexcept {
+  if (!validLifecycleState(from) || !validLifecycleState(to))
+    return false;
+  switch (from) {
+  case GuestLifecycleState::Prospective:
+    return to == GuestLifecycleState::Reserved;
+  case GuestLifecycleState::Reserved:
+    return to == GuestLifecycleState::TravelingToHotel ||
+           to == GuestLifecycleState::Cancelled ||
+           to == GuestLifecycleState::NoShow;
+  case GuestLifecycleState::TravelingToHotel:
+    return to == GuestLifecycleState::Arriving;
+  case GuestLifecycleState::Arriving:
+    return to == GuestLifecycleState::AwaitingCheckIn;
+  case GuestLifecycleState::AwaitingCheckIn:
+    return to == GuestLifecycleState::CheckedIn ||
+           to == GuestLifecycleState::WalkedRelocated;
+  case GuestLifecycleState::CheckedIn:
+    return to == GuestLifecycleState::InStay;
+  case GuestLifecycleState::InStay:
+    return to == GuestLifecycleState::PreparingCheckout;
+  case GuestLifecycleState::PreparingCheckout:
+    return to == GuestLifecycleState::AwaitingCheckout;
+  case GuestLifecycleState::AwaitingCheckout:
+    return to == GuestLifecycleState::Departing;
+  case GuestLifecycleState::Departing:
+    return to == GuestLifecycleState::CompletedStay;
+  case GuestLifecycleState::CompletedStay:
+  case GuestLifecycleState::Cancelled:
+  case GuestLifecycleState::NoShow:
+  case GuestLifecycleState::WalkedRelocated:
+  case GuestLifecycleState::Count:
+    return false;
+  }
+  return false;
+}
+
+double guestNeedPressure(double satisfiedScore) noexcept {
+  if (!std::isfinite(satisfiedScore))
+    return 0.0;
+  const double unsatisfied = (100.0 - std::clamp(satisfiedScore, 0.0, 100.0)) /
+                             100.0;
+  return unsatisfied * unsatisfied * 2.0;
+}
+
+GuestNeedState updateGuestNeeds(GuestNeedState current,
+                                const GuestProfile &profile,
+                                GuestActivity activity,
+                                double elapsedSimulationSeconds,
+                                const GuestModelDefinitions &definitions) {
+  for (auto &value : current.values)
+    value = boundedNeed(value);
+  current.perceptions = updateGuestPerceptions(current.perceptions, {});
+  if (!std::isfinite(current.energyPauseRemainingSeconds) ||
+      current.energyPauseRemainingSeconds < 0.0)
+    current.energyPauseRemainingSeconds = 0.0;
+  if (!std::isfinite(elapsedSimulationSeconds) ||
+      elapsedSimulationSeconds <= 0.0 ||
+      !validNeedTuning(definitions.needTuning) || !validEnum(activity))
+    return current;
+
+  const auto addDelta = [](double value, double delta) {
+    const double result = value + delta;
+    if (!std::isfinite(result))
+      return delta > 0.0 ? 100.0 : 0.0;
+    return std::clamp(result, 0.0, 100.0);
+  };
+  const double hours = elapsedSimulationSeconds / 3600.0;
+  const bool sleeping = activity == GuestActivity::Sleeping;
+  const double pauseBeforeUpdate = current.energyPauseRemainingSeconds;
+  current.energyPauseRemainingSeconds =
+      std::max(0.0, pauseBeforeUpdate - elapsedSimulationSeconds);
+
+  auto &energy = current.values[static_cast<std::size_t>(GuestNeed::Energy)];
+  if (sleeping) {
+    const double recoverySeconds =
+        std::max(0.0, elapsedSimulationSeconds - pauseBeforeUpdate);
+    energy = addDelta(energy, definitions.needTuning.sleepingEnergyRecoveryPerHour *
+                                  (recoverySeconds / 3600.0));
+  } else {
+    energy = addDelta(energy,
+                      -definitions.needTuning.awakeEnergyDecayPerHour * hours);
+    auto &hunger =
+        current.values[static_cast<std::size_t>(GuestNeed::Hunger)];
+    hunger = addDelta(hunger,
+                      -definitions.needTuning.awakeHungerDecayPerHour * hours);
+  }
+
+  double hygieneMultiplier = profile.hygieneDecayMultiplier;
+  if (!std::isfinite(hygieneMultiplier) || hygieneMultiplier < 0.0)
+    hygieneMultiplier = 1.0;
+  hygieneMultiplier = std::min(hygieneMultiplier, 16.0);
+  double hygieneDecay = definitions.needTuning.hygieneDecayPerHour;
+  if (activity == GuestActivity::Exercise || activity == GuestActivity::Swim)
+    hygieneDecay += definitions.needTuning.exerciseHygienePenaltyPerHour;
+  auto &hygiene = current.values[static_cast<std::size_t>(GuestNeed::Hygiene)];
+  hygiene = addDelta(hygiene, -hygieneDecay * hygieneMultiplier * hours);
+
+  if (activity == GuestActivity::Idle) {
+    auto &entertainment =
+        current.values[static_cast<std::size_t>(GuestNeed::Entertainment)];
+    entertainment = addDelta(
+        entertainment,
+        -definitions.needTuning.idleEntertainmentDecayPerHour * hours);
+  }
+  if (!sleeping) {
+    const double socialPreference =
+        std::isfinite(profile.socialPreference)
+            ? std::clamp(profile.socialPreference, 0.0, 1.0)
+            : 0.5;
+    const double socialDecay =
+        socialPreference >= 0.5
+            ? definitions.needTuning.socialGuestDecayPerHour
+            : definitions.needTuning.privateGuestDecayPerHour;
+    auto &social = current.values[static_cast<std::size_t>(GuestNeed::Social)];
+    social = addDelta(social, -socialDecay * hours);
+  }
+  return current;
+}
+
+GuestOperationalPerceptions updateGuestPerceptions(
+    GuestOperationalPerceptions current,
+    const GuestPerceptionEvidence &evidence) noexcept {
+  setPerception(current.serviceConfidence, evidence.serviceConfidence);
+  setPerception(current.cleanlinessConfidence,
+                evidence.cleanlinessConfidence);
+  setPerception(current.environmentComfort, evidence.environmentComfort);
+  setPerception(current.valuePerception, evidence.valuePerception);
+  return current;
+}
+
+bool guestCanPerformGoalIndependently(const GuestProfile &profile,
+                                      GuestGoal goal) noexcept {
+  if (!validEnum(goal) ||
+      static_cast<std::size_t>(profile.ageBand) >=
+          static_cast<std::size_t>(GuestAgeBand::Count))
+    return false;
+  return !(profile.ageBand == GuestAgeBand::Child && lifecycleGoal(goal));
+}
+
+bool groupAcceptsGoal(double proposedUtility,
+                      double bestAlternativeUtility) noexcept {
+  return std::isfinite(proposedUtility) && proposedUtility >= 0.0 &&
+         std::isfinite(bestAlternativeUtility) &&
+         bestAlternativeUtility >= 0.0 &&
+         proposedUtility >= bestAlternativeUtility * 0.70;
+}
+
+std::optional<GuestGoalSelection>
+selectGuestGoal(const GuestProfile &profile, const GuestNeedState &needs,
+                std::span<const GuestGoalCandidate> candidates,
+                std::optional<GuestGoal> mandatoryGoal) {
+  if (mandatoryGoal) {
+    if (!validEnum(*mandatoryGoal) ||
+        !guestCanPerformGoalIndependently(profile, *mandatoryGoal))
+      return std::nullopt;
+    GuestGoalSelection selection;
+    selection.goal = *mandatoryGoal;
+    selection.mandatory = true;
+    return selection;
+  }
+
+  constexpr double kMaximumFactor = 1.5;
+  const auto validFactor = [=](double factor) {
+    return std::isfinite(factor) && factor >= 0.0 &&
+           factor <= kMaximumFactor;
+  };
+  std::optional<GuestGoalSelection> best;
+  for (const auto &candidate : candidates) {
+    if (!validEnum(candidate.goal) || !validEnum(candidate.requiredNeed) ||
+        !guestCanPerformGoalIndependently(profile, candidate.goal) ||
+        !candidate.available || !candidate.reachable ||
+        !candidate.budgetCompatible || !candidate.timeCompatible ||
+        !candidate.groupCompatible ||
+        !validFactor(candidate.preference) ||
+        !validFactor(candidate.availabilityFactor) ||
+        !validFactor(candidate.timeCompatibility) ||
+        !validFactor(candidate.budgetCompatibility) ||
+        !validFactor(candidate.groupCompatibility) ||
+        !validFactor(candidate.distanceUtility) ||
+        !validFactor(candidate.moodModifier) ||
+        !std::isfinite(candidate.expectedWaitMinutes) ||
+        candidate.expectedWaitMinutes < 0.0 ||
+        !std::isfinite(candidate.queueToleranceMinutes) ||
+        candidate.queueToleranceMinutes < 0.0 ||
+        candidate.expectedWaitMinutes > candidate.queueToleranceMinutes)
+      continue;
+
+    const auto needIndex = static_cast<std::size_t>(candidate.requiredNeed);
+    const double pressure = guestNeedPressure(needs.values[needIndex]);
+    const double utility = pressure * candidate.preference *
+                           candidate.availabilityFactor *
+                           candidate.timeCompatibility *
+                           candidate.budgetCompatibility *
+                           candidate.groupCompatibility *
+                           candidate.distanceUtility * candidate.moodModifier;
+    if (!std::isfinite(utility) || utility <= 0.0)
+      continue;
+
+    GuestGoalSelection selection;
+    selection.goal = candidate.goal;
+    selection.targetId = candidate.targetId;
+    selection.utility = utility;
+    selection.needPressure = pressure;
+    selection.preference = candidate.preference;
+    selection.availabilityFactor = candidate.availabilityFactor;
+    selection.timeCompatibility = candidate.timeCompatibility;
+    selection.budgetCompatibility = candidate.budgetCompatibility;
+    selection.groupCompatibility = candidate.groupCompatibility;
+    selection.distanceUtility = candidate.distanceUtility;
+    selection.moodModifier = candidate.moodModifier;
+    selection.expectedWaitMinutes = candidate.expectedWaitMinutes;
+
+    const auto isBetter = [&] {
+      if (!best || selection.utility > best->utility)
+        return true;
+      if (selection.utility < best->utility)
+        return false;
+      if (selection.goal != best->goal)
+        return static_cast<std::size_t>(selection.goal) <
+               static_cast<std::size_t>(best->goal);
+      return selection.targetId < best->targetId;
+    };
+    if (isBetter())
+      best = selection;
+  }
+  return best;
+}
+
+double guestQueueToleranceMinutes(double baseToleranceMinutes,
+                                  const GuestProfile &profile,
+                                  double segmentModifier,
+                                  double urgencyModifier) noexcept {
+  if (!std::isfinite(baseToleranceMinutes) || baseToleranceMinutes < 0.0 ||
+      !std::isfinite(segmentModifier) || segmentModifier < 0.0 ||
+      !std::isfinite(urgencyModifier) || urgencyModifier < 0.0 ||
+      !std::isfinite(profile.queueToleranceMultiplier) ||
+      profile.queueToleranceMultiplier < 0.0)
+    return 0.0;
+  const double patience = std::isfinite(profile.patience)
+                               ? std::clamp(profile.patience, 0.0, 1.0)
+                               : 0.0;
+  const double tolerance = baseToleranceMinutes * (0.5 + patience) *
+                           segmentModifier * urgencyModifier *
+                           profile.queueToleranceMultiplier;
+  return std::isfinite(tolerance) ? tolerance : 0.0;
+}
+
+GuestSleepNoiseUpdate updateGuestSleepingNoise(
+    GuestNeedState &state, const GuestProfile &profile,
+    std::optional<double> effectiveNoiseDb, double elapsedSimulationSeconds,
+    std::uint64_t &guestRandomState,
+    const GuestNeedTuning &tuning) noexcept {
+  GuestSleepNoiseUpdate result;
+  if (!validNeedTuning(tuning) ||
+      !std::isfinite(elapsedSimulationSeconds) ||
+      elapsedSimulationSeconds <= 0.0)
+    return result;
+
+  const bool measured = effectiveNoiseDb && std::isfinite(*effectiveNoiseDb) &&
+                        *effectiveNoiseDb >= 0.0 && *effectiveNoiseDb <= 140.0;
+  const double interval = tuning.sleepNoiseSampleIntervalSeconds;
+  if (!std::isfinite(state.noiseSampleElapsedSeconds) ||
+      state.noiseSampleElapsedSeconds < 0.0)
+    state.noiseSampleElapsedSeconds = 0.0;
+  state.noiseSampleElapsedSeconds =
+      std::fmod(state.noiseSampleElapsedSeconds, interval);
+  if (!std::isfinite(state.energyPauseRemainingSeconds) ||
+      state.energyPauseRemainingSeconds < 0.0)
+    state.energyPauseRemainingSeconds = 0.0;
+  state.recentNoiseDisruptionCount =
+      std::min(state.recentNoiseDisruptionCount,
+               state.recentNoiseDisruptionAgesSeconds.size());
+
+  const double sensitivity =
+      std::isfinite(profile.sensitivities.noise)
+          ? std::clamp(profile.sensitivities.noise, 0.0, 1.0)
+          : 0.0;
+  const double lightSleepModifier =
+      std::isfinite(profile.lightSleepModifier)
+          ? std::clamp(profile.lightSleepModifier, 0.0, 16.0)
+          : 1.0;
+  const double threshold = std::clamp(
+      tuning.sleepNoiseThresholdDb -
+          sensitivity * tuning.noiseSensitivityThresholdOffsetDb,
+      0.0, 140.0);
+  const double disruptionProbability =
+      measured ? std::clamp((*effectiveNoiseDb - threshold) / 50.0, 0.0, 1.0) *
+                     lightSleepModifier
+               : 0.0;
+
+  const auto advanceTime = [&](double seconds) {
+    std::size_t kept = 0;
+    for (std::size_t i = 0; i < state.recentNoiseDisruptionCount; ++i) {
+      const double age = state.recentNoiseDisruptionAgesSeconds[i] + seconds;
+      if (std::isfinite(age) && age <= tuning.noiseComplaintWindowSeconds)
+        state.recentNoiseDisruptionAgesSeconds[kept++] = age;
+    }
+    state.recentNoiseDisruptionCount = kept;
+  };
+
+  double remaining = elapsedSimulationSeconds;
+  while (remaining > 0.0) {
+    const double untilSample =
+        std::max(0.0, interval - state.noiseSampleElapsedSeconds);
+    const double step = std::min(remaining, untilSample);
+    if (step > 0.0) {
+      advanceTime(step);
+      state.noiseSampleElapsedSeconds += step;
+      remaining -= step;
+    }
+    if (state.noiseSampleElapsedSeconds + 1e-9 < interval)
+      break;
+    state.noiseSampleElapsedSeconds =
+        std::max(0.0, state.noiseSampleElapsedSeconds - interval);
+    if (measured) {
+      result.sampled = true;
+      ++result.sampleCount;
+      if (unitDraw(guestRandomState) < disruptionProbability) {
+        result.disrupted = true;
+        result.negativeMemoryAdded = true;
+        ++result.disruptionCount;
+        state.energyPauseRemainingSeconds =
+            std::max(state.energyPauseRemainingSeconds,
+                     tuning.sleepNoiseDisruptionSeconds);
+        if (state.recentNoiseDisruptionCount ==
+            state.recentNoiseDisruptionAgesSeconds.size()) {
+          std::move(state.recentNoiseDisruptionAgesSeconds.begin() + 1,
+                    state.recentNoiseDisruptionAgesSeconds.end(),
+                    state.recentNoiseDisruptionAgesSeconds.begin());
+          --state.recentNoiseDisruptionCount;
+        }
+        state.recentNoiseDisruptionAgesSeconds[
+            state.recentNoiseDisruptionCount++] = 0.0;
+        if (state.recentNoiseDisruptionCount >=
+            tuning.noiseDisruptionsForComplaint)
+          result.complaintEligible = true;
+      }
+    }
+    if (step == 0.0 && remaining > 0.0) {
+      // The elapsed sample value was at the boundary; the next iteration
+      // must consume time before another sample can be reached.
+      const double nextStep = std::min(remaining, interval);
+      advanceTime(nextStep);
+      state.noiseSampleElapsedSeconds += nextStep;
+      remaining -= nextStep;
+    }
+  }
+  result.energyGainPaused = state.energyPauseRemainingSeconds > 0.0;
+  return result;
 }
 
 GuestProfile generateGuestProfile(std::uint64_t simulationSeed, GuestId guestId,
