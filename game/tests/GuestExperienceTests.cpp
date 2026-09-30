@@ -73,6 +73,9 @@ static void resolved_memory_and_complaint_are_updated_once() {
           "eligible incident did not create a memory and complaint");
   require(state.memories.size() == 1 && state.complaints.size() == 1,
           "incident memory or complaint was duplicated");
+  require(state.events.size() == 1 && state.events.front().observedValue == 40.0 &&
+              state.events.front().expectedValue == 70.0,
+          "recorded event discarded its observed or expected values");
 
   auto recovery = makeEvent(2, 502, GuestExperienceEventType::Recovery,
                             GuestCategory::Service, 10.0, false,
@@ -84,13 +87,14 @@ static void resolved_memory_and_complaint_are_updated_once() {
       profile, state, recovery, defaultGuestExperienceDefinitions(), 101, 0);
   require(resolved.memoryResolved && resolved.complaintResolved,
           "recovery did not resolve the linked memory and complaint");
-  require(state.memories.size() == 2 &&
+  require(state.events.size() == 2 && state.memories.size() == 2 &&
               state.memories.front().magnitude == 35.0,
           "recovery did not reduce the unresolved negative memory once");
 
   const auto repeated = applyGuestExperience(
       profile, state, recovery, defaultGuestExperienceDefinitions(), 102, 0);
-  require(repeated.duplicate && state.memories.size() == 2 &&
+  require(repeated.duplicate && state.events.size() == 2 &&
+              state.memories.size() == 2 &&
               state.memories.front().magnitude == 35.0,
           "repeated recovery event changed a resolved incident twice");
 }
@@ -166,6 +170,7 @@ static void review_probability_and_critic_modifier_are_deterministic() {
   GuestProfile critic;
   critic.archetype = GuestArchetype::CriticReviewer;
   GuestExperienceState state;
+  state.categoryStartingSatisfaction.fill(72.0);
   state.categorySatisfaction.fill(72.0);
   auto definitions = defaultGuestExperienceDefinitions();
   definitions.reviewGenerationProbability = 0.0;

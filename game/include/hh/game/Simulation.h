@@ -4,6 +4,7 @@
 #include "hh/game/Departments.h"
 #include "hh/game/StaffOptimization.h"
 #include "hh/game/Workforce.h"
+#include "hh/game/ServiceTypes.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -11,8 +12,6 @@
 #include <vector>
 
 namespace hh::game {
-
-using EntityId = std::uint64_t;
 
 struct Position {
   int floor{};

@@ -4,6 +4,7 @@
 
 namespace hh::game {
 
+using EntityId = std::uint64_t;
 using ServiceId = std::uint64_t;
 using RoomId = ServiceId;
 using TaskId = ServiceId;

@@ -12,6 +12,7 @@ add_library(hh_game
   src/Departments.cpp
   src/StaffOptimization.cpp
   src/GuestModel.cpp
+  src/GuestExperience.cpp
 )
 target_include_directories(hh_game PUBLIC include)
 target_link_libraries(hh_game PRIVATE hh_assets)
