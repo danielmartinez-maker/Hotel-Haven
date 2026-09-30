@@ -28,7 +28,11 @@ static bool hasNumericEffect(const GuestTraitEffects &effect) {
       effect.queueToleranceMultiplier != 1.0 ||
       effect.negativeMemoryReviewWeightMultiplier != 1.0 ||
       effect.lightSleepModifier != 1.0 ||
+      effect.hygieneDecayMultiplier != 1.0 ||
       effect.complaintThresholdDelta != 0.0)
+    return true;
+  if (nonzero(effect.morningPreferenceDelta) ||
+      nonzero(effect.eveningPreferenceDelta))
     return true;
   for (const auto value : effect.activityPreferenceDelta)
     if (nonzero(value))
